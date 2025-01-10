@@ -48,10 +48,14 @@ export default function CreateListing() {
 
   useEffect(() => {
     if (!user) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous devez être connecté pour créer une annonce",
+        variant: "destructive",
+      });
       navigate("/auth");
-      return;
     }
-  }, [user, navigate]);
+  }, [user, navigate, toast]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,7 +80,7 @@ export default function CreateListing() {
       const fileExt = image.name.split(".").pop();
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("listings-images")
         .upload(filePath, image);
 
@@ -96,6 +100,11 @@ export default function CreateListing() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour créer une annonce",
+        variant: "destructive",
+      });
       navigate("/auth");
       return;
     }
@@ -137,6 +146,8 @@ export default function CreateListing() {
     }
   };
 
+  // Si l'utilisateur n'est pas connecté, on ne rend rien
+  // Le useEffect s'occupera de la redirection
   if (!user) {
     return null;
   }
