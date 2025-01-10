@@ -40,52 +40,18 @@ const categories = [
 ];
 
 export default function CreateListing() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<File[]>([]);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      console.log("Checking auth state:", { user, loading });
-      
-      if (!loading && !user) {
-        console.log("No user found, redirecting to auth");
-        toast({
-          title: "Erreur",
-          description: "Vous devez être connecté pour créer une annonce",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return;
-      }
-
-      if (user) {
-        // Vérifier si le profil existe
-        console.log("Checking profile for user:", user.id);
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        console.log("Profile check result:", { profile, error });
-
-        if (error || !profile) {
-          console.error("Error fetching profile:", error);
-          toast({
-            title: "Erreur",
-            description: "Une erreur est survenue lors de la vérification de votre profil",
-            variant: "destructive",
-          });
-          navigate("/auth");
-        }
-      }
-    };
-
-    checkAuth();
-  }, [user, loading, navigate, toast]);
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+  }, [user, navigate]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -110,14 +76,11 @@ export default function CreateListing() {
       const fileExt = image.name.split(".").pop();
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
-      console.log("Uploading image:", filePath);
-
       const { error: uploadError, data } = await supabase.storage
         .from("listings-images")
         .upload(filePath, image);
 
       if (uploadError) {
-        console.error("Image upload error:", uploadError);
         throw uploadError;
       }
 
@@ -133,24 +96,15 @@ export default function CreateListing() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) {
-      console.error("No user found during submission");
-      toast({
-        title: "Erreur",
-        description: "Vous devez être connecté pour créer une annonce",
-        variant: "destructive",
-      });
+      navigate("/auth");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      console.log("Starting listing creation with user:", user.id);
       
-      // Upload images first
-      const imageUrls = await uploadImages();
-      console.log("Images uploaded successfully:", imageUrls);
+      const imageUrls = images.length > 0 ? await uploadImages() : [];
 
-      // Create the listing
       const { error } = await supabase.from("listings").insert({
         title: values.title,
         description: values.description,
@@ -163,7 +117,6 @@ export default function CreateListing() {
       });
 
       if (error) {
-        console.error("Error creating listing:", error);
         throw error;
       }
 
@@ -174,7 +127,6 @@ export default function CreateListing() {
 
       navigate("/");
     } catch (error) {
-      console.error("Error creating listing:", error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la création de l'annonce",
@@ -184,10 +136,6 @@ export default function CreateListing() {
       setIsSubmitting(false);
     }
   };
-
-  if (loading) {
-    return <div>Chargement...</div>;
-  }
 
   if (!user) {
     return null;
