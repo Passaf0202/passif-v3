@@ -1,65 +1,48 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, User, LogOut } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
-export const Navbar = () => {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    // Check initial auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+export function Navbar() {
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la déconnexion",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <nav className="border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <Link to="/" className="text-2xl font-bold text-primary">
-            MonBonCoin
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            {user ? (
-              <>
-                <Button asChild className="bg-primary hover:bg-primary/90">
-                  <Link to="/create" className="flex items-center gap-2">
-                    <PlusCircle className="h-5 w-5" />
-                    <span>Déposer une annonce</span>
-                  </Link>
-                </Button>
-                <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2">
-                  <LogOut className="h-5 w-5" />
-                  <span>Se déconnecter</span>
-                </Button>
-              </>
-            ) : (
-              <Button variant="ghost" asChild>
-                <Link to="/auth" className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  <span>Se connecter</span>
-                </Link>
+      <div className="container flex h-16 items-center px-4">
+        <Link to="/" className="text-xl font-bold">
+          Petites Annonces
+        </Link>
+
+        <div className="ml-auto flex items-center space-x-4">
+          {user ? (
+            <>
+              <Link to="/create">
+                <Button>Créer une annonce</Button>
+              </Link>
+              <Button variant="outline" onClick={handleLogout}>
+                Déconnexion
               </Button>
-            )}
-          </div>
+            </>
+          ) : (
+            <Link to="/auth">
+              <Button>Connexion</Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>
   );
-};
+}
