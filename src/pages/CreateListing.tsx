@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,6 +45,43 @@ export default function CreateListing() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<File[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour créer une annonce",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    // Vérifier si le profil existe
+    const checkProfile = async () => {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (error || !profile) {
+        console.error("Error fetching profile:", error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la vérification de votre profil",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
+
+      setUserProfile(profile);
+    };
+
+    checkProfile();
+  }, [user, navigate, toast]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -88,7 +125,7 @@ export default function CreateListing() {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!user) {
+    if (!user || !userProfile) {
       toast({
         title: "Erreur",
         description: "Vous devez être connecté pour créer une annonce",
@@ -99,9 +136,11 @@ export default function CreateListing() {
 
     try {
       setIsSubmitting(true);
+      console.log("Starting listing creation with user:", user.id);
       
       // Upload images first
       const imageUrls = await uploadImages();
+      console.log("Images uploaded successfully:", imageUrls);
 
       // Create the listing
       const { error } = await supabase.from("listings").insert({
@@ -112,9 +151,13 @@ export default function CreateListing() {
         category: values.category,
         images: imageUrls,
         user_id: user.id,
+        status: 'active'
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating listing:", error);
+        throw error;
+      }
 
       toast({
         title: "Succès",
@@ -133,6 +176,10 @@ export default function CreateListing() {
       setIsSubmitting(false);
     }
   };
+
+  if (!user || !userProfile) {
+    return null;
+  }
 
   return (
     <div className="container max-w-2xl py-8">
