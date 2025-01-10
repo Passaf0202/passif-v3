@@ -1,61 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AuthError } from "@supabase/supabase-js";
+import { useToast } from "@/components/ui/use-toast";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/");
-      }
-    };
-    checkUser();
-
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate("/");
-      }
+      console.log("Auth state changed:", event, session);
       
-      // Handle auth errors
-      if (event === "USER_UPDATED") {
-        supabase.auth.getSession().then(({ error }) => {
-          if (error) {
-            handleAuthError(error);
-          }
+      if (event === "SIGNED_IN" && session) {
+        console.log("User signed in, redirecting to home");
+        toast({
+          title: "Connexion réussie",
+          description: "Vous êtes maintenant connecté",
         });
+        navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleAuthError = (error: AuthError) => {
-    console.error("Auth error:", error);
-    
-    switch (error.message) {
-      case "User already registered":
-        setError("Cet email est déjà utilisé. Veuillez vous connecter ou utiliser un autre email.");
-        break;
-      case "Invalid login credentials":
-        setError("Email ou mot de passe incorrect.");
-        break;
-      case "Email not confirmed":
-        setError("Veuillez confirmer votre email avant de vous connecter.");
-        break;
-      default:
-        setError(error.message);
-    }
-  };
+  }, [navigate, toast]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -67,12 +37,6 @@ const Auth = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
           <SupabaseAuth 
             supabaseClient={supabase} 
             appearance={{ 
@@ -80,8 +44,8 @@ const Auth = () => {
               variables: {
                 default: {
                   colors: {
-                    brand: '#000000',
-                    brandAccent: '#666666',
+                    brand: '#FF6E14',
+                    brandAccent: '#FF8F4C',
                   },
                 },
               },

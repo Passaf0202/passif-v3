@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,17 +46,6 @@ export default function CreateListing() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<File[]>([]);
 
-  useEffect(() => {
-    if (!user) {
-      toast({
-        title: "Accès refusé",
-        description: "Vous devez être connecté pour créer une annonce",
-        variant: "destructive",
-      });
-      navigate("/auth");
-    }
-  }, [user, navigate, toast]);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -69,8 +58,10 @@ export default function CreateListing() {
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setImages(files);
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setImages(files);
+    }
   };
 
   const uploadImages = async () => {
@@ -78,19 +69,20 @@ export default function CreateListing() {
 
     for (const image of images) {
       const fileExt = image.name.split(".").pop();
-      const filePath = `${crypto.randomUUID()}.${fileExt}`;
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("listings-images")
-        .upload(filePath, image);
+        .upload(fileName, image);
 
       if (uploadError) {
+        console.error("Error uploading image:", uploadError);
         throw uploadError;
       }
 
       const { data: { publicUrl } } = supabase.storage
         .from("listings-images")
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       uploadedUrls.push(publicUrl);
     }
@@ -99,20 +91,22 @@ export default function CreateListing() {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!user) {
-      toast({
-        title: "Erreur",
-        description: "Vous devez être connecté pour créer une annonce",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
     try {
+      if (!user) {
+        toast({
+          title: "Erreur",
+          description: "Vous devez être connecté pour créer une annonce",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
+
       setIsSubmitting(true);
+      console.log("Starting listing creation...");
       
       const imageUrls = images.length > 0 ? await uploadImages() : [];
+      console.log("Images uploaded:", imageUrls);
 
       const { error } = await supabase.from("listings").insert({
         title: values.title,
@@ -126,9 +120,11 @@ export default function CreateListing() {
       });
 
       if (error) {
+        console.error("Error creating listing:", error);
         throw error;
       }
 
+      console.log("Listing created successfully");
       toast({
         title: "Succès",
         description: "Votre annonce a été créée avec succès",
@@ -136,6 +132,7 @@ export default function CreateListing() {
 
       navigate("/");
     } catch (error) {
+      console.error("Error in form submission:", error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la création de l'annonce",
@@ -146,9 +143,8 @@ export default function CreateListing() {
     }
   };
 
-  // Si l'utilisateur n'est pas connecté, on ne rend rien
-  // Le useEffect s'occupera de la redirection
   if (!user) {
+    navigate("/auth");
     return null;
   }
 
