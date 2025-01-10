@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -65,66 +65,82 @@ export default function CreateListing() {
   };
 
   const uploadImages = async () => {
-    const uploadedUrls: string[] = [];
+    try {
+      const uploadedUrls: string[] = [];
 
-    for (const image of images) {
-      const fileExt = image.name.split(".").pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      for (const image of images) {
+        const fileExt = image.name.split(".").pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        console.log("Uploading image:", fileName);
 
-      const { error: uploadError } = await supabase.storage
-        .from("listings-images")
-        .upload(fileName, image);
+        const { error: uploadError, data } = await supabase.storage
+          .from("listings-images")
+          .upload(fileName, image);
 
-      if (uploadError) {
-        console.error("Error uploading image:", uploadError);
-        throw uploadError;
+        if (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          throw uploadError;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("listings-images")
+          .getPublicUrl(fileName);
+
+        console.log("Image uploaded successfully:", publicUrl);
+        uploadedUrls.push(publicUrl);
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("listings-images")
-        .getPublicUrl(fileName);
-
-      uploadedUrls.push(publicUrl);
+      return uploadedUrls;
+    } catch (error) {
+      console.error("Error in uploadImages:", error);
+      throw error;
     }
-
-    return uploadedUrls;
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      if (!user) {
-        toast({
-          title: "Erreur",
-          description: "Vous devez être connecté pour créer une annonce",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return;
-      }
-
-      setIsSubmitting(true);
-      console.log("Starting listing creation...");
-      
-      const imageUrls = images.length > 0 ? await uploadImages() : [];
-      console.log("Images uploaded:", imageUrls);
-
-      const { error } = await supabase.from("listings").insert({
-        title: values.title,
-        description: values.description,
-        price: Number(values.price),
-        location: values.location,
-        category: values.category,
-        images: imageUrls,
-        user_id: user.id,
-        status: 'active'
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour créer une annonce",
+        variant: "destructive",
       });
+      navigate("/auth");
+      return;
+    }
 
-      if (error) {
-        console.error("Error creating listing:", error);
-        throw error;
+    try {
+      setIsSubmitting(true);
+      console.log("Starting listing creation with values:", values);
+
+      let imageUrls: string[] = [];
+      if (images.length > 0) {
+        imageUrls = await uploadImages();
       }
 
-      console.log("Listing created successfully");
+      console.log("Creating listing with image URLs:", imageUrls);
+
+      const { error: insertError, data: newListing } = await supabase
+        .from("listings")
+        .insert({
+          title: values.title,
+          description: values.description,
+          price: Number(values.price),
+          location: values.location,
+          category: values.category,
+          images: imageUrls,
+          user_id: user.id,
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error inserting listing:", insertError);
+        throw insertError;
+      }
+
+      console.log("Listing created successfully:", newListing);
+      
       toast({
         title: "Succès",
         description: "Votre annonce a été créée avec succès",
