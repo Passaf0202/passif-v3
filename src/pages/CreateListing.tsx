@@ -40,48 +40,52 @@ const categories = [
 ];
 
 export default function CreateListing() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<File[]>([]);
-  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
-    if (!user) {
-      toast({
-        title: "Erreur",
-        description: "Vous devez être connecté pour créer une annonce",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
-    // Vérifier si le profil existe
-    const checkProfile = async () => {
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error || !profile) {
-        console.error("Error fetching profile:", error);
+    const checkAuth = async () => {
+      console.log("Checking auth state:", { user, loading });
+      
+      if (!loading && !user) {
+        console.log("No user found, redirecting to auth");
         toast({
           title: "Erreur",
-          description: "Une erreur est survenue lors de la vérification de votre profil",
+          description: "Vous devez être connecté pour créer une annonce",
           variant: "destructive",
         });
         navigate("/auth");
         return;
       }
 
-      setUserProfile(profile);
+      if (user) {
+        // Vérifier si le profil existe
+        console.log("Checking profile for user:", user.id);
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        console.log("Profile check result:", { profile, error });
+
+        if (error || !profile) {
+          console.error("Error fetching profile:", error);
+          toast({
+            title: "Erreur",
+            description: "Une erreur est survenue lors de la vérification de votre profil",
+            variant: "destructive",
+          });
+          navigate("/auth");
+        }
+      }
     };
 
-    checkProfile();
-  }, [user, navigate, toast]);
+    checkAuth();
+  }, [user, loading, navigate, toast]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -106,11 +110,14 @@ export default function CreateListing() {
       const fileExt = image.name.split(".").pop();
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
+      console.log("Uploading image:", filePath);
+
       const { error: uploadError, data } = await supabase.storage
         .from("listings-images")
         .upload(filePath, image);
 
       if (uploadError) {
+        console.error("Image upload error:", uploadError);
         throw uploadError;
       }
 
@@ -125,7 +132,8 @@ export default function CreateListing() {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!user || !userProfile) {
+    if (!user) {
+      console.error("No user found during submission");
       toast({
         title: "Erreur",
         description: "Vous devez être connecté pour créer une annonce",
@@ -177,7 +185,11 @@ export default function CreateListing() {
     }
   };
 
-  if (!user || !userProfile) {
+  if (loading) {
+    return <div>Chargement...</div>;
+  }
+
+  if (!user) {
     return null;
   }
 
