@@ -8,6 +8,7 @@ import { Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Messages() {
   const { user } = useAuth();
@@ -36,7 +37,6 @@ export default function Messages() {
         throw error;
       }
 
-      // Group messages by listing
       const groupedMessages = data.reduce((acc: any, message: any) => {
         const key = message.listing_id;
         if (!acc[key]) {
@@ -54,6 +54,7 @@ export default function Messages() {
       }));
     },
     enabled: !!user,
+    refetchInterval: 5000, // Rafraîchir toutes les 5 secondes
   });
 
   const handleSendMessage = async () => {
@@ -126,54 +127,77 @@ export default function Messages() {
         ) : conversations && conversations.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-4">
-              {conversations.map((thread) => {
-                const lastMessage = thread.messages[thread.messages.length - 1];
-                const hasUnread = thread.messages.some(
-                  (m: any) => m.receiver_id === user.id && !m.read
-                );
-                return (
-                  <div
-                    key={thread.listingId}
-                    className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                      selectedThread === thread.listingId
-                        ? "bg-primary/10"
-                        : "bg-white hover:bg-gray-50"
-                    } ${hasUnread ? "border-l-4 border-primary" : ""}`}
-                    onClick={() => {
-                      setSelectedThread(thread.listingId);
-                      if (hasUnread) {
-                        markThreadAsRead(thread.listingId);
-                      }
-                    }}
-                  >
-                    <h3 className="font-semibold">
-                      {lastMessage.listing.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 truncate">
-                      {lastMessage.content}
-                    </p>
-                  </div>
-                );
-              })}
+              <ScrollArea className="h-[600px]">
+                {conversations.map((thread) => {
+                  const lastMessage = thread.messages[thread.messages.length - 1];
+                  const hasUnread = thread.messages.some(
+                    (m: any) => m.receiver_id === user.id && !m.read
+                  );
+                  const otherUser = lastMessage.sender_id === user.id
+                    ? lastMessage.receiver
+                    : lastMessage.sender;
+                  return (
+                    <div
+                      key={thread.listingId}
+                      className={`p-4 rounded-lg cursor-pointer transition-colors ${
+                        selectedThread === thread.listingId
+                          ? "bg-primary/10"
+                          : "bg-white hover:bg-gray-50"
+                      } ${hasUnread ? "border-l-4 border-primary" : ""}`}
+                      onClick={() => {
+                        setSelectedThread(thread.listingId);
+                        if (hasUnread) {
+                          markThreadAsRead(thread.listingId);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="font-semibold">{otherUser.full_name}</div>
+                        {hasUnread && (
+                          <div className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">
+                            Nouveau
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="text-sm text-muted-foreground">
+                        {lastMessage.listing.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 truncate mt-1">
+                        {lastMessage.content}
+                      </p>
+                    </div>
+                  );
+                })}
+              </ScrollArea>
             </div>
             <div className="md:col-span-2">
               {selectedThread ? (
-                <div className="bg-white rounded-lg shadow p-4 space-y-4">
-                  {conversations
-                    .find((t) => t.listingId === selectedThread)
-                    ?.messages.map((message: any) => (
-                      <MessageThread
-                        key={message.id}
-                        message={message}
-                        currentUserId={user.id}
-                      />
-                    ))}
+                <div className="bg-white rounded-lg shadow p-4">
+                  <ScrollArea className="h-[500px] mb-4">
+                    <div className="space-y-4">
+                      {conversations
+                        .find((t) => t.listingId === selectedThread)
+                        ?.messages.map((message: any) => (
+                          <MessageThread
+                            key={message.id}
+                            message={message}
+                            currentUserId={user.id}
+                          />
+                        ))}
+                    </div>
+                  </ScrollArea>
                   <div className="flex gap-2 mt-4">
                     <Textarea
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder="Écrivez votre message..."
                       className="flex-1"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
                     />
                     <Button
                       onClick={handleSendMessage}
