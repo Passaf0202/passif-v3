@@ -61,7 +61,7 @@ export default function Messages() {
     refetchInterval: 5000,
   });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
     if (selectedFiles) {
       setFiles(Array.from(selectedFiles));
@@ -116,6 +116,8 @@ export default function Messages() {
       sender_id: user.id,
       receiver_id: receiverId,
       files: uploadedUrls,
+      delivered: true,
+      delivered_at: new Date().toISOString(),
     });
 
     if (error) {
@@ -161,6 +163,12 @@ export default function Messages() {
     setShowConversation(false);
     setSelectedThread(null);
   };
+
+  useEffect(() => {
+    if (selectedThread) {
+      markThreadAsRead(selectedThread);
+    }
+  }, [selectedThread]);
 
   if (!user) {
     return (
@@ -262,6 +270,7 @@ export default function Messages() {
                           multiple
                           onChange={handleFileChange}
                           className="hidden"
+                          accept="image/*,.pdf,.doc,.docx"
                         />
                         <label htmlFor="file-input">
                           <Button
