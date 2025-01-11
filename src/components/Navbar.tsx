@@ -55,14 +55,14 @@ export function Navbar() {
               <Link to="/messages" className="relative">
                 <Button variant="ghost" size="icon">
                   <MessageSquare className="h-5 w-5" />
-                  {unreadCount && unreadCount > 0 ? (
+                  {unreadCount ? (
                     <Badge
                       variant="destructive"
                       className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
                     >
                       {unreadCount}
                     </Badge>
-                  )}
+                  ) : null}
                 </Button>
               </Link>
               <Link to="/create">
