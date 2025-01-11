@@ -148,7 +148,6 @@ export default function Messages() {
       .eq("read", false);
 
     queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    queryClient.invalidateQueries({ queryKey: ["unreadMessages"] });
   };
 
   const handleThreadSelect = (threadId: string) => {
@@ -184,72 +183,76 @@ export default function Messages() {
   }
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Mes messages</h1>
         {isLoading ? (
           <div className="flex justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : conversations && conversations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
             {(!isMobile || !showConversation) && (
-              <div className="space-y-4">
-                <ScrollArea className="h-[600px]">
-                  {conversations.map((thread) => {
-                    const lastMessage = thread.messages[thread.messages.length - 1];
-                    const hasUnread = thread.messages.some(
-                      (m: any) => m.receiver_id === user.id && !m.read
-                    );
-                    const otherUser = lastMessage.sender_id === user.id
-                      ? lastMessage.receiver
-                      : lastMessage.sender;
-                    return (
-                      <div
-                        key={thread.listingId}
-                        className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                          selectedThread === thread.listingId
-                            ? "bg-primary/10"
-                            : "bg-white hover:bg-gray-50"
-                        } ${hasUnread ? "border-l-4 border-primary" : ""}`}
-                        onClick={() => handleThreadSelect(thread.listingId)}
-                      >
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="font-semibold">{otherUser.full_name}</div>
-                          {hasUnread && (
-                            <div className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">
-                              Nouveau
-                            </div>
-                          )}
+              <div className="md:col-span-1 bg-white rounded-lg shadow-sm overflow-hidden">
+                <ScrollArea className="h-full">
+                  <div className="p-4 space-y-4">
+                    {conversations.map((thread) => {
+                      const lastMessage = thread.messages[thread.messages.length - 1];
+                      const hasUnread = thread.messages.some(
+                        (m: any) => m.receiver_id === user.id && !m.read
+                      );
+                      const otherUser = lastMessage.sender_id === user.id
+                        ? lastMessage.receiver
+                        : lastMessage.sender;
+                      return (
+                        <div
+                          key={thread.listingId}
+                          className={`p-4 rounded-lg cursor-pointer transition-colors ${
+                            selectedThread === thread.listingId
+                              ? "bg-primary/10"
+                              : "hover:bg-gray-50"
+                          } ${hasUnread ? "border-l-4 border-primary" : ""}`}
+                          onClick={() => handleThreadSelect(thread.listingId)}
+                        >
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="font-semibold">{otherUser.full_name}</div>
+                            {hasUnread && (
+                              <div className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">
+                                Nouveau
+                              </div>
+                            )}
+                          </div>
+                          <h3 className="text-sm text-muted-foreground">
+                            {lastMessage.listing.title}
+                          </h3>
+                          <p className="text-sm text-gray-500 truncate mt-1">
+                            {lastMessage.content}
+                          </p>
                         </div>
-                        <h3 className="text-sm text-muted-foreground">
-                          {lastMessage.listing.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 truncate mt-1">
-                          {lastMessage.content}
-                        </p>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </ScrollArea>
               </div>
             )}
             {(!isMobile || showConversation) && (
-              <div className="md:col-span-2">
+              <div className="md:col-span-2 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
                 {selectedThread ? (
-                  <div className="bg-white rounded-lg shadow p-4">
+                  <>
                     {isMobile && (
-                      <Button
-                        variant="ghost"
-                        onClick={handleBackToList}
-                        className="mb-4"
-                      >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Retour
-                      </Button>
+                      <div className="p-4 border-b">
+                        <Button
+                          variant="ghost"
+                          onClick={handleBackToList}
+                          className="mb-0"
+                        >
+                          <ArrowLeft className="h-4 w-4 mr-2" />
+                          Retour
+                        </Button>
+                      </div>
                     )}
-                    <ScrollArea className="h-[500px] mb-4">
+                    <ScrollArea className="flex-1 p-4">
                       <div className="space-y-4">
                         {conversations
                           .find((t) => t.listingId === selectedThread)
@@ -262,7 +265,7 @@ export default function Messages() {
                           ))}
                       </div>
                     </ScrollArea>
-                    <div className="space-y-2">
+                    <div className="p-4 border-t bg-white">
                       <div className="flex gap-2">
                         <input
                           type="file"
@@ -302,14 +305,14 @@ export default function Messages() {
                         </Button>
                       </div>
                       {files.length > 0 && (
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-muted-foreground mt-2">
                           {files.length} fichier(s) sélectionné(s)
                         </div>
                       )}
                     </div>
-                  </div>
+                  </>
                 ) : (
-                  <div className="bg-white rounded-lg shadow p-4">
+                  <div className="flex items-center justify-center h-full">
                     <p className="text-center text-gray-500">
                       Sélectionnez une conversation pour voir les messages
                     </p>
@@ -319,7 +322,9 @@ export default function Messages() {
             )}
           </div>
         ) : (
-          <p className="text-center text-gray-500">Aucun message</p>
+          <div className="bg-white rounded-lg shadow-sm p-8">
+            <p className="text-center text-gray-500">Aucun message</p>
+          </div>
         )}
       </div>
     </div>

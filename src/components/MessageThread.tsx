@@ -82,7 +82,9 @@ export function MessageThread({ message, currentUserId }: MessageThreadProps) {
         <div
           className={`text-xs mt-1 ${
             isUserSender ? "text-right" : "text-left"
-          } text-muted-foreground flex items-center gap-1`}
+          } text-muted-foreground flex items-center gap-1 ${
+            isUserSender ? "justify-end" : "justify-start"
+          }`}
         >
           {formatDistanceToNow(new Date(message.created_at), {
             addSuffix: true,
