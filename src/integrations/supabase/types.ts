@@ -99,6 +99,9 @@ export type Database = {
         Row: {
           content: string
           created_at: string | null
+          delivered: boolean | null
+          delivered_at: string | null
+          files: string[] | null
           id: string
           listing_id: string
           read: boolean | null
@@ -108,6 +111,9 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string | null
+          delivered?: boolean | null
+          delivered_at?: string | null
+          files?: string[] | null
           id?: string
           listing_id: string
           read?: boolean | null
@@ -117,6 +123,9 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string | null
+          delivered?: boolean | null
+          delivered_at?: string | null
+          files?: string[] | null
           id?: string
           listing_id?: string
           read?: boolean | null

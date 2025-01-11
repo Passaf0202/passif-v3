@@ -1,12 +1,16 @@
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Check, CheckCheck } from "lucide-react";
 
 interface MessageThreadProps {
   message: {
     content: string;
     created_at: string;
     read: boolean;
+    delivered: boolean;
+    delivered_at: string | null;
+    files: string[] | null;
     listing: {
       title: string;
     };
@@ -49,16 +53,50 @@ export function MessageThread({ message, currentUserId }: MessageThreadProps) {
           }`}
         >
           <p className="text-sm">{message.content}</p>
+          {message.files && message.files.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {message.files.map((file, index) => {
+                const isImage = file.match(/\.(jpg|jpeg|png|gif)$/i);
+                return isImage ? (
+                  <img
+                    key={index}
+                    src={file}
+                    alt="Message attachment"
+                    className="max-w-full rounded-lg"
+                  />
+                ) : (
+                  <a
+                    key={index}
+                    href={file}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-500 hover:underline"
+                  >
+                    Télécharger le fichier
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </div>
         <div
           className={`text-xs mt-1 ${
             isUserSender ? "text-right" : "text-left"
-          } text-muted-foreground`}
+          } text-muted-foreground flex items-center gap-1`}
         >
           {formatDistanceToNow(new Date(message.created_at), {
             addSuffix: true,
             locale: fr,
           })}
+          {isUserSender && (
+            <span className="ml-1">
+              {message.read ? (
+                <CheckCheck className="h-3 w-3 text-blue-500" />
+              ) : message.delivered ? (
+                <Check className="h-3 w-3" />
+              ) : null}
+            </span>
+          )}
         </div>
       </div>
     </div>
