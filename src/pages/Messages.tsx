@@ -19,7 +19,7 @@ export default function Messages() {
   const [files, setFiles] = useState<File[]>([]);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
-  const [showConversation, setShowConversation] = useState(!isMobile);
+  const [showConversation, setShowConversation] = useState(false);
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ["conversations", user?.id],
@@ -183,9 +183,9 @@ export default function Messages() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50">
       <Navbar />
-      <div className="flex-1 container mx-auto px-4 py-8">
+      <div className="flex-1 container mx-auto p-4 overflow-hidden">
         <h1 className="text-2xl font-bold mb-6">Mes messages</h1>
         {isLoading ? (
           <div className="flex justify-center">
@@ -194,7 +194,7 @@ export default function Messages() {
         ) : conversations && conversations.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
             {(!isMobile || !showConversation) && (
-              <div className="md:col-span-1 bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="md:col-span-1 bg-white rounded-lg shadow-sm overflow-hidden h-full">
                 <ScrollArea className="h-full">
                   <div className="p-4 space-y-4">
                     {conversations.map((thread) => {
@@ -241,7 +241,7 @@ export default function Messages() {
                 {selectedThread ? (
                   <>
                     {isMobile && (
-                      <div className="p-4 border-b">
+                      <div className="p-4 border-b sticky top-0 bg-white z-10">
                         <Button
                           variant="ghost"
                           onClick={handleBackToList}
@@ -265,7 +265,7 @@ export default function Messages() {
                           ))}
                       </div>
                     </ScrollArea>
-                    <div className="p-4 border-t bg-white">
+                    <div className="p-4 border-t bg-white sticky bottom-0">
                       <div className="flex gap-2">
                         <input
                           type="file"
