@@ -21,6 +21,7 @@ const Index = () => {
           price,
           location,
           images,
+          user_id,
           created_at
         `)
         .eq('status', 'active')
@@ -64,10 +65,12 @@ const Index = () => {
               {listings.map((listing) => (
                 <ListingCard
                   key={listing.id}
+                  id={listing.id}
                   title={listing.title}
                   price={listing.price}
                   location={listing.location}
                   image={listing.images?.[0] || "/placeholder.svg"}
+                  sellerId={listing.user_id}
                 />
               ))}
             </div>

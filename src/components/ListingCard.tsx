@@ -1,15 +1,16 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { ContactModal } from "@/components/ContactModal";
 
 interface ListingCardProps {
+  id: string;
   title: string;
   price: number;
   location: string;
   image: string;
+  sellerId: string;
 }
 
-export const ListingCard = ({ title, price, location, image }: ListingCardProps) => {
+export const ListingCard = ({ id, title, price, location, image, sellerId }: ListingCardProps) => {
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <CardHeader className="p-0">
@@ -25,10 +26,11 @@ export const ListingCard = ({ title, price, location, image }: ListingCardProps)
         <p className="text-sm text-gray-500">{location}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button variant="outline" className="w-full">
-          <MessageCircle className="mr-2 h-4 w-4" />
-          Contacter
-        </Button>
+        <ContactModal
+          listingId={id}
+          sellerId={sellerId}
+          listingTitle={title}
+        />
       </CardFooter>
     </Card>
   );

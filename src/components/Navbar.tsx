@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { MessageSquare } from "lucide-react";
 
 export function Navbar() {
   const { user } = useAuth();
@@ -29,6 +30,11 @@ export function Navbar() {
         <div className="ml-auto flex items-center space-x-4">
           {user ? (
             <>
+              <Link to="/messages">
+                <Button variant="ghost" size="icon">
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
+              </Link>
               <Link to="/create">
                 <Button>Créer une annonce</Button>
               </Link>
