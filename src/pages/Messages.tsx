@@ -1,15 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
-import { MessageThread } from "@/components/MessageThread";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Send, ArrowLeft, PlusCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ConversationsList } from "@/components/ConversationsList";
+import { ConversationView } from "@/components/ConversationView";
 
 export default function Messages() {
   const { user } = useAuth();
@@ -163,12 +161,6 @@ export default function Messages() {
     setSelectedThread(null);
   };
 
-  useEffect(() => {
-    if (selectedThread) {
-      markThreadAsRead(selectedThread);
-    }
-  }, [selectedThread]);
-
   if (!user) {
     return (
       <div>
@@ -194,130 +186,27 @@ export default function Messages() {
         ) : conversations && conversations.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
             {(!isMobile || !showConversation) && (
-              <div className="md:col-span-1 bg-white rounded-lg shadow-sm overflow-hidden h-full">
-                <ScrollArea className="h-full">
-                  <div className="p-4 space-y-4">
-                    {conversations.map((thread) => {
-                      const lastMessage = thread.messages[thread.messages.length - 1];
-                      const hasUnread = thread.messages.some(
-                        (m: any) => m.receiver_id === user.id && !m.read
-                      );
-                      const otherUser = lastMessage.sender_id === user.id
-                        ? lastMessage.receiver
-                        : lastMessage.sender;
-                      return (
-                        <div
-                          key={thread.listingId}
-                          className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                            selectedThread === thread.listingId
-                              ? "bg-primary/10"
-                              : "hover:bg-gray-50"
-                          } ${hasUnread ? "border-l-4 border-primary" : ""}`}
-                          onClick={() => handleThreadSelect(thread.listingId)}
-                        >
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="font-semibold">{otherUser.full_name}</div>
-                            {hasUnread && (
-                              <div className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">
-                                Nouveau
-                              </div>
-                            )}
-                          </div>
-                          <h3 className="text-sm text-muted-foreground">
-                            {lastMessage.listing.title}
-                          </h3>
-                          <p className="text-sm text-gray-500 truncate mt-1">
-                            {lastMessage.content}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-              </div>
+              <ConversationsList
+                conversations={conversations}
+                selectedThread={selectedThread}
+                currentUserId={user.id}
+                onThreadSelect={handleThreadSelect}
+              />
             )}
             {(!isMobile || showConversation) && (
               <div className="md:col-span-2 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
-                {selectedThread ? (
-                  <>
-                    {isMobile && (
-                      <div className="p-4 border-b sticky top-0 bg-white z-10">
-                        <Button
-                          variant="ghost"
-                          onClick={handleBackToList}
-                          className="mb-0"
-                        >
-                          <ArrowLeft className="h-4 w-4 mr-2" />
-                          Retour
-                        </Button>
-                      </div>
-                    )}
-                    <ScrollArea className="flex-1 p-4">
-                      <div className="space-y-4">
-                        {conversations
-                          .find((t) => t.listingId === selectedThread)
-                          ?.messages.map((message: any) => (
-                            <MessageThread
-                              key={message.id}
-                              message={message}
-                              currentUserId={user.id}
-                            />
-                          ))}
-                      </div>
-                    </ScrollArea>
-                    <div className="p-4 border-t bg-white sticky bottom-0">
-                      <div className="flex gap-2">
-                        <input
-                          type="file"
-                          id="file-input"
-                          multiple
-                          onChange={handleFileChange}
-                          className="hidden"
-                          accept="image/*,.pdf,.doc,.docx"
-                        />
-                        <label htmlFor="file-input">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="cursor-pointer"
-                          >
-                            <PlusCircle className="h-4 w-4" />
-                          </Button>
-                        </label>
-                        <Textarea
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          placeholder="Écrivez votre message..."
-                          className="flex-1"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendMessage();
-                            }
-                          }}
-                        />
-                        <Button
-                          onClick={handleSendMessage}
-                          disabled={(!newMessage.trim() && files.length === 0)}
-                        >
-                          <Send className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      {files.length > 0 && (
-                        <div className="text-sm text-muted-foreground mt-2">
-                          {files.length} fichier(s) sélectionné(s)
-                        </div>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-center text-gray-500">
-                      Sélectionnez une conversation pour voir les messages
-                    </p>
-                  </div>
-                )}
+                <ConversationView
+                  selectedThread={selectedThread}
+                  conversations={conversations}
+                  currentUserId={user.id}
+                  isMobile={isMobile}
+                  onBackClick={handleBackToList}
+                  newMessage={newMessage}
+                  onMessageChange={setNewMessage}
+                  onSendMessage={handleSendMessage}
+                  onFileChange={handleFileChange}
+                  files={files}
+                />
               </div>
             )}
           </div>
