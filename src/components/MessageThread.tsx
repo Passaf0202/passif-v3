@@ -9,10 +9,12 @@ interface MessageThreadProps {
       title: string;
     };
     sender: {
+      id: string;
       full_name: string;
       avatar_url: string | null;
     };
     receiver: {
+      id: string;
       full_name: string;
       avatar_url: string | null;
     };
