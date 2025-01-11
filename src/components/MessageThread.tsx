@@ -27,30 +27,38 @@ export function MessageThread({ message, currentUserId }: MessageThreadProps) {
   const otherUser = isUserSender ? message.receiver : message.sender;
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0">
-          {otherUser.avatar_url && (
-            <img
-              src={otherUser.avatar_url}
-              alt={otherUser.full_name}
-              className="w-full h-full rounded-full object-cover"
-            />
-          )}
-        </div>
-        <div className="flex-1">
-          <h3 className="font-semibold">{otherUser.full_name}</h3>
-          <p className="text-sm text-gray-500">
-            À propos de : {message.listing.title}
-          </p>
-          <p className="mt-2">{message.content}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {formatDistanceToNow(new Date(message.created_at), {
-              addSuffix: true,
-              locale: fr,
-            })}
-          </p>
-        </div>
+    <div
+      className={`flex gap-4 ${
+        isUserSender ? "flex-row-reverse" : "flex-row"
+      }`}
+    >
+      <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0">
+        {otherUser.avatar_url && (
+          <img
+            src={otherUser.avatar_url}
+            alt={otherUser.full_name}
+            className="w-full h-full rounded-full object-cover"
+          />
+        )}
+      </div>
+      <div
+        className={`max-w-[70%] rounded-lg p-3 ${
+          isUserSender
+            ? "bg-primary text-primary-foreground"
+            : "bg-muted"
+        }`}
+      >
+        <p>{message.content}</p>
+        <p
+          className={`text-xs mt-1 ${
+            isUserSender ? "text-primary-foreground/70" : "text-muted-foreground"
+          }`}
+        >
+          {formatDistanceToNow(new Date(message.created_at), {
+            addSuffix: true,
+            locale: fr,
+          })}
+        </p>
       </div>
     </div>
   );

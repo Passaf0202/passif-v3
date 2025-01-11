@@ -4,10 +4,32 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { MessageSquare } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
 
 export function Navbar() {
   const { user } = useAuth();
   const { toast } = useToast();
+
+  const { data: unreadCount } = useQuery({
+    queryKey: ["unreadMessages", user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+      const { count, error } = await supabase
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("receiver_id", user.id)
+        .eq("read", false);
+
+      if (error) {
+        console.error("Error fetching unread messages:", error);
+        return 0;
+      }
+
+      return count || 0;
+    },
+    enabled: !!user,
+  });
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -30,9 +52,17 @@ export function Navbar() {
         <div className="ml-auto flex items-center space-x-4">
           {user ? (
             <>
-              <Link to="/messages">
+              <Link to="/messages" className="relative">
                 <Button variant="ghost" size="icon">
                   <MessageSquare className="h-5 w-5" />
+                  {unreadCount && unreadCount > 0 ? (
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+                    >
+                      {unreadCount}
+                    </Badge>
+                  )}
                 </Button>
               </Link>
               <Link to="/create">
