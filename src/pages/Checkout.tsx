@@ -10,12 +10,16 @@ import {
 import { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { listing } = location.state || {};
   const [shippingMethod, setShippingMethod] = useState("relay");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (!listing) {
     navigate("/");
@@ -25,6 +29,44 @@ export default function Checkout() {
   const buyerProtectionFee = Math.round(listing.price * 0.15 * 100) / 100;
   const shippingFee = shippingMethod === "relay" ? 2.88 : 4.38;
   const total = listing.price + buyerProtectionFee + shippingFee;
+
+  const handleCheckout = async () => {
+    try {
+      setIsProcessing(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: "Erreur",
+          description: "Vous devez être connecté pour effectuer un achat",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          listingId: listing.id,
+          sellerId: listing.user_id,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Erreur lors de la création de la session de paiement:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la préparation du paiement",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="container max-w-5xl py-8">
@@ -121,12 +163,12 @@ export default function Checkout() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span>Commande</span>
+                  <span>Article</span>
                   <span>{listing.price} €</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-1">
-                    <span>Frais de Protection acheteurs</span>
+                    <span>Protection acheteur</span>
                     <Collapsible>
                       <CollapsibleTrigger className="text-gray-500">
                         ℹ️
@@ -151,7 +193,13 @@ export default function Checkout() {
                 </div>
               </div>
 
-              <Button className="w-full">Payer</Button>
+              <Button 
+                className="w-full" 
+                onClick={handleCheckout}
+                disabled={isProcessing}
+              >
+                {isProcessing ? "Traitement en cours..." : "Payer"}
+              </Button>
 
               <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
                 <Shield className="h-4 w-4" />
