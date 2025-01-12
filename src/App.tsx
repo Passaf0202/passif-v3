@@ -7,6 +7,7 @@ import Auth from "@/pages/Auth";
 import CreateListing from "@/pages/CreateListing";
 import Messages from "@/pages/Messages";
 import ListingDetails from "@/pages/ListingDetails";
+import Favorites from "@/pages/Favorites";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +28,7 @@ function App() {
           <Route path="/create" element={<CreateListing />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/listings/:id" element={<ListingDetails />} />
+          <Route path="/favorites" element={<Favorites />} />
         </Routes>
         <Toaster />
       </BrowserRouter>
