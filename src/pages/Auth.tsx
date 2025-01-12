@@ -68,7 +68,30 @@ const Auth = () => {
             providers={[]}
             view="sign_up"
             additionalData={{
-              full_name: true,
+              first_name: {
+                label: 'Prénom',
+                required: true,
+              },
+              last_name: {
+                label: 'Nom',
+                required: true,
+              },
+              phone_number: {
+                label: 'Téléphone',
+                required: true,
+              },
+              city: {
+                label: 'Ville',
+                required: true,
+              },
+              country: {
+                label: 'Pays',
+                required: true,
+              },
+              username: {
+                label: "Nom d'utilisateur",
+                required: true,
+              },
             }}
           />
         </div>
