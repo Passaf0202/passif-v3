@@ -61,8 +61,15 @@ const Auth = () => {
                   email_label: 'Adresse email',
                   password_label: 'Mot de passe',
                   button_label: "S'inscrire",
+                  full_name_label: 'Nom complet',
+                  confirmation_text: 'En créant un compte, vous acceptez nos conditions générales et notre politique de confidentialité',
                 },
               },
+            }}
+            providers={[]}
+            view="sign_up"
+            additionalData={{
+              full_name: true,
             }}
           />
         </div>
