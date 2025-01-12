@@ -22,25 +22,26 @@ export function AuthContainer() {
       setErrorMessage(""); // Clear any previous errors
       console.log("Checking email:", values.email);
       
-      // Get user by email to check if they exist
-      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-        filters: {
-          email: values.email
+      // Try to sign in with OTP to check if the account exists
+      const { error } = await supabase.auth.signInWithOtp({
+        email: values.email,
+        options: {
+          shouldCreateUser: false // This ensures we only check for existing users
         }
       });
 
-      console.log("User lookup response:", { users, error: getUserError });
+      console.log("Email check response:", error);
 
-      if (users && users.length > 0) {
-        // User exists, direct to login
-        console.log("Email exists, directing to login");
-        setUserEmail(values.email);
-        setStep("password");
-      } else {
+      if (error?.message.includes("Email not found")) {
         // User doesn't exist, direct to register
         console.log("Email not found, directing to register");
         setUserEmail(values.email);
         setStep("register");
+      } else {
+        // User exists, direct to login
+        console.log("Email exists, directing to login");
+        setUserEmail(values.email);
+        setStep("password");
       }
       
     } catch (error) {
