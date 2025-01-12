@@ -92,13 +92,17 @@ export type Database = {
           images: string[] | null
           location: string
           material: string[] | null
+          payment_intent_id: string | null
+          payment_status: string | null
           price: number
           shipping_method: string | null
           shipping_weight: number | null
           status: string | null
+          stripe_account_id: string | null
           subcategory: string | null
           subsubcategory: string | null
           title: string
+          transfer_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -113,13 +117,17 @@ export type Database = {
           images?: string[] | null
           location: string
           material?: string[] | null
+          payment_intent_id?: string | null
+          payment_status?: string | null
           price: number
           shipping_method?: string | null
           shipping_weight?: number | null
           status?: string | null
+          stripe_account_id?: string | null
           subcategory?: string | null
           subsubcategory?: string | null
           title: string
+          transfer_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -134,13 +142,17 @@ export type Database = {
           images?: string[] | null
           location?: string
           material?: string[] | null
+          payment_intent_id?: string | null
+          payment_status?: string | null
           price?: number
           shipping_method?: string | null
           shipping_weight?: number | null
           status?: string | null
+          stripe_account_id?: string | null
           subcategory?: string | null
           subsubcategory?: string | null
           title?: string
+          transfer_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -227,6 +239,7 @@ export type Database = {
           language: string
           last_name: string
           phone_number: string
+          stripe_account_id: string | null
           updated_at: string | null
           username: string
         }
@@ -241,6 +254,7 @@ export type Database = {
           language: string
           last_name: string
           phone_number: string
+          stripe_account_id?: string | null
           updated_at?: string | null
           username: string
         }
@@ -255,10 +269,75 @@ export type Database = {
           language?: string
           last_name?: string
           phone_number?: string
+          stripe_account_id?: string | null
           updated_at?: string | null
           username?: string
         }
         Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          buyer_id: string | null
+          commission_amount: number
+          created_at: string | null
+          id: string
+          listing_id: string | null
+          payment_intent_id: string | null
+          seller_id: string | null
+          status: string | null
+          transfer_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          buyer_id?: string | null
+          commission_amount: number
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          payment_intent_id?: string | null
+          seller_id?: string | null
+          status?: string | null
+          transfer_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string | null
+          commission_amount?: number
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          payment_intent_id?: string | null
+          seller_id?: string | null
+          status?: string | null
+          transfer_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
