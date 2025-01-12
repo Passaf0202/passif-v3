@@ -22,21 +22,22 @@ export function AuthContainer() {
       setErrorMessage(""); // Clear any previous errors
       console.log("Checking email:", values.email);
       
-      // Try to sign in with a random password to check if the account exists
-      const { error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: "check-account-exists",
+      // Get user by email to check if they exist
+      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+        filters: {
+          email: values.email
+        }
       });
 
-      console.log("Email check response:", error);
+      console.log("User lookup response:", { users, error: getUserError });
 
-      // If we get "Invalid login credentials", the account exists
-      if (error?.message === "Invalid login credentials") {
+      if (users && users.length > 0) {
+        // User exists, direct to login
         console.log("Email exists, directing to login");
         setUserEmail(values.email);
         setStep("password");
       } else {
-        // For any other error, assume the account doesn't exist
+        // User doesn't exist, direct to register
         console.log("Email not found, directing to register");
         setUserEmail(values.email);
         setStep("register");
@@ -44,7 +45,10 @@ export function AuthContainer() {
       
     } catch (error) {
       console.error("Error checking email:", error);
-      setErrorMessage("Une erreur est survenue lors de la vérification de l'email");
+      // If we can't verify the email status, assume it's new and direct to register
+      console.log("Error occurred, directing to register by default");
+      setUserEmail(values.email);
+      setStep("register");
     }
   };
 
