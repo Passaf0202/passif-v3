@@ -77,6 +77,9 @@ export function AuthContainer() {
     if (error.message.includes("Invalid login credentials")) {
       return "Email ou mot de passe incorrect";
     }
+    if (error.message.includes("User already registered")) {
+      return "Un compte existe déjà avec cet email";
+    }
     return "Une erreur est survenue. Veuillez réessayer.";
   };
 
@@ -85,27 +88,29 @@ export function AuthContainer() {
       setErrorMessage(""); // Clear any previous errors
       console.log("Checking email:", values.email);
       
-      // First, check if the email exists
-      const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: "dummy-password" // We use a dummy password just to check if the email exists
+      // Get user by email
+      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+        filters: {
+          email: values.email
+        }
       });
 
-      if (signInError) {
-        console.log("Email check result:", signInError);
-        // If email doesn't exist, move to register step
-        if (signInError.message.includes("Invalid login credentials")) {
-          setUserEmail(values.email);
-          setStep("register");
-        } else {
-          // For other errors, proceed to password step as the email might exist
-          setUserEmail(values.email);
-          setStep("password");
-        }
-      } else if (user) {
-        // If email exists, move to password step
+      if (getUserError) {
+        console.error("Error checking email:", getUserError);
+        // If we can't check, assume it's new and let signup handle any duplicates
+        setUserEmail(values.email);
+        setStep("register");
+        return;
+      }
+
+      if (users && users.length > 0) {
+        // Email exists, go to password step
         setUserEmail(values.email);
         setStep("password");
+      } else {
+        // Email doesn't exist, go to register step
+        setUserEmail(values.email);
+        setStep("register");
       }
     } catch (error) {
       console.error("Error checking email:", error);
