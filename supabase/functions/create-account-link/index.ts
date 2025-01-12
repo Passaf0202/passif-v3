@@ -72,10 +72,7 @@ serve(async (req) => {
           business_type: 'individual',
           metadata: {
             supabase_user_id: user.id
-          },
-          tos_acceptance: {
-            service_agreement: 'recipient',
-          },
+          }
         });
         console.log('Created new Stripe account:', account.id);
       }
