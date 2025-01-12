@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Toast, ToasterToast } from "@/types/toast"
 import { dispatch, genId, listeners } from "./store"
+import { State } from "./types"
 
 export function toast({ ...props }: Toast) {
   const id = genId()

@@ -30,3 +30,5 @@ export type Action =
 export interface State {
   toasts: ToasterToast[]
 }
+
+export type { ToasterToast }
