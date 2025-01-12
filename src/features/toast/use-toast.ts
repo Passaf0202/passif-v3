@@ -1,8 +1,8 @@
 import * as React from "react"
-import { ToasterToast } from "./types"
+import { Toast, ToasterToast } from "@/types/toast"
 import { dispatch, genId, listeners } from "./store"
 
-export function toast({ ...props }: Omit<ToasterToast, "id">) {
+export function toast({ ...props }: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -32,7 +32,7 @@ export function toast({ ...props }: Omit<ToasterToast, "id">) {
 }
 
 export function useToast() {
-  const [state, setState] = React.useState({ toasts: [] })
+  const [state, setState] = React.useState<State>({ toasts: [] })
 
   React.useEffect(() => {
     listeners.push(setState)

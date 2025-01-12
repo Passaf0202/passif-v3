@@ -1,14 +1,6 @@
 import * as React from "react"
+import { ToasterToast } from "@/types/toast"
 import { ToastActionElement } from "@/components/ui/toast"
-
-export type ToasterToast = {
-  id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-}
 
 export type ActionType = {
   ADD_TOAST: "ADD_TOAST"
