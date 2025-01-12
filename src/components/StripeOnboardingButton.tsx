@@ -2,6 +2,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { AlertCircle } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function StripeOnboardingButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,12 +38,31 @@ export function StripeOnboardingButton() {
   };
 
   return (
-    <Button 
-      onClick={handleOnboarding} 
-      disabled={isLoading}
-      variant="outline"
-    >
-      {isLoading ? "Chargement..." : "Configurer mes paiements Stripe"}
-    </Button>
+    <Card>
+      <CardHeader>
+        <CardTitle>Configuration des paiements</CardTitle>
+        <CardDescription>
+          Pour recevoir vos paiements, vous devez configurer votre compte Stripe. 
+          C'est rapide, sécurisé et gratuit.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-start space-x-2 text-sm text-muted-foreground">
+          <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <p>
+            Vous serez redirigé vers Stripe pour renseigner vos informations bancaires 
+            et vérifier votre identité. C'est une étape obligatoire pour garantir 
+            la sécurité des transactions.
+          </p>
+        </div>
+        <Button 
+          onClick={handleOnboarding} 
+          disabled={isLoading}
+          className="w-full"
+        >
+          {isLoading ? "Chargement..." : "Configurer mes paiements"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
