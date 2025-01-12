@@ -33,7 +33,9 @@ export function RegisterStep({ email }: RegisterStepProps) {
       }}
       providers={[]}
       view="sign_up"
-      defaultEmail={email}
+      queryParams={{
+        defaultEmail: email
+      }}
     />
   );
 }
