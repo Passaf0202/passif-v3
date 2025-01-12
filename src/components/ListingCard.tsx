@@ -43,7 +43,7 @@ export const ListingCard = ({
         .select("id")
         .eq("listing_id", id)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle(); // Changed from .single() to .maybeSingle()
 
       if (error && error.code !== "PGRST116") {
         console.error("Error checking favorite:", error);
