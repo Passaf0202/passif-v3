@@ -18,16 +18,26 @@ const Auth = () => {
   const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
+    let mounted = true;
+
     const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      console.log("Current session:", session);
-      if (session) {
-        console.log("User already logged in, redirecting to home");
-        navigate("/");
-      }
-      if (error) {
-        console.error("Session check error:", error);
-        setErrorMessage(getErrorMessage(error));
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("Current session:", session);
+        
+        if (error) {
+          console.error("Session check error:", error);
+          if (mounted) setErrorMessage(getErrorMessage(error));
+          return;
+        }
+
+        if (session && mounted) {
+          console.log("User already logged in, redirecting to home");
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Unexpected error during session check:", error);
+        if (mounted) setErrorMessage("Une erreur inattendue est survenue");
       }
     };
     
@@ -36,6 +46,8 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
+      if (!mounted) return;
+
       if (event === "SIGNED_IN" && session) {
         console.log("User signed in successfully, redirecting to home");
         toast({
@@ -48,12 +60,17 @@ const Auth = () => {
 
     return () => {
       console.log("Cleaning up auth subscriptions");
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
 
   const getErrorMessage = (error: AuthError) => {
     console.error("Auth error:", error);
+    
+    if (error.message.includes("session_not_found")) {
+      return "Session expirée. Veuillez vous reconnecter.";
+    }
     if (error.message.includes("Email not found")) {
       return "Cet email n'est pas associé à un compte";
     }
@@ -65,6 +82,8 @@ const Auth = () => {
 
   const handleEmailSubmit = async (values: { email: string }) => {
     try {
+      setErrorMessage(""); // Clear any previous errors
+      
       const { data, error } = await supabase.auth.signInWithOtp({
         email: values.email,
         options: {
@@ -91,6 +110,8 @@ const Auth = () => {
 
   const handleLoginSubmit = async (values: { email: string; password: string }) => {
     try {
+      setErrorMessage(""); // Clear any previous errors
+      
       const { error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
