@@ -1,5 +1,5 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { ContactModal } from "@/components/ContactModal";
+import { useNavigate } from "react-router-dom";
 
 interface ListingCardProps {
   id: string;
@@ -10,9 +10,14 @@ interface ListingCardProps {
   sellerId: string;
 }
 
-export const ListingCard = ({ id, title, price, location, image, sellerId }: ListingCardProps) => {
+export const ListingCard = ({ id, title, price, location, image }: ListingCardProps) => {
+  const navigate = useNavigate();
+
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card 
+      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={() => navigate(`/listings/${id}`)}
+    >
       <CardHeader className="p-0">
         <img
           src={image}
@@ -25,13 +30,6 @@ export const ListingCard = ({ id, title, price, location, image, sellerId }: Lis
         <p className="text-2xl font-bold text-primary">{price} €</p>
         <p className="text-sm text-gray-500">{location}</p>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <ContactModal
-          listingId={id}
-          sellerId={sellerId}
-          listingTitle={title}
-        />
-      </CardFooter>
     </Card>
   );
 };
