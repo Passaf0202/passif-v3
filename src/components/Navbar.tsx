@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Heart } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 
@@ -63,6 +63,11 @@ export function Navbar() {
                       {unreadCount}
                     </Badge>
                   ) : null}
+                </Button>
+              </Link>
+              <Link to="/favorites">
+                <Button variant="ghost" size="icon">
+                  <Heart className="h-5 w-5" />
                 </Button>
               </Link>
               <Link to="/create">
