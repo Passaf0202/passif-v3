@@ -29,7 +29,7 @@ const formSchema = z.object({
 });
 
 interface ListingFormProps {
-  onSubmit: (values: z.infer<typeof formSchema>, images: File[]) => Promise<void>;
+  onSubmit: (values: any) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -77,7 +77,8 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
       subsubcategory,
       ...productDetails,
       ...shippingDetails,
-    }, images);
+      images
+    });
   };
 
   return (

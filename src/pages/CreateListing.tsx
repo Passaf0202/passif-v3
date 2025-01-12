@@ -45,7 +45,7 @@ export default function CreateListing() {
     }
   };
 
-  const handleSubmit = async (values: any, images: File[]) => {
+  const handleSubmit = async (values: any) => {
     if (!user) {
       toast({
         title: "Erreur",
@@ -61,8 +61,8 @@ export default function CreateListing() {
       console.log("Starting listing creation with values:", values);
 
       let imageUrls: string[] = [];
-      if (images.length > 0) {
-        imageUrls = await uploadImages(images);
+      if (values.images.length > 0) {
+        imageUrls = await uploadImages(values.images);
       }
 
       console.log("Creating listing with image URLs:", imageUrls);
@@ -70,6 +70,7 @@ export default function CreateListing() {
       const { error: insertError, data: newListing } = await supabase
         .from("listings")
         .insert({
+          title: values.title,
           description: values.description,
           price: Number(values.price),
           location: values.location,
