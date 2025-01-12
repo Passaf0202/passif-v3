@@ -88,30 +88,22 @@ export function AuthContainer() {
       setErrorMessage(""); // Clear any previous errors
       console.log("Checking email:", values.email);
       
-      // Get user by email
-      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-        filters: {
-          email: values.email
-        }
-      });
-
-      if (getUserError) {
-        console.error("Error checking email:", getUserError);
-        // If we can't check, assume it's new and let signup handle any duplicates
+      // Try to sign in with a reset password request
+      // This is a safe way to check if an email exists
+      const { error } = await supabase.auth.resetPasswordForEmail(values.email);
+      
+      if (error) {
+        console.error("Error checking email:", error);
+        // If there's an error, assume the email doesn't exist and go to register
         setUserEmail(values.email);
         setStep("register");
         return;
       }
 
-      if (users && users.length > 0) {
-        // Email exists, go to password step
-        setUserEmail(values.email);
-        setStep("password");
-      } else {
-        // Email doesn't exist, go to register step
-        setUserEmail(values.email);
-        setStep("register");
-      }
+      // If no error, the email exists
+      setUserEmail(values.email);
+      setStep("password");
+      
     } catch (error) {
       console.error("Error checking email:", error);
       setErrorMessage("Une erreur est survenue lors de la vérification de l'email");
