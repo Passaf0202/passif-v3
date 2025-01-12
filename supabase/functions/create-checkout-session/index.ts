@@ -30,7 +30,7 @@ serve(async (req) => {
       throw new Error('Utilisateur non authentifié');
     }
 
-    // Récupérer les détails de l'annonce
+    // Get the listing details
     const { data: listing } = await supabaseClient
       .from('listings')
       .select('*')
@@ -41,50 +41,33 @@ serve(async (req) => {
       throw new Error('Annonce non trouvée');
     }
 
+    // Get the seller's profile to get their Stripe account ID
+    const { data: sellerProfile } = await supabaseClient
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('id', sellerId)
+      .single();
+
+    if (!sellerProfile?.stripe_account_id) {
+      throw new Error('Le vendeur doit d\'abord configurer son compte Stripe');
+    }
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
 
-    // Calculer la commission (15%)
+    // Verify that the seller's account is properly set up
+    const account = await stripe.accounts.retrieve(sellerProfile.stripe_account_id);
+    
+    if (!account.charges_enabled) {
+      throw new Error('Le compte Stripe du vendeur n\'est pas encore vérifié');
+    }
+
+    // Calculate the platform fee (15%)
     const platformFee = Math.round(listing.price * 0.15 * 100);
     const totalAmount = Math.round(listing.price * 100);
 
-    // Créer ou récupérer le compte Stripe du vendeur
-    let stripeAccount;
-    try {
-      // Vérifier si le vendeur a déjà un compte Stripe
-      const { data: sellerProfile } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', sellerId)
-        .single();
-
-      if (!sellerProfile) {
-        throw new Error('Profil vendeur non trouvé');
-      }
-
-      // Créer un nouveau compte Stripe Express avec les capacités requises
-      stripeAccount = await stripe.accounts.create({
-        type: 'express',
-        country: 'FR',
-        email: sellerProfile.email || user.email,
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-        business_type: 'individual',
-        tos_acceptance: {
-          service_agreement: 'recipient',
-        },
-      });
-
-      console.log('Compte Stripe créé:', stripeAccount.id);
-    } catch (error) {
-      console.error('Erreur lors de la création du compte Stripe:', error);
-      throw new Error('Erreur lors de la création du compte vendeur');
-    }
-
-    // Créer la session de paiement
+    // Create the payment session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -104,7 +87,7 @@ serve(async (req) => {
       payment_intent_data: {
         application_fee_amount: platformFee,
         transfer_data: {
-          destination: stripeAccount.id,
+          destination: sellerProfile.stripe_account_id,
         },
       },
       metadata: {
