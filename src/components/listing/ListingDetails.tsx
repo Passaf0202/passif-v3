@@ -68,6 +68,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           listingId={listing.id}
           sellerId={listing.user_id}
           title={listing.title}
+          price={listing.price}
           onBuy={handleBuy}
         />
 
