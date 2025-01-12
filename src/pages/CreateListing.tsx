@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CategorySelector } from "@/components/CategorySelector";
 import { ProductDetails } from "@/components/ProductDetails";
 import { ShippingDetails } from "@/components/ShippingDetails";
+import { LocationPicker } from "@/components/LocationPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -61,9 +62,10 @@ export default function CreateListing() {
     },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
+      console.log("Selected files:", files);
       setImages(files);
     }
   };
@@ -192,6 +194,10 @@ export default function CreateListing() {
     return null;
   }
 
+  const handleLocationChange = (location: string) => {
+    form.setValue("location", location);
+  };
+
   return (
     <div className="container max-w-2xl py-8">
       <Card>
@@ -259,21 +265,39 @@ export default function CreateListing() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Localisation</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ville" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <ShippingDetails onShippingChange={setShippingDetails} />
+
+              {shippingDetails.method === "inPerson" && (
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Localisation</FormLabel>
+                      <FormControl>
+                        <LocationPicker onLocationChange={handleLocationChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {shippingDetails.method === "postal" && (
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ville</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Votre ville" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormItem>
                 <FormLabel>Images</FormLabel>
