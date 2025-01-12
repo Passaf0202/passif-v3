@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          level: number
+          name: string
+          parent_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          level: number
+          name: string
+          parent_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          level?: number
+          name?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string | null
@@ -47,40 +82,64 @@ export type Database = {
       }
       listings: {
         Row: {
+          brand: string | null
           category: string
+          color: string[] | null
+          condition: string | null
           created_at: string | null
           description: string
           id: string
           images: string[] | null
           location: string
+          material: string[] | null
           price: number
+          shipping_method: string | null
+          shipping_weight: number | null
           status: string | null
+          subcategory: string | null
+          subsubcategory: string | null
           title: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          brand?: string | null
           category: string
+          color?: string[] | null
+          condition?: string | null
           created_at?: string | null
           description: string
           id?: string
           images?: string[] | null
           location: string
+          material?: string[] | null
           price: number
+          shipping_method?: string | null
+          shipping_weight?: number | null
           status?: string | null
+          subcategory?: string | null
+          subsubcategory?: string | null
           title: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          brand?: string | null
           category?: string
+          color?: string[] | null
+          condition?: string | null
           created_at?: string | null
           description?: string
           id?: string
           images?: string[] | null
           location?: string
+          material?: string[] | null
           price?: number
+          shipping_method?: string | null
+          shipping_weight?: number | null
           status?: string | null
+          subcategory?: string | null
+          subsubcategory?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string

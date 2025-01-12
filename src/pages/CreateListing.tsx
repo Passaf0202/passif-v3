@@ -16,6 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CategorySelector } from "@/components/CategorySelector";
+import { ProductDetails } from "@/components/ProductDetails";
+import { ShippingDetails } from "@/components/ShippingDetails";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -26,18 +29,7 @@ const formSchema = z.object({
     message: "Le prix doit être un nombre positif",
   }),
   location: z.string().min(2, "La localisation est requise"),
-  category: z.string().min(2, "La catégorie est requise"),
 });
-
-const categories = [
-  "Véhicules",
-  "Immobilier",
-  "Multimédia",
-  "Maison",
-  "Loisirs",
-  "Mode",
-  "Autres",
-];
 
 export default function CreateListing() {
   const { user } = useAuth();
@@ -45,6 +37,19 @@ export default function CreateListing() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<File[]>([]);
+  const [category, setCategory] = useState<string>("");
+  const [subcategory, setSubcategory] = useState<string>("");
+  const [subsubcategory, setSubsubcategory] = useState<string>("");
+  const [productDetails, setProductDetails] = useState<{
+    brand?: string;
+    condition?: string;
+    color?: string[];
+    material?: string[];
+  }>({});
+  const [shippingDetails, setShippingDetails] = useState<{
+    method?: string;
+    weight?: number;
+  }>({});
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,7 +58,6 @@ export default function CreateListing() {
       description: "",
       price: "",
       location: "",
-      category: "",
     },
   });
 
@@ -62,6 +66,16 @@ export default function CreateListing() {
       const files = Array.from(e.target.files);
       setImages(files);
     }
+  };
+
+  const handleCategoryChange = (
+    mainCategory: string,
+    sub?: string,
+    subsub?: string
+  ) => {
+    setCategory(mainCategory);
+    setSubcategory(sub || "");
+    setSubsubcategory(subsub || "");
   };
 
   const uploadImages = async () => {
@@ -108,6 +122,15 @@ export default function CreateListing() {
       return;
     }
 
+    if (!category) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner une catégorie",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       console.log("Starting listing creation with values:", values);
@@ -126,10 +149,15 @@ export default function CreateListing() {
           description: values.description,
           price: Number(values.price),
           location: values.location,
-          category: values.category,
+          category,
+          subcategory,
+          subsubcategory,
           images: imageUrls,
           user_id: user.id,
-          status: 'active'
+          status: 'active',
+          ...productDetails,
+          shipping_method: shippingDetails.method,
+          shipping_weight: shippingDetails.weight,
         })
         .select()
         .single();
@@ -187,6 +215,15 @@ export default function CreateListing() {
                 )}
               />
 
+              <CategorySelector onCategoryChange={handleCategoryChange} />
+
+              <ProductDetails
+                category={category}
+                subcategory={subcategory}
+                subsubcategory={subsubcategory}
+                onDetailsChange={setProductDetails}
+              />
+
               <FormField
                 control={form.control}
                 name="description"
@@ -236,29 +273,7 @@ export default function CreateListing() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Catégorie</FormLabel>
-                    <FormControl>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        {...field}
-                      >
-                        <option value="">Sélectionnez une catégorie</option>
-                        {categories.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <ShippingDetails onShippingChange={setShippingDetails} />
 
               <FormItem>
                 <FormLabel>Images</FormLabel>
