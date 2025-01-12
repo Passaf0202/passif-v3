@@ -68,8 +68,9 @@ export function ProfilePhotoUpload({ userId, currentAvatarUrl, onAvatarUpdate }:
     input.accept = 'image/*';
     input.capture = 'environment';
     input.onchange = (e) => {
-      if (e.target instanceof HTMLInputElement && e.target.files?.[0]) {
-        uploadAvatar(e.target.files[0]);
+      const target = e.target as HTMLInputElement;
+      if (target && target.files?.[0]) {
+        uploadAvatar(target.files[0]);
       }
     };
     input.click();
@@ -92,11 +93,9 @@ export function ProfilePhotoUpload({ userId, currentAvatarUrl, onAvatarUpdate }:
           onChange={handleFileUpload}
         />
         <label htmlFor="avatar-upload">
-          <Button variant="outline" size="sm" disabled={uploading} asChild>
-            <span>
-              <Upload className="h-4 w-4 mr-2" />
-              Choisir une photo
-            </span>
+          <Button variant="outline" size="sm" disabled={uploading} className="cursor-pointer">
+            <Upload className="h-4 w-4 mr-2" />
+            Choisir une photo
           </Button>
         </label>
         <Button

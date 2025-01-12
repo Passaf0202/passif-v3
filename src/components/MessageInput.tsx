@@ -23,10 +23,12 @@ export function MessageInput({
     input.accept = 'image/*';
     input.capture = 'environment';
     input.onchange = (e) => {
-      // Cast the event to the correct type
-      if (e && e.target instanceof HTMLInputElement) {
-        const changeEvent = e as unknown as React.ChangeEvent<HTMLInputElement>;
-        onFileChange(changeEvent);
+      const target = e.target as HTMLInputElement;
+      if (target && target.files) {
+        const event = {
+          target: target,
+        } as React.ChangeEvent<HTMLInputElement>;
+        onFileChange(event);
       }
     };
     input.click();
@@ -44,12 +46,11 @@ export function MessageInput({
           accept="image/*,.pdf,.doc,.docx"
         />
         <div className="flex gap-2">
-          <label htmlFor="file-input">
+          <label htmlFor="file-input" className="cursor-pointer">
             <Button
               type="button"
               variant="outline"
               size="icon"
-              className="cursor-pointer"
             >
               <PlusCircle className="h-4 w-4" />
             </Button>
