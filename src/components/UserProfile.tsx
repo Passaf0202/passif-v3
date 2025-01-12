@@ -4,10 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Camera } from "lucide-react";
 import { Navbar } from "./Navbar";
+import { ProfilePhotoUpload } from "./ProfilePhotoUpload";
 
 export function UserProfile() {
   const navigate = useNavigate();
@@ -116,6 +115,13 @@ export function UserProfile() {
     return <div>Chargement...</div>;
   }
 
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    setProfile((prev: any) => ({
+      ...prev,
+      avatar_url: newAvatarUrl,
+    }));
+  };
+
   return (
     <div>
       <Navbar />
@@ -133,20 +139,11 @@ export function UserProfile() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={profile?.avatar_url} />
-                <AvatarFallback>
-                  <User className="h-10 w-10" />
-                </AvatarFallback>
-              </Avatar>
-              {editing && (
-                <Button variant="outline" size="sm">
-                  <Camera className="h-4 w-4 mr-2" />
-                  Changer la photo
-                </Button>
-              )}
-            </div>
+            <ProfilePhotoUpload
+              userId={profile?.id}
+              currentAvatarUrl={profile?.avatar_url}
+              onAvatarUpdate={handleAvatarUpdate}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
