@@ -1,105 +1,38 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/components/ui/use-toast";
-import { AuthError } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import { EmailStep } from "./EmailStep";
 import { LoginStep } from "./LoginStep";
 import { RegisterStep } from "./RegisterStep";
-
-type AuthStep = "email" | "password" | "register";
+import { useAuthState } from "@/hooks/useAuthState";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { getErrorMessage } from "@/utils/authUtils";
 
 export function AuthContainer() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [step, setStep] = useState<AuthStep>("email");
-  const [userEmail, setUserEmail] = useState("");
+  const {
+    errorMessage,
+    setErrorMessage,
+    step,
+    setStep,
+    userEmail,
+    setUserEmail
+  } = useAuthState();
 
-  useEffect(() => {
-    let mounted = true;
-
-    const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log("Current session:", session);
-        
-        if (error) {
-          console.error("Session check error:", error);
-          if (mounted) setErrorMessage(getErrorMessage(error));
-          return;
-        }
-
-        if (session && mounted) {
-          console.log("User already logged in, redirecting to home");
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Unexpected error during session check:", error);
-        if (mounted) setErrorMessage("Une erreur inattendue est survenue");
-      }
-    };
-    
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
-      
-      if (!mounted) return;
-
-      if (event === "SIGNED_IN" && session) {
-        console.log("User signed in successfully, redirecting to home");
-        toast({
-          title: "Connexion réussie",
-          description: "Vous êtes maintenant connecté",
-        });
-        navigate("/");
-      }
-    });
-
-    return () => {
-      console.log("Cleaning up auth subscriptions");
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [navigate, toast]);
-
-  const getErrorMessage = (error: AuthError) => {
-    console.error("Auth error:", error);
-    
-    if (error.message.includes("session_not_found")) {
-      return "Session expirée. Veuillez vous reconnecter.";
-    }
-    if (error.message.includes("Email not found")) {
-      return "Cet email n'est pas associé à un compte";
-    }
-    if (error.message.includes("Invalid login credentials")) {
-      return "Email ou mot de passe incorrect";
-    }
-    if (error.message.includes("User already registered")) {
-      return "Un compte existe déjà avec cet email";
-    }
-    return "Une erreur est survenue. Veuillez réessayer.";
-  };
+  useAuthSession(setErrorMessage);
 
   const handleEmailSubmit = async (values: { email: string }) => {
     try {
       setErrorMessage(""); // Clear any previous errors
       console.log("Checking email:", values.email);
       
-      // Try to sign in with an empty password to check if the email exists
       const { error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: "dummy-password-for-check"
       });
 
       if (error && error.message.includes("Invalid login credentials")) {
-        // Email exists but password is wrong (which is expected)
         setUserEmail(values.email);
         setStep("password");
       } else {
-        // Email doesn't exist or other error, go to register
         setUserEmail(values.email);
         setStep("register");
       }
@@ -112,7 +45,7 @@ export function AuthContainer() {
 
   const handleLoginSubmit = async (values: { email: string; password: string }) => {
     try {
-      setErrorMessage(""); // Clear any previous errors
+      setErrorMessage("");
       console.log("Attempting login for email:", values.email);
       
       const { error } = await supabase.auth.signInWithPassword({
