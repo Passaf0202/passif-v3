@@ -70,13 +70,21 @@ export default function CreateListing() {
       const { error: insertError, data: newListing } = await supabase
         .from("listings")
         .insert({
-          title: values.title,
           description: values.description,
           price: Number(values.price),
           location: values.location,
           images: imageUrls,
           user_id: user.id,
           status: 'active',
+          category: values.category,
+          subcategory: values.subcategory,
+          subsubcategory: values.subsubcategory,
+          brand: values.brand,
+          condition: values.condition,
+          color: values.color,
+          material: values.material,
+          shipping_method: values.shipping_method,
+          shipping_weight: values.shipping_weight,
         })
         .select()
         .single();

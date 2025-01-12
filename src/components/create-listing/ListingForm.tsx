@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -69,7 +70,14 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
   };
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    await onSubmit(values, images);
+    await onSubmit({
+      ...values,
+      category,
+      subcategory,
+      subsubcategory,
+      ...productDetails,
+      ...shippingDetails,
+    }, images);
   };
 
   return (
