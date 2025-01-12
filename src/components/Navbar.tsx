@@ -32,11 +32,57 @@ export function Navbar() {
   });
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      console.log("Attempting to log out...");
+      
+      // First check if we have a valid session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Session check error:", sessionError);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la vérification de la session",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!session) {
+        console.log("No active session found, clearing local state...");
+        // If no session exists, just clear the local state
+        await supabase.auth.signOut({ scope: 'local' });
+        toast({
+          title: "Déconnexion réussie",
+          description: "Vous avez été déconnecté avec succès",
+        });
+        return;
+      }
+
+      // If we have a valid session, proceed with global logout
+      console.log("Active session found, proceeding with global logout...");
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        console.error("Logout error:", error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la déconnexion",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("Logout successful");
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès",
+      });
+    } catch (error) {
+      console.error("Unexpected error during logout:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la déconnexion",
+        description: "Une erreur inattendue est survenue",
         variant: "destructive",
       });
     }
