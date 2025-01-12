@@ -83,22 +83,27 @@ export function AuthContainer() {
   const handleEmailSubmit = async (values: { email: string }) => {
     try {
       setErrorMessage(""); // Clear any previous errors
+      console.log("Checking email:", values.email);
       
-      const { data, error } = await supabase.auth.signInWithOtp({
+      // First, check if the email exists
+      const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({
         email: values.email,
-        options: {
-          shouldCreateUser: false,
-        },
+        password: "dummy-password" // We use a dummy password just to check if the email exists
       });
 
-      if (error) {
-        if (error.message.includes("Email not found")) {
+      if (signInError) {
+        console.log("Email check result:", signInError);
+        // If email doesn't exist, move to register step
+        if (signInError.message.includes("Invalid login credentials")) {
           setUserEmail(values.email);
           setStep("register");
         } else {
-          setErrorMessage(getErrorMessage(error));
+          // For other errors, proceed to password step as the email might exist
+          setUserEmail(values.email);
+          setStep("password");
         }
-      } else {
+      } else if (user) {
+        // If email exists, move to password step
         setUserEmail(values.email);
         setStep("password");
       }
@@ -111,6 +116,7 @@ export function AuthContainer() {
   const handleLoginSubmit = async (values: { email: string; password: string }) => {
     try {
       setErrorMessage(""); // Clear any previous errors
+      console.log("Attempting login for email:", values.email);
       
       const { error } = await supabase.auth.signInWithPassword({
         email: values.email,
@@ -118,6 +124,7 @@ export function AuthContainer() {
       });
 
       if (error) {
+        console.error("Login error:", error);
         setErrorMessage(getErrorMessage(error));
       }
     } catch (error) {
