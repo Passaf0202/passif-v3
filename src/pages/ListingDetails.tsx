@@ -16,11 +16,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function ListingDetails() {
   const { id } = useParams();
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [offerAmount, setOfferAmount] = useState("");
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
 
@@ -44,6 +46,19 @@ export default function ListingDetails() {
       return data;
     },
   });
+
+  const handleBuy = () => {
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour acheter",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    navigate("/checkout", { state: { listing } });
+  };
 
   const handleMakeOffer = async () => {
     if (!user) {
@@ -171,17 +186,7 @@ export default function ListingDetails() {
               <div className="grid grid-cols-2 gap-4">
                 <Button 
                   className="w-full"
-                  onClick={() => {
-                    if (!user) {
-                      toast({
-                        title: "Erreur",
-                        description: "Vous devez être connecté pour acheter",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    // Handle buy action
-                  }}
+                  onClick={handleBuy}
                 >
                   Acheter
                 </Button>

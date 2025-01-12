@@ -1,6 +1,7 @@
 import { FormControl, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Truck, Package } from "lucide-react";
+import { useState } from "react";
 
 interface ShippingDetailsProps {
   onShippingChange: (details: {
@@ -25,12 +26,15 @@ const weightRanges = [
 ];
 
 export function ShippingDetails({ onShippingChange }: ShippingDetailsProps) {
+  const [selectedMethod, setSelectedMethod] = useState<string>();
+
   const handleMethodChange = (method: string) => {
-    onShippingChange({ method });
+    setSelectedMethod(method);
+    onShippingChange({ method, weight: undefined });
   };
 
   const handleWeightChange = (weight: string) => {
-    onShippingChange({ weight: parseInt(weight) });
+    onShippingChange({ method: selectedMethod, weight: parseInt(weight) });
   };
 
   return (
@@ -57,24 +61,26 @@ export function ShippingDetails({ onShippingChange }: ShippingDetailsProps) {
         <FormMessage />
       </FormItem>
 
-      <FormItem>
-        <FormLabel>Poids du colis</FormLabel>
-        <Select onValueChange={handleWeightChange}>
-          <FormControl>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionnez le poids" />
-            </SelectTrigger>
-          </FormControl>
-          <SelectContent>
-            {weightRanges.map((range) => (
-              <SelectItem key={range.value} value={range.value.toString()}>
-                {range.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <FormMessage />
-      </FormItem>
+      {selectedMethod === "postal" && (
+        <FormItem>
+          <FormLabel>Poids du colis</FormLabel>
+          <Select onValueChange={handleWeightChange}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez le poids" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {weightRanges.map((range) => (
+                <SelectItem key={range.value} value={range.value.toString()}>
+                  {range.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
     </div>
   );
 }
