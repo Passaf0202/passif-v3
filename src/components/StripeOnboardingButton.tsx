@@ -42,16 +42,17 @@ export function StripeOnboardingButton() {
       <CardHeader>
         <CardTitle>Configuration des paiements</CardTitle>
         <CardDescription>
-          Pour recevoir vos paiements, vous devez configurer votre compte Stripe. 
-          C'est rapide, sécurisé et gratuit.
+          Pour recevoir vos paiements en tant que particulier ou professionnel, 
+          vous devez configurer votre compte Stripe. C'est rapide, sécurisé et gratuit.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-start space-x-2 text-sm text-muted-foreground">
           <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
           <p>
-            Vous serez redirigé vers Stripe pour renseigner vos informations bancaires 
-            et vérifier votre identité. C'est une étape obligatoire pour garantir 
+            Vous serez redirigé vers Stripe pour renseigner vos informations personnelles
+            et bancaires. Vous pouvez vous inscrire en tant que particulier, 
+            auto-entrepreneur ou entreprise. C'est une étape obligatoire pour garantir 
             la sécurité des transactions.
           </p>
         </div>

@@ -54,7 +54,10 @@ serve(async (req) => {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-        business_type: 'individual',
+        business_type: 'individual', // Spécifier que c'est un compte individuel
+        individual: {
+          email: user.email,
+        },
       });
 
       stripeAccountId = account.id;
