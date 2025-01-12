@@ -18,20 +18,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    // Récupérer l'utilisateur connecté
+    // Get the authenticated user
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
     const { data: { user } } = await supabaseClient.auth.getUser(token);
 
     if (!user) {
-      throw new Error('Utilisateur non authentifié');
+      throw new Error('User not authenticated');
     }
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
 
-    // Récupérer le profil du vendeur
+    // Get the user's profile
     const { data: profile } = await supabaseClient
       .from('profiles')
       .select('*')
@@ -39,38 +39,49 @@ serve(async (req) => {
       .single();
 
     if (!profile) {
-      throw new Error('Profil non trouvé');
+      throw new Error('Profile not found');
     }
 
-    // Créer ou récupérer le compte Stripe du vendeur
+    console.log('Creating/retrieving Stripe account for user:', user.id);
+
+    // Create or retrieve Stripe account
     let account;
     try {
-      // Vérifier si un compte existe déjà
+      // Try to find existing account by user ID
       const accounts = await stripe.accounts.list({
-        email: profile.email || user.email,
         limit: 1,
       });
 
-      if (accounts.data.length > 0) {
-        account = accounts.data[0];
+      const existingAccount = accounts.data.find(acc => 
+        acc.metadata?.supabase_user_id === user.id
+      );
+
+      if (existingAccount) {
+        console.log('Found existing Stripe account:', existingAccount.id);
+        account = existingAccount;
       } else {
-        // Créer un nouveau compte Stripe Connect
+        // Create new account with proper metadata
+        console.log('Creating new Stripe account for user:', user.id);
         account = await stripe.accounts.create({
           type: 'express',
           country: 'FR',
-          email: profile.email || user.email,
           capabilities: {
             card_payments: { requested: true },
             transfers: { requested: true },
           },
           business_type: 'individual',
+          metadata: {
+            supabase_user_id: user.id
+          },
           tos_acceptance: {
             service_agreement: 'recipient',
           },
         });
+        console.log('Created new Stripe account:', account.id);
       }
 
-      // Créer le lien d'onboarding
+      // Create account link
+      console.log('Creating account link for:', account.id);
       const accountLink = await stripe.accountLinks.create({
         account: account.id,
         refresh_url: `${req.headers.get('origin')}/profile`,
@@ -86,11 +97,11 @@ serve(async (req) => {
         }
       );
     } catch (error) {
-      console.error('Erreur lors de la création du compte Stripe:', error);
+      console.error('Error in Stripe operations:', error);
       throw error;
     }
   } catch (error) {
-    console.error('Erreur:', error);
+    console.error('Error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
