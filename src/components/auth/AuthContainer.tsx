@@ -1,11 +1,9 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { EmailStep } from "./EmailStep";
-import { LoginStep } from "./LoginStep";
-import { RegisterStep } from "./RegisterStep";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { getErrorMessage } from "@/utils/authUtils";
+import { AuthHeader } from "./AuthHeader";
+import { AuthFormContainer } from "./AuthFormContainer";
 
 export function AuthContainer() {
   const {
@@ -74,38 +72,14 @@ export function AuthContainer() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          {step === "register" 
-            ? "Créez votre compte"
-            : "Connectez-vous ou créez votre compte"}
-        </h2>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {errorMessage && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          )}
-          
-          {step === "email" && (
-            <EmailStep onSubmit={handleEmailSubmit} />
-          )}
-
-          {step === "password" && (
-            <LoginStep 
-              email={userEmail}
-              onSubmit={handleLoginSubmit}
-            />
-          )}
-
-          {step === "register" && (
-            <RegisterStep email={userEmail} />
-          )}
-        </div>
-      </div>
+      <AuthHeader step={step} />
+      <AuthFormContainer
+        step={step}
+        errorMessage={errorMessage}
+        userEmail={userEmail}
+        onEmailSubmit={handleEmailSubmit}
+        onLoginSubmit={handleLoginSubmit}
+      />
     </div>
   );
 }
