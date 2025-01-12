@@ -22,26 +22,24 @@ export function AuthContainer() {
       setErrorMessage(""); // Clear any previous errors
       console.log("Checking email:", values.email);
       
-      // Use signInWithOtp with shouldCreateUser: false to check if email exists
-      const { error } = await supabase.auth.signInWithOtp({
+      // Try to sign in with a random password to check if the account exists
+      const { error } = await supabase.auth.signInWithPassword({
         email: values.email,
-        options: {
-          shouldCreateUser: false
-        }
+        password: "check-account-exists",
       });
 
       console.log("Email check response:", error);
 
-      // If we get "Email not found", the user doesn't exist
-      if (error?.message.includes("Email not found")) {
-        console.log("Email not found, directing to register");
-        setUserEmail(values.email);
-        setStep("register");
-      } else {
-        // If no error or different error, assume user exists
+      // If we get "Invalid login credentials", the account exists
+      if (error?.message === "Invalid login credentials") {
         console.log("Email exists, directing to login");
         setUserEmail(values.email);
         setStep("password");
+      } else {
+        // For any other error, assume the account doesn't exist
+        console.log("Email not found, directing to register");
+        setUserEmail(values.email);
+        setStep("register");
       }
       
     } catch (error) {
