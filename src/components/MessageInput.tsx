@@ -22,7 +22,13 @@ export function MessageInput({
     input.type = 'file';
     input.accept = 'image/*';
     input.capture = 'environment';
-    input.onchange = (e) => onFileChange(e as React.ChangeEvent<HTMLInputElement>);
+    input.onchange = (e) => {
+      // Cast the event to the correct type
+      if (e && e.target instanceof HTMLInputElement) {
+        const changeEvent = e as unknown as React.ChangeEvent<HTMLInputElement>;
+        onFileChange(changeEvent);
+      }
+    };
     input.click();
   };
 
