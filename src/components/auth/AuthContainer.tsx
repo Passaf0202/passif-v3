@@ -88,21 +88,21 @@ export function AuthContainer() {
       setErrorMessage(""); // Clear any previous errors
       console.log("Checking email:", values.email);
       
-      // Try to sign in with a reset password request
-      // This is a safe way to check if an email exists
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email);
-      
-      if (error) {
-        console.error("Error checking email:", error);
-        // If there's an error, assume the email doesn't exist and go to register
+      // Try to sign in with an empty password to check if the email exists
+      const { error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: "dummy-password-for-check"
+      });
+
+      if (error && error.message.includes("Invalid login credentials")) {
+        // Email exists but password is wrong (which is expected)
+        setUserEmail(values.email);
+        setStep("password");
+      } else {
+        // Email doesn't exist or other error, go to register
         setUserEmail(values.email);
         setStep("register");
-        return;
       }
-
-      // If no error, the email exists
-      setUserEmail(values.email);
-      setStep("password");
       
     } catch (error) {
       console.error("Error checking email:", error);
