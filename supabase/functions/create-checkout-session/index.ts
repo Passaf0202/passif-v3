@@ -52,15 +52,33 @@ serve(async (req) => {
     // Créer ou récupérer le compte Stripe du vendeur
     let stripeAccount;
     try {
+      // Vérifier si le vendeur a déjà un compte Stripe
+      const { data: sellerProfile } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', sellerId)
+        .single();
+
+      if (!sellerProfile) {
+        throw new Error('Profil vendeur non trouvé');
+      }
+
+      // Créer un nouveau compte Stripe Express avec les capacités requises
       stripeAccount = await stripe.accounts.create({
         type: 'express',
         country: 'FR',
-        email: user.email,
+        email: sellerProfile.email || user.email,
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
+        business_type: 'individual',
+        tos_acceptance: {
+          service_agreement: 'recipient',
+        },
       });
+
+      console.log('Compte Stripe créé:', stripeAccount.id);
     } catch (error) {
       console.error('Erreur lors de la création du compte Stripe:', error);
       throw new Error('Erreur lors de la création du compte vendeur');
