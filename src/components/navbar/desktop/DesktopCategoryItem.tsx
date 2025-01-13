@@ -16,11 +16,21 @@ export const DesktopCategoryItem = ({
 }: DesktopCategoryItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  const handleMouseEnter = () => {
+    console.log("Mouse enter on category:", category.name);
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    console.log("Mouse leave from category:", category.name);
+    setIsOpen(false);
+  };
+
   return (
     <div 
       className="relative"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <button
         className={`flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors whitespace-nowrap px-3 py-1.5 rounded-md hover:bg-gray-50 ${
