@@ -16,14 +16,14 @@ export const DesktopCategoryItem = ({
   return (
     <div className="group relative">
       <button
-        className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors whitespace-nowrap"
+        className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors whitespace-nowrap px-2"
         onClick={() => handleCategoryClick(category.name)}
       >
         {formatCategoryName(category.name)}
         <ChevronDown className="h-4 w-4" />
       </button>
 
-      <div className="hidden group-hover:block absolute left-0 top-full mt-1 w-64 bg-white border rounded-md shadow-lg z-[60]">
+      <div className="hidden group-hover:block absolute left-0 top-full mt-1 w-64 bg-white border rounded-md shadow-lg z-[100]">
         <div className="py-2">
           <Link
             to={`/category/${category.name.toLowerCase()}`}
