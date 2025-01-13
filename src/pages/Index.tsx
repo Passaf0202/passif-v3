@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { SearchBar } from "@/components/SearchBar";
 import { ListingCard } from "@/components/ListingCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,19 +52,43 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <SearchBar onSearch={handleSearch} />
-        
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-6">Annonces récentes</h2>
+      
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                C'est le moment de vendre
+              </h1>
+              <p className="text-lg text-gray-600 mb-8">
+                Donnez une seconde vie à vos objets et gagnez de l'argent
+              </p>
+              <Link to="/create">
+                <Button size="lg" className="bg-primary hover:bg-primary/90">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Déposer une annonce
+                </Button>
+              </Link>
+            </div>
+            <SearchBar onSearch={handleSearch} />
+          </div>
+        </div>
+
+        {/* Listings Section */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Annonces récentes
+          </h2>
+          
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : listings && listings.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {listings.map((listing) => (
                 <ListingCard
                   key={listing.id}
@@ -81,8 +108,10 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      <Footer />
     </div>
   );
-};
+}
 
 export default Index;
