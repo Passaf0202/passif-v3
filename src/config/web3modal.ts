@@ -25,10 +25,10 @@ const wagmiConfig = createConfig({
 const appKit = createAppKit({
   projectId,
   metadata,
-  adapter: new WagmiAdapter({
-    wagmiConfig,
+  adapters: [new WagmiAdapter({
+    config: wagmiConfig,
     chains
-  })
+  })]
 })
 
 export { wagmiConfig, appKit }
