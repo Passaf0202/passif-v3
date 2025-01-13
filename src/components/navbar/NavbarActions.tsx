@@ -38,7 +38,7 @@ export const NavbarActions = () => {
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2 overflow-x-hidden">
       <Button 
         onClick={handleCreateListing}
         className="bg-primary hover:bg-primary/90 hidden md:flex h-10"
@@ -58,7 +58,9 @@ export const NavbarActions = () => {
           <Link to="/notifications" className="text-gray-600 hover:text-gray-900">
             <Bell className="h-6 w-6" />
           </Link>
-          <WalletConnectButton />
+          <div className="min-w-fit">
+            <WalletConnectButton />
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -78,7 +80,7 @@ export const NavbarActions = () => {
           </DropdownMenu>
         </>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-fit">
           <Link to="/auth">
             <Button variant="ghost" className="h-10">
               Connexion
