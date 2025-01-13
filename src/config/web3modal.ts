@@ -2,6 +2,7 @@ import { createConfig, configureChains, mainnet, sepolia } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
 import { createAppKit } from '@reown/appkit'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
+import { type Network } from '@reown/appkit'
 
 const projectId = '3225e25c4d47b78232829662814a3d58'
 
@@ -23,7 +24,7 @@ const wagmiConfig = createConfig({
 })
 
 // Define networks in AppKit format
-const appKitNetworks = [
+const appKitNetworks: [Network, ...Network[]] = [
   {
     id: 1,
     name: 'Ethereum',
@@ -64,13 +65,13 @@ const appKitNetworks = [
       }
     }
   }
-] as [AppKitNetwork, ...AppKitNetwork[]]
+]
 
 const appKit = createAppKit({
   projectId,
   metadata,
   networks: appKitNetworks,
-  adapters: [new WagmiAdapter({ wagmiConfig })]
+  adapters: [new WagmiAdapter({ config: wagmiConfig })]
 })
 
 export { wagmiConfig, appKit }
