@@ -77,7 +77,7 @@ export function WalletConnectButton() {
       onClick={handleConnect}
       disabled={isOpen}
       variant={isConnected ? "outline" : "default"}
-      className="h-10 px-4 whitespace-nowrap bg-primary hover:bg-primary/90 text-white"
+      className="h-10 px-3 md:px-4 whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm md:text-base min-w-[120px] md:min-w-[140px] flex-shrink-0"
     >
       {isOpen ? (
         <>
@@ -85,7 +85,7 @@ export function WalletConnectButton() {
           Connexion...
         </>
       ) : isConnected ? (
-        `${address?.slice(0, 6)}...${address?.slice(-4)}`
+        `${address?.slice(0, 4)}...${address?.slice(-4)}`
       ) : (
         'Connecter Wallet'
       )}

@@ -40,7 +40,7 @@ export const NavbarActions = () => {
   };
 
   return (
-    <div className="flex items-center justify-end gap-4 flex-1 md:flex-none">
+    <div className="flex items-center justify-end gap-2 flex-1 md:flex-none w-full md:w-auto">
       <Button 
         onClick={handleCreateListing}
         className="bg-primary hover:bg-primary/90 hidden md:flex h-10 whitespace-nowrap"
@@ -51,7 +51,7 @@ export const NavbarActions = () => {
 
       {user ? (
         <>
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2">
             <Link to="/messages" className="text-gray-600 hover:text-gray-900">
               <MessageCircle className="h-6 w-6" />
             </Link>
@@ -62,10 +62,12 @@ export const NavbarActions = () => {
               <Bell className="h-6 w-6" />
             </Link>
           </div>
-          <WalletConnectButton />
+          <div className="flex-shrink-0">
+            <WalletConnectButton />
+          </div>
         </>
       ) : (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Link to="/auth">
             <Button variant="ghost" className="h-10 whitespace-nowrap">
               Connexion
@@ -76,4 +78,4 @@ export const NavbarActions = () => {
       )}
     </div>
   );
-}
+};

@@ -18,8 +18,8 @@ export function Navbar() {
   return (
     <div className="sticky top-0 z-50 bg-white border-b">
       <div className="max-w-[1220px] mx-auto">
-        <div className="px-4">
-          <div className="flex h-16 items-center gap-4">
+        <div className="px-2 md:px-4">
+          <div className="flex h-16 items-center gap-2 md:gap-4">
             <CategoryDrawer categories={categories || []} />
             <NavbarLogo />
             <div className="hidden md:flex flex-1 max-w-2xl">
