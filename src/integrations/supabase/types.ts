@@ -92,17 +92,14 @@ export type Database = {
           images: string[] | null
           location: string
           material: string[] | null
-          payment_intent_id: string | null
           payment_status: string | null
           price: number
           shipping_method: string | null
           shipping_weight: number | null
           status: string | null
-          stripe_account_id: string | null
           subcategory: string | null
           subsubcategory: string | null
           title: string
-          transfer_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -117,17 +114,14 @@ export type Database = {
           images?: string[] | null
           location: string
           material?: string[] | null
-          payment_intent_id?: string | null
           payment_status?: string | null
           price: number
           shipping_method?: string | null
           shipping_weight?: number | null
           status?: string | null
-          stripe_account_id?: string | null
           subcategory?: string | null
           subsubcategory?: string | null
           title: string
-          transfer_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -142,17 +136,14 @@ export type Database = {
           images?: string[] | null
           location?: string
           material?: string[] | null
-          payment_intent_id?: string | null
           payment_status?: string | null
           price?: number
           shipping_method?: string | null
           shipping_weight?: number | null
           status?: string | null
-          stripe_account_id?: string | null
           subcategory?: string | null
           subsubcategory?: string | null
           title?: string
-          transfer_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -239,9 +230,10 @@ export type Database = {
           language: string
           last_name: string
           phone_number: string
-          stripe_account_id: string | null
+          preferred_network: string | null
           updated_at: string | null
           username: string
+          wallet_address: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -254,9 +246,10 @@ export type Database = {
           language: string
           last_name: string
           phone_number: string
-          stripe_account_id?: string | null
+          preferred_network?: string | null
           updated_at?: string | null
           username: string
+          wallet_address?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -269,9 +262,10 @@ export type Database = {
           language?: string
           last_name?: string
           phone_number?: string
-          stripe_account_id?: string | null
+          preferred_network?: string | null
           updated_at?: string | null
           username?: string
+          wallet_address?: string | null
         }
         Relationships: []
       }
@@ -283,10 +277,11 @@ export type Database = {
           created_at: string | null
           id: string
           listing_id: string | null
-          payment_intent_id: string | null
+          network: string | null
           seller_id: string | null
           status: string | null
-          transfer_id: string | null
+          token_symbol: string | null
+          transaction_hash: string | null
           updated_at: string | null
         }
         Insert: {
@@ -296,10 +291,11 @@ export type Database = {
           created_at?: string | null
           id?: string
           listing_id?: string | null
-          payment_intent_id?: string | null
+          network?: string | null
           seller_id?: string | null
           status?: string | null
-          transfer_id?: string | null
+          token_symbol?: string | null
+          transaction_hash?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -309,10 +305,11 @@ export type Database = {
           created_at?: string | null
           id?: string
           listing_id?: string | null
-          payment_intent_id?: string | null
+          network?: string | null
           seller_id?: string | null
           status?: string | null
-          transfer_id?: string | null
+          token_symbol?: string | null
+          transaction_hash?: string | null
           updated_at?: string | null
         }
         Relationships: [
