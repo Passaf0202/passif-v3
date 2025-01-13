@@ -5,30 +5,29 @@ import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from 'react';
+import { useAuth } from "@/hooks/useAuth";
 
 export function WalletConnectButton() {
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const { open, isOpen } = useWeb3Modal()
   const { toast } = useToast()
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (isConnected && address) {
+    if (isConnected && address && user) {
       updateUserProfile(address);
     }
-  }, [isConnected, address]);
+  }, [isConnected, address, user]);
 
   const updateUserProfile = async (walletAddress: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const { error } = await supabase
         .from('profiles')
         .update({ 
           wallet_address: walletAddress,
         })
-        .eq('id', user.id);
+        .eq('id', user?.id);
 
       if (error) throw error;
 
@@ -40,10 +39,16 @@ export function WalletConnectButton() {
 
   const handleConnect = async () => {
     try {
+      if (!user) {
+        toast({
+          title: "Connexion requise 😊",
+          description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille",
+        });
+        return;
+      }
+
       if (isConnected) {
-        await disconnect()
-        // Clear wallet address from profile when disconnecting
-        const { data: { user } } = await supabase.auth.getUser();
+        await disconnect();
         if (user) {
           await supabase
             .from('profiles')
@@ -53,25 +58,26 @@ export function WalletConnectButton() {
         toast({
           title: "Déconnecté",
           description: "Votre portefeuille a été déconnecté",
-        })
+        });
       } else {
-        await open()
+        await open();
       }
     } catch (error) {
-      console.error('Connection error:', error)
+      console.error('Connection error:', error);
       toast({
         title: "Erreur",
         description: "Impossible de se connecter au portefeuille",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   return (
     <Button 
       onClick={handleConnect}
       disabled={isOpen}
       variant={isConnected ? "outline" : "default"}
+      className="whitespace-nowrap"
     >
       {isOpen ? (
         <>
@@ -84,5 +90,5 @@ export function WalletConnectButton() {
         'Connecter Wallet'
       )}
     </Button>
-  )
+  );
 }
