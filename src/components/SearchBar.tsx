@@ -78,12 +78,12 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input 
           placeholder="Que recherchez-vous ?" 
-          className="flex-1"
+          className="flex-1 h-12 text-base rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
           value={searchInput}
           onChange={handleInputChange}
           onFocus={() => setShowSuggestions(true)}
         />
-        <Button type="submit" className="bg-primary hover:bg-primary/90">
+        <Button type="submit" size="icon" className="h-12 w-12 bg-primary hover:bg-primary/90 rounded-lg">
           <Search className="h-5 w-5" />
         </Button>
       </form>

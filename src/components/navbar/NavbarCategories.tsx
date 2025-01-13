@@ -5,7 +5,6 @@ import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
@@ -26,7 +25,6 @@ export const NavbarCategories = () => {
       
       if (error) throw error;
       
-      // Fetch subcategories for each main category
       const categoriesWithSubs = await Promise.all(
         mainCategories.map(async (category) => {
           const { data: subcategories } = await supabase
@@ -42,32 +40,31 @@ export const NavbarCategories = () => {
         })
       );
       
-      console.log("Fetched categories with subs:", categoriesWithSubs);
       return categoriesWithSubs;
     }
   });
 
   return (
-    <div className="bg-white border-t">
+    <div className="border-t bg-white overflow-x-auto">
       <div className="max-w-7xl mx-auto">
         <NavigationMenu>
-          <NavigationMenuList className="flex overflow-x-auto no-scrollbar px-4 sm:px-6 lg:px-8 py-2 gap-8">
+          <NavigationMenuList className="flex px-4 py-1 gap-6 h-12 items-center">
             {categories?.map((category) => (
-              <NavigationMenuItem key={category.id}>
+              <NavigationMenuItem key={category.id} className="flex-shrink-0">
                 {isMobile ? (
                   <Link
                     to={`/category/${category.name.toLowerCase()}`}
-                    className="text-sm text-gray-600 whitespace-nowrap hover:text-primary transition-colors capitalize"
+                    className="text-sm text-gray-600 hover:text-primary transition-colors capitalize whitespace-nowrap"
                   >
                     {category.name.toLowerCase()}
                   </Link>
                 ) : (
                   <>
-                    <NavigationMenuTrigger className="text-sm text-gray-600 hover:text-primary transition-colors capitalize bg-transparent">
+                    <NavigationMenuTrigger className="text-sm text-gray-600 hover:text-primary transition-colors capitalize bg-transparent h-9 px-2">
                       {category.name.toLowerCase()}
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <div className="grid gap-3 p-6 w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                      <div className="grid gap-3 p-4 w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                         <div className="row-span-3">
                           <Link
                             to={`/category/${category.name.toLowerCase()}`}

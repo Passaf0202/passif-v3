@@ -17,6 +17,10 @@ export const NavbarActions = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const handleCreateListing = () => {
+    navigate("/create");
+  };
+
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -33,23 +37,11 @@ export const NavbarActions = () => {
     }
   };
 
-  const handleCreateListing = () => {
-    if (!user) {
-      toast({
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour déposer une annonce",
-      });
-      navigate("/auth");
-      return;
-    }
-    navigate("/create");
-  };
-
   return (
     <div className="flex items-center gap-4">
       <Button 
         onClick={handleCreateListing}
-        className="bg-primary hover:bg-primary/90 hidden md:flex"
+        className="bg-primary hover:bg-primary/90 hidden md:flex h-10"
       >
         <Plus className="h-4 w-4 mr-2" />
         Déposer une annonce
@@ -86,12 +78,14 @@ export const NavbarActions = () => {
           </DropdownMenu>
         </>
       ) : (
-        <>
+        <div className="flex items-center gap-2">
           <Link to="/auth">
-            <Button variant="ghost">Connexion</Button>
+            <Button variant="ghost" className="h-10">
+              Connexion
+            </Button>
           </Link>
           <WalletConnectButton />
-        </>
+        </div>
       )}
     </div>
   );

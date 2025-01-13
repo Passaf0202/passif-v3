@@ -14,13 +14,13 @@ export function Navbar() {
   };
 
   return (
-    <div className="border-b shadow-sm">
+    <div className="sticky top-0 z-50 bg-white border-b">
       {/* Top Navigation Bar */}
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo and Search Section */}
-            <div className="flex items-center gap-8 flex-1">
+            <div className="flex items-center gap-4 flex-1">
               <NavbarLogo />
               {/* Search Bar - Hidden on mobile */}
               <div className="hidden md:flex flex-1 max-w-2xl">
@@ -33,7 +33,7 @@ export function Navbar() {
       </div>
 
       {/* Search Bar - Mobile Only */}
-      <div className="md:hidden px-4 py-2">
+      <div className="md:hidden px-4 py-2 border-t">
         <SearchBar onSearch={onSearch} />
       </div>
       
