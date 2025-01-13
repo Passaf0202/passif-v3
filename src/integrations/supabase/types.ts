@@ -44,6 +44,35 @@ export type Database = {
           },
         ]
       }
+      category_attributes: {
+        Row: {
+          attribute_type: string
+          attribute_value: string
+          category_id: string | null
+          id: string
+        }
+        Insert: {
+          attribute_type: string
+          attribute_value: string
+          category_id?: string | null
+          id?: string
+        }
+        Update: {
+          attribute_type?: string
+          attribute_value?: string
+          category_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_attributes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string | null
@@ -92,16 +121,21 @@ export type Database = {
           images: string[] | null
           location: string
           material: string[] | null
+          model: string | null
           payment_status: string | null
           price: number
           shipping_method: string | null
           shipping_weight: number | null
+          size: string | null
+          species: string | null
           status: string | null
           subcategory: string | null
           subsubcategory: string | null
           title: string
+          type: string | null
           updated_at: string | null
           user_id: string
+          year: number | null
         }
         Insert: {
           brand?: string | null
@@ -114,16 +148,21 @@ export type Database = {
           images?: string[] | null
           location: string
           material?: string[] | null
+          model?: string | null
           payment_status?: string | null
           price: number
           shipping_method?: string | null
           shipping_weight?: number | null
+          size?: string | null
+          species?: string | null
           status?: string | null
           subcategory?: string | null
           subsubcategory?: string | null
           title: string
+          type?: string | null
           updated_at?: string | null
           user_id: string
+          year?: number | null
         }
         Update: {
           brand?: string | null
@@ -136,16 +175,21 @@ export type Database = {
           images?: string[] | null
           location?: string
           material?: string[] | null
+          model?: string | null
           payment_status?: string | null
           price?: number
           shipping_method?: string | null
           shipping_weight?: number | null
+          size?: string | null
+          species?: string | null
           status?: string | null
           subcategory?: string | null
           subsubcategory?: string | null
           title?: string
+          type?: string | null
           updated_at?: string | null
           user_id?: string
+          year?: number | null
         }
         Relationships: [
           {
@@ -375,6 +419,13 @@ export type Database = {
           username: string
           avatar_url: string
         }[]
+      }
+      insert_subcategories: {
+        Args: {
+          parent_name: string
+          subcategories: string[]
+        }
+        Returns: undefined
       }
     }
     Enums: {

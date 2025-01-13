@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "./WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,21 +11,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-const categories = [
-  { name: "Mode", path: "/category/mode" },
-  { name: "Maison & Jardin", path: "/category/maison" },
-  { name: "Multimédia", path: "/category/multimedia" },
-  { name: "Loisirs", path: "/category/loisirs" },
-  { name: "Véhicules", path: "/category/vehicules" },
-  { name: "Immobilier", path: "/category/immobilier" },
-  { name: "Emploi", path: "/category/emploi" },
-  { name: "Autres", path: "/category/autres" },
-];
+import { useQuery } from "@tanstack/react-query";
 
 export function Navbar() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("level", 1)
+        .order("name");
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -43,6 +48,18 @@ export function Navbar() {
     }
   };
 
+  const handleCreateListing = () => {
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté pour déposer une annonce",
+      });
+      navigate("/auth");
+      return;
+    }
+    navigate("/create");
+  };
+
   return (
     <div className="border-b">
       <div className="bg-white">
@@ -54,30 +71,17 @@ export function Navbar() {
               </Link>
             </div>
 
-            <div className="flex items-center flex-grow justify-center max-w-2xl px-4">
-              <div className="w-full">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Rechercher sur le site"
-                    className="w-full px-4 py-2 rounded-lg bg-gray-100 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                  <button className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                    <Search className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <Button 
+              onClick={handleCreateListing}
+              className="bg-primary hover:bg-primary/90 hidden md:flex"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Déposer une annonce
+            </Button>
 
             <div className="flex items-center space-x-4">
               {user ? (
                 <>
-                  <Link to="/create">
-                    <Button className="bg-primary hover:bg-primary/90">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Déposer une annonce
-                    </Button>
-                  </Link>
                   <Link to="/messages" className="text-gray-600 hover:text-gray-900">
                     <MessageCircle className="h-6 w-6" />
                   </Link>
@@ -121,19 +125,28 @@ export function Navbar() {
       
       <div className="bg-white border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto py-3 space-x-8">
-            {categories.map((category) => (
-              <Link
-                key={category.path}
-                to={category.path}
-                className="text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap hover:text-primary transition-colors"
-              >
-                {category.name}
-              </Link>
-            ))}
+          <div className="flex overflow-x-auto py-3">
+            <div className="flex justify-between w-full space-x-4">
+              {categories?.map((category) => (
+                <Link
+                  key={category.id}
+                  to={`/category/${category.name.toLowerCase()}`}
+                  className="text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap hover:text-primary transition-colors"
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>
+
+      <Button 
+        onClick={handleCreateListing}
+        className="bg-primary hover:bg-primary/90 fixed bottom-4 right-4 md:hidden shadow-lg rounded-full"
+      >
+        <Plus className="h-5 w-5" />
+      </Button>
     </div>
   );
 }
