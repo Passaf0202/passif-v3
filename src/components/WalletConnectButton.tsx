@@ -77,7 +77,7 @@ export function WalletConnectButton() {
       onClick={handleConnect}
       disabled={isOpen}
       variant={isConnected ? "outline" : "default"}
-      className="whitespace-nowrap"
+      className="h-10 px-4 whitespace-nowrap bg-primary hover:bg-primary/90 text-white"
     >
       {isOpen ? (
         <>

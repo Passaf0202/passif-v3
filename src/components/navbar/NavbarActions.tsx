@@ -1,16 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Heart, MessageCircle, Plus, Menu } from "lucide-react";
+import { Bell, Heart, MessageCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "../ui/use-toast";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export const NavbarActions = () => {
   const { user } = useAuth();
@@ -18,6 +12,14 @@ export const NavbarActions = () => {
   const navigate = useNavigate();
 
   const handleCreateListing = () => {
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté pour déposer une annonce",
+      });
+      navigate("/auth");
+      return;
+    }
     navigate("/create");
   };
 
@@ -38,10 +40,10 @@ export const NavbarActions = () => {
   };
 
   return (
-    <div className="flex items-center gap-2 w-full justify-end">
+    <div className="flex items-center justify-end gap-4 flex-1 md:flex-none">
       <Button 
         onClick={handleCreateListing}
-        className="bg-primary hover:bg-primary/90 hidden md:flex h-10"
+        className="bg-primary hover:bg-primary/90 hidden md:flex h-10 whitespace-nowrap"
       >
         <Plus className="h-4 w-4 mr-2" />
         Déposer une annonce
@@ -49,40 +51,23 @@ export const NavbarActions = () => {
 
       {user ? (
         <>
-          <Link to="/messages" className="text-gray-600 hover:text-gray-900">
-            <MessageCircle className="h-6 w-6" />
-          </Link>
-          <Link to="/favorites" className="text-gray-600 hover:text-gray-900">
-            <Heart className="h-6 w-6" />
-          </Link>
-          <Link to="/notifications" className="text-gray-600 hover:text-gray-900">
-            <Bell className="h-6 w-6" />
-          </Link>
-          <div className="flex-shrink-0">
-            <WalletConnectButton />
+          <div className="hidden md:flex items-center gap-4">
+            <Link to="/messages" className="text-gray-600 hover:text-gray-900">
+              <MessageCircle className="h-6 w-6" />
+            </Link>
+            <Link to="/favorites" className="text-gray-600 hover:text-gray-900">
+              <Heart className="h-6 w-6" />
+            </Link>
+            <Link to="/notifications" className="text-gray-600 hover:text-gray-900">
+              <Bell className="h-6 w-6" />
+            </Link>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link to="/profile" className="w-full">
-                  Mon profil
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
-                Se déconnecter
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <WalletConnectButton />
         </>
       ) : (
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-4">
           <Link to="/auth">
-            <Button variant="ghost" className="h-10">
+            <Button variant="ghost" className="h-10 whitespace-nowrap">
               Connexion
             </Button>
           </Link>
@@ -91,4 +76,4 @@ export const NavbarActions = () => {
       )}
     </div>
   );
-};
+}

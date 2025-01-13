@@ -19,13 +19,11 @@ export function Navbar() {
     <div className="sticky top-0 z-50 bg-white border-b">
       <div className="max-w-[1220px] mx-auto">
         <div className="px-4">
-          <div className="flex h-16 items-center justify-between gap-4">
-            <div className="flex items-center gap-6 flex-1">
-              <CategoryDrawer categories={categories || []} />
-              <NavbarLogo />
-              <div className="hidden md:flex flex-1 max-w-2xl">
-                <SearchBar onSearch={onSearch} />
-              </div>
+          <div className="flex h-16 items-center gap-4">
+            <CategoryDrawer categories={categories || []} />
+            <NavbarLogo />
+            <div className="hidden md:flex flex-1 max-w-2xl">
+              <SearchBar onSearch={onSearch} />
             </div>
             <NavbarActions />
           </div>
