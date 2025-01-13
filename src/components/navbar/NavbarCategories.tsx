@@ -9,9 +9,12 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 export const NavbarCategories = () => {
   const isMobile = useIsMobile();
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
   
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -44,19 +47,50 @@ export const NavbarCategories = () => {
     }
   });
 
+  const handleCategoryClick = (categoryName: string) => {
+    if (isMobile) {
+      setOpenCategory(openCategory === categoryName ? null : categoryName);
+    }
+  };
+
   return (
-    <div className="border-t bg-white overflow-x-auto no-scrollbar">
+    <div className="border-t bg-white">
       <NavigationMenu>
-        <NavigationMenuList className="flex px-4 py-1 gap-6 h-12 items-center">
+        <NavigationMenuList className="flex px-4 py-1 gap-4 h-12 items-center overflow-x-auto no-scrollbar">
           {categories?.map((category) => (
             <NavigationMenuItem key={category.id} className="flex-shrink-0">
               {isMobile ? (
-                <Link
-                  to={`/category/${category.name.toLowerCase()}`}
-                  className="text-sm text-gray-600 hover:text-primary transition-colors capitalize whitespace-nowrap"
-                >
-                  {category.name.toLowerCase()}
-                </Link>
+                <div className="relative">
+                  <button
+                    onClick={() => handleCategoryClick(category.name)}
+                    className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors capitalize whitespace-nowrap"
+                  >
+                    {category.name.toLowerCase()}
+                    <ChevronDown className={`h-4 w-4 transition-transform ${
+                      openCategory === category.name ? 'rotate-180' : ''
+                    }`} />
+                  </button>
+                  
+                  {openCategory === category.name && (
+                    <div className="absolute left-0 top-full mt-1 w-screen max-w-[280px] bg-white border rounded-md shadow-lg z-50 py-2">
+                      <Link
+                        to={`/category/${category.name.toLowerCase()}`}
+                        className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
+                      >
+                        Tout {category.name.toLowerCase()}
+                      </Link>
+                      {category.subcategories?.map((subcategory) => (
+                        <Link
+                          key={subcategory.id}
+                          to={`/category/${category.name.toLowerCase()}/${subcategory.name.toLowerCase()}`}
+                          className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 capitalize"
+                        >
+                          {subcategory.name.toLowerCase()}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <>
                   <NavigationMenuTrigger className="text-sm text-gray-600 hover:text-primary transition-colors capitalize bg-transparent h-9 px-2">
