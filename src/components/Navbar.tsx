@@ -37,7 +37,9 @@ export function Navbar() {
         <SearchBar onSearch={onSearch} />
       </div>
       
-      <NavbarCategories />
+      <div className="max-w-7xl mx-auto">
+        <NavbarCategories />
+      </div>
       <MobileCreateButton />
     </div>
   );
