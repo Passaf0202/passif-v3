@@ -17,7 +17,7 @@ export const DesktopCategoryItem = ({
     <div className="group relative">
       <button
         className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors whitespace-nowrap"
-        onMouseEnter={() => handleCategoryClick(category.name)}
+        onClick={() => handleCategoryClick(category.name)}
       >
         {formatCategoryName(category.name)}
         <ChevronDown className="h-4 w-4" />

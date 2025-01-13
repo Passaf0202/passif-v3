@@ -52,15 +52,15 @@ export const NavbarCategories = () => {
   };
 
   return (
-    <div className="border-t bg-white">
+    <div className="sticky top-16 z-40 border-t bg-white">
       <div className="max-w-[1220px] mx-auto">
         <div className="overflow-x-auto no-scrollbar">
-          <div className="flex px-4 py-2 gap-4 items-center justify-between min-w-0">
+          <div className="flex px-4 py-2 gap-4 items-center min-w-0">
             {categories?.map((category, index) => (
               <div 
                 key={category.id} 
                 className={`shrink-0 ${index === 0 ? 'pl-0' : ''} ${
-                  index === categories.length - 1 ? 'pr-0' : ''
+                  index === categories.length - 1 ? 'ml-auto' : ''
                 }`}
               >
                 {isMobile ? (
