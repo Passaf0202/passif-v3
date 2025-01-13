@@ -74,8 +74,8 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
   };
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
-      <form onSubmit={handleSubmit} className="flex gap-2 p-4">
+    <div className="relative w-full">
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <Input 
           placeholder="Que recherchez-vous ?" 
           className="flex-1"
