@@ -77,8 +77,8 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
     <div className="relative w-full">
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input 
-          placeholder="Que recherchez-vous ?" 
-          className="flex-1 h-12 text-base rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+          placeholder="Rechercher sur leboncoin" 
+          className="flex-1 h-12 text-base rounded-lg bg-gray-100 border-gray-300 focus:border-primary focus:ring-primary"
           value={searchInput}
           onChange={handleInputChange}
           onFocus={() => setShowSuggestions(true)}

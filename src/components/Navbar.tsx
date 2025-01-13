@@ -16,8 +16,8 @@ export function Navbar() {
   return (
     <div className="sticky top-0 z-50 bg-white border-b">
       {/* Top Navigation Bar */}
-      <div className="w-full">
-        <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="px-4">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo and Search Section */}
             <div className="flex items-center gap-4 flex-1">
@@ -30,13 +30,13 @@ export function Navbar() {
             <NavbarActions />
           </div>
         </div>
+
+        {/* Search Bar - Mobile Only */}
+        <div className="md:hidden px-4 py-2">
+          <SearchBar onSearch={onSearch} />
+        </div>
       </div>
 
-      {/* Search Bar - Mobile Only */}
-      <div className="md:hidden px-4 py-2 border-t">
-        <SearchBar onSearch={onSearch} />
-      </div>
-      
       <NavbarCategories />
       <MobileCreateButton />
     </div>
