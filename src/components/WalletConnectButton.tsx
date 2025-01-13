@@ -1,12 +1,13 @@
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { useAccount, useDisconnect } from 'wagmi'
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useWeb3Modal } from '@web3modal/react'
 
 export function WalletConnectButton() {
   const { address, isConnected } = useAccount()
-  const { connect, connectors, isLoading, pendingConnector } = useConnect()
   const { disconnect } = useDisconnect()
+  const { open, isOpen } = useWeb3Modal()
   const { toast } = useToast()
 
   const handleConnect = async () => {
@@ -18,11 +19,7 @@ export function WalletConnectButton() {
           description: "Votre portefeuille a été déconnecté",
         })
       } else {
-        await connect({ connector: connectors[0] })
-        toast({
-          title: "Connecté",
-          description: "Votre portefeuille a été connecté avec succès",
-        })
+        await open()
       }
     } catch (error) {
       console.error('Connection error:', error)
@@ -37,13 +34,13 @@ export function WalletConnectButton() {
   return (
     <Button 
       onClick={handleConnect}
-      disabled={isLoading}
+      disabled={isOpen}
       variant={isConnected ? "outline" : "default"}
     >
-      {isLoading ? (
+      {isOpen ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {pendingConnector?.name ?? 'Connexion...'}
+          Connexion...
         </>
       ) : isConnected ? (
         `${address?.slice(0, 6)}...${address?.slice(-4)}`
