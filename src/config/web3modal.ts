@@ -1,9 +1,9 @@
 import { createConfig, configureChains, mainnet, sepolia } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
-import { Web3Modal } from '@web3modal/react'
-import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
+import { createAppKit } from '@reown/appkit'
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 
-const projectId = 'YOUR_WALLET_CONNECT_PROJECT_ID'
+const projectId = '3225e25c4d47b78232829662814a3d58'
 
 const metadata = {
   name: 'Web3Modal Example',
@@ -17,24 +17,18 @@ const { chains, publicClient } = configureChains(
   [publicProvider()]
 )
 
-const connector = new WalletConnectConnector({
-  chains,
-  options: {
-    projectId,
-    metadata,
-  },
-})
-
-export const wagmiConfig = createConfig({
+const wagmiConfig = createConfig({
   autoConnect: true,
-  connectors: [connector],
   publicClient,
 })
 
-// Export the Web3Modal component instead of calling createWeb3Modal
-export const web3ModalComponent = (
-  <Web3Modal 
-    projectId={projectId} 
-    ethereumClient={publicClient}
-  />
-)
+const appKit = createAppKit({
+  projectId,
+  metadata,
+  adapter: new WagmiAdapter({
+    wagmiConfig,
+    chains
+  })
+})
+
+export { wagmiConfig, appKit }
