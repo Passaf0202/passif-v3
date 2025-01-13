@@ -84,3 +84,28 @@
     scrollbar-width: none;
   }
 }
+
+.navigation-menu-content {
+  animation-duration: 0.2s;
+  animation-timing-function: ease-out;
+}
+
+.navigation-menu-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.navigation-menu-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.navigation-menu-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.navigation-menu-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+}
