@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { MobileCategoryItem } from "./mobile/MobileCategoryItem";
 import { DesktopCategoryItem } from "./desktop/DesktopCategoryItem";
 import { Category } from "@/types/category";
+import { X } from "lucide-react";
 
 export const NavbarCategories = () => {
   const isMobile = useIsMobile();
@@ -53,11 +54,9 @@ export const NavbarCategories = () => {
         let currentWidth = 0;
         const tempVisible: Category[] = [];
 
-        categories.forEach((category, index) => {
-          // Estimate width of category item (button + padding + gap)
-          const estimatedWidth = category.name.length * 8 + 48; // Rough estimation
-          
-          if (currentWidth + estimatedWidth < containerWidth - 100) { // Leave space for margin
+        categories.forEach((category) => {
+          const estimatedWidth = category.name.length * 8 + 48;
+          if (currentWidth + estimatedWidth < containerWidth - 100) {
             currentWidth += estimatedWidth;
             tempVisible.push(category);
           }
@@ -88,16 +87,14 @@ export const NavbarCategories = () => {
   };
 
   return (
-    <div className="sticky top-16 z-50 border-t bg-white">
+    <div className="sticky top-16 z-[60] border-t bg-white">
       <div className="max-w-[1220px] mx-auto">
         <div ref={containerRef} className="overflow-x-auto no-scrollbar">
-          <div className="flex px-4 py-2 gap-2 items-center">
+          <div className="flex px-4 py-2 gap-6 items-center justify-between">
             {visibleCategories.map((category, index) => (
               <div 
                 key={category.id} 
-                className={`shrink-0 ${index === 0 ? 'pl-0' : ''} ${
-                  index === visibleCategories.length - 1 ? 'ml-auto' : ''
-                }`}
+                className="shrink-0"
               >
                 {isMobile ? (
                   <MobileCategoryItem
@@ -118,6 +115,21 @@ export const NavbarCategories = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile Overlay */}
+      {isMobile && openCategory && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setOpenCategory(null)}
+        >
+          <button 
+            onClick={() => setOpenCategory(null)}
+            className="absolute top-4 right-4 p-2 bg-white rounded-full"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

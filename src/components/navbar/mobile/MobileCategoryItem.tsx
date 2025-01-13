@@ -30,7 +30,7 @@ export const MobileCategoryItem = ({
       </button>
 
       {openCategory === category.name && (
-        <div className="fixed inset-x-0 top-[8.5rem] bg-white border-t border-b z-50">
+        <div className="fixed inset-x-0 top-[8.5rem] bg-white border-t border-b z-[70]">
           <div className="py-2">
             <Link
               to={`/category/${category.name.toLowerCase()}`}
