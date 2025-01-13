@@ -64,13 +64,13 @@ const appKitNetworks = [
       }
     }
   }
-] as const
+] as [AppKitNetwork, ...AppKitNetwork[]]
 
 const appKit = createAppKit({
   projectId,
   metadata,
   networks: appKitNetworks,
-  adapters: [new WagmiAdapter({ config: wagmiConfig })]
+  adapters: [new WagmiAdapter({ wagmiConfig })]
 })
 
 export { wagmiConfig, appKit }

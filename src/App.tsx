@@ -4,7 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { WagmiConfig } from 'wagmi'
 import { wagmiConfig, appKit } from './config/web3modal'
-import { AppKitProvider } from '@reown/appkit/react'
+import { Provider as AppKitProvider } from '@reown/appkit/react'
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import CreateListing from "@/pages/CreateListing";
