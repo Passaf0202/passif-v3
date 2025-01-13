@@ -1,14 +1,19 @@
-import { Menu } from "lucide-react";
+import { Menu, ChevronRight, List } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Category } from "@/types/category";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
 
 interface CategoryDrawerProps {
   categories: Category[];
 }
+
+// Helper function to capitalize first letter only
+const capitalizeFirstLetter = (str: string) => {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
 
 export function CategoryDrawer({ categories }: CategoryDrawerProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -46,16 +51,19 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
           {/* Main Categories View */}
           {!selectedCategory && (
             <div className="p-4 space-y-2">
-              <h2 className="text-lg font-semibold mb-4">Catégories</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <List className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Catégories</h2>
+              </div>
               {categories.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => handleCategoryClick(category)}
-                  className="w-full flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="w-full flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors group"
                 >
-                  <span className="text-sm">{category.name}</span>
+                  <span className="text-sm">{capitalizeFirstLetter(category.name)}</span>
                   {category.subcategories && category.subcategories.length > 0 && (
-                    <ChevronRight className="h-4 w-4 text-gray-500" />
+                    <ChevronRight className="h-4 w-4 text-gray-500 group-hover:text-primary transition-colors" />
                   )}
                 </button>
               ))}
@@ -67,11 +75,11 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
             <div className="p-4 space-y-2">
               <button
                 onClick={handleBackToCategories}
-                className="flex items-center text-sm text-primary mb-4"
+                className="flex items-center text-sm text-primary mb-4 hover:underline"
               >
                 ← Retour aux catégories
               </button>
-              <h2 className="text-lg font-semibold mb-4">{selectedCategory.name}</h2>
+              <h2 className="text-lg font-semibold mb-4">{capitalizeFirstLetter(selectedCategory.name)}</h2>
               <Link
                 to={`/category/${selectedCategory.name.toLowerCase()}`}
                 className="block w-full text-left p-2 text-primary hover:bg-gray-100 rounded-lg transition-colors"
@@ -82,11 +90,11 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
                 <button
                   key={subcategory.id}
                   onClick={() => handleSubcategoryClick(subcategory)}
-                  className="w-full flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="w-full flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors group"
                 >
-                  <span className="text-sm">{subcategory.name}</span>
+                  <span className="text-sm">{capitalizeFirstLetter(subcategory.name)}</span>
                   {subcategory.subcategories && subcategory.subcategories.length > 0 && (
-                    <ChevronRight className="h-4 w-4 text-gray-500" />
+                    <ChevronRight className="h-4 w-4 text-gray-500 group-hover:text-primary transition-colors" />
                   )}
                 </button>
               ))}
@@ -98,11 +106,11 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
             <div className="p-4 space-y-2">
               <button
                 onClick={handleBackToSubcategories}
-                className="flex items-center text-sm text-primary mb-4"
+                className="flex items-center text-sm text-primary mb-4 hover:underline"
               >
-                ← Retour à {selectedCategory?.name}
+                ← Retour à {capitalizeFirstLetter(selectedCategory?.name || '')}
               </button>
-              <h2 className="text-lg font-semibold mb-4">{selectedSubcategory.name}</h2>
+              <h2 className="text-lg font-semibold mb-4">{capitalizeFirstLetter(selectedSubcategory.name)}</h2>
               <Link
                 to={`/category/${selectedCategory?.name.toLowerCase()}/${selectedSubcategory.name.toLowerCase()}`}
                 className="block w-full text-left p-2 text-primary hover:bg-gray-100 rounded-lg transition-colors"
@@ -115,7 +123,7 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
                   to={`/category/${selectedCategory?.name.toLowerCase()}/${selectedSubcategory.name.toLowerCase()}/${subsubcategory.name.toLowerCase()}`}
                   className="block w-full text-left p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <span className="text-sm">{subsubcategory.name}</span>
+                  <span className="text-sm">{capitalizeFirstLetter(subsubcategory.name)}</span>
                 </Link>
               ))}
             </div>
