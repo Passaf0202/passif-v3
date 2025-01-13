@@ -1,126 +1,25 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "./Navbar";
 import { ProfilePhotoUpload } from "./ProfilePhotoUpload";
+import { ProfileHeader } from "./profile/ProfileHeader";
+import { ProfileForm } from "./profile/ProfileForm";
+import { useProfile } from "./profile/useProfile";
 
 export function UserProfile() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [editing, setEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    phone_number: "",
-    city: "",
-    country: "",
-    username: "",
-  });
-
-  useEffect(() => {
-    checkUser();
-    getProfile();
-  }, []);
-
-  async function checkUser() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-      }
-    } catch (error) {
-      console.error("Error checking user:", error);
-      navigate("/auth");
-    }
-  }
-
-  async function getProfile() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error) throw error;
-
-      setProfile(data);
-      setFormData({
-        first_name: data.first_name || "",
-        last_name: data.last_name || "",
-        phone_number: data.phone_number || "",
-        city: data.city || "",
-        country: data.country || "",
-        username: data.username || "",
-      });
-    } catch (error) {
-      console.error("Error loading profile:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger le profil",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function updateProfile() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-
-      const { error } = await supabase
-        .from("profiles")
-        .update(formData)
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Succès",
-        description: "Profil mis à jour avec succès",
-      });
-      
-      setEditing(false);
-      getProfile();
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le profil",
-        variant: "destructive",
-      });
-    }
-  }
+  const {
+    loading,
+    profile,
+    editing,
+    formData,
+    setFormData,
+    setEditing,
+    updateProfile,
+    handleAvatarUpdate,
+  } = useProfile();
 
   if (loading) {
     return <div>Chargement...</div>;
   }
-
-  const handleAvatarUpdate = (newAvatarUrl: string) => {
-    setProfile((prev: any) => ({
-      ...prev,
-      avatar_url: newAvatarUrl,
-    }));
-  };
 
   return (
     <div>
@@ -128,73 +27,25 @@ export function UserProfile() {
       <div className="container mx-auto px-4 py-8">
         <Card className="w-full max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Profil Utilisateur</span>
-              <Button
-                variant={editing ? "default" : "outline"}
-                onClick={() => editing ? updateProfile() : setEditing(true)}
-              >
-                {editing ? "Sauvegarder" : "Modifier"}
-              </Button>
+            <CardTitle>
+              <ProfileHeader
+                editing={editing}
+                onEditClick={() => setEditing(true)}
+                onSaveClick={updateProfile}
+              />
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <ProfilePhotoUpload
-              userId={profile?.id}
+              userId={profile?.id || ""}
               currentAvatarUrl={profile?.avatar_url}
               onAvatarUpdate={handleAvatarUpdate}
             />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Prénom</label>
-                <Input
-                  value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                  disabled={!editing}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nom</label>
-                <Input
-                  value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                  disabled={!editing}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Téléphone</label>
-                <Input
-                  value={formData.phone_number}
-                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                  disabled={!editing}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nom d'utilisateur</label>
-                <Input
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  disabled={!editing}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Ville</label>
-                <Input
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  disabled={!editing}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Pays</label>
-                <Input
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  disabled={!editing}
-                />
-              </div>
-            </div>
+            <ProfileForm
+              formData={formData}
+              editing={editing}
+              onChange={setFormData}
+            />
           </CardContent>
         </Card>
       </div>
