@@ -40,7 +40,7 @@ export const DesktopCategoryItem = ({
       </button>
 
       {isOpen && (
-        <div className="navigation-menu-content">
+        <div className="absolute left-0 top-full pt-2 w-64 z-[9999]">
           <div className="bg-white border rounded-md shadow-lg py-2">
             <Link
               to={`/category/${category.name.toLowerCase()}`}
