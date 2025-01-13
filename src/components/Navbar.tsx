@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "./WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Heart, MessageCircle, Plus, LogOut, Search, Menu } from "lucide-react";
+import { Bell, Heart, MessageCircle, Plus, Menu } from "lucide-react";
 import { useToast } from "./ui/use-toast";
 import { SearchBar } from "./SearchBar";
 import {
@@ -27,7 +27,8 @@ export function Navbar() {
         .from("categories")
         .select("*")
         .eq("level", 1)
-        .order("name");
+        .order("name")
+        .limit(10); // Limit to prevent overflow
       
       if (error) throw error;
       console.log("Fetched categories:", data);
@@ -74,14 +75,16 @@ export function Navbar() {
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4">
-            {/* Logo */}
-            <Link to="/" className="flex-shrink-0">
-              <span className="text-2xl font-bold text-primary">Logo</span>
-            </Link>
+            {/* Logo and Search Section */}
+            <div className="flex items-center gap-8 flex-1">
+              <Link to="/" className="flex-shrink-0">
+                <span className="text-2xl font-bold text-primary">Logo</span>
+              </Link>
 
-            {/* Search Bar - Hidden on mobile */}
-            <div className="hidden md:flex flex-1 max-w-2xl">
-              <SearchBar onSearch={onSearch} />
+              {/* Search Bar - Hidden on mobile */}
+              <div className="hidden md:flex flex-1 max-w-2xl">
+                <SearchBar onSearch={onSearch} />
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -144,16 +147,16 @@ export function Navbar() {
       
       {/* Categories Navigation */}
       <div className="bg-white border-t">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto py-3 scrollbar-hide">
-            <div className="flex justify-between min-w-full gap-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex overflow-x-auto no-scrollbar">
+            <div className="flex px-4 sm:px-6 lg:px-8 py-2 gap-8 w-full justify-between">
               {categories?.map((category) => (
                 <Link
                   key={category.id}
                   to={`/category/${category.name.toLowerCase()}`}
-                  className="text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap hover:text-primary transition-colors"
+                  className="text-sm text-gray-600 whitespace-nowrap hover:text-primary transition-colors capitalize"
                 >
-                  {category.name}
+                  {category.name.toLowerCase()}
                 </Link>
               ))}
             </div>
