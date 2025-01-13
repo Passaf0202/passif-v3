@@ -40,23 +40,59 @@ export const DesktopCategoryItem = ({
       </button>
 
       {isOpen && category.subcategories && category.subcategories.length > 0 && (
-        <div className="absolute left-0 top-full pt-2 w-64 z-[9999]">
-          <div className="bg-white border rounded-md shadow-lg py-2">
-            <Link
-              to={`/category/${category.name.toLowerCase()}`}
-              className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
-            >
-              Tout {formatCategoryName(category.name)}
-            </Link>
-            {category.subcategories.map((subcategory) => (
-              <Link
-                key={subcategory.id}
-                to={`/category/${category.name.toLowerCase()}/${subcategory.name.toLowerCase()}`}
-                className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
-              >
-                {formatCategoryName(subcategory.name)}
-              </Link>
-            ))}
+        <div className="absolute left-0 top-full pt-2 w-[600px] z-[9999]">
+          <div className="bg-white border rounded-md shadow-lg p-6">
+            <div className="grid grid-cols-3 gap-6">
+              {/* First column - Main category */}
+              <div>
+                <Link
+                  to={`/category/${category.name.toLowerCase()}`}
+                  className="block text-sm font-medium text-gray-900 mb-4 hover:text-primary"
+                >
+                  Voir tout
+                </Link>
+                {category.subcategories.slice(0, 8).map((subcategory) => (
+                  <Link
+                    key={subcategory.id}
+                    to={`/category/${category.name.toLowerCase()}/${subcategory.name.toLowerCase()}`}
+                    className="flex items-center gap-2 py-2 text-sm text-gray-600 hover:text-primary"
+                  >
+                    {subcategory.icon && (
+                      <span className="text-primary text-lg">
+                        {subcategory.icon}
+                      </span>
+                    )}
+                    {formatCategoryName(subcategory.name)}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Second column */}
+              <div>
+                {category.subcategories.slice(8, 16).map((subcategory) => (
+                  <Link
+                    key={subcategory.id}
+                    to={`/category/${category.name.toLowerCase()}/${subcategory.name.toLowerCase()}`}
+                    className="block py-2 text-sm text-gray-600 hover:text-primary"
+                  >
+                    {formatCategoryName(subcategory.name)}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Third column */}
+              <div>
+                {category.subcategories.slice(16, 24).map((subcategory) => (
+                  <Link
+                    key={subcategory.id}
+                    to={`/category/${category.name.toLowerCase()}/${subcategory.name.toLowerCase()}`}
+                    className="block py-2 text-sm text-gray-600 hover:text-primary"
+                  >
+                    {formatCategoryName(subcategory.name)}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
