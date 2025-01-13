@@ -22,35 +22,47 @@ const wagmiConfig = createConfig({
   publicClient,
 })
 
-// Convert chains to AppKit format
-const appKitNetworks = chains.map(chain => ({
-  id: chain.id,
-  name: chain.name,
-  network: chain.network,
-  nativeCurrency: {
-    name: chain.nativeCurrency.name,
-    symbol: chain.nativeCurrency.symbol,
-    decimals: chain.nativeCurrency.decimals
-  },
-  rpcUrls: {
-    default: { http: [chain.rpcUrls.default.http[0]] },
-    public: { http: [chain.rpcUrls.public.http[0]] }
-  },
-  blockExplorers: chain.blockExplorers ? {
-    default: {
-      name: chain.blockExplorers.default.name,
-      url: chain.blockExplorers.default.url
+// Convert chains to AppKit format with explicit typing
+const appKitNetworks = [
+  {
+    id: mainnet.id,
+    name: mainnet.name,
+    network: mainnet.network,
+    nativeCurrency: mainnet.nativeCurrency,
+    rpcUrls: {
+      default: { http: [mainnet.rpcUrls.default.http[0]] },
+      public: { http: [mainnet.rpcUrls.public.http[0]] }
+    },
+    blockExplorers: {
+      default: {
+        name: mainnet.blockExplorers.default.name,
+        url: mainnet.blockExplorers.default.url
+      }
     }
-  } : undefined
-}))
+  },
+  {
+    id: sepolia.id,
+    name: sepolia.name,
+    network: sepolia.network,
+    nativeCurrency: sepolia.nativeCurrency,
+    rpcUrls: {
+      default: { http: [sepolia.rpcUrls.default.http[0]] },
+      public: { http: [sepolia.rpcUrls.public.http[0]] }
+    },
+    blockExplorers: {
+      default: {
+        name: sepolia.blockExplorers.default.name,
+        url: sepolia.blockExplorers.default.url
+      }
+    }
+  }
+]
 
 const appKit = createAppKit({
   projectId,
   metadata,
   networks: appKitNetworks,
-  adapters: [new WagmiAdapter({
-    config: wagmiConfig
-  })]
+  adapters: [new WagmiAdapter({ wagmiConfig })]
 })
 
 export { wagmiConfig, appKit }
