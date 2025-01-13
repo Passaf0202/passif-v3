@@ -7,9 +7,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "./Navbar";
 import { ProfilePhotoUpload } from "./ProfilePhotoUpload";
-import { StripeOnboardingButton } from "./StripeOnboardingButton";
-
-// ... keep existing code (imports and initial part of component)
 
 export function UserProfile() {
   const navigate = useNavigate();
@@ -197,11 +194,6 @@ export function UserProfile() {
                   disabled={!editing}
                 />
               </div>
-            </div>
-
-            <div className="border-t pt-4 mt-4">
-              <h3 className="text-lg font-semibold mb-4">Paramètres de paiement</h3>
-              <StripeOnboardingButton />
             </div>
           </CardContent>
         </Card>
