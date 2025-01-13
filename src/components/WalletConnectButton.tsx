@@ -5,21 +5,20 @@ import { useToast } from "@/components/ui/use-toast";
 
 export function WalletConnectButton() {
   const { address, isConnected } = useAccount()
-  const { connectAsync, connectors, isLoading, pendingConnector } = useConnect()
-  const { disconnectAsync } = useDisconnect()
+  const { connect, connectors, isLoading, pendingConnector } = useConnect()
+  const { disconnect } = useDisconnect()
   const { toast } = useToast()
 
   const handleConnect = async () => {
     try {
       if (isConnected) {
-        await disconnectAsync()
+        await disconnect()
         toast({
           title: "Déconnecté",
           description: "Votre portefeuille a été déconnecté",
         })
       } else {
-        const result = await connectAsync({ connector: connectors[0] })
-        console.log('Connected:', result)
+        await connect({ connector: connectors[0] })
         toast({
           title: "Connecté",
           description: "Votre portefeuille a été connecté avec succès",
