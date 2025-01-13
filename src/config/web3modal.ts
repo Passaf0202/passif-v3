@@ -22,47 +22,55 @@ const wagmiConfig = createConfig({
   publicClient,
 })
 
-// Convert chains to AppKit format with explicit typing
+// Define networks in AppKit format
 const appKitNetworks = [
   {
-    id: mainnet.id,
-    name: mainnet.name,
-    network: mainnet.network,
-    nativeCurrency: mainnet.nativeCurrency,
+    id: 1,
+    name: 'Ethereum',
+    network: 'ethereum',
+    nativeCurrency: {
+      name: 'Ether',
+      symbol: 'ETH',
+      decimals: 18
+    },
     rpcUrls: {
-      default: { http: [mainnet.rpcUrls.default.http[0]] },
-      public: { http: [mainnet.rpcUrls.public.http[0]] }
+      default: { http: ['https://cloudflare-eth.com'] },
+      public: { http: ['https://cloudflare-eth.com'] }
     },
     blockExplorers: {
       default: {
-        name: mainnet.blockExplorers.default.name,
-        url: mainnet.blockExplorers.default.url
+        name: 'Etherscan',
+        url: 'https://etherscan.io'
       }
     }
   },
   {
-    id: sepolia.id,
-    name: sepolia.name,
-    network: sepolia.network,
-    nativeCurrency: sepolia.nativeCurrency,
+    id: 11155111,
+    name: 'Sepolia',
+    network: 'sepolia',
+    nativeCurrency: {
+      name: 'Sepolia Ether',
+      symbol: 'SEP',
+      decimals: 18
+    },
     rpcUrls: {
-      default: { http: [sepolia.rpcUrls.default.http[0]] },
-      public: { http: [sepolia.rpcUrls.public.http[0]] }
+      default: { http: ['https://rpc.sepolia.org'] },
+      public: { http: ['https://rpc.sepolia.org'] }
     },
     blockExplorers: {
       default: {
-        name: sepolia.blockExplorers.default.name,
-        url: sepolia.blockExplorers.default.url
+        name: 'Sepolia Etherscan',
+        url: 'https://sepolia.etherscan.io'
       }
     }
   }
-]
+] as const
 
 const appKit = createAppKit({
   projectId,
   metadata,
   networks: appKitNetworks,
-  adapters: [new WagmiAdapter({ wagmiConfig })]
+  adapters: [new WagmiAdapter({ config: wagmiConfig })]
 })
 
 export { wagmiConfig, appKit }
