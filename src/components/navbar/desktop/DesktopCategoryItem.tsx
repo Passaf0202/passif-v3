@@ -39,7 +39,7 @@ export const DesktopCategoryItem = ({
         />
       </button>
 
-      {isOpen && (
+      {isOpen && category.subcategories && category.subcategories.length > 0 && (
         <div className="absolute left-0 top-full pt-2 w-64 z-[9999]">
           <div className="bg-white border rounded-md shadow-lg py-2">
             <Link
@@ -48,7 +48,7 @@ export const DesktopCategoryItem = ({
             >
               Tout {formatCategoryName(category.name)}
             </Link>
-            {category.subcategories?.map((subcategory) => (
+            {category.subcategories.map((subcategory) => (
               <Link
                 key={subcategory.id}
                 to={`/category/${category.name.toLowerCase()}/${subcategory.name.toLowerCase()}`}
