@@ -16,11 +16,11 @@ export function Navbar() {
   return (
     <div className="sticky top-0 z-50 bg-white border-b">
       {/* Top Navigation Bar */}
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1220px] mx-auto">
         <div className="px-4">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo and Search Section */}
-            <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-center gap-6 flex-1">
               <NavbarLogo />
               {/* Search Bar - Hidden on mobile */}
               <div className="hidden md:flex flex-1 max-w-2xl">

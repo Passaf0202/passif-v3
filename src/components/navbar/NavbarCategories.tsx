@@ -46,20 +46,29 @@ export const NavbarCategories = () => {
     }
   };
 
+  const formatCategoryName = (name: string) => {
+    return name.toLowerCase();
+  };
+
   return (
     <div className="border-t bg-white">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1220px] mx-auto">
         <div className="overflow-x-auto no-scrollbar">
-          <div className="flex px-4 py-2 gap-6 items-center min-w-max">
-            {categories?.map((category) => (
-              <div key={category.id} className="relative">
+          <div className="flex px-4 py-2 gap-6 items-center justify-between">
+            {categories?.map((category, index) => (
+              <div 
+                key={category.id} 
+                className={`relative ${index === 0 ? 'pl-0' : ''} ${
+                  index === categories.length - 1 ? 'pr-0' : ''
+                }`}
+              >
                 {isMobile ? (
                   <>
                     <button
                       onClick={() => handleCategoryClick(category.name)}
                       className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors whitespace-nowrap"
                     >
-                      {category.name}
+                      {formatCategoryName(category.name)}
                       <ChevronDown className={`h-4 w-4 transition-transform ${
                         openCategory === category.name ? 'rotate-180' : ''
                       }`} />
@@ -72,7 +81,7 @@ export const NavbarCategories = () => {
                             to={`/category/${category.name.toLowerCase()}`}
                             className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
                           >
-                            Tout {category.name.toLowerCase()}
+                            Tout {formatCategoryName(category.name)}
                           </Link>
                           {category.subcategories?.map((subcategory) => (
                             <Link
@@ -80,7 +89,7 @@ export const NavbarCategories = () => {
                               to={`/category/${category.name.toLowerCase()}/${subcategory.name.toLowerCase()}`}
                               className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
                             >
-                              {subcategory.name}
+                              {formatCategoryName(subcategory.name)}
                             </Link>
                           ))}
                         </div>
@@ -91,9 +100,9 @@ export const NavbarCategories = () => {
                   <div className="group relative">
                     <button
                       className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors whitespace-nowrap"
-                      onClick={() => handleCategoryClick(category.name)}
+                      onMouseEnter={() => handleCategoryClick(category.name)}
                     >
-                      {category.name}
+                      {formatCategoryName(category.name)}
                       <ChevronDown className="h-4 w-4" />
                     </button>
                     
@@ -103,7 +112,7 @@ export const NavbarCategories = () => {
                           to={`/category/${category.name.toLowerCase()}`}
                           className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
                         >
-                          Tout {category.name.toLowerCase()}
+                          Tout {formatCategoryName(category.name)}
                         </Link>
                         {category.subcategories?.map((subcategory) => (
                           <Link
@@ -111,7 +120,7 @@ export const NavbarCategories = () => {
                             to={`/category/${category.name.toLowerCase()}/${subcategory.name.toLowerCase()}`}
                             className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
                           >
-                            {subcategory.name}
+                            {formatCategoryName(subcategory.name)}
                           </Link>
                         ))}
                       </div>
