@@ -4,7 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { WagmiConfig } from 'wagmi'
 import { wagmiConfig, appKit } from './config/web3modal'
-import { AppKit } from '@reown/appkit'
+import { AppKitProvider } from '@reown/appkit/react'
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import CreateListing from "@/pages/CreateListing";
@@ -26,7 +26,7 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <WagmiConfig config={wagmiConfig}>
-      <AppKit.Provider appKit={appKit}>
+      <AppKitProvider appKit={appKit}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <Routes>
@@ -42,7 +42,7 @@ function App() {
             <Toaster />
           </BrowserRouter>
         </QueryClientProvider>
-      </AppKit.Provider>
+      </AppKitProvider>
     </WagmiConfig>
   );
 }
