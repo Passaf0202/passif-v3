@@ -25,8 +25,9 @@ const wagmiConfig = createConfig({
 const appKit = createAppKit({
   projectId,
   metadata,
+  networks: [mainnet, sepolia],
   adapters: [new WagmiAdapter({
-    config: wagmiConfig,
+    wagmiConfig,
     chains
   })]
 })
