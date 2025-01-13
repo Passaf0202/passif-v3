@@ -23,7 +23,7 @@ export const DesktopCategoryItem = ({
         <ChevronDown className="h-4 w-4" />
       </button>
 
-      <div className="hidden group-hover:block absolute left-0 top-full mt-1 w-64 bg-white border rounded-md shadow-lg z-50">
+      <div className="hidden group-hover:block absolute left-0 top-full mt-1 w-64 bg-white border rounded-md shadow-lg z-[60]">
         <div className="py-2">
           <Link
             to={`/category/${category.name.toLowerCase()}`}
