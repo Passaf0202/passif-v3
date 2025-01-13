@@ -1,6 +1,6 @@
 import { createConfig, configureChains, mainnet, sepolia } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
-import { createWeb3Modal } from '@web3modal/react'
+import { Web3Modal } from '@web3modal/react'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 
 const projectId = 'YOUR_WALLET_CONNECT_PROJECT_ID'
@@ -31,4 +31,10 @@ export const wagmiConfig = createConfig({
   publicClient,
 })
 
-createWeb3Modal({ wagmiConfig, projectId, chains })
+// Export the Web3Modal component instead of calling createWeb3Modal
+export const web3ModalComponent = (
+  <Web3Modal 
+    projectId={projectId} 
+    ethereumClient={publicClient}
+  />
+)
