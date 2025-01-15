@@ -51,12 +51,14 @@ export function ProductDetails({ category, subcategory, onDetailsChange }: Produ
 
   useEffect(() => {
     if (category) {
+      console.log("Fetching attributes for category:", category);
       fetchCategoryAttributes();
     }
   }, [category]);
 
   const fetchCategoryAttributes = async () => {
     try {
+      console.log("Starting to fetch category attributes");
       const { data: categoryData } = await supabase
         .from("categories")
         .select("id")
@@ -64,15 +66,22 @@ export function ProductDetails({ category, subcategory, onDetailsChange }: Produ
         .single();
 
       if (categoryData) {
-        const { data: attributesData } = await supabase
+        console.log("Found category:", categoryData);
+        const { data: attributesData, error } = await supabase
           .from("category_attributes")
           .select("*")
           .eq("category_id", categoryData.id);
 
+        if (error) {
+          console.error("Error fetching attributes:", error);
+          return;
+        }
+
         if (attributesData) {
+          console.log("Fetched attributes:", attributesData);
           setAttributes(attributesData);
           
-          // Organiser les marques
+          // Organize brands
           const popular = attributesData
             .filter(attr => attr.attribute_type === 'popular_car_brand')
             .map(attr => attr.attribute_value);
@@ -90,7 +99,7 @@ export function ProductDetails({ category, subcategory, onDetailsChange }: Produ
         }
       }
     } catch (error) {
-      console.error("Error fetching category attributes:", error);
+      console.error("Error in fetchCategoryAttributes:", error);
     }
   };
 
@@ -113,7 +122,7 @@ export function ProductDetails({ category, subcategory, onDetailsChange }: Produ
   const renderBrandSelect = () => {
     let brands = [];
     if (isCarCategory) {
-      // Grouper les marques populaires en premier
+      // Group popular brands first
       brands = [
         { label: "Marques populaires", options: popularCarBrands },
         { label: "Toutes les marques", options: carBrands }
