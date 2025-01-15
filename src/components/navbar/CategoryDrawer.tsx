@@ -58,7 +58,7 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
               </div>
               <div className="grid gap-2">
                 {categories.map((category) => {
-                  const Icon = getCategoryIcon(category.name);
+                  const IconComponent = getCategoryIcon(category.name);
                   return (
                     <button
                       key={category.id}
@@ -66,7 +66,7 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
                       className="w-full flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg transition-all duration-200 group"
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className="h-5 w-5 text-primary" />
+                        <IconComponent className="h-5 w-5 text-primary" />
                         <span className="text-sm">{capitalizeFirstLetter(category.name)}</span>
                       </div>
                       {category.subcategories && category.subcategories.length > 0 && (
@@ -90,7 +90,10 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
                 Retour aux catégories
               </button>
               <div className="flex items-center gap-2 mb-6">
-                {getCategoryIcon(selectedCategory.name)({ className: "h-5 w-5 text-primary" })}
+                {(() => {
+                  const IconComponent = getCategoryIcon(selectedCategory.name);
+                  return <IconComponent className="h-5 w-5 text-primary" />;
+                })()}
                 <h2 className="text-lg font-semibold">{capitalizeFirstLetter(selectedCategory.name)}</h2>
               </div>
               <Link
