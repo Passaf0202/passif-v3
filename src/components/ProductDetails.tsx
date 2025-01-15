@@ -47,7 +47,7 @@ export function ProductDetails({ category, subcategory, onDetailsChange }: Produ
       console.log("Fetching attributes for category:", category);
       fetchCategoryAttributes();
     }
-  }, [category]);
+  }, [category, subcategory]); // Ajout de subcategory comme dépendance
 
   const fetchCategoryAttributes = async () => {
     try {
@@ -73,20 +73,26 @@ export function ProductDetails({ category, subcategory, onDetailsChange }: Produ
         if (attributesData) {
           console.log("Fetched attributes:", attributesData);
           setAttributes(attributesData);
-          
+
+          // Filtrer les marques populaires de voitures
           const popular = attributesData
             .filter(attr => attr.attribute_type === 'popular_car_brand')
             .map(attr => attr.attribute_value);
+          console.log("Popular car brands:", popular);
           setPopularCarBrands(popular);
 
+          // Filtrer toutes les marques de voitures
           const cars = attributesData
             .filter(attr => attr.attribute_type === 'car_brand')
             .map(attr => attr.attribute_value);
+          console.log("All car brands:", cars);
           setCarBrands(cars);
 
+          // Filtrer les marques de motos
           const motorcycles = attributesData
             .filter(attr => attr.attribute_type === 'motorcycle_brand')
             .map(attr => attr.attribute_value);
+          console.log("Motorcycle brands:", motorcycles);
           setMotorcycleBrands(motorcycles);
         }
       }
