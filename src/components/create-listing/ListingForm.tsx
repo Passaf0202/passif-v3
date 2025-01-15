@@ -2,24 +2,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "./ImageUpload";
-import { LocationField } from "./LocationField";
-import { CategorySelector } from "@/components/CategorySelector";
 import { ProductDetails } from "@/components/ProductDetails";
-import { ShippingDetails } from "@/components/ShippingDetails";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { BasicInfoSection } from "./BasicInfoSection";
+import { DescriptionSection } from "./DescriptionSection";
+import { ShippingLocationSection } from "./ShippingLocationSection";
+import { PhotosSection } from "./PhotosSection";
+import { AlertCircle } from "lucide-react";
 
 const formSchema = z.object({
   title: z.string().min(3, "Le titre doit faire au moins 3 caractères"),
@@ -86,100 +76,55 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Titre de l'annonce</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: BMW Série 3 320d" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <div className="lg:grid lg:grid-cols-3 lg:gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <BasicInfoSection 
+              form={form} 
+              onCategoryChange={handleCategoryChange} 
+            />
 
-              <CategorySelector onCategoryChange={handleCategoryChange} />
-            </div>
-          </CardContent>
-        </Card>
+            <ProductDetails
+              category={category}
+              subcategory={subcategory}
+              subsubcategory={subsubcategory}
+              onDetailsChange={setProductDetails}
+            />
 
-        <ProductDetails
-          category={category}
-          subcategory={subcategory}
-          subsubcategory={subsubcategory}
-          onDetailsChange={setProductDetails}
-        />
+            <DescriptionSection form={form} />
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Décrivez votre article en détail..."
-                        className="min-h-[150px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <ShippingLocationSection
+              form={form}
+              shippingMethod={shippingDetails.method}
+              onShippingChange={setShippingDetails}
+              category={category}
+            />
 
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prix</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Prix en euros"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              <ShippingDetails onShippingChange={setShippingDetails} />
-
-              <Separator className="my-4" />
-
-              <LocationField
-                form={form}
-                shippingMethod={shippingDetails.method}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <ImageUpload
+            <PhotosSection
               images={images}
               onImagesChange={setImages}
+              category={category}
             />
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="hidden lg:block">
+            <div className="sticky top-8 space-y-6">
+              <div className="bg-muted p-6 rounded-lg space-y-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <h3 className="font-medium">Conseils pour une annonce efficace</h3>
+                    <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+                      <li>• Choisissez un titre clair et descriptif</li>
+                      <li>• Détaillez l'état et les caractéristiques</li>
+                      <li>• Ajoutez des photos de qualité</li>
+                      <li>• Fixez un prix cohérent avec le marché</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting} size="lg">
