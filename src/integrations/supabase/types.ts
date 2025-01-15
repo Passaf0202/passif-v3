@@ -420,6 +420,13 @@ export type Database = {
           avatar_url: string
         }[]
       }
+      insert_category_with_subs: {
+        Args: {
+          main_category: string
+          subcategories: string[]
+        }
+        Returns: undefined
+      }
       insert_subcategories: {
         Args: {
           parent_name: string

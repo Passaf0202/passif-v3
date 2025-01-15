@@ -1,9 +1,10 @@
-import { Menu, ChevronRight, List } from "lucide-react";
+import { Menu, ChevronRight, List, ArrowLeft } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Category } from "@/types/category";
 import { Link } from "react-router-dom";
+import { getCategoryIcon } from "@/utils/categoryIcons";
 
 interface CategoryDrawerProps {
   categories: Category[];
@@ -51,22 +52,30 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
           {/* Main Categories View */}
           {!selectedCategory && (
             <div className="p-4 space-y-2">
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-6">
                 <List className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-semibold">Catégories</h2>
               </div>
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategoryClick(category)}
-                  className="w-full flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors group"
-                >
-                  <span className="text-sm">{capitalizeFirstLetter(category.name)}</span>
-                  {category.subcategories && category.subcategories.length > 0 && (
-                    <ChevronRight className="h-4 w-4 text-gray-500 group-hover:text-primary transition-colors" />
-                  )}
-                </button>
-              ))}
+              <div className="grid gap-2">
+                {categories.map((category) => {
+                  const Icon = getCategoryIcon(category.name);
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => handleCategoryClick(category)}
+                      className="w-full flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg transition-all duration-200 group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="h-5 w-5 text-primary" />
+                        <span className="text-sm">{capitalizeFirstLetter(category.name)}</span>
+                      </div>
+                      {category.subcategories && category.subcategories.length > 0 && (
+                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-primary transition-colors" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -75,29 +84,35 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
             <div className="p-4 space-y-2">
               <button
                 onClick={handleBackToCategories}
-                className="flex items-center text-sm text-primary mb-4 hover:underline"
+                className="flex items-center gap-2 text-sm text-primary mb-6 hover:underline"
               >
-                ← Retour aux catégories
+                <ArrowLeft className="h-4 w-4" />
+                Retour aux catégories
               </button>
-              <h2 className="text-lg font-semibold mb-4">{capitalizeFirstLetter(selectedCategory.name)}</h2>
+              <div className="flex items-center gap-2 mb-6">
+                {getCategoryIcon(selectedCategory.name)({ className: "h-5 w-5 text-primary" })}
+                <h2 className="text-lg font-semibold">{capitalizeFirstLetter(selectedCategory.name)}</h2>
+              </div>
               <Link
                 to={`/category/${selectedCategory.name.toLowerCase()}`}
-                className="block w-full text-left p-2 text-primary hover:bg-gray-100 rounded-lg transition-colors"
+                className="block w-full text-left p-3 text-primary hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Voir tout
               </Link>
-              {selectedCategory.subcategories?.map((subcategory) => (
-                <button
-                  key={subcategory.id}
-                  onClick={() => handleSubcategoryClick(subcategory)}
-                  className="w-full flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors group"
-                >
-                  <span className="text-sm">{capitalizeFirstLetter(subcategory.name)}</span>
-                  {subcategory.subcategories && subcategory.subcategories.length > 0 && (
-                    <ChevronRight className="h-4 w-4 text-gray-500 group-hover:text-primary transition-colors" />
-                  )}
-                </button>
-              ))}
+              <div className="grid gap-2 mt-4">
+                {selectedCategory.subcategories?.map((subcategory) => (
+                  <button
+                    key={subcategory.id}
+                    onClick={() => handleSubcategoryClick(subcategory)}
+                    className="w-full flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg transition-all duration-200 group"
+                  >
+                    <span className="text-sm">{capitalizeFirstLetter(subcategory.name)}</span>
+                    {subcategory.subcategories && subcategory.subcategories.length > 0 && (
+                      <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-primary transition-colors" />
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -106,26 +121,29 @@ export function CategoryDrawer({ categories }: CategoryDrawerProps) {
             <div className="p-4 space-y-2">
               <button
                 onClick={handleBackToSubcategories}
-                className="flex items-center text-sm text-primary mb-4 hover:underline"
+                className="flex items-center gap-2 text-sm text-primary mb-6 hover:underline"
               >
-                ← Retour à {capitalizeFirstLetter(selectedCategory?.name || '')}
+                <ArrowLeft className="h-4 w-4" />
+                Retour à {capitalizeFirstLetter(selectedCategory?.name || '')}
               </button>
-              <h2 className="text-lg font-semibold mb-4">{capitalizeFirstLetter(selectedSubcategory.name)}</h2>
+              <h2 className="text-lg font-semibold mb-6">{capitalizeFirstLetter(selectedSubcategory.name)}</h2>
               <Link
                 to={`/category/${selectedCategory?.name.toLowerCase()}/${selectedSubcategory.name.toLowerCase()}`}
-                className="block w-full text-left p-2 text-primary hover:bg-gray-100 rounded-lg transition-colors"
+                className="block w-full text-left p-3 text-primary hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Voir tout
               </Link>
-              {selectedSubcategory.subcategories?.map((subsubcategory) => (
-                <Link
-                  key={subsubcategory.id}
-                  to={`/category/${selectedCategory?.name.toLowerCase()}/${selectedSubcategory.name.toLowerCase()}/${subsubcategory.name.toLowerCase()}`}
-                  className="block w-full text-left p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <span className="text-sm">{capitalizeFirstLetter(subsubcategory.name)}</span>
-                </Link>
-              ))}
+              <div className="grid gap-2 mt-4">
+                {selectedSubcategory.subcategories?.map((subsubcategory) => (
+                  <Link
+                    key={subsubcategory.id}
+                    to={`/category/${selectedCategory?.name.toLowerCase()}/${selectedSubcategory.name.toLowerCase()}/${subsubcategory.name.toLowerCase()}`}
+                    className="block w-full text-left p-3 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <span className="text-sm">{capitalizeFirstLetter(subsubcategory.name)}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
         </div>
