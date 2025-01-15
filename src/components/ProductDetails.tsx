@@ -3,11 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VehicleBrandSelect } from "./vehicle-details/VehicleBrandSelect";
 import { BasicVehicleInfo } from "./vehicle-details/BasicVehicleInfo";
 import { CarSpecificDetails } from "./vehicle-details/CarSpecificDetails";
-
-interface CategoryAttribute {
-  attribute_type: string;
-  attribute_value: string;
-}
+import { Card, CardContent } from "./ui/card";
 
 interface ProductDetailsProps {
   category?: string;
@@ -41,7 +37,7 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({ category, subcategory, onDetailsChange }: ProductDetailsProps) {
-  const [attributes, setAttributes] = useState<CategoryAttribute[]>([]);
+  const [attributes, setAttributes] = useState<any[]>([]);
   const [popularCarBrands, setPopularCarBrands] = useState<string[]>([]);
   const [carBrands, setCarBrands] = useState<string[]>([]);
   const [motorcycleBrands, setMotorcycleBrands] = useState<string[]>([]);
@@ -105,9 +101,9 @@ export function ProductDetails({ category, subcategory, onDetailsChange }: Produ
 
   if (!category) return null;
 
-  const isVehicle = category === "Voitures" || category === "Motos";
-  const isCarCategory = category === "Voitures";
-  const isMotorcycleCategory = category === "Motos";
+  const isVehicle = category === "Véhicules";
+  const isCarCategory = subcategory === "Voitures";
+  const isMotorcycleCategory = subcategory === "Motos";
 
   const getAttributeValues = (type: string) => {
     return attributes
@@ -115,27 +111,41 @@ export function ProductDetails({ category, subcategory, onDetailsChange }: Produ
       .map(attr => attr.attribute_value);
   };
 
+  if (!isVehicle) return null;
+
   return (
-    <div className="space-y-4">
-      {isVehicle && (
-        <>
-          <VehicleBrandSelect
-            isCarCategory={isCarCategory}
-            popularCarBrands={popularCarBrands}
-            carBrands={carBrands}
-            motorcycleBrands={motorcycleBrands}
-            onBrandChange={(value) => handleChange("brand", value)}
-          />
+    <div className="space-y-6">
+      {(isCarCategory || isMotorcycleCategory) && (
+        <Card>
+          <CardContent className="pt-6">
+            <VehicleBrandSelect
+              isCarCategory={isCarCategory}
+              popularCarBrands={popularCarBrands}
+              carBrands={carBrands}
+              motorcycleBrands={motorcycleBrands}
+              onBrandChange={(value) => handleChange("brand", value)}
+            />
+          </CardContent>
+        </Card>
+      )}
 
-          <BasicVehicleInfo onDetailsChange={handleChange} />
+      {(isCarCategory || isMotorcycleCategory) && (
+        <Card>
+          <CardContent className="pt-6">
+            <BasicVehicleInfo onDetailsChange={handleChange} />
+          </CardContent>
+        </Card>
+      )}
 
-          {isCarCategory && (
+      {isCarCategory && (
+        <Card>
+          <CardContent className="pt-6">
             <CarSpecificDetails
               getAttributeValues={getAttributeValues}
               onDetailsChange={handleChange}
             />
-          )}
-        </>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

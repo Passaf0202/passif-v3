@@ -18,6 +18,8 @@ import { LocationField } from "./LocationField";
 import { CategorySelector } from "@/components/CategorySelector";
 import { ProductDetails } from "@/components/ProductDetails";
 import { ShippingDetails } from "@/components/ShippingDetails";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   title: z.string().min(3, "Le titre doit faire au moins 3 caractères"),
@@ -83,22 +85,28 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Titre</FormLabel>
-              <FormControl>
-                <Input placeholder="Titre de l'annonce" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Titre de l'annonce</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: BMW Série 3 320d" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <CategorySelector onCategoryChange={handleCategoryChange} />
+              <CategorySelector onCategoryChange={handleCategoryChange} />
+            </div>
+          </CardContent>
+        </Card>
 
         <ProductDetails
           category={category}
@@ -107,56 +115,77 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
           onDetailsChange={setProductDetails}
         />
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Décrivez votre article..."
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Décrivez votre article en détail..."
+                        className="min-h-[150px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <FormField
-          control={form.control}
-          name="price"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Prix</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Prix en euros"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prix</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Prix en euros"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-        <ShippingDetails onShippingChange={setShippingDetails} />
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <ShippingDetails onShippingChange={setShippingDetails} />
 
-        <LocationField
-          form={form}
-          shippingMethod={shippingDetails.method}
-        />
+              <Separator className="my-4" />
 
-        <ImageUpload
-          images={images}
-          onImagesChange={setImages}
-        />
+              <LocationField
+                form={form}
+                shippingMethod={shippingDetails.method}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Création en cours..." : "Créer l'annonce"}
-        </Button>
+        <Card>
+          <CardContent className="pt-6">
+            <ImageUpload
+              images={images}
+              onImagesChange={setImages}
+            />
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSubmitting} size="lg">
+            {isSubmitting ? "Création en cours..." : "Créer l'annonce"}
+          </Button>
+        </div>
       </form>
     </Form>
   );
