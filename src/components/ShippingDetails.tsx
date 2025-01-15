@@ -1,6 +1,6 @@
 import { FormControl, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Truck, Package } from "lucide-react";
+import { Truck, Package, Lightbulb } from "lucide-react";
 import { useState } from "react";
 
 interface ShippingDetailsProps {
@@ -8,6 +8,8 @@ interface ShippingDetailsProps {
     method?: string;
     weight?: number;
   }) => void;
+  category?: string;
+  subcategory?: string;
 }
 
 const shippingMethods = [
@@ -25,8 +27,12 @@ const weightRanges = [
   { value: 10000, label: "5kg à 10kg" },
 ];
 
-export function ShippingDetails({ onShippingChange }: ShippingDetailsProps) {
+const nonShippableCategories = ["Véhicules", "Immobilier"];
+
+export function ShippingDetails({ onShippingChange, category, subcategory }: ShippingDetailsProps) {
   const [selectedMethod, setSelectedMethod] = useState<string>();
+  
+  const isShippingAllowed = !nonShippableCategories.includes(category || "");
 
   const handleMethodChange = (method: string) => {
     setSelectedMethod(method);
@@ -36,6 +42,17 @@ export function ShippingDetails({ onShippingChange }: ShippingDetailsProps) {
   const handleWeightChange = (weight: string) => {
     onShippingChange({ method: selectedMethod, weight: parseInt(weight) });
   };
+
+  if (!isShippingAllowed) {
+    return (
+      <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg">
+        <Package className="h-5 w-5 text-gray-500" />
+        <p className="text-sm text-gray-600">
+          Cette catégorie ne permet que la remise en main propre
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -81,6 +98,13 @@ export function ShippingDetails({ onShippingChange }: ShippingDetailsProps) {
           <FormMessage />
         </FormItem>
       )}
+
+      <div className="flex items-center gap-2 text-primary mt-2">
+        <Lightbulb className="h-5 w-5" />
+        <p className="text-sm">
+          La remise en main propre est recommandée pour les objets de valeur
+        </p>
+      </div>
     </div>
   );
 }
