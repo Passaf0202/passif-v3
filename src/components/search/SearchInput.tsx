@@ -31,14 +31,16 @@ export const SearchInput = ({
         <Search className="h-5 w-5 absolute left-3 top-3.5 text-gray-400" />
       </div>
       <div className="mt-2 flex items-center gap-2">
-        <Checkbox
-          id="titleOnly"
-          checked={titleOnly}
-          onCheckedChange={(checked) => onTitleOnlyChange(checked as boolean)}
-        />
-        <Label htmlFor="titleOnly" className="text-sm text-gray-600">
-          Rechercher dans le titre uniquement
-        </Label>
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="titleOnly"
+            checked={titleOnly}
+            onCheckedChange={(checked) => onTitleOnlyChange(checked as boolean)}
+          />
+          <Label htmlFor="titleOnly" className="text-sm text-gray-600 cursor-pointer">
+            Rechercher dans les titres uniquement
+          </Label>
+        </div>
       </div>
     </div>
   );

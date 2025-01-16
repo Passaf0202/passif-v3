@@ -30,13 +30,11 @@ export const AISearchAssistant = () => {
     setIsTyping(true);
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: newMessage }),
+      const { data, error } = await supabase.functions.invoke('chat', {
+        body: { message: newMessage }
       });
 
-      const data = await response.json();
+      if (error) throw error;
       
       const assistantMessage: Message = {
         role: 'assistant',
