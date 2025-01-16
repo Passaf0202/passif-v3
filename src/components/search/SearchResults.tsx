@@ -13,6 +13,7 @@ import { Input } from "../ui/input";
 import { SearchFilters } from "./types";
 import { Card } from "../ui/card";
 import { Label } from "../ui/label";
+import { AISearchAssistant } from "./AISearchAssistant";
 
 export const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -85,80 +86,57 @@ export const SearchResults = () => {
           <h2 className="text-xl font-semibold">
             {listings.length} résultat{listings.length > 1 ? 's' : ''} pour "{query}"
           </h2>
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4" />
-            Filtres
-          </Button>
         </div>
 
-        {showFilters && (
-          <Card className="p-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label>Prix minimum</Label>
-                <Input
-                  type="number"
-                  placeholder="Prix min"
-                  value={filters.minPrice || ""}
-                  onChange={(e) => setFilters(f => ({ ...f, minPrice: Number(e.target.value) || undefined }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Prix maximum</Label>
-                <Input
-                  type="number"
-                  placeholder="Prix max"
-                  value={filters.maxPrice || ""}
-                  onChange={(e) => setFilters(f => ({ ...f, maxPrice: Number(e.target.value) || undefined }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Localisation</Label>
-                <Input
-                  placeholder="Ville ou région"
-                  value={filters.location || ""}
-                  onChange={(e) => setFilters(f => ({ ...f, location: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Catégorie</Label>
-                <Input
-                  placeholder="Catégorie"
-                  value={filters.category || ""}
-                  onChange={(e) => setFilters(f => ({ ...f, category: e.target.value }))}
-                />
+        <Card className="p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label className="font-medium">Prix</Label>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Label>Min</Label>
+                  <Input
+                    type="number"
+                    placeholder="Prix min"
+                    value={filters.minPrice || ""}
+                    onChange={(e) => setFilters(f => ({ ...f, minPrice: Number(e.target.value) || undefined }))}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label>Max</Label>
+                  <Input
+                    type="number"
+                    placeholder="Prix max"
+                    value={filters.maxPrice || ""}
+                    onChange={(e) => setFilters(f => ({ ...f, maxPrice: Number(e.target.value) || undefined }))}
+                  />
+                </div>
               </div>
             </div>
-          </Card>
-        )}
 
-        <div className="flex flex-wrap gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            Localisation
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Date
-          </Button>
-        </div>
+            <div className="space-y-2">
+              <Label className="font-medium">Localisation</Label>
+              <Input
+                placeholder="Ville ou région"
+                value={filters.location || ""}
+                onChange={(e) => setFilters(f => ({ ...f, location: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="font-medium">Catégorie</Label>
+              <Input
+                placeholder="Catégorie"
+                value={filters.category || ""}
+                onChange={(e) => setFilters(f => ({ ...f, category: e.target.value }))}
+              />
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* AI Search Assistant */}
-      <div className="bg-blue-50 p-4 rounded-lg mb-6 flex items-center gap-4">
-        <Sparkles className="h-6 w-6 text-primary" />
-        <div className="flex-1">
-          <h3 className="font-medium">Recherche IA - pour vous aider à trouver</h3>
-          <p className="text-sm text-gray-600">Posez une question ou décrivez ce que vous cherchez</p>
-        </div>
-        <Button variant="outline">
-          Poser une question
-        </Button>
-      </div>
+      <AISearchAssistant />
 
       {/* Results */}
       {listings.length > 0 ? (

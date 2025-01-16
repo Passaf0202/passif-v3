@@ -19,7 +19,7 @@ export const SearchInput = ({
   onTitleOnlyChange,
 }: SearchInputProps) => {
   return (
-    <div className="relative flex-1">
+    <div className="flex-1">
       <div className="relative">
         <Input
           placeholder="Que recherchez-vous ?"
@@ -30,14 +30,14 @@ export const SearchInput = ({
         />
         <Search className="h-5 w-5 absolute left-3 top-3.5 text-gray-400" />
       </div>
-      <div className="absolute right-3 top-3.5 flex items-center space-x-2">
+      <div className="mt-2 flex items-center gap-2">
         <Checkbox
           id="titleOnly"
           checked={titleOnly}
           onCheckedChange={(checked) => onTitleOnlyChange(checked as boolean)}
         />
         <Label htmlFor="titleOnly" className="text-sm text-gray-600">
-          Titre uniquement
+          Rechercher dans le titre uniquement
         </Label>
       </div>
     </div>
