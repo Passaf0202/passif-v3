@@ -13,6 +13,7 @@ import ListingDetails from "@/pages/ListingDetails";
 import Favorites from "@/pages/Favorites";
 import Checkout from "@/pages/Checkout";
 import { UserProfile } from "@/components/UserProfile";
+import Search from "@/pages/Search";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +39,7 @@ function App() {
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/profile" element={<UserProfile />} />
+              <Route path="/search" element={<Search />} />
             </Routes>
             <Toaster />
           </BrowserRouter>
