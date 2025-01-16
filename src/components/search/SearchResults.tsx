@@ -2,12 +2,10 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ListingCard } from "../ListingCard";
 import { Button } from "../ui/button";
-import { MapPin, Calendar, Filter, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "../ui/input";
 import { SearchFilters } from "./types";
-import { Card } from "../ui/card";
-import { Label } from "../ui/label";
+import { SearchFiltersButton } from "./filters/SearchFiltersButton";
 import { AISearchAssistant } from "./AISearchAssistant";
 
 export const SearchResults = () => {
@@ -18,7 +16,6 @@ export const SearchResults = () => {
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<SearchFilters>({});
-  const [showFilters, setShowFilters] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
@@ -37,6 +34,7 @@ export const SearchResults = () => {
         queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
       }
 
+      // Apply filters
       if (filters.minPrice) {
         queryBuilder = queryBuilder.gte("price", filters.minPrice);
       }
@@ -46,8 +44,11 @@ export const SearchResults = () => {
       if (filters.location) {
         queryBuilder = queryBuilder.ilike("location", `%${filters.location}%`);
       }
-      if (filters.category) {
-        queryBuilder = queryBuilder.eq("category", filters.category);
+      if (filters.condition) {
+        queryBuilder = queryBuilder.eq("condition", filters.condition);
+      }
+      if (filters.shipping_method) {
+        queryBuilder = queryBuilder.eq("shipping_method", filters.shipping_method);
       }
 
       const { data, error } = await queryBuilder.order("created_at", { ascending: false });
@@ -66,28 +67,15 @@ export const SearchResults = () => {
     }
   }, [query, titleOnly, filters, showChat]);
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   if (showChat) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold">Recherche IA</h2>
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">BETA</span>
-          </div>
           <Button variant="outline" onClick={() => setShowChat(false)}>
             Retour aux résultats
           </Button>
         </div>
-        <AISearchAssistant />
+        <AISearchAssistant category={searchParams.get("category")} query={query} />
       </div>
     );
   }
@@ -95,76 +83,28 @@ export const SearchResults = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold">
-            {listings.length} résultat{listings.length > 1 ? 's' : ''} pour "{query}"
+            {listings.length} résultat{listings.length !== 1 ? 's' : ''} pour "{query}"
           </h2>
-          <Button 
-            variant="default"
-            onClick={() => setShowChat(true)}
-            className="flex items-center gap-2"
-          >
-            <Sparkles className="h-4 w-4" />
-            Posez une question
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">BETA</span>
-          </Button>
-        </div>
-
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">
-              {listings.length} résultat{listings.length > 1 ? 's' : ''} pour "{query}"
-            </h2>
+          <div className="flex items-center gap-4">
+            <SearchFiltersButton filters={filters} onFiltersChange={setFilters} />
+            <Button 
+              variant="default"
+              onClick={() => setShowChat(true)}
+              className="flex items-center gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              Posez une question
+            </Button>
           </div>
-
-          <Card className="p-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label className="font-medium">Prix</Label>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <Label>Min</Label>
-                    <Input
-                      type="number"
-                      placeholder="Prix min"
-                      value={filters.minPrice || ""}
-                      onChange={(e) => setFilters(f => ({ ...f, minPrice: Number(e.target.value) || undefined }))}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Label>Max</Label>
-                    <Input
-                      type="number"
-                      placeholder="Prix max"
-                      value={filters.maxPrice || ""}
-                      onChange={(e) => setFilters(f => ({ ...f, maxPrice: Number(e.target.value) || undefined }))}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-medium">Localisation</Label>
-                <Input
-                  placeholder="Ville ou région"
-                  value={filters.location || ""}
-                  onChange={(e) => setFilters(f => ({ ...f, location: e.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-medium">Catégorie</Label>
-                <Input
-                  placeholder="Catégorie"
-                  value={filters.category || ""}
-                  onChange={(e) => setFilters(f => ({ ...f, category: e.target.value }))}
-                />
-              </div>
-            </div>
-          </Card>
         </div>
 
-        {listings.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : listings.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {listings.map((listing) => (
               <ListingCard

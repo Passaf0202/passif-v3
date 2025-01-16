@@ -3,6 +3,9 @@ import { History, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Suggestion } from "./types";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface SearchSuggestionsProps {
   suggestions: Suggestion[];
@@ -10,6 +13,8 @@ interface SearchSuggestionsProps {
   showSuggestions: boolean;
   onSuggestionClick: (suggestion: Suggestion) => void;
   suggestionsRef: React.RefObject<HTMLDivElement>;
+  titleOnly: boolean;
+  onTitleOnlyChange: (checked: boolean) => void;
 }
 
 export const SearchSuggestions = ({
@@ -18,6 +23,8 @@ export const SearchSuggestions = ({
   showSuggestions,
   onSuggestionClick,
   suggestionsRef,
+  titleOnly,
+  onTitleOnlyChange,
 }: SearchSuggestionsProps) => {
   const navigate = useNavigate();
 
@@ -36,15 +43,32 @@ export const SearchSuggestions = ({
     );
   }
 
-  if (suggestions.length === 0) return null;
+  if (suggestions.length === 0 && !searchInput) return null;
 
   return (
     <Card className="absolute z-50 w-full mt-1 bg-white shadow-lg rounded-md overflow-hidden" ref={suggestionsRef}>
+      {searchInput && (
+        <>
+          <div className="p-2 hover:bg-gray-50">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="titleOnly"
+                checked={titleOnly}
+                onCheckedChange={(checked) => onTitleOnlyChange(checked as boolean)}
+              />
+              <Label htmlFor="titleOnly" className="text-sm text-gray-600 cursor-pointer">
+                Rechercher dans les titres uniquement
+              </Label>
+            </div>
+          </div>
+          <Separator />
+        </>
+      )}
       <div className="py-2">
         {suggestions.map((suggestion) => (
           <div
             key={suggestion.id}
-            className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3"
+            className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-3"
             onClick={() => onSuggestionClick(suggestion)}
           >
             {suggestion.isRecent ? (

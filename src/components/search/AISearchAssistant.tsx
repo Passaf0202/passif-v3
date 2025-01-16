@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Send, ArrowRight } from "lucide-react";
+import { Sparkles, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
@@ -12,22 +12,15 @@ interface Message {
   timestamp: Date;
 }
 
-interface SuggestionButton {
-  icon: string;
-  text: string;
+interface AISearchAssistantProps {
+  category?: string | null;
+  query?: string;
 }
 
-const suggestionButtons: SuggestionButton[] = [
-  { icon: "👨‍👩‍👧‍👦", text: "Je veux une voiture familiale" },
-  { icon: "🏔️", text: "Aide-moi à trouver une voiture 4x4" },
-  { icon: "⚡", text: "Cite-moi les 5 choses les plus importantes à savoir lors de la recherche d'une voiture hybride ou électrique" },
-  { icon: "🚗🚙", text: "Aide-moi à comparer différents modèles de véhicules" },
-];
-
-export const AISearchAssistant = () => {
+export const AISearchAssistant = ({ category, query }: AISearchAssistantProps) => {
   const [messages, setMessages] = useState<Message[]>([{
     role: 'assistant',
-    content: "Bonjour, je suis l'Assistant virtuel intelligent. Dites-moi simplement ce que vous cherchez & je vous aiderai à le trouver !",
+    content: getInitialMessage(category, query),
     timestamp: new Date(),
   }]);
   const [newMessage, setNewMessage] = useState('');
@@ -48,7 +41,13 @@ export const AISearchAssistant = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('chat', {
-        body: { message: content }
+        body: { 
+          message: content,
+          context: {
+            category,
+            query
+          }
+        }
       });
 
       if (error) throw error;
@@ -92,26 +91,6 @@ export const AISearchAssistant = () => {
             </div>
           )}
         </div>
-
-        {messages.length === 1 && (
-          <div className="mt-8 max-w-3xl mx-auto">
-            <h3 className="text-lg font-medium mb-4">Voici comment je pourrais vous aider :</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {suggestionButtons.map((suggestion, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="p-4 h-auto text-left flex items-center gap-2 hover:bg-gray-50"
-                  onClick={() => handleSendMessage(suggestion.text)}
-                >
-                  <span>{suggestion.icon}</span>
-                  <span className="flex-1">{suggestion.text}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
       </ScrollArea>
 
       <div className="p-4 border-t mt-4">
@@ -133,3 +112,15 @@ export const AISearchAssistant = () => {
     </div>
   );
 };
+
+function getInitialMessage(category?: string | null, query?: string): string {
+  if (category === "Voitures") {
+    return `Bonjour ! Je peux vous aider à trouver la voiture idéale. Quels sont vos critères principaux (budget, type de véhicule, kilométrage, etc.) ?`;
+  } else if (category === "Immobilier") {
+    return `Bonjour ! Je peux vous aider dans votre recherche immobilière. Quel type de bien recherchez-vous et dans quelle zone ?`;
+  } else if (query) {
+    return `Bonjour ! Je peux vous aider à trouver "${query}". Avez-vous des critères spécifiques ?`;
+  } else {
+    return `Bonjour ! Je suis l'Assistant virtuel intelligent. Dites-moi simplement ce que vous cherchez & je vous aiderai à le trouver !`;
+  }
+}

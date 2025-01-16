@@ -10,4 +10,6 @@ export interface SearchFilters {
   maxPrice?: number;
   location?: string;
   category?: string;
+  condition?: string;
+  shipping_method?: string;
 }
