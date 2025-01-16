@@ -81,6 +81,8 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
         showSuggestions={showSuggestions}
         onSuggestionClick={handleSuggestionClick}
         suggestionsRef={suggestionsRef}
+        titleOnly={titleOnly}
+        onTitleOnlyChange={setTitleOnly}
       />
     </div>
   );
