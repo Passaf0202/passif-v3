@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ListingCard } from "../ListingCard";
 import { Button } from "../ui/button";
-import { 
-  MapPin, 
-  Calendar,
-  Filter,
-  Sparkles
-} from "lucide-react";
+import { MapPin, Calendar, Filter, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "../ui/input";
 import { SearchFilters } from "./types";
@@ -24,6 +19,7 @@ export const SearchResults = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<SearchFilters>({});
   const [showFilters, setShowFilters] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -35,14 +31,12 @@ export const SearchResults = () => {
         .select("*")
         .eq("status", "active");
 
-      // Apply title search
       if (titleOnly) {
         queryBuilder = queryBuilder.ilike("title", `%${query}%`);
       } else {
         queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
       }
 
-      // Apply filters
       if (filters.minPrice) {
         queryBuilder = queryBuilder.gte("price", filters.minPrice);
       }
@@ -67,8 +61,10 @@ export const SearchResults = () => {
       setIsLoading(false);
     };
 
-    fetchListings();
-  }, [query, titleOnly, filters]);
+    if (!showChat) {
+      fetchListings();
+    }
+  }, [query, titleOnly, filters, showChat]);
 
   if (isLoading) {
     return (
@@ -78,98 +74,128 @@ export const SearchResults = () => {
     );
   }
 
+  if (showChat) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold">Recherche IA</h2>
+            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">BETA</span>
+          </div>
+          <Button variant="outline" onClick={() => setShowChat(false)}>
+            Retour aux résultats
+          </Button>
+        </div>
+        <AISearchAssistant />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Filters Section */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">
             {listings.length} résultat{listings.length > 1 ? 's' : ''} pour "{query}"
           </h2>
-        </div>
-
-        <Card className="p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <Label className="font-medium">Prix</Label>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <Label>Min</Label>
-                  <Input
-                    type="number"
-                    placeholder="Prix min"
-                    value={filters.minPrice || ""}
-                    onChange={(e) => setFilters(f => ({ ...f, minPrice: Number(e.target.value) || undefined }))}
-                  />
-                </div>
-                <div className="flex-1">
-                  <Label>Max</Label>
-                  <Input
-                    type="number"
-                    placeholder="Prix max"
-                    value={filters.maxPrice || ""}
-                    onChange={(e) => setFilters(f => ({ ...f, maxPrice: Number(e.target.value) || undefined }))}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="font-medium">Localisation</Label>
-              <Input
-                placeholder="Ville ou région"
-                value={filters.location || ""}
-                onChange={(e) => setFilters(f => ({ ...f, location: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="font-medium">Catégorie</Label>
-              <Input
-                placeholder="Catégorie"
-                value={filters.category || ""}
-                onChange={(e) => setFilters(f => ({ ...f, category: e.target.value }))}
-              />
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* AI Search Assistant */}
-      <AISearchAssistant />
-
-      {/* Results */}
-      {listings.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {listings.map((listing) => (
-            <ListingCard
-              key={listing.id}
-              id={listing.id}
-              title={listing.title}
-              price={listing.price}
-              location={listing.location}
-              image={listing.images?.[0] || "/placeholder.svg"}
-              sellerId={listing.user_id}
-              shipping_method={listing.shipping_method}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold mb-4">
-            Aucune annonce trouvée pour "{query}"
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Soyez le premier à créer une annonce pour cette recherche !
-          </p>
           <Button 
-            size="lg"
-            onClick={() => window.location.href = "/create"}
+            variant="default"
+            onClick={() => setShowChat(true)}
+            className="flex items-center gap-2"
           >
-            Créer une annonce
+            <Sparkles className="h-4 w-4" />
+            Posez une question
+            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">BETA</span>
           </Button>
         </div>
-      )}
+
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">
+              {listings.length} résultat{listings.length > 1 ? 's' : ''} pour "{query}"
+            </h2>
+          </div>
+
+          <Card className="p-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Label className="font-medium">Prix</Label>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <Label>Min</Label>
+                    <Input
+                      type="number"
+                      placeholder="Prix min"
+                      value={filters.minPrice || ""}
+                      onChange={(e) => setFilters(f => ({ ...f, minPrice: Number(e.target.value) || undefined }))}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label>Max</Label>
+                    <Input
+                      type="number"
+                      placeholder="Prix max"
+                      value={filters.maxPrice || ""}
+                      onChange={(e) => setFilters(f => ({ ...f, maxPrice: Number(e.target.value) || undefined }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-medium">Localisation</Label>
+                <Input
+                  placeholder="Ville ou région"
+                  value={filters.location || ""}
+                  onChange={(e) => setFilters(f => ({ ...f, location: e.target.value }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-medium">Catégorie</Label>
+                <Input
+                  placeholder="Catégorie"
+                  value={filters.category || ""}
+                  onChange={(e) => setFilters(f => ({ ...f, category: e.target.value }))}
+                />
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {listings.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {listings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                id={listing.id}
+                title={listing.title}
+                price={listing.price}
+                location={listing.location}
+                image={listing.images?.[0] || "/placeholder.svg"}
+                sellerId={listing.user_id}
+                shipping_method={listing.shipping_method}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-semibold mb-4">
+              Aucune annonce trouvée pour "{query}"
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Soyez le premier à créer une annonce pour cette recherche !
+            </p>
+            <Button 
+              size="lg"
+              onClick={() => window.location.href = "/create"}
+            >
+              Créer une annonce
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

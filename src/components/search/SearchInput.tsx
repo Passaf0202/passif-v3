@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useState } from "react";
 
 interface SearchInputProps {
   value: string;
@@ -18,6 +19,8 @@ export const SearchInput = ({
   titleOnly,
   onTitleOnlyChange,
 }: SearchInputProps) => {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
     <div className="flex-1">
       <div className="relative">
@@ -26,22 +29,28 @@ export const SearchInput = ({
           className="h-12 text-base rounded-lg bg-gray-100 border-gray-300 focus:border-primary focus:ring-primary pl-10 pr-4"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onFocus={onFocus}
+          onFocus={() => {
+            setIsFocused(true);
+            onFocus();
+          }}
+          onBlur={() => setIsFocused(false)}
         />
         <Search className="h-5 w-5 absolute left-3 top-3.5 text-gray-400" />
       </div>
-      <div className="mt-2 flex items-center gap-2">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="titleOnly"
-            checked={titleOnly}
-            onCheckedChange={(checked) => onTitleOnlyChange(checked as boolean)}
-          />
-          <Label htmlFor="titleOnly" className="text-sm text-gray-600 cursor-pointer">
-            Rechercher dans les titres uniquement
-          </Label>
+      {value && (
+        <div className="mt-2 flex items-center gap-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="titleOnly"
+              checked={titleOnly}
+              onCheckedChange={(checked) => onTitleOnlyChange(checked as boolean)}
+            />
+            <Label htmlFor="titleOnly" className="text-sm text-gray-600 cursor-pointer">
+              Rechercher dans les titres uniquement
+            </Label>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
