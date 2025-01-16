@@ -15,14 +15,18 @@ serve(async (req) => {
     const { message, context } = await req.json()
     console.log('Received request:', { message, context })
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    if (!message) {
+      throw new Error('Message is required')
+    }
+
+    const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -37,14 +41,23 @@ serve(async (req) => {
             content: message
           }
         ],
+        temperature: 0.7,
+        max_tokens: 500,
       }),
     })
 
-    const data = await response.json()
+    if (!openAiResponse.ok) {
+      const errorData = await openAiResponse.text()
+      console.error('OpenAI API error:', errorData)
+      throw new Error(`OpenAI API error: ${openAiResponse.status} ${errorData}`)
+    }
+
+    const data = await openAiResponse.json()
     console.log('OpenAI API response:', data)
 
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error('Invalid response from OpenAI API')
+    if (!data.choices?.[0]?.message?.content) {
+      console.error('Invalid OpenAI response structure:', data)
+      throw new Error('Invalid response structure from OpenAI API')
     }
 
     const aiResponse = data.choices[0].message.content
