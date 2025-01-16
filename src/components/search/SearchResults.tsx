@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ListingCard } from "../ListingCard";
 import { Button } from "../ui/button";
-import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchFilters } from "./types";
 import { SearchFiltersButton } from "./filters/SearchFiltersButton";
-import { AISearchAssistant } from "./AISearchAssistant";
+import { Badge } from "../ui/badge";
+import { X } from "lucide-react";
 
 export const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -16,7 +16,6 @@ export const SearchResults = () => {
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<SearchFilters>({});
-  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -62,23 +61,14 @@ export const SearchResults = () => {
       setIsLoading(false);
     };
 
-    if (!showChat) {
-      fetchListings();
-    }
-  }, [query, titleOnly, filters, showChat]);
+    fetchListings();
+  }, [query, titleOnly, filters]);
 
-  if (showChat) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <Button variant="outline" onClick={() => setShowChat(false)}>
-            Retour aux résultats
-          </Button>
-        </div>
-        <AISearchAssistant category={searchParams.get("category")} query={query} />
-      </div>
-    );
-  }
+  const removeFilter = (key: keyof SearchFilters) => {
+    const newFilters = { ...filters };
+    delete newFilters[key];
+    setFilters(newFilters);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -88,15 +78,20 @@ export const SearchResults = () => {
             {listings.length} résultat{listings.length !== 1 ? 's' : ''} pour "{query}"
           </h2>
           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              {Object.entries(filters).map(([key, value]) => (
+                value && (
+                  <Badge key={key} variant="secondary" className="px-3 py-1">
+                    <span className="mr-2">{`${key === 'minPrice' ? 'Min: ' : key === 'maxPrice' ? 'Max: ' : ''}${value}`}</span>
+                    <X 
+                      className="h-3 w-3 cursor-pointer inline-block" 
+                      onClick={() => removeFilter(key as keyof SearchFilters)}
+                    />
+                  </Badge>
+                )
+              ))}
+            </div>
             <SearchFiltersButton filters={filters} onFiltersChange={setFilters} />
-            <Button 
-              variant="default"
-              onClick={() => setShowChat(true)}
-              className="flex items-center gap-2"
-            >
-              <Sparkles className="h-4 w-4" />
-              Posez une question
-            </Button>
           </div>
         </div>
 

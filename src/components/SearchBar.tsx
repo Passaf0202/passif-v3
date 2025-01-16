@@ -65,6 +65,7 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
           onFocus={() => setShowSuggestions(true)}
           titleOnly={titleOnly}
           onTitleOnlyChange={setTitleOnly}
+          showCheckbox={false}
         />
         <Button 
           type="submit" 

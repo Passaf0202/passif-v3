@@ -10,6 +10,7 @@ interface SearchInputProps {
   onFocus: () => void;
   titleOnly: boolean;
   onTitleOnlyChange: (checked: boolean) => void;
+  showCheckbox?: boolean;
 }
 
 export const SearchInput = ({
@@ -18,6 +19,7 @@ export const SearchInput = ({
   onFocus,
   titleOnly,
   onTitleOnlyChange,
+  showCheckbox = true,
 }: SearchInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -37,20 +39,6 @@ export const SearchInput = ({
         />
         <Search className="h-5 w-5 absolute left-3 top-3.5 text-gray-400" />
       </div>
-      {value && (
-        <div className="mt-2 flex items-center gap-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="titleOnly"
-              checked={titleOnly}
-              onCheckedChange={(checked) => onTitleOnlyChange(checked as boolean)}
-            />
-            <Label htmlFor="titleOnly" className="text-sm text-gray-600 cursor-pointer">
-              Rechercher dans les titres uniquement
-            </Label>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
