@@ -6,6 +6,8 @@ import { FavoriteButton } from "./listing/FavoriteButton";
 import { ShippingInfo } from "./listing/ShippingInfo";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { calculateBuyerProtectionFees, formatPrice } from "@/utils/priceUtils";
+import { BuyerProtectionModal } from "./listing/BuyerProtectionModal";
 
 interface ListingCardProps {
   id: string;
@@ -34,6 +36,8 @@ export const ListingCard = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const allImages = images?.length > 0 ? images : [image];
+  const protectionFee = calculateBuyerProtectionFees(price);
+  const totalPrice = price + protectionFee;
 
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -95,7 +99,11 @@ export const ListingCard = ({
       </CardHeader>
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg line-clamp-1">{title}</h3>
-        <p className="text-xl font-bold text-primary">{price} €</p>
+        <div className="flex items-center gap-1 mt-1">
+          <span className="text-sm text-gray-500 line-through">{formatPrice(price)} €</span>
+          <span className="text-lg font-bold text-primary">{formatPrice(totalPrice)} €</span>
+          <BuyerProtectionModal price={price} protectionFee={protectionFee} />
+        </div>
         <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span className="line-clamp-1">{location}</span>
