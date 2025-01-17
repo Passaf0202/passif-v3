@@ -10,38 +10,28 @@ export const useWalletBalance = () => {
   const lastSuccessfulBalanceRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchBalance = useCallback(async (retryCount = 0) => {
+  const fetchBalance = useCallback(async () => {
     if (!address || !isMountedRef.current) return;
 
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTimeRef.current;
     const COOLDOWN_PERIOD = 300000; // 5 minutes
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 10000; // 10 seconds
 
-    // Use cached balance during cooldown period
-    if (timeSinceLastFetch < COOLDOWN_PERIOD) {
+    // Use cached balance if within cooldown period
+    if (timeSinceLastFetch < COOLDOWN_PERIOD && lastSuccessfulBalanceRef.current) {
       console.log("Using cached balance - cooling down API requests");
-      if (lastSuccessfulBalanceRef.current) {
-        setUsdBalance(lastSuccessfulBalanceRef.current);
-      }
+      setUsdBalance(lastSuccessfulBalanceRef.current);
       return;
     }
 
-    // Clear any existing retry timeout
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-
-    // Cancel any ongoing request
+    // Cancel any ongoing request before starting a new one
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    // Create new abort controller
+    // Create new abort controller for this request
     abortControllerRef.current = new AbortController();
 
     try {
@@ -49,38 +39,28 @@ export const useWalletBalance = () => {
       setError(null);
       lastFetchTimeRef.current = now;
 
-      const response = await fetch(`https://api.debank.com/user/total_balance?addr=${address}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'AccessKey': '2f230fc83f0c4f1e9d2c48a51cc44c16'
-        },
-        signal: abortControllerRef.current.signal
-      });
+      const response = await fetch(
+        `https://api.debank.com/user/total_balance?addr=${address}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'AccessKey': '2f230fc83f0c4f1e9d2c48a51cc44c16'
+          },
+          signal: abortControllerRef.current.signal
+        }
+      );
 
       if (!isMountedRef.current) return;
 
-      // Handle rate limiting
       if (response.status === 429) {
         console.log("Rate limit hit, using cached balance");
         if (lastSuccessfulBalanceRef.current) {
           setUsdBalance(lastSuccessfulBalanceRef.current);
-          return;
+        } else {
+          setError('Trop de requêtes - veuillez réessayer dans quelques minutes');
         }
-
-        // Retry logic for rate limiting
-        if (retryCount < MAX_RETRIES) {
-          const retryDelay = RETRY_DELAY * (retryCount + 1);
-          console.log(`Retrying in ${retryDelay/1000} seconds... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
-          retryTimeoutRef.current = setTimeout(() => {
-            if (isMountedRef.current) {
-              fetchBalance(retryCount + 1);
-            }
-          }, retryDelay);
-          return;
-        }
-
-        throw new Error('Trop de requêtes - veuillez réessayer dans quelques minutes');
+        return;
       }
 
       if (!response.ok) {
@@ -105,11 +85,14 @@ export const useWalletBalance = () => {
       }
     } catch (err) {
       console.error("Error fetching balance:", err);
-      if (isMountedRef.current && err instanceof Error && !abortControllerRef.current?.signal.aborted) {
-        if (lastSuccessfulBalanceRef.current) {
-          setUsdBalance(lastSuccessfulBalanceRef.current);
-        } else {
-          setError(err.message);
+      if (isMountedRef.current && err instanceof Error) {
+        // Only set error if it's not an abort error
+        if (err.name !== 'AbortError') {
+          if (lastSuccessfulBalanceRef.current) {
+            setUsdBalance(lastSuccessfulBalanceRef.current);
+          } else {
+            setError(err.message);
+          }
         }
       }
     } finally {
@@ -123,18 +106,26 @@ export const useWalletBalance = () => {
     isMountedRef.current = true;
 
     if (isConnected && address) {
+      // Initial fetch
       fetchBalance();
-      const interval = setInterval(fetchBalance, 300000); // 5 minutes
+
+      // Set up polling with a longer interval (5 minutes)
+      pollingIntervalRef.current = setInterval(fetchBalance, 300000);
 
       return () => {
         isMountedRef.current = false;
-        if (retryTimeoutRef.current) {
-          clearTimeout(retryTimeoutRef.current);
+        
+        // Clear polling interval
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
         }
+
+        // Abort any in-flight request
         if (abortControllerRef.current) {
           abortControllerRef.current.abort();
+          abortControllerRef.current = null;
         }
-        clearInterval(interval);
       };
     } else {
       setUsdBalance(null);
