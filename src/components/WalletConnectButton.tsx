@@ -1,6 +1,6 @@
 import { useAccount, useDisconnect, useBalance } from 'wagmi'
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
@@ -17,15 +17,16 @@ export function WalletConnectButton() {
 
   const { data: balance, isLoading: isBalanceLoading } = useBalance({
     address: address,
+    enabled: isConnected && !!address,
     watch: true,
   });
 
   console.log("Balance data:", balance);
+  console.log("Connected address:", address);
 
-  // Effet pour convertir le solde en USD
   useEffect(() => {
     const fetchUsdBalance = async () => {
-      if (balance) {
+      if (balance && balance.formatted) {
         try {
           const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd`);
           const data = await response.json();
@@ -103,7 +104,28 @@ export function WalletConnectButton() {
   };
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex items-center gap-3">
+      {isConnected && (
+        <div className="hidden md:flex items-center gap-2 bg-primary/5 py-1.5 px-3 rounded-full">
+          <Wallet className="h-4 w-4 text-primary" />
+          <div className="text-xs">
+            {isBalanceLoading ? (
+              <span className="flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Chargement...
+              </span>
+            ) : balance ? (
+              <div className="flex items-center gap-2">
+                <span>{parseFloat(balance.formatted).toFixed(4)} {balance.symbol}</span>
+                {usdBalance && (
+                  <span className="text-green-600">≈ ${usdBalance}</span>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
+      
       <Button 
         onClick={handleConnect}
         disabled={isOpen}
@@ -121,25 +143,6 @@ export function WalletConnectButton() {
           'Connecter Wallet'
         )}
       </Button>
-      {isConnected && (
-        <div className="text-xs text-muted-foreground">
-          {isBalanceLoading ? (
-            <span className="flex items-center gap-1">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Chargement...
-            </span>
-          ) : balance ? (
-            <div className="text-right">
-              <div>{parseFloat(balance.formatted).toFixed(4)} {balance.symbol}</div>
-              {usdBalance && (
-                <div className="text-green-600">≈ ${usdBalance} USD</div>
-              )}
-            </div>
-          ) : (
-            "Erreur de chargement"
-          )}
-        </div>
-      )}
     </div>
   );
 }
