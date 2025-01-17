@@ -16,7 +16,8 @@ export function ListingsSection() {
           location,
           images,
           user_id,
-          created_at
+          created_at,
+          shipping_method
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -50,7 +51,10 @@ export function ListingsSection() {
               price={listing.price}
               location={listing.location}
               image={listing.images?.[0] || "/placeholder.svg"}
+              images={listing.images}
               sellerId={listing.user_id}
+              shipping_method={listing.shipping_method}
+              created_at={listing.created_at}
             />
           ))}
         </div>
