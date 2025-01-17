@@ -40,16 +40,18 @@ export const ListingCard = ({
   const allImages = images?.length > 0 ? images : [image];
   const protectionFee = calculateBuyerProtectionFees(price);
 
-  const handleImageClick = (e: React.MouseEvent, img: string) => {
-    e.stopPropagation();
-    setSelectedImage(img);
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Si l'événement ne vient pas du bouclier ou de l'image, naviguer vers l'annonce
+    if (!(e.target as HTMLElement).closest('.protection-shield')) {
+      navigate(`/listings/${id}`);
+    }
   };
 
   return (
     <>
       <Card 
         className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative group w-[200px]"
-        onClick={() => navigate(`/listings/${id}`)}
+        onClick={handleCardClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -59,14 +61,16 @@ export const ListingCard = ({
               images={allImages} 
               title={title} 
               isHovered={isHovered}
-              onImageClick={handleImageClick}
+              onImageClick={(e) => e.stopPropagation()}
             />
             <FavoriteButton listingId={id} isHovered={isHovered} />
           </div>
         </CardHeader>
         <CardContent className="p-3">
           <h3 className="font-semibold text-sm line-clamp-1">{title}</h3>
-          <PriceDetails price={price} protectionFee={protectionFee} />
+          <div className="protection-shield">
+            <PriceDetails price={price} protectionFee={protectionFee} />
+          </div>
           <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
             <MapPin className="h-3 w-3 flex-shrink-0" />
             <span className="line-clamp-1">{location}</span>
@@ -79,19 +83,6 @@ export const ListingCard = ({
           <ShippingInfo method={shipping_method} />
         </CardContent>
       </Card>
-
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl p-0">
-          {selectedImage && (
-            <img
-              src={selectedImage}
-              alt={title}
-              className="w-full h-auto object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

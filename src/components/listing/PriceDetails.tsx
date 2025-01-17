@@ -11,18 +11,22 @@ interface PriceDetailsProps {
 export const PriceDetails = ({ price, protectionFee }: PriceDetailsProps) => {
   const totalPrice = price + protectionFee;
 
+  const handleShieldClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <div className="flex items-center gap-1 mt-1">
       <span className="text-xs text-gray-500">{formatPrice(price)} €</span>
       <span className="text-xs font-medium text-primary flex items-center gap-1">
         {formatPrice(totalPrice)} €
         <Dialog>
-          <DialogTrigger asChild>
+          <DialogTrigger asChild onClick={handleShieldClick}>
             <Button variant="ghost" size="sm" className="p-0 h-auto">
               <Shield className="h-4 w-4 text-blue-500" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
             <DialogHeader>
               <DialogTitle className="text-xl font-bold mb-4">Détails du prix</DialogTitle>
             </DialogHeader>
