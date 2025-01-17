@@ -47,7 +47,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <ListingImages images={listing.images} title={listing.title} />
+      <ListingImages images={listing.images} title={listing.title} isHovered={false} />
 
       <div className="space-y-6">
         <ListingHeader title={listing.title} price={listing.price} />
