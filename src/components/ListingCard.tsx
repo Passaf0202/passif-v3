@@ -100,9 +100,11 @@ export const ListingCard = ({
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg line-clamp-1">{title}</h3>
         <div className="flex items-center gap-1 mt-1">
-          <span className="text-sm text-gray-500 line-through">{formatPrice(price)} €</span>
-          <span className="text-lg font-bold text-primary">{formatPrice(totalPrice)} €</span>
-          <BuyerProtectionModal price={price} protectionFee={protectionFee} />
+          <span className="text-sm text-gray-500">{formatPrice(price)} €</span>
+          <span className="text-sm font-medium text-primary flex items-center gap-1">
+            {formatPrice(totalPrice)} €
+            <BuyerProtectionModal price={price} protectionFee={protectionFee} />
+          </span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
           <MapPin className="h-4 w-4 flex-shrink-0" />

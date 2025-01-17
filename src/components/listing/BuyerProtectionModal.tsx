@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Shield, X, MessageCircle, Lock } from "lucide-react";
+import { Shield, MessageCircle, Lock } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface BuyerProtectionModalProps {
