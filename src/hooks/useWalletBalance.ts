@@ -1,46 +1,44 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAccount } from 'wagmi';
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const POLLING_INTERVAL = 30 * 1000; // 30 seconds
+
+interface CacheEntry {
+  balance: string;
+  timestamp: number;
+}
+
+const balanceCache = new Map<string, CacheEntry>();
 
 export const useWalletBalance = () => {
   const { address, isConnected } = useAccount();
   const [usdBalance, setUsdBalance] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const lastFetchTimeRef = useRef(0);
-  const lastSuccessfulBalanceRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const isMountedRef = useRef(true);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
 
-  const fetchBalance = useCallback(async () => {
-    if (!address || !isMountedRef.current) return;
-
+  const fetchBalance = async (walletAddress: string) => {
+    // Check cache first
+    const cachedData = balanceCache.get(walletAddress);
     const now = Date.now();
-    const timeSinceLastFetch = now - lastFetchTimeRef.current;
-    const COOLDOWN_PERIOD = 300000; // 5 minutes
-
-    // Use cached balance if within cooldown period
-    if (timeSinceLastFetch < COOLDOWN_PERIOD && lastSuccessfulBalanceRef.current) {
-      console.log("Using cached balance - cooling down API requests");
-      setUsdBalance(lastSuccessfulBalanceRef.current);
-      return;
-    }
-
-    // Cancel any ongoing request before starting a new one
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+    
+    if (cachedData && (now - cachedData.timestamp) < CACHE_DURATION) {
+      console.log('Using cached balance data');
+      return cachedData.balance;
     }
 
     // Create new abort controller for this request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     abortControllerRef.current = new AbortController();
 
     try {
-      setIsLoading(true);
-      setError(null);
-      lastFetchTimeRef.current = now;
-
       const response = await fetch(
-        `https://api.debank.com/user/total_balance?addr=${address}`,
+        `https://api.debank.com/user/total_balance?addr=${walletAddress}`,
         {
           method: 'GET',
           headers: {
@@ -51,87 +49,94 @@ export const useWalletBalance = () => {
         }
       );
 
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current) return null;
 
       if (response.status === 429) {
-        console.log("Rate limit hit, using cached balance");
-        if (lastSuccessfulBalanceRef.current) {
-          setUsdBalance(lastSuccessfulBalanceRef.current);
-        } else {
-          setError('Trop de requêtes - veuillez réessayer dans quelques minutes');
-        }
-        return;
+        console.log('Rate limit hit, using cached balance if available');
+        return cachedData?.balance || null;
       }
 
       if (!response.ok) {
-        throw new Error('Impossible de récupérer le solde');
+        throw new Error('Failed to fetch balance');
       }
 
       const data = await response.json();
-      console.log("DeBank API response:", data);
-
+      
       if (data && data.data && typeof data.data.total_usd_value === 'number') {
         const formattedBalance = new Intl.NumberFormat('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         }).format(data.data.total_usd_value);
 
-        if (isMountedRef.current) {
-          lastSuccessfulBalanceRef.current = formattedBalance;
-          setUsdBalance(formattedBalance);
-        }
-      } else {
-        throw new Error('Format de réponse invalide');
+        // Update cache
+        balanceCache.set(walletAddress, {
+          balance: formattedBalance,
+          timestamp: now
+        });
+
+        return formattedBalance;
       }
+      
+      return null;
     } catch (err) {
-      console.error("Error fetching balance:", err);
-      if (isMountedRef.current && err instanceof Error) {
-        // Only set error if it's not an abort error
-        if (err.name !== 'AbortError') {
-          if (lastSuccessfulBalanceRef.current) {
-            setUsdBalance(lastSuccessfulBalanceRef.current);
-          } else {
-            setError(err.message);
-          }
+      if (err instanceof Error) {
+        // Don't throw for abort errors
+        if (err.name === 'AbortError') {
+          console.log('Request aborted');
+          return null;
         }
+        throw err;
       }
-    } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
+      throw new Error('Unknown error occurred');
     }
-  }, [address]);
+  };
 
   useEffect(() => {
     isMountedRef.current = true;
 
-    if (isConnected && address) {
-      // Initial fetch
-      fetchBalance();
+    const updateBalance = async () => {
+      if (!isConnected || !address || !isMountedRef.current) return;
 
-      // Set up polling with a longer interval (5 minutes)
-      pollingIntervalRef.current = setInterval(fetchBalance, 300000);
+      setIsLoading(true);
+      setError(null);
 
-      return () => {
-        isMountedRef.current = false;
-        
-        // Clear polling interval
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
+      try {
+        const balance = await fetchBalance(address);
+        if (isMountedRef.current) {
+          setUsdBalance(balance);
         }
-
-        // Abort any in-flight request
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort();
-          abortControllerRef.current = null;
+      } catch (err) {
+        console.error('Error fetching balance:', err);
+        if (isMountedRef.current) {
+          setError('Failed to fetch balance');
         }
-      };
-    } else {
-      setUsdBalance(null);
-      lastSuccessfulBalanceRef.current = null;
-    }
-  }, [isConnected, address, fetchBalance]);
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    // Initial fetch
+    updateBalance();
+
+    // Set up polling with a longer interval
+    pollingIntervalRef.current = setInterval(updateBalance, POLLING_INTERVAL);
+
+    return () => {
+      isMountedRef.current = false;
+      
+      // Clear polling interval
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+
+      // Abort any in-flight request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [isConnected, address]);
 
   return { usdBalance, isLoading, error };
 };
