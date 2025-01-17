@@ -9,9 +9,10 @@ export const useWalletBalance = () => {
   const lastFetchTimeRef = useRef(0);
   const lastSuccessfulBalanceRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
 
   const fetchBalance = async () => {
-    if (!address) return;
+    if (!address || !isMountedRef.current) return;
 
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTimeRef.current;
@@ -25,7 +26,7 @@ export const useWalletBalance = () => {
       return;
     }
 
-    // Cancel any ongoing request
+    // Clean up previous request if it exists
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -34,6 +35,8 @@ export const useWalletBalance = () => {
     abortControllerRef.current = new AbortController();
 
     try {
+      if (!isMountedRef.current) return;
+      
       setIsLoading(true);
       setError(null);
       lastFetchTimeRef.current = now;
@@ -46,6 +49,8 @@ export const useWalletBalance = () => {
         },
         signal: abortControllerRef.current.signal
       });
+
+      if (!isMountedRef.current) return;
 
       if (response.status === 429) {
         console.log("Rate limit hit, using cached balance");
@@ -70,15 +75,17 @@ export const useWalletBalance = () => {
         }).format(data.data.total_usd_value);
 
         console.log("Formatted USD balance:", formattedBalance);
-        lastSuccessfulBalanceRef.current = formattedBalance;
-        setUsdBalance(formattedBalance);
+        if (isMountedRef.current) {
+          lastSuccessfulBalanceRef.current = formattedBalance;
+          setUsdBalance(formattedBalance);
+        }
       } else {
         throw new Error('Format de réponse invalide');
       }
 
     } catch (err) {
       console.error("Error fetching balance:", err);
-      if (!abortControllerRef.current?.signal.aborted) {
+      if (isMountedRef.current && !abortControllerRef.current?.signal.aborted) {
         if (lastSuccessfulBalanceRef.current) {
           setUsdBalance(lastSuccessfulBalanceRef.current);
         } else {
@@ -86,16 +93,21 @@ export const useWalletBalance = () => {
         }
       }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     if (isConnected && address) {
       fetchBalance();
       const interval = setInterval(fetchBalance, 300000); // 5 minutes
 
       return () => {
+        isMountedRef.current = false;
         clearInterval(interval);
         if (abortControllerRef.current) {
           abortControllerRef.current.abort();
