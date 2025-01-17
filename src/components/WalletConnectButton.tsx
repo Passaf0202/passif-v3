@@ -15,10 +15,13 @@ export function WalletConnectButton() {
   const { user } = useAuth();
   const [usdBalance, setUsdBalance] = useState<string | null>(null);
 
+  // Configurer useBalance avec chainId pour s'assurer qu'on utilise le bon réseau
   const { data: balance, isLoading: isBalanceLoading } = useBalance({
     address: address,
     enabled: isConnected && !!address,
     watch: true,
+    cacheTime: 5000, // Rafraîchir toutes les 5 secondes
+    staleTime: 2000, // Considérer les données comme périmées après 2 secondes
   });
 
   console.log("Balance data:", balance);
@@ -26,17 +29,22 @@ export function WalletConnectButton() {
 
   useEffect(() => {
     const fetchUsdBalance = async () => {
-      if (balance && balance.formatted) {
+      if (balance?.formatted) {
         try {
-          const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd`);
+          const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd&precision=4`);
           const data = await response.json();
           const ethPrice = data.ethereum.usd;
           const balanceInUsd = parseFloat(balance.formatted) * ethPrice;
+          console.log("ETH Price:", ethPrice);
+          console.log("Balance in ETH:", balance.formatted);
+          console.log("Calculated USD balance:", balanceInUsd);
           setUsdBalance(balanceInUsd.toFixed(2));
         } catch (error) {
           console.error('Error fetching USD price:', error);
           setUsdBalance(null);
         }
+      } else {
+        setUsdBalance(null);
       }
     };
 
@@ -116,10 +124,7 @@ export function WalletConnectButton() {
               </span>
             ) : balance ? (
               <div className="flex items-center gap-2">
-                <span>{parseFloat(balance.formatted).toFixed(4)} {balance.symbol}</span>
-                {usdBalance && (
-                  <span className="text-green-600">≈ ${usdBalance}</span>
-                )}
+                <span className="text-green-600">${usdBalance}</span>
               </div>
             ) : null}
           </div>
