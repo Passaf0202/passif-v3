@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAccount } from 'wagmi';
+import { supabase } from "@/integrations/supabase/client";
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const POLLING_INTERVAL = 30 * 1000; // 30 seconds
@@ -37,29 +38,17 @@ export const useWalletBalance = () => {
     abortControllerRef.current = new AbortController();
 
     try {
-      const response = await fetch(
-        `https://api.zerion.io/v1/wallets/${walletAddress}/portfolio`,
-        {
-          method: 'GET',
-          headers: {
-            'accept': 'application/json',
-            'authorization': 'Basic emtfZGV2X2FiYzEyMzQ1Njc4OTpkZWZfMTIzNDU2Nzg5MA=='
-          },
-          signal: abortControllerRef.current.signal
-        }
-      );
+      const { data: { url } } = await supabase.functions.invoke('get-wallet-balance', {
+        body: { address: walletAddress }
+      });
 
       if (!isMountedRef.current) return null;
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          console.log('Rate limit hit, using cached balance if available');
-          return cachedData?.balance || null;
-        }
+      if (!url) {
         throw new Error('Failed to fetch balance');
       }
 
-      const data = await response.json();
+      const data = await url;
       
       if (data && data.data && data.data.attributes && data.data.attributes.total_value_usd) {
         const formattedBalance = new Intl.NumberFormat('en-US', {
