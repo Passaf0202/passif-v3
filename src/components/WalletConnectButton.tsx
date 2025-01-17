@@ -4,7 +4,7 @@ import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
 
@@ -16,13 +16,7 @@ export function WalletConnectButton() {
   const { user } = useAuth();
   const { usdBalance, isLoading: isBalanceLoading, error } = useWalletBalance();
 
-  useEffect(() => {
-    if (isConnected && address && user) {
-      updateUserProfile(address);
-    }
-  }, [isConnected, address, user]);
-
-  const updateUserProfile = async (walletAddress: string) => {
+  const updateUserProfile = useCallback(async (walletAddress: string) => {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -36,7 +30,13 @@ export function WalletConnectButton() {
     } catch (error) {
       console.error('Error updating profile:', error);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (isConnected && address && user) {
+      updateUserProfile(address);
+    }
+  }, [isConnected, address, user, updateUserProfile]);
 
   const handleConnect = async () => {
     try {

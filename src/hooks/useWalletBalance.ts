@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 
 export const useWalletBalance = () => {
@@ -11,7 +11,7 @@ export const useWalletBalance = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
 
-  const fetchBalance = async () => {
+  const fetchBalance = useCallback(async () => {
     if (!address || !isMountedRef.current) return;
 
     const now = Date.now();
@@ -26,17 +26,13 @@ export const useWalletBalance = () => {
       return;
     }
 
-    // Clean up previous request if it exists
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    // Create new abort controller for this request
     abortControllerRef.current = new AbortController();
 
     try {
-      if (!isMountedRef.current) return;
-      
       setIsLoading(true);
       setError(null);
       lastFetchTimeRef.current = now;
@@ -82,14 +78,13 @@ export const useWalletBalance = () => {
       } else {
         throw new Error('Format de réponse invalide');
       }
-
     } catch (err) {
       console.error("Error fetching balance:", err);
-      if (isMountedRef.current && !abortControllerRef.current?.signal.aborted) {
+      if (isMountedRef.current && err instanceof Error && !abortControllerRef.current?.signal.aborted) {
         if (lastSuccessfulBalanceRef.current) {
           setUsdBalance(lastSuccessfulBalanceRef.current);
         } else {
-          setError(err instanceof Error ? err.message : "Erreur lors de la récupération du solde");
+          setError(err.message);
         }
       }
     } finally {
@@ -97,7 +92,7 @@ export const useWalletBalance = () => {
         setIsLoading(false);
       }
     }
-  };
+  }, [address]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -117,7 +112,7 @@ export const useWalletBalance = () => {
       setUsdBalance(null);
       lastSuccessfulBalanceRef.current = null;
     }
-  }, [isConnected, address]);
+  }, [isConnected, address, fetchBalance]);
 
   return { usdBalance, isLoading, error };
 };
