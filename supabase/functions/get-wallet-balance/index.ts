@@ -25,7 +25,7 @@ serve(async (req) => {
     }
 
     console.log('Fetching balance for wallet:', address)
-
+    
     const zerionApiKey = Deno.env.get('ZERION_API_KEY')
     if (!zerionApiKey) {
       throw new Error('ZERION_API_KEY is not configured')
@@ -60,11 +60,14 @@ serve(async (req) => {
     const data = await response.json()
     console.log('Zerion API response:', JSON.stringify(data, null, 2))
 
+    // Extract the total value from the response
+    const totalValue = data.data.attributes.total.positions
+
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify({ total_value_usd: totalValue }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: response.status
+        status: 200
       }
     )
   } catch (error) {

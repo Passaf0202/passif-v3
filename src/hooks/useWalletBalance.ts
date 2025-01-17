@@ -51,7 +51,7 @@ export const useWalletBalance = () => {
         throw new Error(functionError.message);
       }
 
-      if (!data?.data?.attributes?.total_value_usd) {
+      if (!data?.total_value_usd) {
         console.error('Invalid response format:', data);
         throw new Error('Invalid response format from API');
       }
@@ -59,7 +59,7 @@ export const useWalletBalance = () => {
       const formattedBalance = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-      }).format(data.data.attributes.total_value_usd);
+      }).format(data.total_value_usd);
 
       // Update cache
       balanceCache.set(walletAddress, {
