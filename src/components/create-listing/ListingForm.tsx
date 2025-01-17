@@ -9,7 +9,10 @@ import { BasicInfoSection } from "./BasicInfoSection";
 import { DescriptionSection } from "./DescriptionSection";
 import { ShippingLocationSection } from "./ShippingLocationSection";
 import { PhotosSection } from "./PhotosSection";
+import { WalletSection } from "./WalletSection";
 import { AlertCircle } from "lucide-react";
+import { useAccount } from 'wagmi';
+import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   title: z.string().min(3, "Le titre doit faire au moins 3 caractères"),
@@ -36,6 +39,8 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
     },
   });
 
+  const { isConnected } = useAccount();
+  const { toast } = useToast();
   const [category, setCategory] = useState<string>("");
   const [subcategory, setSubcategory] = useState<string>("");
   const [subsubcategory, setSubsubcategory] = useState<string>("");
@@ -62,6 +67,14 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
   };
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!isConnected) {
+      toast({
+        title: "Wallet requis",
+        description: "Veuillez connecter votre wallet avant de créer une annonce",
+        variant: "destructive",
+      });
+      return;
+    }
     await onSubmit({
       ...values,
       category,
@@ -104,6 +117,8 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
               onImagesChange={setImages}
               category={category}
             />
+
+            <WalletSection />
           </div>
 
           <div className="hidden lg:block">
@@ -127,7 +142,7 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting} size="lg">
+          <Button type="submit" disabled={isSubmitting || !isConnected} size="lg">
             {isSubmitting ? "Création en cours..." : "Créer l'annonce"}
           </Button>
         </div>
