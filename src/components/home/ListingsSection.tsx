@@ -42,7 +42,7 @@ export function ListingsSection() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : listings && listings.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="flex flex-wrap gap-4 justify-center">
           {listings.map((listing) => (
             <ListingCard
               key={listing.id}
