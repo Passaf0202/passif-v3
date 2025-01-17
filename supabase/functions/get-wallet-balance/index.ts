@@ -26,13 +26,18 @@ serve(async (req) => {
 
     console.log('Fetching balance for wallet:', address)
 
+    const zerionApiKey = Deno.env.get('ZERION_API_KEY')
+    if (!zerionApiKey) {
+      throw new Error('ZERION_API_KEY is not configured')
+    }
+
     const response = await fetch(
       `https://api.zerion.io/v1/wallets/${address}/portfolio`,
       {
         method: 'GET',
         headers: {
           'accept': 'application/json',
-          'authorization': 'Basic emtfZGV2X2FiYzEyMzQ1Njc4OTpkZWZfMTIzNDU2Nzg5MA=='
+          'authorization': `Basic ${btoa(`${zerionApiKey}:`)}`
         }
       }
     )
