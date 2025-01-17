@@ -2,10 +2,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Info } from "lucide-react";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
-import { useAccount } from 'wagmi';
+import { useAccount, useBalance } from 'wagmi';
+import { Loader2 } from "lucide-react";
 
 export function WalletSection() {
   const { address, isConnected } = useAccount();
+  const { data: balance, isLoading: isBalanceLoading } = useBalance({
+    address: address,
+    watch: true,
+  });
 
   return (
     <Card>
@@ -28,11 +33,25 @@ export function WalletSection() {
           </div>
 
           {isConnected ? (
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                Wallet connecté : {address?.slice(0, 6)}...{address?.slice(-4)}
-              </AlertDescription>
+            <Alert className="space-y-2">
+              <div className="flex items-center">
+                <Info className="h-4 w-4 mr-2" />
+                <AlertDescription>
+                  Wallet connecté : {address?.slice(0, 6)}...{address?.slice(-4)}
+                </AlertDescription>
+              </div>
+              <div className="text-sm text-muted-foreground pl-6">
+                {isBalanceLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Chargement du solde...
+                  </div>
+                ) : (
+                  <span>
+                    Solde : {balance?.formatted} {balance?.symbol}
+                  </span>
+                )}
+              </div>
             </Alert>
           ) : (
             <div className="flex flex-col items-center gap-4 p-4 bg-muted rounded-lg">
