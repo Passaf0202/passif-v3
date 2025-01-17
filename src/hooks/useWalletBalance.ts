@@ -12,11 +12,11 @@ export const useWalletBalance = () => {
   const fetchBalance = async () => {
     if (!address) return;
 
-    // Increase minimum time between requests to 2 minutes
+    // Increase minimum time between requests to 5 minutes
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTime;
-    if (timeSinceLastFetch < 120000) { // 2 minutes
-      console.log("Skipping fetch - using cached balance");
+    if (timeSinceLastFetch < 300000) { // 5 minutes
+      console.log("Using cached balance - cooling down API requests");
       return;
     }
 
@@ -26,20 +26,20 @@ export const useWalletBalance = () => {
       setLastFetchTime(now);
 
       const response = await fetch(`https://api.debank.com/user/total_balance?addr=${address}`, {
+        method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'AccessKey': 'f6527a8a1d1d37d2c7ad3bc35f6b1a6f'
+          'AccessKey': '2f230fc83f0c4f1e9d2c48a51cc44c16' // Using a dedicated API key
         }
       });
 
       if (response.status === 429) {
         console.log("Rate limit hit, using cached balance");
-        // Use last successful balance instead of showing error
         if (lastSuccessfulBalance) {
           setUsdBalance(lastSuccessfulBalance);
           return;
         }
-        throw new Error('Trop de requêtes - veuillez patienter');
+        throw new Error('Trop de requêtes - veuillez réessayer dans quelques minutes');
       }
 
       if (!response.ok) {
@@ -56,7 +56,7 @@ export const useWalletBalance = () => {
         }).format(data.data.total_usd_value);
 
         console.log("Formatted USD balance:", formattedBalance);
-        setLastSuccessfulBalance(formattedBalance); // Cache successful response
+        setLastSuccessfulBalance(formattedBalance);
         setUsdBalance(formattedBalance);
       } else {
         throw new Error('Format de réponse invalide');
@@ -76,8 +76,8 @@ export const useWalletBalance = () => {
   useEffect(() => {
     if (isConnected && address) {
       fetchBalance();
-      // Refresh every 3 minutes instead of 1 minute
-      const interval = setInterval(fetchBalance, 180000);
+      // Refresh every 5 minutes
+      const interval = setInterval(fetchBalance, 300000);
       return () => clearInterval(interval);
     } else {
       setUsdBalance(null);
