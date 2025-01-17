@@ -38,12 +38,12 @@ export const useWalletBalance = () => {
 
     try {
       const response = await fetch(
-        `https://api.debank.com/user/total_balance?addr=${walletAddress}`,
+        `https://api.zerion.io/v1/wallets/${walletAddress}/portfolio`,
         {
           method: 'GET',
           headers: {
-            'Accept': 'application/json',
-            'AccessKey': '2f230fc83f0c4f1e9d2c48a51cc44c16'
+            'accept': 'application/json',
+            'authorization': 'Basic emtfZGV2X2FiYzEyMzQ1Njc4OTpkZWZfMTIzNDU2Nzg5MA=='
           },
           signal: abortControllerRef.current.signal
         }
@@ -51,22 +51,21 @@ export const useWalletBalance = () => {
 
       if (!isMountedRef.current) return null;
 
-      if (response.status === 429) {
-        console.log('Rate limit hit, using cached balance if available');
-        return cachedData?.balance || null;
-      }
-
       if (!response.ok) {
+        if (response.status === 429) {
+          console.log('Rate limit hit, using cached balance if available');
+          return cachedData?.balance || null;
+        }
         throw new Error('Failed to fetch balance');
       }
 
       const data = await response.json();
       
-      if (data && data.data && typeof data.data.total_usd_value === 'number') {
+      if (data && data.data && data.data.attributes && data.data.attributes.total_value_usd) {
         const formattedBalance = new Intl.NumberFormat('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
-        }).format(data.data.total_usd_value);
+        }).format(data.data.attributes.total_value_usd);
 
         // Update cache
         balanceCache.set(walletAddress, {
