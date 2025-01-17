@@ -51,7 +51,7 @@ export const useWalletBalance = () => {
         throw new Error(functionError.message);
       }
 
-      if (!data || !data.data || !data.data.attributes || !data.data.attributes.total_value_usd) {
+      if (!data?.data?.attributes?.total_value_usd) {
         console.error('Invalid response format:', data);
         throw new Error('Invalid response format from API');
       }

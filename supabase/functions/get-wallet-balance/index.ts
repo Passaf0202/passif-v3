@@ -31,16 +31,29 @@ serve(async (req) => {
       throw new Error('ZERION_API_KEY is not configured')
     }
 
+    const authHeader = btoa(`${zerionApiKey}:`)
+    console.log('Using auth header:', `Basic ${authHeader.slice(0, 10)}...`)
+
     const response = await fetch(
       `https://api.zerion.io/v1/wallets/${address}/portfolio`,
       {
         method: 'GET',
         headers: {
           'accept': 'application/json',
-          'authorization': `Basic ${btoa(`${zerionApiKey}:`)}`
+          'authorization': `Basic ${authHeader}`
         }
       }
     )
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('Zerion API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorData
+      })
+      throw new Error(`Zerion API error: ${response.status} ${response.statusText}`)
+    }
 
     const data = await response.json()
     console.log('Zerion API response:', data)
