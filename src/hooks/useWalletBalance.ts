@@ -7,15 +7,16 @@ export const useWalletBalance = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState(0);
+  const [lastSuccessfulBalance, setLastSuccessfulBalance] = useState<string | null>(null);
 
   const fetchBalance = async () => {
     if (!address) return;
 
-    // Vérifier si on doit attendre avant de refaire une requête
+    // Increase minimum time between requests to 2 minutes
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTime;
-    if (timeSinceLastFetch < 30000) { // Minimum 30 secondes entre les requêtes
-      console.log("Skipping fetch - too soon since last request");
+    if (timeSinceLastFetch < 120000) { // 2 minutes
+      console.log("Skipping fetch - using cached balance");
       return;
     }
 
@@ -32,12 +33,17 @@ export const useWalletBalance = () => {
       });
 
       if (response.status === 429) {
-        console.log("Rate limit hit, will retry later");
-        throw new Error('Rate limit exceeded - please wait');
+        console.log("Rate limit hit, using cached balance");
+        // Use last successful balance instead of showing error
+        if (lastSuccessfulBalance) {
+          setUsdBalance(lastSuccessfulBalance);
+          return;
+        }
+        throw new Error('Trop de requêtes - veuillez patienter');
       }
 
       if (!response.ok) {
-        throw new Error('Failed to fetch balance from DeBank');
+        throw new Error('Impossible de récupérer le solde');
       }
 
       const data = await response.json();
@@ -50,14 +56,18 @@ export const useWalletBalance = () => {
         }).format(data.data.total_usd_value);
 
         console.log("Formatted USD balance:", formattedBalance);
+        setLastSuccessfulBalance(formattedBalance); // Cache successful response
         setUsdBalance(formattedBalance);
       } else {
-        throw new Error('Invalid response format from DeBank');
+        throw new Error('Format de réponse invalide');
       }
 
     } catch (err) {
       console.error("Error fetching balance:", err);
-      setError(err instanceof Error ? err.message : "Erreur lors de la récupération du solde");
+      // Only show error if we don't have a cached balance
+      if (!lastSuccessfulBalance) {
+        setError(err instanceof Error ? err.message : "Erreur lors de la récupération du solde");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -66,11 +76,12 @@ export const useWalletBalance = () => {
   useEffect(() => {
     if (isConnected && address) {
       fetchBalance();
-      // Rafraîchir toutes les 60 secondes au lieu de 15
-      const interval = setInterval(fetchBalance, 60000);
+      // Refresh every 3 minutes instead of 1 minute
+      const interval = setInterval(fetchBalance, 180000);
       return () => clearInterval(interval);
     } else {
       setUsdBalance(null);
+      setLastSuccessfulBalance(null);
     }
   }, [isConnected, address]);
 
