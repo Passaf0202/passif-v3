@@ -18,28 +18,35 @@ export const useWalletBalance = () => {
       // Utiliser ethers.js avec le provider Web3
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       
-      // Récupérer le solde avec une précision maximale
-      const balance = await provider.getBalance(address);
-      console.log("Raw balance:", balance.toString());
+      // Récupérer le solde en wei (unité la plus petite)
+      const balanceWei = await provider.getBalance(address);
+      console.log("Balance in Wei:", balanceWei.toString());
       
-      // Convertir le solde en ETH avec la précision appropriée
-      const balanceInEth = ethers.utils.formatEther(balance);
-      console.log("Balance in ETH (formatted):", balanceInEth);
+      // Convertir le solde de Wei en ETH avec la précision maximale
+      const balanceInEth = Number(ethers.utils.formatUnits(balanceWei, 18));
+      console.log("Balance in ETH:", balanceInEth);
 
       // Obtenir le prix ETH/USD depuis CoinGecko avec une précision maximale
       const response = await fetch(
         "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd&precision=18"
       );
       const data = await response.json();
-      const ethPrice = data.ethereum.usd;
+      const ethPrice = Number(data.ethereum.usd);
       console.log("ETH Price from CoinGecko:", ethPrice);
 
-      // Calculer la valeur USD avec une précision maximale
-      const balanceInUSD = parseFloat(balanceInEth) * ethPrice;
-      console.log("Calculated USD balance:", balanceInUSD);
+      // Calculer la valeur USD avec une précision maximale en utilisant BigNumber
+      const balanceInUSD = balanceInEth * ethPrice;
+      console.log("Raw USD balance:", balanceInUSD);
 
-      // Formater le résultat final avec 2 décimales
-      setUsdBalance(balanceInUSD.toFixed(2));
+      // Formater le résultat final avec 2 décimales et éviter les erreurs d'arrondi
+      const formattedBalance = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(balanceInUSD);
+
+      console.log("Formatted USD balance:", formattedBalance);
+      setUsdBalance(formattedBalance);
+
     } catch (err) {
       console.error("Error fetching balance:", err);
       setError("Erreur lors de la récupération du solde");
@@ -51,9 +58,11 @@ export const useWalletBalance = () => {
   useEffect(() => {
     if (isConnected && address) {
       fetchBalance();
-      // Rafraîchir toutes les 30 secondes
-      const interval = setInterval(fetchBalance, 30000);
+      // Rafraîchir toutes les 15 secondes au lieu de 30 pour plus de réactivité
+      const interval = setInterval(fetchBalance, 15000);
       return () => clearInterval(interval);
+    } else {
+      setUsdBalance(null);
     }
   }, [isConnected, address]);
 
