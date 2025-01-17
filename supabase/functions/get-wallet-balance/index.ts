@@ -31,10 +31,9 @@ serve(async (req) => {
       throw new Error('ZERION_API_KEY is not configured')
     }
 
-    // Create Base64 encoded credentials - Zerion expects "apikey:" format (with colon)
-    const credentials = `${zerionApiKey}:`
-    const encodedCredentials = btoa(credentials)
-    console.log('Using credentials format:', 'apikey:[empty]')
+    // Zerion expects the API key followed by a colon in Basic auth
+    const credentials = btoa(`${zerionApiKey}:`)
+    console.log('Using Basic auth with API key')
 
     const response = await fetch(
       `https://api.zerion.io/v1/wallets/${address}/portfolio`,
@@ -42,7 +41,7 @@ serve(async (req) => {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Authorization': `Basic ${encodedCredentials}`
+          'Authorization': `Basic ${credentials}`
         }
       }
     )
