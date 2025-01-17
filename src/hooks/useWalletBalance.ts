@@ -10,14 +10,18 @@ export const useWalletBalance = () => {
   const lastSuccessfulBalanceRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchBalance = useCallback(async () => {
+  const fetchBalance = useCallback(async (retryCount = 0) => {
     if (!address || !isMountedRef.current) return;
 
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTimeRef.current;
     const COOLDOWN_PERIOD = 300000; // 5 minutes
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 10000; // 10 seconds
 
+    // Use cached balance during cooldown period
     if (timeSinceLastFetch < COOLDOWN_PERIOD) {
       console.log("Using cached balance - cooling down API requests");
       if (lastSuccessfulBalanceRef.current) {
@@ -26,10 +30,18 @@ export const useWalletBalance = () => {
       return;
     }
 
+    // Clear any existing retry timeout
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+
+    // Cancel any ongoing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
+    // Create new abort controller
     abortControllerRef.current = new AbortController();
 
     try {
@@ -48,12 +60,26 @@ export const useWalletBalance = () => {
 
       if (!isMountedRef.current) return;
 
+      // Handle rate limiting
       if (response.status === 429) {
         console.log("Rate limit hit, using cached balance");
         if (lastSuccessfulBalanceRef.current) {
           setUsdBalance(lastSuccessfulBalanceRef.current);
           return;
         }
+
+        // Retry logic for rate limiting
+        if (retryCount < MAX_RETRIES) {
+          const retryDelay = RETRY_DELAY * (retryCount + 1);
+          console.log(`Retrying in ${retryDelay/1000} seconds... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
+          retryTimeoutRef.current = setTimeout(() => {
+            if (isMountedRef.current) {
+              fetchBalance(retryCount + 1);
+            }
+          }, retryDelay);
+          return;
+        }
+
         throw new Error('Trop de requêtes - veuillez réessayer dans quelques minutes');
       }
 
@@ -70,7 +96,6 @@ export const useWalletBalance = () => {
           maximumFractionDigits: 2
         }).format(data.data.total_usd_value);
 
-        console.log("Formatted USD balance:", formattedBalance);
         if (isMountedRef.current) {
           lastSuccessfulBalanceRef.current = formattedBalance;
           setUsdBalance(formattedBalance);
@@ -103,10 +128,13 @@ export const useWalletBalance = () => {
 
       return () => {
         isMountedRef.current = false;
-        clearInterval(interval);
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+        }
         if (abortControllerRef.current) {
           abortControllerRef.current.abort();
         }
+        clearInterval(interval);
       };
     } else {
       setUsdBalance(null);
