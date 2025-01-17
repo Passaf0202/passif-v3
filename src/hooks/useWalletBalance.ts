@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useBalance } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
 
 export const useWalletBalance = () => {
@@ -15,26 +15,30 @@ export const useWalletBalance = () => {
       setIsLoading(true);
       setError(null);
 
-      // Utiliser ethers.js pour obtenir le solde
+      // Utiliser ethers.js avec le provider Web3
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      
+      // Récupérer le solde avec une précision maximale
       const balance = await provider.getBalance(address);
+      console.log("Raw balance:", balance.toString());
+      
+      // Convertir le solde en ETH avec la précision appropriée
       const balanceInEth = ethers.utils.formatEther(balance);
+      console.log("Balance in ETH (formatted):", balanceInEth);
 
-      console.log("Balance in ETH:", balanceInEth);
-
-      // Obtenir le prix ETH/USD
+      // Obtenir le prix ETH/USD depuis CoinGecko avec une précision maximale
       const response = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd&precision=4"
+        "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd&precision=18"
       );
       const data = await response.json();
       const ethPrice = data.ethereum.usd;
+      console.log("ETH Price from CoinGecko:", ethPrice);
 
-      console.log("ETH Price:", ethPrice);
-
-      // Calculer la valeur en USD
+      // Calculer la valeur USD avec une précision maximale
       const balanceInUSD = parseFloat(balanceInEth) * ethPrice;
       console.log("Calculated USD balance:", balanceInUSD);
 
+      // Formater le résultat final avec 2 décimales
       setUsdBalance(balanceInUSD.toFixed(2));
     } catch (err) {
       console.error("Error fetching balance:", err);
