@@ -38,34 +38,36 @@ export const useWalletBalance = () => {
     abortControllerRef.current = new AbortController();
 
     try {
-      const { data: { url } } = await supabase.functions.invoke('get-wallet-balance', {
+      console.log('Fetching balance for wallet:', walletAddress);
+      
+      const { data, error: functionError } = await supabase.functions.invoke('get-wallet-balance', {
         body: { address: walletAddress }
       });
 
       if (!isMountedRef.current) return null;
 
-      if (!url) {
-        throw new Error('Failed to fetch balance');
+      if (functionError) {
+        console.error('Edge function error:', functionError);
+        throw new Error(functionError.message);
       }
 
-      const data = await url;
-      
-      if (data && data.data && data.data.attributes && data.data.attributes.total_value_usd) {
-        const formattedBalance = new Intl.NumberFormat('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }).format(data.data.attributes.total_value_usd);
-
-        // Update cache
-        balanceCache.set(walletAddress, {
-          balance: formattedBalance,
-          timestamp: now
-        });
-
-        return formattedBalance;
+      if (!data || !data.data || !data.data.attributes || !data.data.attributes.total_value_usd) {
+        console.error('Invalid response format:', data);
+        throw new Error('Invalid response format from API');
       }
       
-      return null;
+      const formattedBalance = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(data.data.attributes.total_value_usd);
+
+      // Update cache
+      balanceCache.set(walletAddress, {
+        balance: formattedBalance,
+        timestamp: now
+      });
+
+      return formattedBalance;
     } catch (err) {
       if (err instanceof Error) {
         // Don't throw for abort errors

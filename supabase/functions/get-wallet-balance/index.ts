@@ -12,10 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url)
-    const walletAddress = url.searchParams.get('address')
+    const { address } = await req.json()
 
-    if (!walletAddress) {
+    if (!address) {
       return new Response(
         JSON.stringify({ error: 'Wallet address is required' }),
         { 
@@ -25,8 +24,10 @@ serve(async (req) => {
       )
     }
 
+    console.log('Fetching balance for wallet:', address)
+
     const response = await fetch(
-      `https://api.zerion.io/v1/wallets/${walletAddress}/portfolio`,
+      `https://api.zerion.io/v1/wallets/${address}/portfolio`,
       {
         method: 'GET',
         headers: {
@@ -37,6 +38,7 @@ serve(async (req) => {
     )
 
     const data = await response.json()
+    console.log('Zerion API response:', data)
 
     return new Response(
       JSON.stringify(data),
@@ -46,6 +48,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Error in get-wallet-balance:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
