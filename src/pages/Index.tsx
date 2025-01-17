@@ -1,7 +1,10 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
-import { ListingsSection } from "@/components/home/ListingsSection";
+import { RecentSearchesSection } from "@/components/home/RecentSearchesSection";
+import { FavoritesSection } from "@/components/home/FavoritesSection";
+import { TopCategoriesSection } from "@/components/home/TopCategoriesSection";
+import { RecommendedListingsSection } from "@/components/home/RecommendedListingsSection";
 
 const Index = () => {
   return (
@@ -10,7 +13,10 @@ const Index = () => {
       
       <main className="flex-grow">
         <HeroSection />
-        <ListingsSection />
+        <RecentSearchesSection />
+        <FavoritesSection />
+        <TopCategoriesSection />
+        <RecommendedListingsSection />
       </main>
 
       <Footer />
