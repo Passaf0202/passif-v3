@@ -1,11 +1,12 @@
-import { useAccount, useDisconnect, useBalance } from 'wagmi'
+import { useAccount, useDisconnect } from 'wagmi'
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from "@/hooks/useAuth";
+import { useWalletBalance } from "@/hooks/useWalletBalance";
 
 export function WalletConnectButton() {
   const { address, isConnected } = useAccount()
@@ -13,45 +14,7 @@ export function WalletConnectButton() {
   const { open, isOpen } = useWeb3Modal()
   const { toast } = useToast()
   const { user } = useAuth();
-  const [usdBalance, setUsdBalance] = useState<string | null>(null);
-
-  // Configurer useBalance avec chainId pour s'assurer qu'on utilise le bon réseau
-  const { data: balance, isLoading: isBalanceLoading } = useBalance({
-    address: address,
-    enabled: isConnected && !!address,
-    watch: true,
-    cacheTime: 5000, // Rafraîchir toutes les 5 secondes
-    staleTime: 2000, // Considérer les données comme périmées après 2 secondes
-  });
-
-  console.log("Balance data:", balance);
-  console.log("Connected address:", address);
-
-  useEffect(() => {
-    const fetchUsdBalance = async () => {
-      if (balance?.formatted) {
-        try {
-          const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd&precision=4`);
-          const data = await response.json();
-          const ethPrice = data.ethereum.usd;
-          const balanceInUsd = parseFloat(balance.formatted) * ethPrice;
-          console.log("ETH Price:", ethPrice);
-          console.log("Balance in ETH:", balance.formatted);
-          console.log("Calculated USD balance:", balanceInUsd);
-          setUsdBalance(balanceInUsd.toFixed(2));
-        } catch (error) {
-          console.error('Error fetching USD price:', error);
-          setUsdBalance(null);
-        }
-      } else {
-        setUsdBalance(null);
-      }
-    };
-
-    if (balance) {
-      fetchUsdBalance();
-    }
-  }, [balance]);
+  const { usdBalance, isLoading: isBalanceLoading, error } = useWalletBalance();
 
   useEffect(() => {
     if (isConnected && address && user) {
@@ -69,7 +32,6 @@ export function WalletConnectButton() {
         .eq('id', user?.id);
 
       if (error) throw error;
-
       console.log('Profile updated with wallet address:', walletAddress);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -122,10 +84,10 @@ export function WalletConnectButton() {
                 <Loader2 className="h-3 w-3 animate-spin" />
                 Chargement...
               </span>
-            ) : balance ? (
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">${usdBalance}</span>
-              </div>
+            ) : error ? (
+              <span className="text-red-500">{error}</span>
+            ) : usdBalance ? (
+              <span className="text-green-600">${usdBalance}</span>
             ) : null}
           </div>
         </div>
