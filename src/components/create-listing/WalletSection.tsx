@@ -12,6 +12,8 @@ export function WalletSection() {
     watch: true,
   });
 
+  console.log("Balance data:", balance); // Pour le debugging
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -46,10 +48,12 @@ export function WalletSection() {
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Chargement du solde...
                   </div>
-                ) : (
-                  <span>
-                    Solde : {balance?.formatted} {balance?.symbol}
+                ) : balance ? (
+                  <span className="font-medium">
+                    Solde : {parseFloat(balance?.formatted).toFixed(4)} {balance?.symbol}
                   </span>
+                ) : (
+                  <span>Impossible de charger le solde</span>
                 )}
               </div>
             </Alert>
