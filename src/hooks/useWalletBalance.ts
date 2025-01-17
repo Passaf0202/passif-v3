@@ -8,6 +8,36 @@ export const useWalletBalance = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchEthPrice = async (): Promise<number> => {
+    const endpoints = [
+      "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
+      "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD",
+      "https://api.coinbase.com/v2/prices/ETH-USD/spot"
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) continue;
+        
+        const data = await response.json();
+        
+        // Parse response based on API format
+        if (endpoint.includes('coingecko')) {
+          return data.ethereum.usd;
+        } else if (endpoint.includes('cryptocompare')) {
+          return data.USD;
+        } else if (endpoint.includes('coinbase')) {
+          return parseFloat(data.data.amount);
+        }
+      } catch (err) {
+        console.error(`Error fetching from ${endpoint}:`, err);
+        continue;
+      }
+    }
+    throw new Error("Could not fetch ETH price from any endpoint");
+  };
+
   const fetchBalance = async () => {
     if (!window.ethereum || !address) return;
 
@@ -15,30 +45,23 @@ export const useWalletBalance = () => {
       setIsLoading(true);
       setError(null);
 
-      // Utiliser ethers.js avec le provider Web3
+      // Get ETH balance
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      
-      // Récupérer le solde en wei (unité la plus petite)
       const balanceWei = await provider.getBalance(address);
       console.log("Balance in Wei:", balanceWei.toString());
       
-      // Convertir le solde de Wei en ETH avec la précision maximale
       const balanceInEth = Number(ethers.utils.formatUnits(balanceWei, 18));
       console.log("Balance in ETH:", balanceInEth);
 
-      // Obtenir le prix ETH/USD depuis CoinGecko avec une précision maximale
-      const response = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd&precision=18"
-      );
-      const data = await response.json();
-      const ethPrice = Number(data.ethereum.usd);
-      console.log("ETH Price from CoinGecko:", ethPrice);
+      // Get ETH price with fallback endpoints
+      const ethPrice = await fetchEthPrice();
+      console.log("ETH Price:", ethPrice);
 
-      // Calculer la valeur USD avec une précision maximale en utilisant BigNumber
+      // Calculate USD value
       const balanceInUSD = balanceInEth * ethPrice;
       console.log("Raw USD balance:", balanceInUSD);
 
-      // Formater le résultat final avec 2 décimales et éviter les erreurs d'arrondi
+      // Format with 2 decimal places
       const formattedBalance = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -58,7 +81,7 @@ export const useWalletBalance = () => {
   useEffect(() => {
     if (isConnected && address) {
       fetchBalance();
-      // Rafraîchir toutes les 15 secondes au lieu de 30 pour plus de réactivité
+      // Refresh every 15 seconds
       const interval = setInterval(fetchBalance, 15000);
       return () => clearInterval(interval);
     } else {
