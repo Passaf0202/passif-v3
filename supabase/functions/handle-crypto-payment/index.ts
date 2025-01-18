@@ -22,11 +22,15 @@ serve(async (req) => {
     }
 
     const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY')
-    if (!privateKey?.startsWith('0x')) {
-      throw new Error('Invalid private key format - must start with 0x')
+    if (!privateKey) {
+      throw new Error('Contract private key not configured')
     }
 
-    const account = privateKeyToAccount(privateKey as `0x${string}`)
+    // Ensure private key starts with 0x
+    const formattedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`
+    console.log('Using escrow account with formatted private key')
+
+    const account = privateKeyToAccount(formattedPrivateKey as `0x${string}`)
     console.log('Using escrow account:', account.address)
 
     const publicClient = createPublicClient({
