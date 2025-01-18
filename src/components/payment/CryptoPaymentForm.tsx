@@ -6,6 +6,7 @@ import { Shield, Loader2, Info } from "lucide-react";
 import { useAccount } from 'wagmi';
 import { useToast } from "@/components/ui/use-toast";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CryptoPaymentFormProps {
   listingId: string;
