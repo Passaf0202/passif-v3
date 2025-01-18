@@ -15,7 +15,7 @@ export default function Payment() {
   const returnUrl = location.state?.returnUrl;
 
   // Fetch listing if not provided in location state
-  const { data: fetchedListing } = useQuery({
+  const { data: fetchedListing, isLoading: isListingLoading } = useQuery({
     queryKey: ['listing', id],
     queryFn: async () => {
       if (listing) return listing;
@@ -31,17 +31,15 @@ export default function Payment() {
     enabled: !listing && !!id
   });
 
-  const currentListing = listing || fetchedListing;
-
   // Fetch current BNB rate
-  const { data: cryptoRates } = useQuery({
+  const { data: cryptoRates, isLoading: isRatesLoading } = useQuery({
     queryKey: ['crypto-rates'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('crypto_rates')
         .select('*')
         .eq('symbol', 'BNB')
-        .maybeSingle(); // Changed from single() to maybeSingle()
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching BNB rate:', error);
@@ -50,6 +48,19 @@ export default function Payment() {
       return data;
     }
   });
+
+  const currentListing = listing || fetchedListing;
+  
+  if (isListingLoading || isRatesLoading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <p className="text-center text-gray-500">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentListing) {
     return (
@@ -62,17 +73,14 @@ export default function Payment() {
     );
   }
 
-  // Calculate crypto amount if not already set
-  if (!currentListing.crypto_amount) {
-    const bnbRate = cryptoRates?.rate_eur || FALLBACK_BNB_RATE;
-    currentListing.crypto_amount = Number(currentListing.price) / bnbRate;
-    currentListing.crypto_currency = 'BNB';
-  }
+  // Calculate crypto amount
+  const bnbRate = cryptoRates?.rate_eur || FALLBACK_BNB_RATE;
+  const cryptoAmount = Number(currentListing.price) / bnbRate;
 
   console.log('Payment details:', {
     listingPrice: currentListing.price,
-    bnbRate: cryptoRates?.rate_eur || FALLBACK_BNB_RATE,
-    cryptoAmount: currentListing.crypto_amount,
+    bnbRate,
+    cryptoAmount,
     usingFallbackRate: !cryptoRates
   });
 
@@ -88,7 +96,7 @@ export default function Payment() {
           listingId={currentListing.id}
           title={currentListing.title}
           price={currentListing.price}
-          cryptoAmount={currentListing.crypto_amount}
+          cryptoAmount={cryptoAmount}
           cryptoCurrency="BNB"
           onPaymentComplete={handlePaymentComplete}
         />
