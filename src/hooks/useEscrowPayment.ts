@@ -143,10 +143,12 @@ export function useEscrowPayment({
 
       // Envoyer la transaction via le wallet connecté
       const hash = await walletClient.sendTransaction({
+        account: address as `0x${string}`,
         to: data.transaction.to as `0x${string}`,
         value: BigInt(data.transaction.value),
         gas: BigInt(data.transaction.gas),
         gasPrice: BigInt(data.transaction.gasPrice),
+        chain: undefined
       });
 
       console.log('Transaction sent:', hash);
