@@ -76,7 +76,7 @@ export function WalletConnectButton() {
   };
 
   const formatBalance = (balance: string | null) => {
-    if (!balance) return null;
+    if (!balance) return "0,00";
     const [amount, currency] = balance.split(' ');
     const numericAmount = parseFloat(amount);
     
@@ -102,9 +102,9 @@ export function WalletConnectButton() {
               </span>
             ) : error ? (
               <span className="text-red-500">{error}</span>
-            ) : nativeBalance ? (
+            ) : (
               <span className="text-green-600">{formatBalance(nativeBalance)}</span>
-            ) : null}
+            )}
           </div>
         </div>
       )}

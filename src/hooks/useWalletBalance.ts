@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAccount, useBalance } from 'wagmi';
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrencyStore } from "@/stores/currencyStore";
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const POLLING_INTERVAL = 30 * 1000; // 30 seconds
@@ -18,6 +19,7 @@ export const useWalletBalance = () => {
   const [nativeBalance, setNativeBalance] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { selectedCurrency } = useCurrencyStore();
   const abortControllerRef = useRef<AbortController | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
@@ -29,9 +31,24 @@ export const useWalletBalance = () => {
 
   useEffect(() => {
     if (wagmiBalance) {
-      setNativeBalance(`${parseFloat(wagmiBalance.formatted).toFixed(4)} ${wagmiBalance.symbol}`);
+      const amount = parseFloat(wagmiBalance.formatted);
+      let convertedAmount = amount;
+
+      // Conversion basée sur la devise sélectionnée (taux de conversion simplifiés)
+      switch (selectedCurrency) {
+        case 'USD':
+          convertedAmount = amount * 1.1; // Taux EUR to USD
+          break;
+        case 'GBP':
+          convertedAmount = amount * 0.85; // Taux EUR to GBP
+          break;
+        default: // EUR
+          break;
+      }
+
+      setNativeBalance(`${convertedAmount.toFixed(4)} ${wagmiBalance.symbol}`);
     }
-  }, [wagmiBalance]);
+  }, [wagmiBalance, selectedCurrency]);
 
   const fetchBalance = async (walletAddress: string) => {
     const cachedData = balanceCache.get(walletAddress);
@@ -65,11 +82,25 @@ export const useWalletBalance = () => {
         console.error('Invalid response format:', data);
         throw new Error('Invalid response format from API');
       }
+
+      let convertedValue = data.total_value_usd;
       
-      const formattedBalance = new Intl.NumberFormat('en-US', {
+      // Conversion basée sur la devise sélectionnée
+      switch (selectedCurrency) {
+        case 'EUR':
+          convertedValue = data.total_value_usd * 0.91; // USD to EUR
+          break;
+        case 'GBP':
+          convertedValue = data.total_value_usd * 0.77; // USD to GBP
+          break;
+        default: // USD
+          break;
+      }
+      
+      const formattedBalance = new Intl.NumberFormat('fr-FR', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-      }).format(data.total_value_usd);
+      }).format(convertedValue);
 
       balanceCache.set(walletAddress, {
         balance: formattedBalance,
@@ -127,7 +158,7 @@ export const useWalletBalance = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, [isConnected, address]);
+  }, [isConnected, address, selectedCurrency]);
 
   return { usdBalance, nativeBalance, isLoading, error };
 };
