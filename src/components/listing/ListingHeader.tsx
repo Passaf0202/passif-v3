@@ -1,40 +1,34 @@
-import { Share2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { formatPrice } from "@/utils/priceUtils";
+import { useCurrencyStore } from "@/stores/currencyStore";
 
 interface ListingHeaderProps {
   title: string;
   price: number;
+  cryptoAmount?: number | null;
+  cryptoCurrency?: string;
 }
 
-export const ListingHeader = ({ title, price }: ListingHeaderProps) => {
-  const { toast } = useToast();
-
-  const handleShare = async () => {
-    try {
-      await navigator.share({
-        title,
-        text: `Découvrez ${title} sur notre plateforme !`,
-        url: window.location.href,
-      });
-    } catch (err) {
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Lien copié",
-        description: "Le lien a été copié dans votre presse-papier",
-      });
-    }
-  };
+export const ListingHeader = ({ 
+  title, 
+  price,
+  cryptoAmount,
+  cryptoCurrency 
+}: ListingHeaderProps) => {
+  const { selectedCurrency } = useCurrencyStore();
 
   return (
-    <div className="flex justify-between items-start">
-      <div>
-        <h1 className="text-3xl font-bold">{title}</h1>
-        <p className="text-2xl font-bold text-primary mt-2">{price} €</p>
+    <div>
+      <h1 className="text-3xl font-bold mb-2">{title}</h1>
+      <div className="flex items-baseline gap-2">
+        <p className="text-2xl font-semibold text-primary">
+          {formatPrice(price)} {selectedCurrency}
+        </p>
+        {cryptoAmount && cryptoCurrency && (
+          <p className="text-lg text-gray-600">
+            ≈ {cryptoAmount.toFixed(8)} {cryptoCurrency}
+          </p>
+        )}
       </div>
-      <Button variant="ghost" size="icon" onClick={handleShare}>
-        <Share2 className="h-5 w-5" />
-      </Button>
     </div>
   );
 };

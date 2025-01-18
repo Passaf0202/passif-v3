@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCryptoRates } from "@/hooks/useCryptoRates";
+import { useCurrencyStore } from "@/stores/currencyStore";
 
 interface ListingDetailsProps {
   listing: {
@@ -44,6 +46,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: cryptoRates } = useCryptoRates();
+  const { selectedCurrency } = useCurrencyStore();
 
   const handleBuyClick = () => {
     if (!user) {
@@ -63,12 +67,41 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     });
   };
 
+  const calculateCryptoAmount = () => {
+    if (!cryptoRates || !listing.crypto_currency) return null;
+    
+    const rate = cryptoRates.find(r => r.symbol === listing.crypto_currency);
+    if (!rate) return null;
+
+    let price = listing.price;
+    switch (selectedCurrency) {
+      case 'USD':
+        price = price * rate.rate_usd;
+        break;
+      case 'GBP':
+        price = price * rate.rate_gbp;
+        break;
+      default: // EUR
+        price = price * rate.rate_eur;
+        break;
+    }
+    
+    return price;
+  };
+
+  const cryptoAmount = calculateCryptoAmount();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <ListingImages images={listing.images} title={listing.title} isHovered={false} />
 
       <div className="space-y-6">
-        <ListingHeader title={listing.title} price={listing.price} />
+        <ListingHeader 
+          title={listing.title} 
+          price={listing.price} 
+          cryptoAmount={cryptoAmount}
+          cryptoCurrency={listing.crypto_currency}
+        />
         
         <SellerInfo 
           seller={listing.user} 
@@ -91,7 +124,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           sellerId={listing.user_id}
           title={listing.title}
           price={listing.price}
-          cryptoAmount={listing.crypto_amount}
+          cryptoAmount={cryptoAmount}
           cryptoCurrency={listing.crypto_currency}
           handleBuyClick={handleBuyClick}
         />
