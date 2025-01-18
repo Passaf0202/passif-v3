@@ -27,8 +27,9 @@ async function main() {
     const hash = await walletClient.deployContract({
       account,
       abi,
-      bytecode: bytecode.bytecode as `0x${string}`,
+      bytecode: bytecode as `0x${string}`,
       args: [],
+      chain: sepolia
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
