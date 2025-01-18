@@ -20,6 +20,8 @@ interface ListingDetailsProps {
     condition?: string;
     color?: string[];
     material?: string[];
+    crypto_currency?: string;
+    crypto_amount?: number;
     user: {
       avatar_url: string | null;
       full_name: string;
@@ -42,6 +44,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       return;
     }
     
+    // Redirection vers la page de paiement crypto
     navigate("/checkout", { state: { listing } });
   };
 
@@ -69,6 +72,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           sellerId={listing.user_id}
           title={listing.title}
           price={listing.price}
+          cryptoAmount={listing.crypto_amount}
+          cryptoCurrency={listing.crypto_currency}
           handleBuyClick={handleBuyClick}
         />
 

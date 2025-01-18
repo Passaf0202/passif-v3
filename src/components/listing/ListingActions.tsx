@@ -14,7 +14,7 @@ interface ListingActionsProps {
   price: number;
   cryptoAmount?: number;
   cryptoCurrency?: string;
-  handleBuyClick?: () => void;  // Made optional since some listings might not be buyable
+  handleBuyClick?: () => void;
 }
 
 export const ListingActions = ({ 
