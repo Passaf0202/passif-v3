@@ -34,7 +34,7 @@ export default function Payment() {
   const currentListing = listing || fetchedListing;
 
   // Fetch current ETH rate
-  const { data: cryptoRates, isError } = useQuery({
+  const { data: cryptoRates } = useQuery({
     queryKey: ['crypto-rates'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -59,14 +59,16 @@ export default function Payment() {
     );
   }
 
-  // Utiliser le taux de l'API ou le taux de repli
-  const ethRate = cryptoRates?.rate_eur || FALLBACK_ETH_RATE;
-  const cryptoAmount = Number(currentListing.price) / ethRate;
+  // Calculate crypto amount if not already set
+  if (!currentListing.crypto_amount) {
+    const ethRate = cryptoRates?.rate_eur || FALLBACK_ETH_RATE;
+    currentListing.crypto_amount = Number(currentListing.price) / ethRate;
+  }
 
   console.log('Payment details:', {
     listingPrice: currentListing.price,
-    ethRate: ethRate,
-    cryptoAmount: cryptoAmount,
+    ethRate: cryptoRates?.rate_eur || FALLBACK_ETH_RATE,
+    cryptoAmount: currentListing.crypto_amount,
     usingFallbackRate: !cryptoRates
   });
 
@@ -82,7 +84,7 @@ export default function Payment() {
           listingId={currentListing.id}
           title={currentListing.title}
           price={currentListing.price}
-          cryptoAmount={cryptoAmount}
+          cryptoAmount={currentListing.crypto_amount}
           cryptoCurrency="ETH"
           onPaymentComplete={handlePaymentComplete}
         />

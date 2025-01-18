@@ -58,11 +58,15 @@ export function useEscrowPayment({ listingId, address, onPaymentComplete }: UseE
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
+      if (!listing.crypto_amount) {
+        throw new Error("Le montant en crypto n'est pas disponible");
+      }
+
       console.log('Initiating transaction with params:', {
         listingId,
         buyerAddress: address,
         sellerAddress: listing.user.wallet_address,
-        amount: listing.crypto_amount,
+        amount: listing.crypto_amount.toString(),
         includeEscrowFees
       });
 
@@ -71,7 +75,7 @@ export function useEscrowPayment({ listingId, address, onPaymentComplete }: UseE
           listingId,
           buyerAddress: address,
           sellerAddress: listing.user.wallet_address,
-          amount: listing.crypto_amount?.toString(),
+          amount: listing.crypto_amount.toString(),
           includeEscrowFees
         }
       });
