@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Heart, Loader2 } from "lucide-react";
+import { Loader2, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContactModal } from "@/components/ContactModal";
 import { useToast } from "@/components/ui/use-toast";
@@ -15,6 +14,7 @@ interface ListingActionsProps {
   price: number;
   cryptoAmount?: number;
   cryptoCurrency?: string;
+  handleBuyClick?: () => void;  // Made optional since some listings might not be buyable
 }
 
 export const ListingActions = ({ 
@@ -24,8 +24,8 @@ export const ListingActions = ({
   price,
   cryptoAmount,
   cryptoCurrency,
+  handleBuyClick,
 }: ListingActionsProps) => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
@@ -88,7 +88,7 @@ export const ListingActions = ({
       <div className="grid grid-cols-2 gap-4">
         <Button 
           className="w-full" 
-          onClick={handleCryptoPayment}
+          onClick={handleBuyClick || handleCryptoPayment}
           disabled={isProcessing}
         >
           {isProcessing ? (
