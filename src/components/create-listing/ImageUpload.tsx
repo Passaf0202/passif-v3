@@ -1,7 +1,8 @@
 import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Camera, ImagePlus, Lightbulb } from "lucide-react";
+import { Camera, ImagePlus, Lightbulb, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
 
 interface ImageUploadProps {
   images: File[];
@@ -10,27 +11,41 @@ interface ImageUploadProps {
 }
 
 export function ImageUpload({ images, onImagesChange, category }: ImageUploadProps) {
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      console.log("Selected files:", files);
-      onImagesChange(files);
-    }
-  };
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const MAX_IMAGES = 5;
 
-  const handleCardClick = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.multiple = true;
-    input.accept = 'image/*';
-    input.onchange = (e) => {
-      const target = e.target as HTMLInputElement;
-      if (target && target.files) {
-        const files = Array.from(target.files);
-        onImagesChange(files);
-      }
-    };
-    input.click();
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const totalImages = images.length + acceptedFiles.length;
+    if (totalImages > MAX_IMAGES) {
+      alert(`Vous pouvez ajouter un maximum de ${MAX_IMAGES} photos`);
+      return;
+    }
+
+    const newImages = [...images, ...acceptedFiles].slice(0, MAX_IMAGES);
+    onImagesChange(newImages);
+
+    // Créer les URLs de prévisualisation
+    const urls = newImages.map(file => URL.createObjectURL(file));
+    setPreviewUrls(urls);
+  }, [images, onImagesChange]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif']
+    },
+    maxFiles: MAX_IMAGES
+  });
+
+  const removeImage = (index: number) => {
+    const newImages = [...images];
+    newImages.splice(index, 1);
+    onImagesChange(newImages);
+
+    const newUrls = [...previewUrls];
+    URL.revokeObjectURL(newUrls[index]);
+    newUrls.splice(index, 1);
+    setPreviewUrls(newUrls);
   };
 
   const isVehicle = category === "Véhicules";
@@ -48,7 +63,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         <div>
           <h3 className="text-lg font-semibold">Photos de l'annonce</h3>
           <p className="text-sm text-gray-500">
-            Faites glisser vos photos pour changer leur ordre
+            Maximum {MAX_IMAGES} photos - Glissez-déposez vos images ici
           </p>
         </div>
         <div className="flex items-center gap-2 text-primary">
@@ -60,17 +75,36 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <Card 
-          className="relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 border-dashed"
-          onClick={handleCardClick}
+        <div
+          {...getRootProps()}
+          className={`relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 border-dashed ${
+            isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300'
+          }`}
         >
-          <CardContent className="flex flex-col items-center justify-center h-full p-4">
+          <input {...getInputProps()} />
+          <div className="flex flex-col items-center justify-center h-full p-4">
             <Camera className="h-8 w-8 mb-2 text-gray-400" />
             <span className="text-sm text-center text-gray-500">
-              Ajouter des photos
+              {isDragActive ? 'Déposez les images ici' : 'Glissez ou cliquez pour ajouter'}
             </span>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {previewUrls.map((url, index) => (
+          <div key={index} className="relative aspect-square">
+            <img
+              src={url}
+              alt={`Image ${index + 1}`}
+              className="w-full h-full object-cover rounded-lg"
+            />
+            <button
+              onClick={() => removeImage(index)}
+              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
 
         {isVehicle && vehiclePhotoTypes.map((type, index) => (
           <Card 
@@ -78,7 +112,6 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
             className={`relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 ${
               type.required ? 'border-primary border-dashed' : 'border-gray-200 border-dashed'
             }`}
-            onClick={handleCardClick}
           >
             <CardContent className="flex flex-col items-center justify-center h-full p-4">
               <ImagePlus className="h-8 w-8 mb-2 text-gray-400" />

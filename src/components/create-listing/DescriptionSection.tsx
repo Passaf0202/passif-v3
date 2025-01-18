@@ -22,11 +22,11 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
 
   const handlePriceChange = (value: string) => {
     setPrice(value);
-    const numericPrice = parseFloat(value) || 0;
-    form.setValue('price', numericPrice);
+    // Convertir en string pour le formulaire
+    form.setValue('price', value);
     
     if (selectedCrypto && cryptoRates) {
-      updateCryptoAmount(numericPrice, selectedCrypto);
+      updateCryptoAmount(parseFloat(value) || 0, selectedCrypto);
     }
   };
 
@@ -61,21 +61,11 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
     }
   };
 
-  // Mettre à jour le montant en crypto quand la devise change
   useEffect(() => {
     if (price && selectedCrypto) {
       updateCryptoAmount(parseFloat(price) || 0, selectedCrypto);
     }
   }, [selectedCurrency]);
-
-  const formatPrice = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: selectedCurrency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
-  };
 
   return (
     <Card>
@@ -108,7 +98,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
                   <FormLabel>Prix ({selectedCurrency})</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
+                      type="text"
                       placeholder={`Prix en ${selectedCurrency}`}
                       onChange={(e) => handlePriceChange(e.target.value)}
                       value={price}

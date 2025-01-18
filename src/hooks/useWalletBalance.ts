@@ -46,13 +46,16 @@ export const useWalletBalance = () => {
           if (selectedCurrency === 'EUR') {
             convertedAmount = usdValue * 0.91; // Taux de conversion USD vers EUR
             console.log('Converted to EUR:', convertedAmount);
+          } else if (selectedCurrency === 'GBP') {
+            convertedAmount = usdValue * 0.79; // Taux de conversion USD vers GBP
+            console.log('Converted to GBP:', convertedAmount);
           }
 
           const formattedBalance = formatCurrencyValue(convertedAmount, selectedCurrency);
-          console.log('Final formatted balance:', formattedBalance);
+          console.log('Formatted balance:', formattedBalance);
           setNativeBalance(formattedBalance);
         } else {
-          console.log('No balance data available');
+          console.log('No balance data received');
           setNativeBalance("0.00");
         }
       } catch (err) {
