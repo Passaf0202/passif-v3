@@ -322,13 +322,22 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          buyer_confirmation: boolean | null
           buyer_id: string | null
+          chain_id: number | null
           commission_amount: number
           created_at: string | null
+          dispute_reason: string | null
+          dispute_resolution: string | null
+          dispute_status: string | null
+          escrow_release_time: string | null
+          escrow_status: string | null
           id: string
           listing_id: string | null
           network: string | null
+          seller_confirmation: boolean | null
           seller_id: string | null
+          smart_contract_address: string | null
           status: string | null
           token_symbol: string | null
           transaction_hash: string | null
@@ -336,13 +345,22 @@ export type Database = {
         }
         Insert: {
           amount: number
+          buyer_confirmation?: boolean | null
           buyer_id?: string | null
+          chain_id?: number | null
           commission_amount: number
           created_at?: string | null
+          dispute_reason?: string | null
+          dispute_resolution?: string | null
+          dispute_status?: string | null
+          escrow_release_time?: string | null
+          escrow_status?: string | null
           id?: string
           listing_id?: string | null
           network?: string | null
+          seller_confirmation?: boolean | null
           seller_id?: string | null
+          smart_contract_address?: string | null
           status?: string | null
           token_symbol?: string | null
           transaction_hash?: string | null
@@ -350,13 +368,22 @@ export type Database = {
         }
         Update: {
           amount?: number
+          buyer_confirmation?: boolean | null
           buyer_id?: string | null
+          chain_id?: number | null
           commission_amount?: number
           created_at?: string | null
+          dispute_reason?: string | null
+          dispute_resolution?: string | null
+          dispute_status?: string | null
+          escrow_release_time?: string | null
+          escrow_status?: string | null
           id?: string
           listing_id?: string | null
           network?: string | null
+          seller_confirmation?: boolean | null
           seller_id?: string | null
+          smart_contract_address?: string | null
           status?: string | null
           token_symbol?: string | null
           transaction_hash?: string | null
@@ -442,7 +469,14 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      escrow_status_type:
+        | "pending"
+        | "funded"
+        | "confirmed_by_buyer"
+        | "confirmed_by_seller"
+        | "completed"
+        | "refunded"
+        | "disputed"
     }
     CompositeTypes: {
       [_ in never]: never
