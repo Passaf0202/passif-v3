@@ -32,8 +32,9 @@ async function main() {
       account,
       args: [], // No constructor arguments needed
       gas: BigInt(3000000),
-      gasPrice: BigInt(1000000000), // Add explicit gasPrice for legacy transactions
-      chain: localhost
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined,
+      gasPrice: BigInt(1000000000), // Use gasPrice for legacy transactions
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
