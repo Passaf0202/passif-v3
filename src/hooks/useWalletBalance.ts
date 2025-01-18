@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useBalance } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { formatCurrencyValue } from "@/utils/currencyUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useWalletBalance = () => {
   const { address, isConnected } = useAccount();
@@ -10,13 +11,8 @@ export const useWalletBalance = () => {
   const [error, setError] = useState<string | null>(null);
   const { selectedCurrency } = useCurrencyStore();
 
-  const { data: wagmiBalance } = useBalance({
-    address: address,
-    watch: true,
-  });
-
   useEffect(() => {
-    const updateBalance = async () => {
+    const fetchBalance = async () => {
       if (!isConnected || !address) {
         setNativeBalance(null);
         return;
@@ -26,19 +22,30 @@ export const useWalletBalance = () => {
         setIsLoading(true);
         setError(null);
 
-        if (wagmiBalance) {
-          console.log('Raw balance data:', wagmiBalance);
-          const ethAmount = parseFloat(wagmiBalance.formatted);
-          console.log('ETH amount:', ethAmount);
+        console.log('Fetching balance for address:', address);
+        
+        const { data: response, error: functionError } = await supabase.functions.invoke(
+          'get-wallet-balance',
+          {
+            body: { address },
+          }
+        );
 
-          // Conversion avec des taux fixes comme avant
-          let convertedAmount = ethAmount;
+        if (functionError) {
+          console.error('Edge function error:', functionError);
+          throw new Error(functionError.message);
+        }
+
+        console.log('Zerion API response:', response);
+
+        if (response?.total_value_usd) {
+          const usdValue = parseFloat(response.total_value_usd);
+          console.log('USD value:', usdValue);
+
+          let convertedAmount = usdValue;
           if (selectedCurrency === 'EUR') {
-            convertedAmount = ethAmount * 2000; // ~2000€ par ETH
+            convertedAmount = usdValue * 0.91; // Taux de conversion USD vers EUR
             console.log('Converted to EUR:', convertedAmount);
-          } else if (selectedCurrency === 'USD') {
-            convertedAmount = ethAmount * 2200; // ~2200$ par ETH
-            console.log('Converted to USD:', convertedAmount);
           }
 
           const formattedBalance = formatCurrencyValue(convertedAmount, selectedCurrency);
@@ -49,15 +56,16 @@ export const useWalletBalance = () => {
           setNativeBalance("0.00");
         }
       } catch (err) {
-        console.error('Error updating balance:', err);
-        setError('Erreur lors de la mise à jour du solde');
+        console.error('Error fetching balance:', err);
+        setError('Erreur lors de la récupération du solde');
+        setNativeBalance("0.00");
       } finally {
         setIsLoading(false);
       }
     };
 
-    updateBalance();
-  }, [isConnected, address, wagmiBalance, selectedCurrency]);
+    fetchBalance();
+  }, [isConnected, address, selectedCurrency]);
 
   return { nativeBalance, isLoading, error };
 };
