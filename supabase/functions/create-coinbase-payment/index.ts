@@ -13,17 +13,23 @@ serve(async (req) => {
 
   try {
     const { listingId, buyerAddress } = await req.json()
-    console.log('Received request with:', { listingId, buyerAddress })
+    console.log('Création du paiement pour:', { listingId, buyerAddress })
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Récupérer les détails de l'annonce
+    // Récupérer les détails de l'annonce et du vendeur
     const { data: listing, error: listingError } = await supabase
       .from('listings')
-      .select('*, user:profiles!listings_user_id_fkey(*)')
+      .select(`
+        *,
+        seller:profiles!listings_user_id_fkey(
+          wallet_address,
+          full_name
+        )
+      `)
       .eq('id', listingId)
       .maybeSingle()
 
@@ -37,9 +43,14 @@ serve(async (req) => {
       throw new Error('Annonce non trouvée')
     }
 
-    console.log('Listing found:', listing)
+    if (!listing.seller?.wallet_address) {
+      console.error('Le vendeur n\'a pas connecté son portefeuille')
+      throw new Error('Le vendeur n\'a pas connecté son portefeuille')
+    }
 
-    // Créer une charge Coinbase Commerce
+    console.log('Annonce trouvée:', listing)
+
+    // Créer une charge Coinbase Commerce avec escrow
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
       headers: {
@@ -55,10 +66,13 @@ serve(async (req) => {
           amount: listing.price.toString(),
           currency: 'EUR'
         },
+        redirect_url: `${Deno.env.get('APP_URL')}/payment/success/${listingId}`,
+        cancel_url: `${Deno.env.get('APP_URL')}/payment/cancel/${listingId}`,
         metadata: {
           listing_id: listingId,
           buyer_address: buyerAddress,
-          seller_id: listing.user_id
+          seller_address: listing.seller.wallet_address,
+          escrow: true
         }
       })
     })
@@ -70,9 +84,9 @@ serve(async (req) => {
     }
 
     const chargeData = await response.json()
-    console.log('Charge created:', chargeData)
+    console.log('Charge créée:', chargeData)
 
-    // Créer une transaction dans la base de données
+    // Créer une transaction avec statut escrow dans la base de données
     const { error: transactionError } = await supabase
       .from('transactions')
       .insert({
@@ -80,8 +94,14 @@ serve(async (req) => {
         buyer_id: buyerAddress,
         seller_id: listing.user_id,
         amount: listing.price,
-        status: 'pending',
         commission_amount: listing.price * 0.05, // 5% de commission
+        status: 'pending',
+        escrow_status: 'pending',
+        network: listing.crypto_currency,
+        token_symbol: listing.crypto_currency,
+        chain_id: 1, // Ethereum mainnet par défaut
+        transaction_hash: chargeData.data.code,
+        smart_contract_address: chargeData.data.addresses[listing.crypto_currency?.toLowerCase() || 'eth']
       })
 
     if (transactionError) {
