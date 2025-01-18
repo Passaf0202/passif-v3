@@ -13,10 +13,10 @@ serve(async (req) => {
 
   try {
     const { listingId, buyerAddress } = await req.json()
-    console.log('Création du paiement pour:', { listingId, buyerAddress })
+    console.log('Creating payment for:', { listingId, buyerAddress })
     
     if (!listingId || !buyerAddress) {
-      throw new Error('Paramètres manquants: listingId et buyerAddress sont requis')
+      throw new Error('Missing required parameters: listingId and buyerAddress')
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -24,23 +24,24 @@ serve(async (req) => {
     const coinbaseApiKey = Deno.env.get('COINBASE_COMMERCE_API_KEY')
 
     if (!supabaseUrl || !supabaseKey) {
-      console.error('Variables d\'environnement Supabase manquantes')
-      throw new Error('Configuration Supabase incomplète')
+      console.error('Missing Supabase environment variables')
+      throw new Error('Server configuration error')
     }
 
     if (!coinbaseApiKey) {
-      console.error('Clé API Coinbase Commerce manquante')
-      throw new Error('COINBASE_COMMERCE_API_KEY non configurée')
+      console.error('Missing Coinbase API key')
+      throw new Error('Server configuration error')
     }
 
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
-    // Récupérer les détails de l'annonce avec les informations du vendeur
+    // Fetch listing with seller details
+    console.log('Fetching listing details...')
     const { data: listing, error: listingError } = await supabaseClient
       .from('listings')
       .select(`
         *,
-        seller:profiles!listings_user_id_fkey (
+        user:profiles!listings_user_id_fkey (
           id,
           wallet_address,
           full_name,
@@ -51,30 +52,30 @@ serve(async (req) => {
       .maybeSingle()
 
     if (listingError) {
-      console.error('Erreur lors de la récupération de l\'annonce:', listingError)
-      throw new Error('Erreur lors de la récupération de l\'annonce')
+      console.error('Error fetching listing:', listingError)
+      throw new Error('Error retrieving listing details')
     }
 
     if (!listing) {
-      console.error('Annonce non trouvée:', listingId)
-      throw new Error('Annonce non trouvée')
+      console.error('Listing not found:', listingId)
+      throw new Error('Listing not found')
     }
 
-    if (!listing.seller?.wallet_address) {
-      console.error('Le vendeur n\'a pas connecté son portefeuille')
+    console.log('Listing found:', listing)
+
+    if (!listing.user?.wallet_address) {
+      console.error('Seller has not connected their wallet')
       throw new Error('Le vendeur n\'a pas connecté son portefeuille')
     }
 
-    console.log('Annonce trouvée:', listing)
-
-    // Construire les URLs absolues pour la redirection
+    // Build absolute URLs for redirection
     const baseUrl = Deno.env.get('APP_URL') || 'http://localhost:5173'
     const successUrl = new URL(`/payment/success/${listingId}`, baseUrl).toString()
     const cancelUrl = new URL(`/payment/cancel/${listingId}`, baseUrl).toString()
 
-    console.log('URLs de redirection:', { successUrl, cancelUrl })
+    console.log('Redirect URLs:', { successUrl, cancelUrl })
 
-    // Créer une charge Coinbase Commerce selon la documentation
+    // Create Coinbase charge
     const chargeData = {
       name: listing.title,
       description: listing.description,
@@ -83,24 +84,23 @@ serve(async (req) => {
         amount: listing.price.toString(),
         currency: 'EUR'
       },
-      requested_info: ['name', 'email'],
-      redirect_url: successUrl,
-      cancel_url: cancelUrl,
       metadata: {
         listing_id: listingId,
         buyer_address: buyerAddress,
-        seller_address: listing.seller.wallet_address,
+        seller_address: listing.user.wallet_address,
         customer_id: buyerAddress,
         order_id: listingId
-      }
+      },
+      redirect_url: successUrl,
+      cancel_url: cancelUrl
     }
 
-    // Ajouter les méthodes de paiement si spécifiées
+    // Add payment method if specified
     if (listing.crypto_currency) {
       chargeData['payment_methods'] = [listing.crypto_currency.toLowerCase()]
     }
 
-    console.log('Création de la charge Coinbase:', chargeData)
+    console.log('Creating Coinbase charge:', chargeData)
 
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
@@ -114,19 +114,19 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Erreur Coinbase:', errorText)
-      throw new Error(`Erreur Coinbase: ${errorText}`)
+      console.error('Coinbase error:', errorText)
+      throw new Error(`Coinbase error: ${errorText}`)
     }
 
     const responseData = await response.json()
-    console.log('Réponse Coinbase:', responseData)
+    console.log('Coinbase response:', responseData)
 
-    if (!responseData.data?.code) {
-      console.error('Réponse Coinbase invalide:', responseData)
-      throw new Error('Code de charge invalide reçu de Coinbase')
+    if (!responseData.data?.hosted_url) {
+      console.error('Invalid Coinbase response:', responseData)
+      throw new Error('Invalid response from Coinbase')
     }
 
-    // Créer la transaction dans la base de données
+    // Create transaction record
     const { error: transactionError } = await supabaseClient
       .from('transactions')
       .insert({
@@ -134,19 +134,19 @@ serve(async (req) => {
         buyer_id: buyerAddress,
         seller_id: listing.user_id,
         amount: listing.price,
-        commission_amount: listing.price * 0.05, // 5% de commission
+        commission_amount: listing.price * 0.05,
         status: 'pending',
         escrow_status: 'pending',
         network: listing.crypto_currency?.toLowerCase() || 'eth',
         token_symbol: listing.crypto_currency?.toLowerCase() || 'eth',
         transaction_hash: responseData.data.code,
         smart_contract_address: responseData.data.addresses?.[listing.crypto_currency?.toLowerCase() || 'eth'],
-        chain_id: 1 // Ethereum mainnet par défaut
+        chain_id: 1
       })
 
     if (transactionError) {
-      console.error('Erreur lors de la création de la transaction:', transactionError)
-      throw new Error('Erreur lors de la création de la transaction')
+      console.error('Error creating transaction:', transactionError)
+      throw new Error('Error creating transaction record')
     }
 
     return new Response(
@@ -159,10 +159,10 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Erreur inattendue:', error)
+    console.error('Unexpected error:', error)
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Une erreur inattendue est survenue' 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred' 
       }),
       { 
         headers: { 
