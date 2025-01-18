@@ -1,72 +1,45 @@
-import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
-import { useCurrencyStore } from "@/stores/currencyStore";
-import { formatCurrencyValue } from "@/utils/currencyUtils";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAccount } from "wagmi";
 
-export const useWalletBalance = () => {
-  const { address, isConnected } = useAccount();
-  const [nativeBalance, setNativeBalance] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { selectedCurrency } = useCurrencyStore();
+export function useWalletBalance() {
+  const { address } = useAccount();
 
-  useEffect(() => {
-    const fetchBalance = async () => {
-      if (!isConnected || !address) {
-        setNativeBalance(null);
-        return;
+  const { data: balance, isLoading, error } = useQuery({
+    queryKey: ['wallet-balance', address],
+    queryFn: async () => {
+      if (!address) return null;
+
+      const { data, error } = await supabase.functions.invoke('get-wallet-balance', {
+        body: { address }
+      });
+
+      if (error) {
+        console.error('Error fetching wallet balance:', error);
+        throw error;
       }
 
-      try {
-        setIsLoading(true);
-        setError(null);
+      // Le taux est en USD, nous devons le convertir en EUR
+      const usdValue = data.total_value_usd;
+      console.log('USD value:', usdValue);
 
-        console.log('Fetching balance for address:', address);
-        
-        const { data: response, error: functionError } = await supabase.functions.invoke(
-          'get-wallet-balance',
-          {
-            body: { address },
-          }
-        );
+      // Conversion approximative USD -> EUR (à améliorer avec un taux réel)
+      const eurValue = usdValue * 0.91;
+      const formattedBalance = new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(eurValue);
 
-        if (functionError) {
-          console.error('Edge function error:', functionError);
-          throw new Error(functionError.message);
-        }
+      console.log('Formatted balance:', formattedBalance);
+      return formattedBalance;
+    },
+    enabled: !!address,
+    refetchInterval: 30000 // Rafraîchir toutes les 30 secondes
+  });
 
-        console.log('Zerion API response:', response);
-
-        if (response?.total_value_usd) {
-          const usdValue = parseFloat(response.total_value_usd);
-          console.log('USD value:', usdValue);
-
-          let convertedAmount = usdValue;
-          if (selectedCurrency === 'EUR') {
-            convertedAmount = usdValue * 0.91; // Taux de conversion USD vers EUR
-          } else if (selectedCurrency === 'GBP') {
-            convertedAmount = usdValue * 0.79; // Taux de conversion USD vers GBP
-          }
-
-          const formattedBalance = formatCurrencyValue(convertedAmount, selectedCurrency);
-          console.log('Formatted balance:', formattedBalance);
-          setNativeBalance(formattedBalance);
-        } else {
-          console.log('No balance data received');
-          setNativeBalance("0.00");
-        }
-      } catch (err) {
-        console.error('Error fetching balance:', err);
-        setError('Erreur lors de la récupération du solde');
-        setNativeBalance("0.00");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBalance();
-  }, [isConnected, address, selectedCurrency]);
-
-  return { nativeBalance, isLoading, error };
-};
+  return {
+    nativeBalance: balance,
+    isLoading,
+    error
+  };
+}
