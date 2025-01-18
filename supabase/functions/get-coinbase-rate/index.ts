@@ -6,6 +6,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -19,14 +20,15 @@ serve(async (req) => {
       throw new Error('COINBASE_COMMERCE_API_KEY is not configured')
     }
 
-    // Using Coinbase Commerce API v2 for exchange rates
+    // Using Coinbase Commerce API to get exchange rates
     const response = await fetch(
       'https://api.commerce.coinbase.com/v2/exchange-rates',
       {
         headers: {
           'X-CC-Api-Key': coinbaseApiKey,
           'X-CC-Version': '2018-03-22',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       }
     )
@@ -40,17 +42,17 @@ serve(async (req) => {
     console.log('Coinbase response:', data)
 
     // Extract the specific rate we need
-    const rate = data.data.rates[fiatCurrency]
-    if (!rate) {
+    const rates = data.data.rates
+    if (!rates || !rates[fiatCurrency]) {
       throw new Error(`Rate not found for ${fiatCurrency}`)
     }
 
-    // For crypto to fiat conversion, we need to use 1/rate
-    // because the API returns rates in terms of crypto (e.g., 1 BTC = X EUR)
-    const convertedRate = 1 / parseFloat(rate)
+    // Convert the rate for the specific crypto/fiat pair
+    const rate = rates[fiatCurrency]
+    console.log('Rate found:', { fiatCurrency, rate })
 
     return new Response(
-      JSON.stringify({ rate: convertedRate }),
+      JSON.stringify({ rate: parseFloat(rate) }),
       { 
         headers: { 
           ...corsHeaders,
