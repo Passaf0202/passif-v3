@@ -37,12 +37,7 @@ Deno.serve(async (req) => {
       // Fallback rate if no data is found
       return new Response(
         JSON.stringify({
-          data: {
-            currency: 'BNB',
-            rates: {
-              EUR: 250, // Fallback rate
-            }
-          }
+          rate: 250 // Fallback rate in EUR
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -54,12 +49,7 @@ Deno.serve(async (req) => {
     console.log('Successfully retrieved rates:', rates)
     return new Response(
       JSON.stringify({
-        data: {
-          currency: 'BNB',
-          rates: {
-            EUR: rates.rate_eur,
-          }
-        }
+        rate: rates.rate_eur // Return EUR rate directly
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
