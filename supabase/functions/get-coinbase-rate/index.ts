@@ -19,9 +19,9 @@ serve(async (req) => {
       throw new Error('COINBASE_COMMERCE_API_KEY is not configured')
     }
 
-    // Utilisation de l'API Coinbase Commerce v3 pour les taux de change
+    // Using Coinbase Commerce API v2 for exchange rates
     const response = await fetch(
-      `https://api.commerce.coinbase.com/rates/${cryptoCurrency}-${fiatCurrency}`,
+      'https://api.commerce.coinbase.com/v2/exchange-rates',
       {
         headers: {
           'X-CC-Api-Key': coinbaseApiKey,
@@ -39,8 +39,18 @@ serve(async (req) => {
     const data = await response.json()
     console.log('Coinbase response:', data)
 
+    // Extract the specific rate we need
+    const rate = data.data.rates[fiatCurrency]
+    if (!rate) {
+      throw new Error(`Rate not found for ${fiatCurrency}`)
+    }
+
+    // For crypto to fiat conversion, we need to use 1/rate
+    // because the API returns rates in terms of crypto (e.g., 1 BTC = X EUR)
+    const convertedRate = 1 / parseFloat(rate)
+
     return new Response(
-      JSON.stringify({ rate: parseFloat(data.data.rate) }),
+      JSON.stringify({ rate: convertedRate }),
       { 
         headers: { 
           ...corsHeaders,
