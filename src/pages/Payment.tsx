@@ -4,8 +4,8 @@ import { CryptoPaymentForm } from "@/components/payment/CryptoPaymentForm";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Taux de repli si l'API ne répond pas (1 ETH = 2500 EUR)
-const FALLBACK_ETH_RATE = 2500;
+// Taux de repli si l'API ne répond pas (1 BNB = 250 EUR)
+const FALLBACK_BNB_RATE = 250;
 
 export default function Payment() {
   const { id } = useParams();
@@ -33,14 +33,14 @@ export default function Payment() {
 
   const currentListing = listing || fetchedListing;
 
-  // Fetch current ETH rate
+  // Fetch current BNB rate
   const { data: cryptoRates } = useQuery({
     queryKey: ['crypto-rates'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('crypto_rates')
         .select('*')
-        .eq('symbol', 'ETH')
+        .eq('symbol', 'BNB')
         .single();
       
       if (error) throw error;
@@ -61,13 +61,14 @@ export default function Payment() {
 
   // Calculate crypto amount if not already set
   if (!currentListing.crypto_amount) {
-    const ethRate = cryptoRates?.rate_eur || FALLBACK_ETH_RATE;
-    currentListing.crypto_amount = Number(currentListing.price) / ethRate;
+    const bnbRate = cryptoRates?.rate_eur || FALLBACK_BNB_RATE;
+    currentListing.crypto_amount = Number(currentListing.price) / bnbRate;
+    currentListing.crypto_currency = 'BNB';
   }
 
   console.log('Payment details:', {
     listingPrice: currentListing.price,
-    ethRate: cryptoRates?.rate_eur || FALLBACK_ETH_RATE,
+    bnbRate: cryptoRates?.rate_eur || FALLBACK_BNB_RATE,
     cryptoAmount: currentListing.crypto_amount,
     usingFallbackRate: !cryptoRates
   });
@@ -85,7 +86,7 @@ export default function Payment() {
           title={currentListing.title}
           price={currentListing.price}
           cryptoAmount={currentListing.crypto_amount}
-          cryptoCurrency="ETH"
+          cryptoCurrency="BNB"
           onPaymentComplete={handlePaymentComplete}
         />
       </div>

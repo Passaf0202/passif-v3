@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createPublicClient, createWalletClient, http, parseEther, formatEther } from 'npm:viem'
 import { privateKeyToAccount } from 'npm:viem/accounts'
-import { sepolia } from 'npm:viem/chains'
+import { bsc } from 'npm:viem/chains'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,7 +42,7 @@ serve(async (req) => {
     }
 
     const publicClient = createPublicClient({
-      chain: sepolia,
+      chain: bsc,
       transport: http()
     });
 
@@ -50,24 +50,24 @@ serve(async (req) => {
     const balance = await publicClient.getBalance({ 
       address: buyerAddress as `0x${string}` 
     });
-    console.log('Buyer balance:', formatEther(balance), 'ETH');
+    console.log('Buyer balance:', formatEther(balance), 'BNB');
 
-    const ethAmount = parseEther(amount.toString());
-    console.log('Transaction amount:', formatEther(ethAmount), 'ETH');
+    const bnbAmount = parseEther(amount.toString());
+    console.log('Transaction amount:', formatEther(bnbAmount), 'BNB');
 
     // Estimer le gas
     const gasEstimate = await publicClient.estimateGas({
       account: buyerAddress as `0x${string}`,
       to: sellerAddress as `0x${string}`,
-      value: ethAmount,
+      value: bnbAmount,
     });
 
     const gasPrice = await publicClient.getGasPrice();
-    const totalCost = (gasEstimate * gasPrice) + ethAmount;
+    const totalCost = (gasEstimate * gasPrice) + bnbAmount;
 
     console.log('Estimated costs:', {
       gas: formatEther(gasEstimate * gasPrice),
-      amount: formatEther(ethAmount),
+      amount: formatEther(bnbAmount),
       total: formatEther(totalCost)
     });
 
@@ -96,16 +96,16 @@ serve(async (req) => {
 
     // Créer une transaction depuis le wallet de l'acheteur (qui sert d'escrow)
     const walletClient = createWalletClient({
-      chain: sepolia,
+      chain: bsc,
       transport: http()
     });
 
     const hash = await walletClient.sendTransaction({
       account: buyerAddress as `0x${string}`,
       to: sellerAddress as `0x${string}`,
-      value: ethAmount,
+      value: bnbAmount,
       gas: gasLimit,
-      chain: sepolia
+      chain: bsc
     });
 
     console.log('Transaction hash:', hash);
