@@ -44,8 +44,13 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       return;
     }
     
-    // Redirection vers la page de paiement crypto
-    navigate("/checkout", { state: { listing } });
+    // Redirection vers la page de paiement intégrée
+    navigate(`/payment/${listing.id}`, { 
+      state: { 
+        listing,
+        returnUrl: `/listings/${listing.id}`
+      } 
+    });
   };
 
   return (

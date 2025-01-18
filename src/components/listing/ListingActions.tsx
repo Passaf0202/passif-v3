@@ -50,36 +50,8 @@ export const ListingActions = ({
       return;
     }
 
-    try {
-      setIsProcessing(true);
-      console.log('Creating crypto payment for listing:', listingId);
-
-      const { data, error } = await supabase.functions.invoke('create-crypto-payment', {
-        body: { 
-          listingId,
-          buyerAddress: address,
-        }
-      });
-
-      if (error) throw error;
-
-      console.log('Payment created:', data);
-
-      if (data?.result?.url) {
-        window.location.href = data.result.url;
-      } else {
-        throw new Error('Invalid payment URL received');
-      }
-
-    } catch (error) {
-      console.error('Error processing crypto payment:', error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors du paiement",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
+    if (handleBuyClick) {
+      handleBuyClick();
     }
   };
 
@@ -88,7 +60,7 @@ export const ListingActions = ({
       <div className="grid grid-cols-2 gap-4">
         <Button 
           className="w-full" 
-          onClick={handleBuyClick || handleCryptoPayment}
+          onClick={handleCryptoPayment}
           disabled={isProcessing}
         >
           {isProcessing ? (
