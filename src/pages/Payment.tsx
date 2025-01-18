@@ -4,6 +4,9 @@ import { CryptoPaymentForm } from "@/components/payment/CryptoPaymentForm";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// Taux de repli si l'API ne répond pas (1 ETH = 2500 EUR)
+const FALLBACK_ETH_RATE = 2500;
+
 export default function Payment() {
   const { id } = useParams();
   const location = useLocation();
@@ -12,7 +15,7 @@ export default function Payment() {
   const returnUrl = location.state?.returnUrl;
 
   // Fetch current ETH rate
-  const { data: cryptoRates } = useQuery({
+  const { data: cryptoRates, isError } = useQuery({
     queryKey: ['crypto-rates'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -37,8 +40,16 @@ export default function Payment() {
     );
   }
 
-  // Calculate crypto amount based on listing price and current rate
-  const cryptoAmount = cryptoRates ? Number(listing.price) / Number(cryptoRates.rate_eur) : undefined;
+  // Utiliser le taux de l'API ou le taux de repli
+  const ethRate = cryptoRates?.rate_eur || FALLBACK_ETH_RATE;
+  const cryptoAmount = Number(listing.price) / ethRate;
+
+  console.log('Payment details:', {
+    listingPrice: listing.price,
+    ethRate: ethRate,
+    cryptoAmount: cryptoAmount,
+    usingFallbackRate: !cryptoRates
+  });
 
   const handlePaymentComplete = () => {
     navigate(returnUrl || `/listings/${listing.id}`);
