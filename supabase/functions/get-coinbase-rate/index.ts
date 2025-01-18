@@ -22,13 +22,11 @@ serve(async (req) => {
 
     // Using Coinbase Commerce API to get exchange rates
     const response = await fetch(
-      'https://api.commerce.coinbase.com/v2/exchange-rates',
+      'https://api.commerce.coinbase.com/v2/prices/BNB-EUR/spot',
       {
         headers: {
           'X-CC-Api-Key': coinbaseApiKey,
-          'X-CC-Version': '2018-03-22',
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         }
       }
     )
@@ -41,18 +39,16 @@ serve(async (req) => {
     const data = await response.json()
     console.log('Coinbase response:', data)
 
-    // Extract the specific rate we need
-    const rates = data.data.rates
-    if (!rates || !rates[fiatCurrency]) {
-      throw new Error(`Rate not found for ${fiatCurrency}`)
+    if (!data.data || !data.data.amount) {
+      throw new Error('Invalid response format from Coinbase API')
     }
 
-    // Convert the rate for the specific crypto/fiat pair
-    const rate = rates[fiatCurrency]
+    // The amount field contains the current spot price
+    const rate = parseFloat(data.data.amount)
     console.log('Rate found:', { fiatCurrency, rate })
 
     return new Response(
-      JSON.stringify({ rate: parseFloat(rate) }),
+      JSON.stringify({ rate }),
       { 
         headers: { 
           ...corsHeaders,
