@@ -23,11 +23,12 @@ serve(async (req) => {
     // Using Coinbase Commerce API to get exchange rates
     console.log('Making request to Coinbase API...')
     const response = await fetch(
-      'https://api.commerce.coinbase.com/v2/exchange-rates',
+      'https://api.commerce.coinbase.com/v2/exchange-rates?currency=BNB',
       {
         headers: {
           'X-CC-Api-Key': coinbaseApiKey,
           'X-CC-Version': '2018-03-22',
+          'Accept': 'application/json',
           'Content-Type': 'application/json',
         }
       }
