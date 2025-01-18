@@ -45,10 +45,8 @@ export const useWalletBalance = () => {
           let convertedAmount = usdValue;
           if (selectedCurrency === 'EUR') {
             convertedAmount = usdValue * 0.91; // Taux de conversion USD vers EUR
-            console.log('Converted to EUR:', convertedAmount);
           } else if (selectedCurrency === 'GBP') {
             convertedAmount = usdValue * 0.79; // Taux de conversion USD vers GBP
-            console.log('Converted to GBP:', convertedAmount);
           }
 
           const formattedBalance = formatCurrencyValue(convertedAmount, selectedCurrency);
