@@ -102,24 +102,18 @@ export function CryptoPaymentForm({
       });
 
       if (error) {
-        // Vérifier si c'est une erreur de fonds insuffisants dans l'escrow
-        if (error.message?.includes('insufficient funds')) {
-          try {
-            const errorDetails = JSON.parse(error.message);
-            const match = errorDetails.error.match(/have (\d+) want (\d+)/);
-            if (match) {
-              const [, have, want] = match;
-              const missing = (Number(want) - Number(have)) / 1e18; // Convertir de wei en ETH
-              setEscrowError({
-                available: (Number(have) / 1e18).toFixed(6),
-                required: (Number(want) / 1e18).toFixed(6),
-                missing: missing.toFixed(6)
-              });
-              return;
-            }
-          } catch (e) {
-            console.error('Error parsing escrow error:', e);
+        try {
+          const errorBody = JSON.parse(error.message);
+          if (errorBody.error === 'insufficient_escrow_funds') {
+            setEscrowError({
+              available: errorBody.details.have,
+              required: errorBody.details.want,
+              missing: errorBody.details.missing
+            });
+            return;
           }
+        } catch (e) {
+          console.error('Error parsing error response:', e);
         }
         throw error;
       }

@@ -69,13 +69,18 @@ serve(async (req) => {
     // Si l'escrow n'a pas assez de fonds et que l'utilisateur n'a pas accepté de payer les frais
     if (balance < totalCost && !includeEscrowFees) {
       const error = {
-        error: `The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.\n\nThis error could arise when the account does not have enough funds to:\n - pay for the total gas fee,\n - pay for the value to send.\n \nThe cost of the transaction is calculated as \`gas * gas fee + value\`, where:\n - \`gas\` is the amount of gas needed for transaction to execute,\n - \`gas fee\` is the gas fee,\n - \`value\` is the amount of ether to send to the recipient.\n \nEstimate Gas Arguments:\n  from:   ${account.address}\n  to:     ${sellerAddress}\n  value:  ${amount} ETH\n\nDetails: insufficient funds for gas * price + value: have ${balance} want ${totalCost}\nVersion: viem@2.22.9`
+        error: `insufficient_escrow_funds`,
+        details: {
+          have: formatEther(balance),
+          want: formatEther(totalCost),
+          missing: formatEther(totalCost - balance)
+        }
       };
       return new Response(
-        JSON.stringify({ error }),
+        JSON.stringify(error),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500
+          status: 400
         }
       );
     }
