@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useBalance } from 'wagmi';
 import { supabase } from "@/integrations/supabase/client";
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -15,14 +15,25 @@ const balanceCache = new Map<string, CacheEntry>();
 export const useWalletBalance = () => {
   const { address, isConnected } = useAccount();
   const [usdBalance, setUsdBalance] = useState<string | null>(null);
+  const [nativeBalance, setNativeBalance] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
 
+  const { data: wagmiBalance } = useBalance({
+    address: address,
+    watch: true,
+  });
+
+  useEffect(() => {
+    if (wagmiBalance) {
+      setNativeBalance(`${parseFloat(wagmiBalance.formatted).toFixed(4)} ${wagmiBalance.symbol}`);
+    }
+  }, [wagmiBalance]);
+
   const fetchBalance = async (walletAddress: string) => {
-    // Check cache first
     const cachedData = balanceCache.get(walletAddress);
     const now = Date.now();
     
@@ -31,7 +42,6 @@ export const useWalletBalance = () => {
       return cachedData.balance;
     }
 
-    // Create new abort controller for this request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -61,7 +71,6 @@ export const useWalletBalance = () => {
         maximumFractionDigits: 2
       }).format(data.total_value_usd);
 
-      // Update cache
       balanceCache.set(walletAddress, {
         balance: formattedBalance,
         timestamp: now
@@ -70,7 +79,6 @@ export const useWalletBalance = () => {
       return formattedBalance;
     } catch (err) {
       if (err instanceof Error) {
-        // Don't throw for abort errors
         if (err.name === 'AbortError') {
           console.log('Request aborted');
           return null;
@@ -107,26 +115,19 @@ export const useWalletBalance = () => {
       }
     };
 
-    // Initial fetch
     updateBalance();
-
-    // Set up polling with a longer interval
     pollingIntervalRef.current = setInterval(updateBalance, POLLING_INTERVAL);
 
     return () => {
       isMountedRef.current = false;
-      
-      // Clear polling interval
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
-
-      // Abort any in-flight request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
     };
   }, [isConnected, address]);
 
-  return { usdBalance, isLoading, error };
+  return { usdBalance, nativeBalance, isLoading, error };
 };

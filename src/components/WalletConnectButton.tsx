@@ -14,7 +14,7 @@ export function WalletConnectButton() {
   const { open, isOpen } = useWeb3Modal()
   const { toast } = useToast()
   const { user } = useAuth();
-  const { usdBalance, isLoading: isBalanceLoading, error } = useWalletBalance();
+  const { usdBalance, nativeBalance, isLoading: isBalanceLoading, error } = useWalletBalance();
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
     try {
@@ -86,8 +86,8 @@ export function WalletConnectButton() {
               </span>
             ) : error ? (
               <span className="text-red-500">{error}</span>
-            ) : usdBalance ? (
-              <span className="text-green-600">${usdBalance}</span>
+            ) : nativeBalance ? (
+              <span className="text-green-600">{nativeBalance}</span>
             ) : null}
           </div>
         </div>

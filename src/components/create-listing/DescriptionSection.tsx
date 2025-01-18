@@ -18,41 +18,55 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
   const { selectedCurrency } = useCurrencyStore();
   const [price, setPrice] = useState<string>("");
   const [selectedCrypto, setSelectedCrypto] = useState<string>("");
+  const [cryptoAmount, setCryptoAmount] = useState<number | null>(null);
 
   const handlePriceChange = (value: string) => {
     setPrice(value);
     const numericPrice = parseFloat(value) || 0;
+    form.setValue('price', numericPrice);
     
     if (selectedCrypto && cryptoRates) {
-      const selectedRate = cryptoRates.find(rate => rate.symbol === selectedCrypto);
+      updateCryptoAmount(numericPrice, selectedCrypto);
+    }
+  };
+
+  const updateCryptoAmount = (priceValue: number, cryptoSymbol: string) => {
+    if (cryptoRates) {
+      const selectedRate = cryptoRates.find(rate => rate.symbol === cryptoSymbol);
       if (selectedRate) {
         let cryptoAmount;
         switch (selectedCurrency) {
           case 'USD':
-            cryptoAmount = numericPrice / selectedRate.rate_usd;
+            cryptoAmount = priceValue / selectedRate.rate_usd;
             break;
           case 'GBP':
-            cryptoAmount = numericPrice / selectedRate.rate_gbp;
+            cryptoAmount = priceValue / selectedRate.rate_gbp;
             break;
           default: // EUR
-            cryptoAmount = numericPrice / selectedRate.rate_eur;
+            cryptoAmount = priceValue / selectedRate.rate_eur;
             break;
         }
         
+        setCryptoAmount(cryptoAmount);
         form.setValue('crypto_amount', cryptoAmount);
-        form.setValue('crypto_currency', selectedCrypto);
+        form.setValue('crypto_currency', cryptoSymbol);
       }
     }
-    
-    form.setValue('price', numericPrice);
   };
 
   const handleCryptoChange = (value: string) => {
     setSelectedCrypto(value);
     if (price) {
-      handlePriceChange(price);
+      updateCryptoAmount(parseFloat(price) || 0, value);
     }
   };
+
+  // Mettre à jour le montant en crypto quand la devise change
+  useEffect(() => {
+    if (price && selectedCrypto) {
+      updateCryptoAmount(parseFloat(price) || 0, selectedCrypto);
+    }
+  }, [selectedCurrency]);
 
   return (
     <Card>
@@ -121,11 +135,21 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
                         cryptoRates?.map((crypto) => (
                           <SelectItem key={crypto.symbol} value={crypto.symbol}>
                             {crypto.name} ({crypto.symbol})
+                            {cryptoAmount && selectedCrypto === crypto.symbol && (
+                              <span className="ml-2 text-sm text-muted-foreground">
+                                ≈ {cryptoAmount.toFixed(8)}
+                              </span>
+                            )}
                           </SelectItem>
                         ))
                       )}
                     </SelectContent>
                   </Select>
+                  {cryptoAmount && selectedCrypto && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      ≈ {cryptoAmount.toFixed(8)} {selectedCrypto}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
