@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createPublicClient, createWalletClient, http } from 'npm:viem'
+import { createPublicClient, createWalletClient, http, parseEther } from 'npm:viem'
 import { privateKeyToAccount } from 'npm:viem/accounts'
 import { sepolia } from 'npm:viem/chains'
 
@@ -17,34 +17,38 @@ serve(async (req) => {
     const { listingId, buyerAddress, amount, currency } = await req.json()
     console.log('Processing payment for:', { listingId, buyerAddress, amount, currency })
 
-    // Configuration du client
-    const publicClient = createPublicClient({
-      chain: sepolia,
-      transport: http()
-    })
-
     const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY')
-    if (!privateKey) {
-      throw new Error('CONTRACT_PRIVATE_KEY not configured')
+    if (!privateKey?.startsWith('0x')) {
+      throw new Error('Invalid private key format - must start with 0x')
     }
 
     const account = privateKeyToAccount(privateKey as `0x${string}`)
     console.log('Using account:', account.address)
 
+    const publicClient = createPublicClient({
+      chain: sepolia,
+      transport: http()
+    })
+
+    const walletClient = createWalletClient({
+      chain: sepolia,
+      transport: http()
+    })
+
     // Création de la transaction
-    const txHash = await publicClient.sendTransaction({
+    const hash = await walletClient.sendTransaction({
       account,
-      to: buyerAddress,
-      value: BigInt(amount),
+      to: buyerAddress as `0x${string}`,
+      value: parseEther(amount.toString()),
       chain: sepolia
     })
 
-    console.log('Transaction hash:', txHash)
+    console.log('Transaction hash:', hash)
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        transactionHash: txHash
+        transactionHash: hash
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
