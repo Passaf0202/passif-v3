@@ -21,6 +21,11 @@ serve(async (req) => {
       throw new Error('Missing required parameters')
     }
 
+    // Vérifier que le montant est valide
+    if (isNaN(Number(amount)) || Number(amount) <= 0) {
+      throw new Error('Invalid amount')
+    }
+
     const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY')
     if (!privateKey) {
       throw new Error('Contract private key not configured')
@@ -43,24 +48,27 @@ serve(async (req) => {
       transport: http()
     })
 
+    const ethAmount = parseEther(amount.toString())
+    console.log('ETH amount:', ethAmount.toString())
+
     // Estimate gas for the transaction
     const gasEstimate = await publicClient.estimateGas({
       account,
       to: sellerAddress as `0x${string}`,
-      value: parseEther(amount.toString()),
+      value: ethAmount,
     })
 
-    console.log('Estimated gas:', gasEstimate)
+    console.log('Estimated gas:', gasEstimate.toString())
 
     // Add 20% buffer to gas estimate
     const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2))
-    console.log('Gas limit with buffer:', gasLimit)
+    console.log('Gas limit with buffer:', gasLimit.toString())
 
     // Effectuer la transaction avec les paramètres de gas
     const hash = await walletClient.sendTransaction({
       account,
       to: sellerAddress as `0x${string}`,
-      value: parseEther(amount.toString()),
+      value: ethAmount,
       gas: gasLimit,
       chain: sepolia
     })

@@ -63,11 +63,16 @@ export function CryptoPaymentForm({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
+      // Vérifier que le montant crypto est défini
+      if (!cryptoAmount) {
+        throw new Error("Le montant en crypto n'est pas défini");
+      }
+
       console.log('Initiating transaction with params:', {
         listingId,
         buyerAddress: address,
-        amount: cryptoAmount,
-        currency: cryptoCurrency
+        sellerAddress: listing.user.wallet_address,
+        amount: cryptoAmount
       });
 
       const { data, error } = await supabase.functions.invoke('handle-crypto-payment', {
@@ -75,8 +80,7 @@ export function CryptoPaymentForm({
           listingId,
           buyerAddress: address,
           sellerAddress: listing.user.wallet_address,
-          amount: cryptoAmount?.toString() || "0",
-          currency: cryptoCurrency
+          amount: cryptoAmount.toString()
         }
       });
 
