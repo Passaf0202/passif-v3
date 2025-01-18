@@ -8,38 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 
-interface ListingDetailsProps {
-  listing: {
-    id: string;
-    title: string;
-    description: string;
-    price: number;
-    images: string[];
-    user: {
-      id: string;
-      full_name: string;
-      avatar_url?: string;
-      wallet_address?: string;
-    };
-    user_id: string;
-    location: string;
-    brand?: string;
-    model?: string;
-    year?: number;
-    mileage?: number;
-    condition?: string;
-    color?: string[];
-    transmission?: string;
-    fuel_type?: string;
-    doors?: string;
-    crit_air?: string;
-    emission_class?: string;
-    shipping_method?: string;
-    crypto_currency?: string;
-    crypto_amount?: number;
-  };
-}
-
 export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -61,6 +29,11 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         returnUrl: `/listings/${listing.id}`
       } 
     });
+  };
+
+  const truncateAddress = (address?: string | null) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   return (

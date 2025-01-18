@@ -1,6 +1,6 @@
 interface SellerInfoProps {
   seller: {
-    avatar_url?: string | null;
+    avatar_url: string | null;
     full_name: string;
   };
   location: string;
