@@ -52,7 +52,13 @@ export function CryptoPaymentForm({
 
       if (error) {
         console.error('Erreur lors de la création du paiement:', error);
-        throw error;
+        let errorMessage = "Une erreur est survenue lors de la création du paiement";
+        
+        if (error.message.includes("Le vendeur n'a pas connecté son portefeuille")) {
+          errorMessage = "Le vendeur n'a pas encore connecté son portefeuille. La transaction ne peut pas être effectuée pour le moment.";
+        }
+        
+        throw new Error(errorMessage);
       }
 
       console.log('Réponse du paiement:', data);
