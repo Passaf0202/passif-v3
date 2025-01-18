@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { Dispatch, SetStateAction } from "react";
 
 interface ProfileFormData {
   first_name: string;
@@ -12,7 +13,7 @@ interface ProfileFormData {
 interface ProfileFormProps {
   formData: ProfileFormData;
   editing: boolean;
-  onChange: (formData: ProfileFormData) => void;
+  onChange: Dispatch<SetStateAction<ProfileFormData>>;
 }
 
 export function ProfileForm({ formData, editing, onChange }: ProfileFormProps) {

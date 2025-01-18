@@ -5,22 +5,17 @@ import { useProfile } from "./profile/useProfile";
 
 export function UserProfile() {
   const {
+    loading,
     profile,
-    isLoading,
-    error,
+    editing,
     formData,
     setFormData,
-    editing,
     setEditing,
-    handleSave,
+    updateProfile,
   } = useProfile();
 
-  if (isLoading) {
+  if (loading) {
     return <div>Chargement...</div>;
-  }
-
-  if (error) {
-    return <div>Erreur: {error.message}</div>;
   }
 
   if (!profile) {
@@ -33,14 +28,11 @@ export function UserProfile() {
         <Card>
           <CardContent className="p-6">
             <ProfileHeader
-              profile={profile}
               editing={editing}
-              onEdit={() => setEditing(true)}
-              onSave={handleSave}
-              onCancel={() => setEditing(false)}
+              onEditClick={() => setEditing(true)}
+              onSaveClick={updateProfile}
             />
             <ProfileForm
-              profile={profile}
               formData={formData}
               editing={editing}
               onChange={setFormData}

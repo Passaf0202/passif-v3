@@ -32,7 +32,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleBuy = () => {
+  const handleBuyClick = () => {
     if (!user) {
       toast({
         title: "Erreur",
@@ -69,7 +69,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           sellerId={listing.user_id}
           title={listing.title}
           price={listing.price}
-          onBuy={handleBuy}
+          handleBuyClick={handleBuyClick}
         />
 
         <div className="space-y-4">
@@ -101,4 +101,4 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       </div>
     </div>
   );
-};
+}
