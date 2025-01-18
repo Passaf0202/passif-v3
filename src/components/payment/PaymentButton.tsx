@@ -14,7 +14,7 @@ export function PaymentButton({
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency,
+  cryptoCurrency = 'BNB',
   onClick,
   disabled = false
 }: PaymentButtonProps) {
@@ -33,7 +33,7 @@ export function PaymentButton({
         ) : disabled ? (
           "Transaction en attente de confirmation..."
         ) : (
-          `Payer avec ${cryptoCurrency || 'crypto'}`
+          `Payer avec ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}
       </Button>
 
