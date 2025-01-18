@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createPublicClient, createWalletClient, http, parseEther, formatEther } from 'npm:viem'
-import { privateKeyToAccount } from 'npm:viem/accounts'
+import { createPublicClient, http, parseEther, formatEther } from 'npm:viem'
 import { bsc } from 'npm:viem/chains'
 
 const corsHeaders = {
@@ -17,7 +16,6 @@ serve(async (req) => {
     const { listingId, buyerAddress, sellerAddress, amount, includeEscrowFees } = await req.json();
     console.log('Processing payment for:', { listingId, buyerAddress, sellerAddress, amount, includeEscrowFees });
 
-    // Validate required parameters
     if (!listingId || !buyerAddress || !sellerAddress || !amount) {
       console.error('Missing parameters:', { listingId, buyerAddress, sellerAddress, amount });
       return new Response(
@@ -28,6 +26,11 @@ serve(async (req) => {
         }
       );
     }
+
+    const publicClient = createPublicClient({
+      chain: bsc,
+      transport: http()
+    });
 
     // Vérifier que le montant est valide
     if (isNaN(Number(amount)) || Number(amount) <= 0) {
@@ -41,17 +44,6 @@ serve(async (req) => {
       );
     }
 
-    const publicClient = createPublicClient({
-      chain: bsc,
-      transport: http()
-    });
-
-    // Vérifier le solde de l'acheteur (qui servira d'escrow)
-    const balance = await publicClient.getBalance({ 
-      address: buyerAddress as `0x${string}` 
-    });
-    console.log('Buyer balance:', formatEther(balance), 'BNB');
-
     const bnbAmount = parseEther(amount.toString());
     console.log('Transaction amount:', formatEther(bnbAmount), 'BNB');
 
@@ -63,57 +55,25 @@ serve(async (req) => {
     });
 
     const gasPrice = await publicClient.getGasPrice();
-    const totalCost = (gasEstimate * gasPrice) + bnbAmount;
-
-    console.log('Estimated costs:', {
-      gas: formatEther(gasEstimate * gasPrice),
-      amount: formatEther(bnbAmount),
-      total: formatEther(totalCost)
+    console.log('Estimated gas costs:', {
+      gasEstimate: gasEstimate.toString(),
+      gasPrice: formatEther(gasPrice),
     });
 
-    // Si l'acheteur n'a pas assez de fonds
-    if (balance < totalCost) {
-      const error = {
-        error: 'insufficient_escrow_funds',
-        details: {
-          have: formatEther(balance),
-          want: formatEther(totalCost),
-          missing: formatEther(totalCost - balance)
-        }
-      };
-      return new Response(
-        JSON.stringify(error),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400
-        }
-      );
-    }
+    // Préparer les données de transaction
+    const transactionRequest = {
+      to: sellerAddress,
+      value: bnbAmount.toString(),
+      gas: gasEstimate.toString(),
+      gasPrice: gasPrice.toString(),
+    };
 
-    // Add 20% buffer to gas estimate
-    const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2));
-    console.log('Gas limit with buffer:', gasLimit.toString());
-
-    // Créer une transaction depuis le wallet de l'acheteur (qui sert d'escrow)
-    const walletClient = createWalletClient({
-      chain: bsc,
-      transport: http()
-    });
-
-    const hash = await walletClient.sendTransaction({
-      account: buyerAddress as `0x${string}`,
-      to: sellerAddress as `0x${string}`,
-      value: bnbAmount,
-      gas: gasLimit,
-      chain: bsc
-    });
-
-    console.log('Transaction hash:', hash);
+    console.log('Prepared transaction request:', transactionRequest);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        transactionHash: hash
+        transaction: transactionRequest
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

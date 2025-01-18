@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { usePublicClient } from "wagmi";
+import { usePublicClient, useWalletClient } from "wagmi";
 
 interface EscrowError {
   available: string;
@@ -36,6 +36,7 @@ export function useEscrowPayment({
   const { toast } = useToast();
   const navigate = useNavigate();
   const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -73,7 +74,7 @@ export function useEscrowPayment({
   }, [currentHash, transactionStatus, publicClient, onConfirmation, onPaymentComplete]);
 
   const handlePayment = async (includeEscrowFees: boolean = false) => {
-    if (!address) {
+    if (!address || !walletClient) {
       toast({
         title: "Erreur",
         description: "Veuillez connecter votre portefeuille pour continuer",
@@ -120,6 +121,7 @@ export function useEscrowPayment({
         includeEscrowFees
       });
 
+      // Obtenir la transaction préparée depuis l'Edge Function
       const { data, error } = await supabase.functions.invoke('handle-crypto-payment', {
         body: {
           listingId,
@@ -131,32 +133,31 @@ export function useEscrowPayment({
       });
 
       if (error) {
-        try {
-          const errorBody = JSON.parse(error.message);
-          if (errorBody.error === 'insufficient_escrow_funds') {
-            setEscrowError({
-              available: errorBody.details.have,
-              required: errorBody.details.want,
-              missing: errorBody.details.missing
-            });
-            return;
-          }
-        } catch (e) {
-          console.error('Error parsing error response:', e);
-        }
+        console.error('Error preparing transaction:', error);
         throw error;
       }
 
-      if (data?.transactionHash) {
-        setCurrentHash(data.transactionHash);
-        setTransactionStatus('pending');
-        onTransactionHash?.(data.transactionHash);
-        
-        toast({
-          title: "Transaction envoyée",
-          description: "La transaction a été envoyée avec succès. Veuillez patienter pendant la confirmation.",
-        });
+      if (!data?.transaction) {
+        throw new Error("Impossible de préparer la transaction");
       }
+
+      // Envoyer la transaction via le wallet connecté
+      const hash = await walletClient.sendTransaction({
+        to: data.transaction.to as `0x${string}`,
+        value: BigInt(data.transaction.value),
+        gas: BigInt(data.transaction.gas),
+        gasPrice: BigInt(data.transaction.gasPrice),
+      });
+
+      console.log('Transaction sent:', hash);
+      setCurrentHash(hash);
+      setTransactionStatus('pending');
+      onTransactionHash?.(hash);
+      
+      toast({
+        title: "Transaction envoyée",
+        description: "La transaction a été envoyée avec succès. Veuillez patienter pendant la confirmation.",
+      });
 
     } catch (error: any) {
       console.error('Payment error:', error);
