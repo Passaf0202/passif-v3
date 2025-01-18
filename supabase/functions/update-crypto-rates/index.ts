@@ -19,7 +19,7 @@ serve(async (req) => {
       throw new Error('CoinGecko API key not found')
     }
     
-    // Fetch rates from CoinGecko API with Pro API key
+    // Fetch rates from CoinGecko Pro API
     const response = await fetch(
       'https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,litecoin,dogecoin,tether&vs_currencies=usd,eur,gbp',
       {
@@ -30,11 +30,17 @@ serve(async (req) => {
     )
     
     if (!response.ok) {
-      throw new Error('Failed to fetch crypto rates')
+      const errorText = await response.text()
+      console.error('CoinGecko API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
+      throw new Error(`Failed to fetch crypto rates: ${response.status} ${response.statusText}`)
     }
 
     const data = await response.json()
-    console.log('Received rates:', data)
+    console.log('Received rates from CoinGecko:', JSON.stringify(data, null, 2))
 
     // Map CoinGecko response to our format
     const cryptoRates = [
@@ -101,6 +107,8 @@ serve(async (req) => {
 
       if (error) {
         console.error('Error updating rate for', rate.symbol, error)
+      } else {
+        console.log('Successfully updated rate for', rate.symbol)
       }
     }
 
