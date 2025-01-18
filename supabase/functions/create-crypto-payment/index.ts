@@ -7,154 +7,76 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { listingId, buyerAddress } = await req.json();
-    console.log('Creating payment for listing:', listingId, 'buyer:', buyerAddress);
+    const { listingId, buyerAddress, sellerAddress, amount, cryptoCurrency, includeEscrowFees } = await req.json();
+    console.log('Creating payment for:', { listingId, buyerAddress, amount, cryptoCurrency });
 
-    if (!listingId || !buyerAddress) {
-      throw new Error('Missing required parameters');
+    const coinbaseApiKey = Deno.env.get('COINBASE_COMMERCE_API_KEY');
+    if (!coinbaseApiKey) {
+      throw new Error('Coinbase API key not configured');
     }
 
-    // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    );
-
-    // Get listing details
-    const { data: listing, error: listingError } = await supabaseClient
-      .from('listings')
-      .select(`
-        *,
-        profiles:user_id (
-          wallet_address
-        )
-      `)
-      .eq('id', listingId)
-      .single();
-
-    if (listingError) {
-      console.error('Error fetching listing:', listingError);
-      throw new Error('Failed to fetch listing details');
-    }
-
-    if (!listing) {
-      throw new Error('Listing not found');
-    }
-
-    console.log('Listing details:', listing);
-
-    const merchantKey = Deno.env.get('CRYPTOMUS_MERCHANT_KEY');
-    const paymentKey = Deno.env.get('CRYPTOMUS_PAYMENT_KEY');
-
-    if (!merchantKey || !paymentKey) {
-      console.error('Cryptomus API keys not configured');
-      throw new Error('Payment service configuration missing');
-    }
-
-    // Create signature for Cryptomus API
-    const payload = {
-      merchant_id: merchantKey,
-      amount: listing.crypto_amount.toString(),
-      currency: listing.crypto_currency,
-      network: listing.crypto_currency?.toLowerCase() || "tron",
-      order_id: `${listingId}-${Date.now()}`,
-      from_currency: "EUR",
-      to_currency: listing.crypto_currency,
-      url_callback: `${Deno.env.get('SUPABASE_URL')}/functions/v1/handle-crypto-payment`,
-      is_payment_multiple: false,
-      lifetime: "24",
-      additional_data: {
+    // Créer le paiement via l'API Coinbase Commerce
+    const chargeData = {
+      name: `Payment for listing ${listingId}`,
+      description: `Payment to ${sellerAddress}`,
+      pricing_type: "fixed_price",
+      local_price: {
+        amount: amount,
+        currency: cryptoCurrency
+      },
+      metadata: {
         listing_id: listingId,
         buyer_address: buyerAddress,
-        seller_address: listing.profiles.wallet_address
-      }
+        seller_address: sellerAddress,
+        include_escrow_fees: includeEscrowFees
+      },
+      redirect_url: `${req.headers.get('origin')}/payment/success/${listingId}`,
+      cancel_url: `${req.headers.get('origin')}/payment/cancel/${listingId}`,
+      payment_methods: [cryptoCurrency.toLowerCase()]
     };
 
-    console.log('Creating Cryptomus payment with payload:', payload);
+    console.log('Creating Coinbase charge:', chargeData);
 
-    // Create payment via Cryptomus API
-    const response = await fetch('https://api.cryptomus.com/v1/payment', {
+    const response = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'merchant': merchantKey,
-        'sign': await createSignature(payload, paymentKey)
+        'X-CC-Api-Key': coinbaseApiKey,
+        'X-CC-Version': '2018-03-22'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(chargeData)
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Cryptomus API error response:', errorText);
-      throw new Error(`Cryptomus API error: ${errorText}`);
+      console.error('Coinbase error:', errorText);
+      throw new Error(`Coinbase error: ${errorText}`);
     }
 
     const paymentData = await response.json();
     console.log('Payment created:', paymentData);
 
-    // Create transaction record
-    const { error: transactionError } = await supabaseClient
-      .from('transactions')
-      .insert({
-        listing_id: listingId,
-        buyer_id: buyerAddress,
-        seller_id: listing.user_id,
-        amount: listing.crypto_amount,
-        commission_amount: listing.crypto_amount * 0.05, // 5% commission
-        status: 'pending',
-        network: listing.crypto_currency,
-        token_symbol: listing.crypto_currency
-      });
-
-    if (transactionError) {
-      console.error('Error creating transaction:', transactionError);
-      throw new Error('Failed to record transaction');
-    }
-
     return new Response(
-      JSON.stringify(paymentData),
+      JSON.stringify({ url: paymentData.data.hosted_url }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+        status: 200 
       }
     );
 
   } catch (error) {
-    console.error('Error processing payment:', error);
+    console.error('Error creating payment:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Failed to create payment' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 500 
       }
     );
   }
 });
-
-async function createSignature(payload: any, paymentKey: string): Promise<string> {
-  const encodedPayload = btoa(JSON.stringify(payload));
-  const encoder = new TextEncoder();
-  const data = encoder.encode(encodedPayload);
-  const key = encoder.encode(paymentKey);
-  const hashBuffer = await crypto.subtle.importKey(
-    'raw',
-    key,
-    { name: 'HMAC', hash: 'SHA-512' },
-    false,
-    ['sign']
-  ).then(key => crypto.subtle.sign(
-    'HMAC',
-    key,
-    data
-  ));
-  
-  return Array.from(new Uint8Array(hashBuffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}

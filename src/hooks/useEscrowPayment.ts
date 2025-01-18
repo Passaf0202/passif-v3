@@ -114,57 +114,36 @@ export function useEscrowPayment({
         throw new Error("Le montant en crypto n'est pas disponible");
       }
 
-      console.log('Initiating transaction with params:', {
-        listingId,
-        buyerAddress: address,
-        sellerAddress: listing.user.wallet_address,
-        amount: listing.crypto_amount.toString(),
-        includeEscrowFees
-      });
-
-      // Obtenir la transaction préparée depuis l'Edge Function
-      const { data, error } = await supabase.functions.invoke('handle-crypto-payment', {
+      // Créer la fenêtre de paiement via l'Edge Function
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-crypto-payment', {
         body: {
           listingId,
           buyerAddress: address,
           sellerAddress: listing.user.wallet_address,
           amount: listing.crypto_amount.toString(),
+          cryptoCurrency: listing.crypto_currency || 'BNB',
           includeEscrowFees
         }
       });
 
-      if (error) {
-        console.error('Error preparing transaction:', error);
-        throw error;
+      if (paymentError || !paymentData?.url) {
+        console.error('Error creating payment:', paymentError || 'No payment URL received');
+        throw new Error("Impossible de créer la transaction de paiement");
       }
 
-      if (!data?.transaction) {
-        throw new Error("Impossible de préparer la transaction");
-      }
+      // Ouvrir la fenêtre de paiement
+      window.open(paymentData.url, 'Payment Window', 'width=600,height=800');
 
-      // Préparer les paramètres de transaction avec kzg
-      const transactionParameters: SendTransactionParameters = {
-        account: address as `0x${string}`,
-        to: data.transaction.to as `0x${string}`,
-        value: BigInt(data.transaction.value),
-        gas: BigInt(data.transaction.gas),
-        gasPrice: BigInt(data.transaction.gasPrice),
-        chain: undefined,
-        kzg: undefined
+      // Écouter les messages de la fenêtre de paiement
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data.type === 'PAYMENT_SUCCESS') {
+          setTransactionStatus('confirmed');
+          onPaymentComplete();
+          window.removeEventListener('message', handleMessage);
+        }
       };
 
-      // Envoyer la transaction via le wallet connecté
-      const hash = await walletClient.sendTransaction(transactionParameters);
-
-      console.log('Transaction sent:', hash);
-      setCurrentHash(hash);
-      setTransactionStatus('pending');
-      onTransactionHash?.(hash);
-      
-      toast({
-        title: "Transaction envoyée",
-        description: "La transaction a été envoyée avec succès. Veuillez patienter pendant la confirmation.",
-      });
+      window.addEventListener('message', handleMessage);
 
     } catch (error: any) {
       console.error('Payment error:', error);
