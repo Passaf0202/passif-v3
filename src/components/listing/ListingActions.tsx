@@ -69,11 +69,12 @@ export const ListingActions = ({
 
       if (error) throw error;
 
-      console.log('Payment intent created:', data);
+      console.log('Payment created:', data);
 
-      // Redirect to Zero Network payment page or handle the payment flow
-      if (data?.paymentUrl) {
-        window.location.href = data.paymentUrl;
+      if (data?.result?.url) {
+        window.location.href = data.result.url;
+      } else {
+        throw new Error('Invalid payment URL received');
       }
 
     } catch (error) {
@@ -148,7 +149,7 @@ export const ListingActions = ({
                 Traitement...
               </>
             ) : (
-              `Acheter (${cryptoAmount} ${cryptoCurrency})`
+              `Payer en ${cryptoCurrency}`
             )}
           </Button>
         ) : (
