@@ -21,11 +21,13 @@ serve(async (req) => {
     }
 
     // Using Coinbase Commerce API to get exchange rates
+    console.log('Making request to Coinbase API...')
     const response = await fetch(
       'https://api.commerce.coinbase.com/v2/exchange-rates',
       {
         headers: {
           'X-CC-Api-Key': coinbaseApiKey,
+          'X-CC-Version': '2018-03-22',
           'Content-Type': 'application/json',
         }
       }
@@ -42,6 +44,7 @@ serve(async (req) => {
     // Extract the specific rate we need
     const rates = data.data?.rates
     if (!rates) {
+      console.error('No rates found in response:', data)
       throw new Error('No rates found in Coinbase API response')
     }
 
