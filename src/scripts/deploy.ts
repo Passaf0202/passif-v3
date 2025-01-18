@@ -33,7 +33,9 @@ async function main() {
       abi,
       bytecode,
       account,
-      chain: localhost,
+      args: [], // No constructor arguments needed
+      gas: BigInt(3000000), // Specify gas limit
+      type: 'legacy', // Use legacy transaction type to avoid EIP-4844 requirements
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
