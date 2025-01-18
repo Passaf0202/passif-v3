@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAccount, useBalance } from 'wagmi';
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrencyStore } from "@/stores/currencyStore";
+import { convertCurrency, formatCurrencyValue } from '@/utils/currencyUtils';
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const POLLING_INTERVAL = 30 * 1000; // 30 seconds
@@ -15,7 +16,6 @@ const balanceCache = new Map<string, CacheEntry>();
 
 export const useWalletBalance = () => {
   const { address, isConnected } = useAccount();
-  const [usdBalance, setUsdBalance] = useState<string | null>(null);
   const [nativeBalance, setNativeBalance] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,20 +32,7 @@ export const useWalletBalance = () => {
   useEffect(() => {
     if (wagmiBalance) {
       const amount = parseFloat(wagmiBalance.formatted);
-      let convertedAmount = amount;
-
-      // Conversion basée sur la devise sélectionnée (taux de conversion simplifiés)
-      switch (selectedCurrency) {
-        case 'USD':
-          convertedAmount = amount * 1.1; // Taux EUR to USD
-          break;
-        case 'GBP':
-          convertedAmount = amount * 0.85; // Taux EUR to GBP
-          break;
-        default: // EUR
-          break;
-      }
-
+      const convertedAmount = convertCurrency(amount, 'EUR', selectedCurrency);
       setNativeBalance(`${convertedAmount.toFixed(4)} ${wagmiBalance.symbol}`);
     }
   }, [wagmiBalance, selectedCurrency]);
@@ -83,24 +70,9 @@ export const useWalletBalance = () => {
         throw new Error('Invalid response format from API');
       }
 
-      let convertedValue = data.total_value_usd;
-      
-      // Conversion basée sur la devise sélectionnée
-      switch (selectedCurrency) {
-        case 'EUR':
-          convertedValue = data.total_value_usd * 0.91; // USD to EUR
-          break;
-        case 'GBP':
-          convertedValue = data.total_value_usd * 0.77; // USD to GBP
-          break;
-        default: // USD
-          break;
-      }
-      
-      const formattedBalance = new Intl.NumberFormat('fr-FR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(convertedValue);
+      // Conversion depuis USD vers la devise sélectionnée
+      const convertedValue = convertCurrency(data.total_value_usd, 'USD', selectedCurrency);
+      const formattedBalance = formatCurrencyValue(convertedValue, selectedCurrency);
 
       balanceCache.set(walletAddress, {
         balance: formattedBalance,
@@ -121,10 +93,13 @@ export const useWalletBalance = () => {
   };
 
   useEffect(() => {
-    isMountedRef.current = true;
+    if (!isConnected || !address) {
+      setNativeBalance(null);
+      return;
+    }
 
     const updateBalance = async () => {
-      if (!isConnected || !address || !isMountedRef.current) return;
+      if (!isMountedRef.current) return;
 
       setIsLoading(true);
       setError(null);
@@ -132,7 +107,7 @@ export const useWalletBalance = () => {
       try {
         const balance = await fetchBalance(address);
         if (isMountedRef.current) {
-          setUsdBalance(balance);
+          setNativeBalance(balance);
         }
       } catch (err) {
         console.error('Error fetching balance:', err);
@@ -160,5 +135,5 @@ export const useWalletBalance = () => {
     };
   }, [isConnected, address, selectedCurrency]);
 
-  return { usdBalance, nativeBalance, isLoading, error };
+  return { nativeBalance, isLoading, error };
 };
