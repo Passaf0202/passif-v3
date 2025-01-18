@@ -108,7 +108,7 @@ serve(async (req) => {
         token_symbol: listing.crypto_currency,
         chain_id: 1, // Ethereum mainnet par défaut
         transaction_hash: chargeData.data.code,
-        smart_contract_address: chargeData.data.addresses[listing.crypto_currency?.toLowerCase() || 'eth']
+        smart_contract_address: chargeData.data.addresses?.[listing.crypto_currency?.toLowerCase() || 'eth']
       })
 
     if (transactionError) {
