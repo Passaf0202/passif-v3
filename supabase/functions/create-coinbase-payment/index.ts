@@ -12,11 +12,11 @@ serve(async (req) => {
   }
 
   try {
-    const { listingId, buyerAddress } = await req.json()
-    console.log('Creating payment for:', { listingId, buyerAddress })
+    const { listingId, buyerAddress, sellerAddress } = await req.json()
+    console.log('Creating payment for:', { listingId, buyerAddress, sellerAddress })
     
-    if (!listingId || !buyerAddress) {
-      throw new Error('Missing required parameters: listingId and buyerAddress')
+    if (!listingId || !buyerAddress || !sellerAddress) {
+      throw new Error('Missing required parameters')
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -35,7 +35,7 @@ serve(async (req) => {
 
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
-    // Fetch listing with seller details
+    // Fetch listing details
     console.log('Fetching listing details...')
     const { data: listing, error: listingError } = await supabaseClient
       .from('listings')
@@ -49,7 +49,7 @@ serve(async (req) => {
         )
       `)
       .eq('id', listingId)
-      .maybeSingle()
+      .single()
 
     if (listingError) {
       console.error('Error fetching listing:', listingError)
@@ -62,11 +62,6 @@ serve(async (req) => {
     }
 
     console.log('Listing found:', listing)
-
-    if (!listing.user?.wallet_address) {
-      console.error('Seller has not connected their wallet')
-      throw new Error('Le vendeur n\'a pas connecté son portefeuille')
-    }
 
     // Build absolute URLs for redirection
     const baseUrl = Deno.env.get('APP_URL') || 'http://localhost:5173'
@@ -87,7 +82,7 @@ serve(async (req) => {
       metadata: {
         listing_id: listingId,
         buyer_address: buyerAddress,
-        seller_address: listing.user.wallet_address,
+        seller_address: sellerAddress,
         customer_id: buyerAddress,
         order_id: listingId
       },
