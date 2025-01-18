@@ -21,6 +21,8 @@ interface ListingCardProps {
   sellerId: string;
   shipping_method?: string | null;
   created_at?: string;
+  crypto_amount?: number;
+  crypto_currency?: string;
 }
 
 export const ListingCard = ({ 
@@ -32,6 +34,8 @@ export const ListingCard = ({
   images = [],
   shipping_method,
   created_at,
+  crypto_amount,
+  crypto_currency,
 }: ListingCardProps) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
@@ -41,7 +45,6 @@ export const ListingCard = ({
   const protectionFee = calculateBuyerProtectionFees(price);
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Si l'événement ne vient pas du bouclier ou de l'image, naviguer vers l'annonce
     if (!(e.target as HTMLElement).closest('.protection-shield')) {
       navigate(`/listings/${id}`);
     }
@@ -69,7 +72,12 @@ export const ListingCard = ({
         <CardContent className="p-3">
           <h3 className="font-semibold text-sm line-clamp-1">{title}</h3>
           <div className="protection-shield">
-            <PriceDetails price={price} protectionFee={protectionFee} />
+            <PriceDetails 
+              price={price} 
+              protectionFee={protectionFee}
+              cryptoAmount={crypto_amount}
+              cryptoCurrency={crypto_currency}
+            />
           </div>
           <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
             <MapPin className="h-3 w-3 flex-shrink-0" />

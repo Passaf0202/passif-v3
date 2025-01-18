@@ -5,6 +5,7 @@ import { MobileCreateButton } from "./navbar/MobileCreateButton";
 import { useNavigate } from "react-router-dom";
 import { CategoryDrawer } from "./navbar/CategoryDrawer";
 import { useCategoriesData } from "./navbar/categories/useCategoriesData";
+import { CurrencySelector } from "./navbar/CurrencySelector";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export function Navbar() {
             <div className="hidden md:flex flex-1 max-w-2xl">
               <SearchBar onSearch={onSearch} />
             </div>
+            <CurrencySelector />
             <NavbarActions />
           </div>
         </div>

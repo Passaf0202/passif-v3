@@ -116,6 +116,8 @@ export type Database = {
           color: string[] | null
           condition: string | null
           created_at: string | null
+          crypto_amount: number | null
+          crypto_currency: string | null
           description: string
           id: string
           images: string[] | null
@@ -143,6 +145,8 @@ export type Database = {
           color?: string[] | null
           condition?: string | null
           created_at?: string | null
+          crypto_amount?: number | null
+          crypto_currency?: string | null
           description: string
           id?: string
           images?: string[] | null
@@ -170,6 +174,8 @@ export type Database = {
           color?: string[] | null
           condition?: string | null
           created_at?: string | null
+          crypto_amount?: number | null
+          crypto_currency?: string | null
           description?: string
           id?: string
           images?: string[] | null

@@ -2,24 +2,59 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Shield, Info } from "lucide-react";
 import { Button } from "../ui/button";
 import { formatPrice } from "@/utils/priceUtils";
+import { useCurrencyStore } from "@/stores/currencyStore";
+import { useEffect, useState } from "react";
 
 interface PriceDetailsProps {
   price: number;
   protectionFee: number;
+  cryptoAmount?: number;
+  cryptoCurrency?: string;
 }
 
-export const PriceDetails = ({ price, protectionFee }: PriceDetailsProps) => {
+export const PriceDetails = ({ price, protectionFee, cryptoAmount, cryptoCurrency }: PriceDetailsProps) => {
   const totalPrice = price + protectionFee;
+  const { selectedCurrency } = useCurrencyStore();
+  const [convertedPrice, setConvertedPrice] = useState<number>(price);
+  const [convertedTotal, setConvertedTotal] = useState<number>(totalPrice);
+
+  useEffect(() => {
+    // Here we would normally fetch real-time conversion rates
+    // For now, using static conversion rates
+    const conversionRates = {
+      EUR: { USD: 1.1, GBP: 0.85 },
+      USD: { EUR: 0.91, GBP: 0.77 },
+      GBP: { EUR: 1.17, USD: 1.29 }
+    };
+
+    const convert = (amount: number) => {
+      if (selectedCurrency === 'EUR') return amount;
+      return amount * conversionRates.EUR[selectedCurrency as keyof typeof conversionRates.EUR];
+    };
+
+    setConvertedPrice(convert(price));
+    setConvertedTotal(convert(totalPrice));
+  }, [selectedCurrency, price, totalPrice]);
 
   const handleShieldClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
+  const formatCryptoAmount = (amount?: number, currency?: string) => {
+    if (!amount || !currency) return '';
+    return `${amount.toFixed(6)} ${currency}`;
+  };
+
   return (
     <div className="flex items-center gap-1 mt-1">
-      <span className="text-xs text-gray-500">{formatPrice(price)} €</span>
+      <span className="text-xs text-gray-500">
+        {formatPrice(convertedPrice)} {selectedCurrency}
+        {cryptoAmount && cryptoCurrency && (
+          <span className="ml-1">({formatCryptoAmount(cryptoAmount, cryptoCurrency)})</span>
+        )}
+      </span>
       <span className="text-xs font-medium text-primary flex items-center gap-1">
-        {formatPrice(totalPrice)} €
+        {formatPrice(convertedTotal)} {selectedCurrency}
         <Dialog>
           <DialogTrigger asChild onClick={handleShieldClick}>
             <Button variant="ghost" size="sm" className="p-0 h-auto">
@@ -95,4 +130,4 @@ export const PriceDetails = ({ price, protectionFee }: PriceDetailsProps) => {
       </span>
     </div>
   );
-};
+}
