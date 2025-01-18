@@ -110,29 +110,29 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      if (!listing.crypto_amount) {
-        throw new Error("Le montant en crypto n'est pas disponible");
-      }
-
       // Créer la fenêtre de paiement via l'Edge Function
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-crypto-payment', {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-coinbase-payment', {
         body: {
           listingId,
           buyerAddress: address,
           sellerAddress: listing.user.wallet_address,
-          amount: listing.crypto_amount.toString(),
+          amount: listing.price.toString(),
           cryptoCurrency: listing.crypto_currency || 'BNB',
           includeEscrowFees
         }
       });
 
-      if (paymentError || !paymentData?.url) {
+      if (paymentError || !paymentData?.hosted_url) {
         console.error('Error creating payment:', paymentError || 'No payment URL received');
         throw new Error("Impossible de créer la transaction de paiement");
       }
 
       // Ouvrir la fenêtre de paiement
-      window.open(paymentData.url, 'Payment Window', 'width=600,height=800');
+      const paymentWindow = window.open(paymentData.hosted_url, 'Payment Window', 'width=600,height=800');
+      
+      if (!paymentWindow) {
+        throw new Error("Impossible d'ouvrir la fenêtre de paiement. Veuillez autoriser les popups.");
+      }
 
       // Écouter les messages de la fenêtre de paiement
       const handleMessage = (event: MessageEvent) => {
@@ -140,6 +140,7 @@ export function useEscrowPayment({
           setTransactionStatus('confirmed');
           onPaymentComplete();
           window.removeEventListener('message', handleMessage);
+          paymentWindow.close();
         }
       };
 
