@@ -3,12 +3,11 @@ import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
 import { ListingActions } from "./ListingActions";
+import { ProductDetailsCard } from "./ProductDetailsCard";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
-import { useCryptoRates } from "@/hooks/useCryptoRates";
-import { useCurrencyStore } from "@/stores/currencyStore";
+import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 
 interface ListingDetailsProps {
   listing: {
@@ -46,8 +45,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: cryptoRates } = useCryptoRates();
-  const { selectedCurrency } = useCurrencyStore();
+  
+  const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
 
   const handleBuyClick = () => {
     if (!user) {
@@ -61,46 +60,15 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     
     navigate(`/payment/${listing.id}`, { 
       state: { 
-        listing,
+        listing: {
+          ...listing,
+          crypto_amount: cryptoDetails?.amount,
+          crypto_currency: cryptoDetails?.currency
+        },
         returnUrl: `/listings/${listing.id}`
       } 
     });
   };
-
-  const calculateCryptoAmount = () => {
-    if (!cryptoRates || !Array.isArray(cryptoRates)) {
-      console.log('Invalid cryptoRates:', cryptoRates);
-      return null;
-    }
-
-    // On utilise ETH par défaut
-    const ethRate = cryptoRates.find(r => r.symbol === 'ETH');
-    if (!ethRate) {
-      console.log('ETH rate not found in:', cryptoRates);
-      return null;
-    }
-
-    console.log('Using ETH rate:', ethRate);
-
-    let priceInEur = listing.price;
-    // Convertir le prix en EUR si nécessaire
-    switch (selectedCurrency) {
-      case 'USD':
-        priceInEur = listing.price / ethRate.rate_usd * ethRate.rate_eur;
-        break;
-      case 'GBP':
-        priceInEur = listing.price / ethRate.rate_gbp * ethRate.rate_eur;
-        break;
-    }
-
-    // Calculer le montant en ETH
-    const ethAmount = priceInEur / ethRate.rate_eur;
-    console.log('Calculated ETH amount:', ethAmount, 'for price:', priceInEur, 'EUR');
-    
-    return ethAmount;
-  };
-
-  const cryptoAmount = calculateCryptoAmount();
 
   if (!listing.user) {
     console.error("User information is missing from the listing");
@@ -119,8 +87,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <ListingHeader 
           title={listing.title} 
           price={listing.price} 
-          cryptoAmount={cryptoAmount}
-          cryptoCurrency="ETH"
+          cryptoAmount={cryptoDetails?.amount}
+          cryptoCurrency={cryptoDetails?.currency}
         />
         
         <SellerInfo 
@@ -144,8 +112,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           sellerId={listing.user_id}
           title={listing.title}
           price={listing.price}
-          cryptoAmount={cryptoAmount}
-          cryptoCurrency="ETH"
+          cryptoAmount={cryptoDetails?.amount}
+          cryptoCurrency={cryptoDetails?.currency}
           handleBuyClick={handleBuyClick}
         />
 
@@ -154,91 +122,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold mb-4">Détails du produit</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {listing.brand && (
-                <div>
-                  <p className="text-sm text-gray-500">Marque</p>
-                  <p>{listing.brand}</p>
-                </div>
-              )}
-              {listing.model && (
-                <div>
-                  <p className="text-sm text-gray-500">Modèle</p>
-                  <p>{listing.model}</p>
-                </div>
-              )}
-              {listing.year && (
-                <div>
-                  <p className="text-sm text-gray-500">Année</p>
-                  <p>{listing.year}</p>
-                </div>
-              )}
-              {listing.mileage && (
-                <div>
-                  <p className="text-sm text-gray-500">Kilométrage</p>
-                  <p>{listing.mileage.toLocaleString()} km</p>
-                </div>
-              )}
-              {listing.condition && (
-                <div>
-                  <p className="text-sm text-gray-500">État</p>
-                  <p>{listing.condition}</p>
-                </div>
-              )}
-              {listing.color && listing.color.length > 0 && (
-                <div>
-                  <p className="text-sm text-gray-500">Couleur</p>
-                  <p>{listing.color.join(", ")}</p>
-                </div>
-              )}
-              {listing.transmission && (
-                <div>
-                  <p className="text-sm text-gray-500">Transmission</p>
-                  <p>{listing.transmission}</p>
-                </div>
-              )}
-              {listing.fuel_type && (
-                <div>
-                  <p className="text-sm text-gray-500">Carburant</p>
-                  <p>{listing.fuel_type}</p>
-                </div>
-              )}
-              {listing.doors && (
-                <div>
-                  <p className="text-sm text-gray-500">Nombre de portes</p>
-                  <p>{listing.doors}</p>
-                </div>
-              )}
-              {listing.crit_air && (
-                <div>
-                  <p className="text-sm text-gray-500">Vignette Crit'Air</p>
-                  <p>{listing.crit_air}</p>
-                </div>
-              )}
-              {listing.emission_class && (
-                <div>
-                  <p className="text-sm text-gray-500">Classe d'émission</p>
-                  <p>{listing.emission_class}</p>
-                </div>
-              )}
-              {listing.shipping_method && (
-                <div>
-                  <p className="text-sm text-gray-500">Mode de livraison</p>
-                  <p>{listing.shipping_method}</p>
-                </div>
-              )}
-              {listing.crypto_currency && (
-                <div>
-                  <p className="text-sm text-gray-500">Crypto-monnaie acceptée</p>
-                  <p>{listing.crypto_currency}</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <ProductDetailsCard details={listing} />
       </div>
     </div>
   );
