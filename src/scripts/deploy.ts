@@ -33,10 +33,8 @@ async function main() {
       abi,
       bytecode,
       account,
-      chain: localhost,
       args: [], // No constructor arguments needed
       gas: BigInt(3000000), // Specify gas limit
-      gasPrice: BigInt(1000000000), // Set a fixed gas price to avoid EIP-1559
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
