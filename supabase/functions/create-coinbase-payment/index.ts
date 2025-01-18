@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { listingId, buyerAddress, sellerAddress, amount, cryptoCurrency } = await req.json()
-    console.log('Creating payment for:', { listingId, buyerAddress, sellerAddress, amount, cryptoCurrency })
+    const { listingId, buyerAddress, sellerAddress, amount } = await req.json()
+    console.log('Creating payment for:', { listingId, buyerAddress, sellerAddress, amount })
     
     if (!listingId || !buyerAddress || !sellerAddress || !amount) {
       console.error('Missing required parameters:', { listingId, buyerAddress, sellerAddress, amount })
@@ -71,9 +71,9 @@ serve(async (req) => {
         commission_amount: listing.price * 0.05,
         status: 'pending',
         escrow_status: 'pending',
-        network: cryptoCurrency?.toLowerCase() || 'bnb',
-        token_symbol: cryptoCurrency?.toLowerCase() || 'bnb',
-        chain_id: 56 // BSC Mainnet
+        network: 'ethereum',
+        token_symbol: 'ETH',
+        chain_id: 1 // Ethereum Mainnet
       })
 
     if (transactionError) {
@@ -86,8 +86,8 @@ serve(async (req) => {
       from: buyerAddress,
       to: listing.user.wallet_address,
       value: listing.crypto_amount?.toString() || '0',
-      chainId: 56,
-      currency: listing.crypto_currency || 'BNB'
+      chainId: 1,
+      currency: 'ETH'
     }
 
     console.log('Payment data prepared:', paymentData)

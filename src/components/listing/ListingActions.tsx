@@ -23,7 +23,6 @@ export const ListingActions = ({
   title, 
   price,
   cryptoAmount,
-  cryptoCurrency,
   handleBuyClick,
 }: ListingActionsProps) => {
   const { user } = useAuth();
@@ -69,7 +68,7 @@ export const ListingActions = ({
               Traitement...
             </>
           ) : (
-            `Payer en ${cryptoCurrency || 'crypto'}`
+            `Payer en ETH`
           )}
         </Button>
 
