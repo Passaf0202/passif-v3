@@ -27,20 +27,25 @@ export const useWalletBalance = () => {
         setError(null);
 
         if (wagmiBalance) {
-          console.log('Balance data:', wagmiBalance);
+          console.log('Raw balance data:', wagmiBalance);
           const ethAmount = parseFloat(wagmiBalance.formatted);
-          
-          // Conversion ETH vers la devise sélectionnée
+          console.log('ETH amount:', ethAmount);
+
+          // Conversion avec des taux approximatifs
           let convertedAmount = ethAmount;
           if (selectedCurrency === 'EUR') {
-            convertedAmount = ethAmount * 2000; // Taux de conversion approximatif
+            convertedAmount = ethAmount * 2000; // ~2000€ par ETH
+            console.log('Converted to EUR:', convertedAmount);
           } else if (selectedCurrency === 'USD') {
-            convertedAmount = ethAmount * 2200; // Taux de conversion approximatif
+            convertedAmount = ethAmount * 2200; // ~2200$ par ETH
+            console.log('Converted to USD:', convertedAmount);
           }
-          
+
           const formattedBalance = formatCurrencyValue(convertedAmount, selectedCurrency);
+          console.log('Final formatted balance:', formattedBalance);
           setNativeBalance(formattedBalance);
         } else {
+          console.log('No balance data available');
           setNativeBalance("0.00");
         }
       } catch (err) {
