@@ -39,6 +39,15 @@ export function CryptoPaymentForm({
       return;
     }
 
+    if (!cryptoAmount || cryptoAmount <= 0) {
+      toast({
+        title: "Erreur",
+        description: "Le montant en crypto n'est pas défini ou invalide",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsProcessing(true);
       console.log('Starting payment process for listing:', listingId);
@@ -61,11 +70,6 @@ export function CryptoPaymentForm({
 
       if (!listing.user?.wallet_address) {
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
-      }
-
-      // Vérifier que le montant crypto est défini
-      if (!cryptoAmount) {
-        throw new Error("Le montant en crypto n'est pas défini");
       }
 
       console.log('Initiating transaction with params:', {
@@ -93,7 +97,12 @@ export function CryptoPaymentForm({
       // Mettre à jour le statut de l'annonce
       await supabase
         .from('listings')
-        .update({ status: 'sold', payment_status: 'completed' })
+        .update({ 
+          status: 'sold', 
+          payment_status: 'completed',
+          crypto_currency: cryptoCurrency,
+          crypto_amount: cryptoAmount
+        })
         .eq('id', listingId);
 
       toast({
@@ -103,7 +112,7 @@ export function CryptoPaymentForm({
 
       onPaymentComplete();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error);
       toast({
         title: "Erreur de paiement",
@@ -127,14 +136,14 @@ export function CryptoPaymentForm({
           <p className="text-sm text-gray-500">Prix : {price} EUR</p>
           {cryptoAmount && cryptoCurrency && (
             <p className="text-sm text-gray-500">
-              Montant en crypto : {cryptoAmount} {cryptoCurrency}
+              Montant en crypto : {cryptoAmount.toFixed(6)} {cryptoCurrency}
             </p>
           )}
         </div>
 
         <Button 
           onClick={handlePayment} 
-          disabled={isProcessing || !isConnected}
+          disabled={isProcessing || !isConnected || !cryptoAmount}
           className="w-full"
         >
           {isProcessing ? (
@@ -150,6 +159,12 @@ export function CryptoPaymentForm({
         {!isConnected && (
           <p className="text-sm text-red-500 text-center">
             Veuillez connecter votre portefeuille pour effectuer le paiement
+          </p>
+        )}
+
+        {!cryptoAmount && (
+          <p className="text-sm text-red-500 text-center">
+            Le montant en crypto n'est pas disponible pour le moment
           </p>
         )}
       </CardContent>
