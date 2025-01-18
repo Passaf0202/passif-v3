@@ -17,13 +17,28 @@ serve(async (req) => {
     const { listingId, buyerAddress, sellerAddress, amount, includeEscrowFees } = await req.json();
     console.log('Processing payment for:', { listingId, buyerAddress, sellerAddress, amount, includeEscrowFees });
 
+    // Validate required parameters
     if (!listingId || !buyerAddress || !sellerAddress || !amount) {
-      throw new Error('Missing required parameters');
+      console.error('Missing parameters:', { listingId, buyerAddress, sellerAddress, amount });
+      return new Response(
+        JSON.stringify({ error: 'Missing required parameters' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
 
     // Vérifier que le montant est valide
     if (isNaN(Number(amount)) || Number(amount) <= 0) {
-      throw new Error('Invalid amount');
+      console.error('Invalid amount:', amount);
+      return new Response(
+        JSON.stringify({ error: 'Invalid amount' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
 
     const publicClient = createPublicClient({

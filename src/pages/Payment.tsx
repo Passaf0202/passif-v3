@@ -14,6 +14,25 @@ export default function Payment() {
   const listing = location.state?.listing;
   const returnUrl = location.state?.returnUrl;
 
+  // Fetch listing if not provided in location state
+  const { data: fetchedListing } = useQuery({
+    queryKey: ['listing', id],
+    queryFn: async () => {
+      if (listing) return listing;
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !listing && !!id
+  });
+
+  const currentListing = listing || fetchedListing;
+
   // Fetch current ETH rate
   const { data: cryptoRates, isError } = useQuery({
     queryKey: ['crypto-rates'],
@@ -29,7 +48,7 @@ export default function Payment() {
     }
   });
 
-  if (!listing) {
+  if (!currentListing) {
     return (
       <div>
         <Navbar />
@@ -42,17 +61,17 @@ export default function Payment() {
 
   // Utiliser le taux de l'API ou le taux de repli
   const ethRate = cryptoRates?.rate_eur || FALLBACK_ETH_RATE;
-  const cryptoAmount = Number(listing.price) / ethRate;
+  const cryptoAmount = Number(currentListing.price) / ethRate;
 
   console.log('Payment details:', {
-    listingPrice: listing.price,
+    listingPrice: currentListing.price,
     ethRate: ethRate,
     cryptoAmount: cryptoAmount,
     usingFallbackRate: !cryptoRates
   });
 
   const handlePaymentComplete = () => {
-    navigate(returnUrl || `/listings/${listing.id}`);
+    navigate(returnUrl || `/listings/${currentListing.id}`);
   };
 
   return (
@@ -60,9 +79,9 @@ export default function Payment() {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <CryptoPaymentForm
-          listingId={listing.id}
-          title={listing.title}
-          price={listing.price}
+          listingId={currentListing.id}
+          title={currentListing.title}
+          price={currentListing.price}
           cryptoAmount={cryptoAmount}
           cryptoCurrency="ETH"
           onPaymentComplete={handlePaymentComplete}
