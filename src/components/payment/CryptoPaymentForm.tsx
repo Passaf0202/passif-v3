@@ -54,6 +54,8 @@ export function CryptoPaymentForm({
 
       if (error) throw error;
 
+      console.log('Payment response:', data);
+
       if (data?.transactionHash) {
         toast({
           title: "Succès",
