@@ -1,8 +1,7 @@
 import { ethers } from "hardhat";
-import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 async function main() {
-  const [deployer] = await ethers.getSigners() as HardhatEthersSigner[];
+  const [deployer] = await ethers.getSigners();
 
   console.log("Deploying contracts with the account:", deployer.address);
 
