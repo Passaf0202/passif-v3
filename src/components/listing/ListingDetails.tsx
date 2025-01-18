@@ -18,11 +18,25 @@ interface ListingDetailsProps {
     user: {
       id: string;
       wallet_address?: string | null;
+      avatar_url: string;
+      full_name: string;
     };
     location: string;
     user_id: string;
     crypto_amount?: number;
     crypto_currency?: string;
+    brand?: string;
+    model?: string;
+    year?: number;
+    mileage?: number;
+    condition?: string;
+    color?: string[];
+    transmission?: string;
+    fuel_type?: string;
+    doors?: number;
+    crit_air?: string;
+    emission_class?: string;
+    shipping_method?: string;
   };
 }
 
@@ -47,11 +61,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         returnUrl: `/listings/${listing.id}`
       } 
     });
-  };
-
-  const truncateAddress = (address?: string | null) => {
-    if (!address) return '';
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   return (
