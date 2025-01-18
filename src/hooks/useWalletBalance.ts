@@ -31,7 +31,7 @@ export const useWalletBalance = () => {
           const ethAmount = parseFloat(wagmiBalance.formatted);
           console.log('ETH amount:', ethAmount);
 
-          // Conversion avec des taux approximatifs
+          // Conversion avec des taux fixes comme avant
           let convertedAmount = ethAmount;
           if (selectedCurrency === 'EUR') {
             convertedAmount = ethAmount * 2000; // ~2000€ par ETH
