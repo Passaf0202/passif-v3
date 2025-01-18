@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { listingId, buyerAddress, sellerAddress } = await req.json()
-    console.log('Creating payment for:', { listingId, buyerAddress, sellerAddress })
+    const { listingId, buyerAddress, sellerAddress, amount, cryptoCurrency, includeEscrowFees } = await req.json()
+    console.log('Creating payment for:', { listingId, buyerAddress, sellerAddress, amount, cryptoCurrency })
     
     if (!listingId || !buyerAddress || !sellerAddress) {
       throw new Error('Missing required parameters')
@@ -49,7 +49,7 @@ serve(async (req) => {
         )
       `)
       .eq('id', listingId)
-      .single()
+      .maybeSingle()
 
     if (listingError) {
       console.error('Error fetching listing:', listingError)
