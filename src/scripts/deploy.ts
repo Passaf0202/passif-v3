@@ -33,7 +33,8 @@ async function main() {
       chain: localhost,
       args: [], // No constructor arguments needed
       gas: BigInt(3000000),
-      type: 'legacy' // Specify legacy transaction type to avoid kzg requirement
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
