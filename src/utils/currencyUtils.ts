@@ -1,24 +1,6 @@
 export const convertCurrency = (amount: number, fromCurrency: string, toCurrency: string): number => {
-  // Taux de conversion réels à partir de l'API
-  const rates = {
-    EUR: {
-      USD: 1.1,
-      GBP: 0.85,
-      EUR: 1
-    },
-    USD: {
-      EUR: 0.91,
-      GBP: 0.77,
-      USD: 1
-    },
-    GBP: {
-      EUR: 1.18,
-      USD: 1.30,
-      GBP: 1
-    }
-  };
-
-  return amount * rates[fromCurrency][toCurrency];
+  // Pour l'instant on garde le montant tel quel car c'est déjà en ETH
+  return amount;
 };
 
 export const formatCurrencyValue = (value: number, currency: string): string => {
@@ -26,6 +8,6 @@ export const formatCurrencyValue = (value: number, currency: string): string => 
     style: 'currency',
     currency: currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 8
   }).format(value);
 };

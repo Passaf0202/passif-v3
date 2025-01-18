@@ -1,12 +1,12 @@
 import { useAccount, useDisconnect } from 'wagmi'
 import { Button } from "@/components/ui/button";
-import { Loader2, Wallet } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback } from 'react';
 import { useAuth } from "@/hooks/useAuth";
-import { useWalletBalance } from "@/hooks/useWalletBalance";
+import { WalletBalance } from './wallet/WalletBalance';
 
 export function WalletConnectButton() {
   const { address, isConnected } = useAccount()
@@ -14,7 +14,6 @@ export function WalletConnectButton() {
   const { open, isOpen } = useWeb3Modal()
   const { toast } = useToast()
   const { user } = useAuth();
-  const { nativeBalance, isLoading: isBalanceLoading, error } = useWalletBalance();
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
     try {
@@ -75,23 +74,7 @@ export function WalletConnectButton() {
 
   return (
     <div className="flex items-center gap-3">
-      {isConnected && (
-        <div className="hidden md:flex items-center gap-2 bg-primary/5 py-1.5 px-3 rounded-full">
-          <Wallet className="h-4 w-4 text-primary" />
-          <div className="text-xs">
-            {isBalanceLoading ? (
-              <span className="flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Chargement...
-              </span>
-            ) : error ? (
-              <span className="text-red-500">{error}</span>
-            ) : (
-              <span className="text-green-600">{nativeBalance}</span>
-            )}
-          </div>
-        </div>
-      )}
+      {isConnected && <WalletBalance />}
       
       <Button 
         onClick={handleConnect}
