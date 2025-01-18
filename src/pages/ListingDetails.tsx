@@ -18,7 +18,8 @@ export default function ListingDetailsPage() {
           user:profiles!listings_user_id_fkey (
             id,
             full_name,
-            avatar_url
+            avatar_url,
+            wallet_address
           )
         `)
         .eq("id", id)
