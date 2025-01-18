@@ -22,7 +22,7 @@ serve(async (req) => {
 
     // Using Coinbase Commerce API to get exchange rates
     const response = await fetch(
-      'https://api.commerce.coinbase.com/v2/prices/BNB-EUR/spot',
+      'https://api.commerce.coinbase.com/v2/exchange-rates',
       {
         headers: {
           'X-CC-Api-Key': coinbaseApiKey,
@@ -39,13 +39,22 @@ serve(async (req) => {
     const data = await response.json()
     console.log('Coinbase response:', data)
 
-    if (!data.data || !data.data.amount) {
-      throw new Error('Invalid response format from Coinbase API')
+    // Extract the specific rate we need
+    const rates = data.data?.rates
+    if (!rates) {
+      throw new Error('No rates found in Coinbase API response')
     }
 
-    // The amount field contains the current spot price
-    const rate = parseFloat(data.data.amount)
-    console.log('Rate found:', { fiatCurrency, rate })
+    // For BNB/EUR conversion
+    const bnbToUsd = 1 / parseFloat(rates['BNB']) // Convert BNB to USD first
+    const usdToEur = parseFloat(rates['EUR'])     // Then USD to EUR
+    const rate = bnbToUsd * usdToEur              // Final BNB to EUR rate
+
+    console.log('Calculated rate:', {
+      bnbToUsd,
+      usdToEur,
+      finalRate: rate
+    })
 
     return new Response(
       JSON.stringify({ rate }),
