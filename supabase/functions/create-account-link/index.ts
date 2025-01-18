@@ -27,11 +27,7 @@ serve(async (req) => {
       throw new Error('Non authentifié');
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
-    });
-
-    // Récupérer le profil de l'utilisateur
+    // Get user profile
     const { data: profile } = await supabaseClient
       .from('profiles')
       .select('*')
@@ -42,9 +38,13 @@ serve(async (req) => {
       throw new Error('Profil non trouvé');
     }
 
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
+    });
+
     let stripeAccountId = profile.stripe_account_id;
 
-    // Si l'utilisateur n'a pas encore de compte Stripe, en créer un
+    // Create Stripe account if it doesn't exist
     if (!stripeAccountId) {
       const account = await stripe.accounts.create({
         type: 'express',
@@ -54,22 +54,19 @@ serve(async (req) => {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-        business_type: 'individual', // Spécifier que c'est un compte individuel
-        individual: {
-          email: user.email,
-        },
+        business_type: 'individual',
       });
 
       stripeAccountId = account.id;
 
-      // Mettre à jour le profil avec l'ID du compte Stripe
+      // Update profile with Stripe account ID
       await supabaseClient
         .from('profiles')
         .update({ stripe_account_id: stripeAccountId })
         .eq('id', user.id);
     }
 
-    // Créer le lien d'onboarding
+    // Create account link
     const accountLink = await stripe.accountLinks.create({
       account: stripeAccountId,
       refresh_url: `${req.headers.get('origin')}/profile`,
@@ -85,7 +82,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Erreur lors de la création du lien d\'onboarding:', error);
+    console.error('Error creating account link:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

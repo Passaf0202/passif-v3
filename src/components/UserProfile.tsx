@@ -4,6 +4,7 @@ import { ProfilePhotoUpload } from "./ProfilePhotoUpload";
 import { ProfileHeader } from "./profile/ProfileHeader";
 import { ProfileForm } from "./profile/ProfileForm";
 import { useProfile } from "./profile/useProfile";
+import { StripeOnboardingButton } from "./StripeOnboardingButton";
 
 export function UserProfile() {
   const {
@@ -46,6 +47,7 @@ export function UserProfile() {
               editing={editing}
               onChange={setFormData}
             />
+            <StripeOnboardingButton />
           </CardContent>
         </Card>
       </div>
