@@ -15,24 +15,40 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const MAX_IMAGES = 5;
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log("Dropped files:", acceptedFiles.map(f => ({ name: f.name, type: f.type })));
+    
     const totalImages = images.length + acceptedFiles.length;
     if (totalImages > MAX_IMAGES) {
       alert(`Vous pouvez ajouter un maximum de ${MAX_IMAGES} photos`);
       return;
     }
 
-    const newImages = [...images, ...acceptedFiles].slice(0, MAX_IMAGES);
+    // Vérifier que les fichiers sont bien des images
+    const imageFiles = acceptedFiles.filter(file => {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        console.error(`File ${file.name} is not an image (type: ${file.type})`);
+      }
+      return isImage;
+    });
+
+    const newImages = [...images, ...imageFiles].slice(0, MAX_IMAGES);
     onImagesChange(newImages);
 
     // Créer les URLs de prévisualisation
     const urls = newImages.map(file => URL.createObjectURL(file));
+    
+    // Nettoyer les anciennes URLs
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
     setPreviewUrls(urls);
-  }, [images, onImagesChange]);
+  }, [images, onImagesChange, previewUrls]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif']
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/gif': ['.gif']
     },
     maxFiles: MAX_IMAGES
   });

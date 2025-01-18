@@ -17,13 +17,22 @@ export default function CreateListing() {
       const uploadedUrls: string[] = [];
 
       for (const image of images) {
-        const fileExt = image.name.split(".").pop();
+        // Vérifier que c'est bien une image
+        if (!image.type.startsWith('image/')) {
+          console.error(`File ${image.name} is not an image (type: ${image.type})`);
+          continue;
+        }
+
+        const fileExt = image.name.split('.').pop()?.toLowerCase() || '';
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        console.log("Uploading image:", fileName);
+        console.log("Uploading image:", fileName, "type:", image.type);
 
         const { error: uploadError, data } = await supabase.storage
           .from("listings-images")
-          .upload(fileName, image);
+          .upload(fileName, image, {
+            contentType: image.type, // Spécifier explicitement le type MIME
+            upsert: false
+          });
 
         if (uploadError) {
           console.error("Error uploading image:", uploadError);
