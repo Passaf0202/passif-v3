@@ -103,10 +103,23 @@ export function CryptoPaymentForm({
 
       if (error) {
         // Vérifier si c'est une erreur de fonds insuffisants dans l'escrow
-        if (error.message?.includes('Insufficient funds in escrow account')) {
-          const errorDetails = JSON.parse(error.message).details;
-          setEscrowError(errorDetails);
-          return;
+        if (error.message?.includes('insufficient funds')) {
+          try {
+            const errorDetails = JSON.parse(error.message);
+            const match = errorDetails.error.match(/have (\d+) want (\d+)/);
+            if (match) {
+              const [, have, want] = match;
+              const missing = (Number(want) - Number(have)) / 1e18; // Convertir de wei en ETH
+              setEscrowError({
+                available: (Number(have) / 1e18).toFixed(6),
+                required: (Number(want) / 1e18).toFixed(6),
+                missing: missing.toFixed(6)
+              });
+              return;
+            }
+          } catch (e) {
+            console.error('Error parsing escrow error:', e);
+          }
         }
         throw error;
       }
@@ -175,7 +188,7 @@ export function CryptoPaymentForm({
               <p>Le service d'escrow nécessite un rechargement. Vous pouvez :</p>
               <ul className="list-disc pl-4 space-y-1">
                 <li>Attendre que le service soit rechargé (quelques heures)</li>
-                <li>Payer les frais d'escrow vous-même (+{Number(escrowError.missing).toFixed(6)} ETH)</li>
+                <li>Payer les frais d'escrow vous-même (+{escrowError.missing} ETH)</li>
               </ul>
               <Button 
                 variant="outline"

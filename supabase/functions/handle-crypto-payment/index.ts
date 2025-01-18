@@ -66,22 +66,16 @@ serve(async (req) => {
       total: formatEther(totalCost)
     });
 
-    // Vérifier si l'escrow a assez de fonds
+    // Si l'escrow n'a pas assez de fonds et que l'utilisateur n'a pas accepté de payer les frais
     if (balance < totalCost && !includeEscrowFees) {
+      const error = {
+        error: `The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.\n\nThis error could arise when the account does not have enough funds to:\n - pay for the total gas fee,\n - pay for the value to send.\n \nThe cost of the transaction is calculated as \`gas * gas fee + value\`, where:\n - \`gas\` is the amount of gas needed for transaction to execute,\n - \`gas fee\` is the gas fee,\n - \`value\` is the amount of ether to send to the recipient.\n \nEstimate Gas Arguments:\n  from:   ${account.address}\n  to:     ${sellerAddress}\n  value:  ${amount} ETH\n\nDetails: insufficient funds for gas * price + value: have ${balance} want ${totalCost}\nVersion: viem@2.22.9`
+      };
       return new Response(
-        JSON.stringify({
-          error: JSON.stringify({
-            message: "Insufficient funds in escrow account",
-            details: {
-              available: formatEther(balance),
-              required: formatEther(totalCost),
-              missing: formatEther(totalCost - balance)
-            }
-          })
-        }),
+        JSON.stringify({ error }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400
+          status: 500
         }
       );
     }
@@ -95,7 +89,7 @@ serve(async (req) => {
     const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2));
     console.log('Gas limit with buffer:', gasLimit.toString());
 
-    // Effectuer la transaction avec les paramètres de gas
+    // Si l'utilisateur accepte de payer les frais d'escrow, on procède à la transaction
     const hash = await walletClient.sendTransaction({
       account,
       to: sellerAddress as `0x${string}`,
