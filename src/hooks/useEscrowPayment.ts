@@ -1,17 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { usePublicClient, useWalletClient } from "wagmi";
-import { type SendTransactionParameters } from 'viem';
-
-interface EscrowError {
-  available: string;
-  required: string;
-  missing: string;
-}
-
-type TransactionStatus = 'none' | 'pending' | 'confirmed' | 'failed';
+import { parseEther } from "viem";
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -30,51 +21,15 @@ export function useEscrowPayment({
 }: UseEscrowPaymentProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [escrowError, setEscrowError] = useState<EscrowError | null>(null);
-  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>('none');
+  const [escrowError, setEscrowError] = useState<null>(null);
+  const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
   const [currentHash, setCurrentHash] = useState<string | null>(null);
   
   const { toast } = useToast();
-  const navigate = useNavigate();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    const checkTransaction = async () => {
-      if (currentHash && transactionStatus === 'pending') {
-        try {
-          const receipt = await publicClient.getTransactionReceipt({ hash: currentHash as `0x${string}` });
-          
-          if (receipt) {
-            onConfirmation?.(Number(receipt.blockNumber));
-            if (receipt.status === 'success') {
-              setTransactionStatus('confirmed');
-              onPaymentComplete();
-            } else {
-              setTransactionStatus('failed');
-              setError("La transaction a échoué");
-            }
-          }
-        } catch (error) {
-          console.error('Error checking transaction:', error);
-        }
-      }
-    };
-
-    if (currentHash && transactionStatus === 'pending') {
-      interval = setInterval(checkTransaction, 5000);
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [currentHash, transactionStatus, publicClient, onConfirmation, onPaymentComplete]);
-
-  const handlePayment = async (includeEscrowFees: boolean = false) => {
+  const handlePayment = async () => {
     if (!address || !walletClient) {
       toast({
         title: "Erreur",
@@ -110,41 +65,49 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      // Créer la fenêtre de paiement via l'Edge Function
+      // Créer la transaction
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-coinbase-payment', {
         body: {
           listingId,
           buyerAddress: address,
           sellerAddress: listing.user.wallet_address,
           amount: listing.price.toString(),
-          cryptoCurrency: listing.crypto_currency || 'BNB',
-          includeEscrowFees
+          cryptoCurrency: listing.crypto_currency || 'BNB'
         }
       });
 
-      if (paymentError || !paymentData?.hosted_url) {
-        console.error('Error creating payment:', paymentError || 'No payment URL received');
+      if (paymentError) {
+        console.error('Error creating payment:', paymentError);
         throw new Error("Impossible de créer la transaction de paiement");
       }
 
-      // Ouvrir la fenêtre de paiement
-      const paymentWindow = window.open(paymentData.hosted_url, 'Payment Window', 'width=600,height=800');
-      
-      if (!paymentWindow) {
-        throw new Error("Impossible d'ouvrir la fenêtre de paiement. Veuillez autoriser les popups.");
+      // Envoyer la transaction
+      const hash = await walletClient.sendTransaction({
+        to: listing.user.wallet_address as `0x${string}`,
+        value: parseEther(listing.crypto_amount?.toString() || '0'),
+      });
+
+      console.log('Transaction sent:', hash);
+      setCurrentHash(hash);
+      setTransactionStatus('pending');
+      onTransactionHash?.(hash);
+
+      // Attendre la confirmation
+      const receipt = await publicClient.waitForTransactionReceipt({ 
+        hash: hash as `0x${string}`,
+      });
+
+      if (receipt.status === 'success') {
+        setTransactionStatus('confirmed');
+        onPaymentComplete();
+        toast({
+          title: "Succès",
+          description: "Le paiement a été effectué avec succès",
+        });
+      } else {
+        setTransactionStatus('failed');
+        throw new Error("La transaction a échoué");
       }
-
-      // Écouter les messages de la fenêtre de paiement
-      const handleMessage = (event: MessageEvent) => {
-        if (event.data.type === 'PAYMENT_SUCCESS') {
-          setTransactionStatus('confirmed');
-          onPaymentComplete();
-          window.removeEventListener('message', handleMessage);
-          paymentWindow.close();
-        }
-      };
-
-      window.addEventListener('message', handleMessage);
 
     } catch (error: any) {
       console.error('Payment error:', error);
