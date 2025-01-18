@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { usePublicClient, useWalletClient } from "wagmi";
+import { type SendTransactionParameters } from 'viem';
 
 interface EscrowError {
   available: string;
@@ -141,15 +142,19 @@ export function useEscrowPayment({
         throw new Error("Impossible de préparer la transaction");
       }
 
-      // Envoyer la transaction via le wallet connecté
-      const hash = await walletClient.sendTransaction({
+      // Préparer les paramètres de transaction avec kzg
+      const transactionParameters: SendTransactionParameters = {
         account: address as `0x${string}`,
         to: data.transaction.to as `0x${string}`,
         value: BigInt(data.transaction.value),
         gas: BigInt(data.transaction.gas),
         gasPrice: BigInt(data.transaction.gasPrice),
-        chain: undefined
-      });
+        chain: undefined,
+        kzg: undefined
+      };
+
+      // Envoyer la transaction via le wallet connecté
+      const hash = await walletClient.sendTransaction(transactionParameters);
 
       console.log('Transaction sent:', hash);
       setCurrentHash(hash);
