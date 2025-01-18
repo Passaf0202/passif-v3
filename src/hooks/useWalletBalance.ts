@@ -10,7 +10,7 @@ export const useWalletBalance = () => {
   const [error, setError] = useState<string | null>(null);
   const { selectedCurrency } = useCurrencyStore();
 
-  const { data: wagmiBalance, isError: isBalanceError } = useBalance({
+  const { data: wagmiBalance } = useBalance({
     address: address,
     watch: true,
   });
@@ -27,29 +27,20 @@ export const useWalletBalance = () => {
         setError(null);
 
         if (wagmiBalance) {
-          console.log('Raw balance data:', wagmiBalance);
-          
-          // Convertir le montant en ETH en valeur numérique
+          console.log('Balance data:', wagmiBalance);
           const ethAmount = parseFloat(wagmiBalance.formatted);
-          console.log('ETH amount:', ethAmount);
-
-          // Pour le moment, on utilise une conversion simple (1 ETH = 2000€ approximativement)
-          // TODO: Implémenter une vraie API de taux de change
+          
+          // Conversion ETH vers la devise sélectionnée
           let convertedAmount = ethAmount;
           if (selectedCurrency === 'EUR') {
-            convertedAmount = ethAmount * 2000; // Conversion approximative ETH -> EUR
+            convertedAmount = ethAmount * 2000; // Taux de conversion approximatif
           } else if (selectedCurrency === 'USD') {
-            convertedAmount = ethAmount * 2200; // Conversion approximative ETH -> USD
+            convertedAmount = ethAmount * 2200; // Taux de conversion approximatif
           }
-
-          console.log('Converted amount:', convertedAmount, selectedCurrency);
           
           const formattedBalance = formatCurrencyValue(convertedAmount, selectedCurrency);
-          console.log('Formatted balance:', formattedBalance);
-
           setNativeBalance(formattedBalance);
         } else {
-          console.log('No balance data available');
           setNativeBalance("0.00");
         }
       } catch (err) {

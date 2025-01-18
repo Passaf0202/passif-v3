@@ -1,5 +1,4 @@
 export const convertCurrency = (amount: number, fromCurrency: string, toCurrency: string): number => {
-  // TODO: Implémenter une vraie API de taux de change
   if (fromCurrency === 'ETH' && toCurrency === 'EUR') {
     return amount * 2000; // Taux de conversion approximatif
   } else if (fromCurrency === 'ETH' && toCurrency === 'USD') {
