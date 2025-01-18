@@ -30,11 +30,11 @@ serve(async (req) => {
 
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
-    // Fetch listing details
+    // Fetch listing and buyer profile details
     console.log('Fetching listing details for ID:', listingId)
     const { data: listing, error: listingError } = await supabaseClient
       .from('listings')
-      .select('*, user:profiles!listings_user_id_fkey (id)')
+      .select('*, user:profiles!listings_user_id_fkey (id, wallet_address)')
       .eq('id', listingId)
       .maybeSingle()
 
@@ -48,14 +48,24 @@ serve(async (req) => {
       throw new Error('Listing not found')
     }
 
-    console.log('Listing found:', listing)
+    // Get buyer profile ID from wallet address
+    const { data: buyerProfile, error: buyerError } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('wallet_address', buyerAddress)
+      .maybeSingle()
 
-    // Create transaction record
+    if (buyerError || !buyerProfile) {
+      console.error('Error fetching buyer profile:', buyerError)
+      throw new Error('Error retrieving buyer details')
+    }
+
+    console.log('Creating transaction record')
     const { error: transactionError } = await supabaseClient
       .from('transactions')
       .insert({
         listing_id: listingId,
-        buyer_id: buyerAddress,
+        buyer_id: buyerProfile.id,
         seller_id: listing.user.id,
         amount: listing.price,
         commission_amount: listing.price * 0.05,
@@ -74,7 +84,7 @@ serve(async (req) => {
     // Prepare payment data
     const paymentData = {
       from: buyerAddress,
-      to: sellerAddress,
+      to: listing.user.wallet_address,
       value: listing.crypto_amount?.toString() || '0',
       chainId: 56,
       currency: listing.crypto_currency || 'BNB'

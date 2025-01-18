@@ -84,8 +84,7 @@ export function useEscrowPayment({
       // Envoyer la transaction
       const hash = await walletClient.sendTransaction({
         to: listing.user.wallet_address as `0x${string}`,
-        value: parseEther(listing.crypto_amount?.toString() || '0'),
-        chain: undefined
+        value: parseEther(listing.crypto_amount?.toString() || '0')
       });
 
       console.log('Transaction sent:', hash);
