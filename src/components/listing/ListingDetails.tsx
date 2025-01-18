@@ -22,7 +22,7 @@ interface ListingDetailsProps {
       wallet_address?: string | null;
       avatar_url: string;
       full_name: string;
-    };
+    } | null;
     location: string;
     user_id: string;
     crypto_amount?: number;
@@ -90,6 +90,16 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   };
 
   const cryptoAmount = calculateCryptoAmount();
+
+  // Vérifier si l'objet user existe avant de l'utiliser
+  if (!listing.user) {
+    console.error("User information is missing from the listing");
+    return (
+      <div className="text-center p-4">
+        <p>Information du vendeur non disponible</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
