@@ -6,8 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
   const { selectedCurrency } = useCurrencyStore();
 
-  // Fetch real-time rate from Coinbase
-  const { data: coinbaseRate } = useQuery({
+  // Fetch real-time rate from database via Edge Function
+  const { data: rate } = useQuery({
     queryKey: ['coinbase-rate', cryptoCurrency, selectedCurrency],
     queryFn: async () => {
       try {
@@ -19,14 +19,14 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
         });
 
         if (error) {
-          console.error('Error fetching Coinbase rate:', error);
+          console.error('Error fetching rate:', error);
           return null;
         }
 
-        console.log('Coinbase rate response:', data);
+        console.log('Rate response:', data);
         return data.rate;
       } catch (error) {
-        console.error('Error in Coinbase rate query:', error);
+        console.error('Error in rate query:', error);
         return null;
       }
     },
@@ -41,11 +41,11 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
 
     const targetCrypto = cryptoCurrency || 'BNB';
     
-    if (coinbaseRate) {
-      const cryptoAmount = price / coinbaseRate;
-      console.log(`Calculated ${targetCrypto} amount using Coinbase rate:`, {
+    if (rate) {
+      const cryptoAmount = price / rate;
+      console.log(`Calculated ${targetCrypto} amount using rate:`, {
         price,
-        rate: coinbaseRate,
+        rate,
         amount: cryptoAmount
       });
       

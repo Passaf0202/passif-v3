@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from '@supabase/supabase-js'
 import { corsHeaders } from '../_shared/cors.ts'
 
 console.log("Starting get-coinbase-rate function...")
@@ -34,7 +34,6 @@ Deno.serve(async (req) => {
 
     if (!rates) {
       console.log('No rates found, using fallback rate')
-      // Fallback rate if no data is found
       return new Response(
         JSON.stringify({
           rate: 250 // Fallback rate in EUR
