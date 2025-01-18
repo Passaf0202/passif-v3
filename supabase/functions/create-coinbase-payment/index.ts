@@ -19,10 +19,22 @@ serve(async (req) => {
       throw new Error('Paramètres manquants: listingId et buyerAddress sont requis')
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Vérifier les variables d'environnement
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const coinbaseApiKey = Deno.env.get('COINBASE_COMMERCE_API_KEY')
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Variables d\'environnement Supabase manquantes')
+      throw new Error('Configuration Supabase incomplète')
+    }
+
+    if (!coinbaseApiKey) {
+      console.error('Clé API Coinbase Commerce manquante')
+      throw new Error('COINBASE_COMMERCE_API_KEY non configurée')
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
     // Récupérer les détails de l'annonce avec les informations du vendeur
     const { data: listing, error: listingError } = await supabaseClient
@@ -39,7 +51,7 @@ serve(async (req) => {
 
     if (listingError) {
       console.error('Erreur lors de la récupération de l\'annonce:', listingError)
-      throw new Error('Annonce non trouvée')
+      throw new Error('Erreur lors de la récupération de l\'annonce')
     }
 
     if (!listing) {
@@ -60,11 +72,6 @@ serve(async (req) => {
     const cancelUrl = new URL(`/payment/cancel/${listingId}`, baseUrl).toString()
 
     console.log('URLs de redirection:', { successUrl, cancelUrl })
-
-    const coinbaseApiKey = Deno.env.get('COINBASE_COMMERCE_API_KEY')
-    if (!coinbaseApiKey) {
-      throw new Error('COINBASE_COMMERCE_API_KEY non configurée')
-    }
 
     // Créer une charge Coinbase Commerce
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
@@ -102,6 +109,7 @@ serve(async (req) => {
     console.log('Charge créée:', chargeData)
 
     if (!chargeData.data?.code) {
+      console.error('Réponse Coinbase invalide:', chargeData)
       throw new Error('Code de charge invalide reçu de Coinbase')
     }
 
