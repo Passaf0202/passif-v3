@@ -1,7 +1,8 @@
 import { ethers } from "hardhat";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
+  const [deployer]: HardhatEthersSigner[] = await ethers.getSigners();
   console.log("Deploying contracts with the account:", deployer.address);
 
   const TradecoinerEscrow = await ethers.getContractFactory("TradecoinerEscrow");
