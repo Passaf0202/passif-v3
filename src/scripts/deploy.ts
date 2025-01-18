@@ -36,7 +36,7 @@ async function main() {
       chain: localhost,
       args: [], // No constructor arguments needed
       gas: BigInt(3000000), // Specify gas limit
-      type: 'legacy', // Use legacy transaction type to avoid EIP-4844 requirements
+      gasPrice: BigInt(1000000000), // Set a fixed gas price to avoid EIP-1559
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
