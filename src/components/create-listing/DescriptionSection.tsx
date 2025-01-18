@@ -5,53 +5,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
+import { useCryptoRates } from "@/hooks/useCryptoRates";
 import { useCurrencyStore } from "@/stores/currencyStore";
-
-interface CryptoRate {
-  symbol: string;
-  name: string;
-  rate_usd: number;
-  rate_eur: number;
-  rate_gbp: number;
-}
+import { Loader2 } from "lucide-react";
 
 interface DescriptionSectionProps {
   form: UseFormReturn<any>;
 }
 
 export function DescriptionSection({ form }: DescriptionSectionProps) {
-  const [cryptoRates, setCryptoRates] = useState<CryptoRate[]>([]);
+  const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
   const { selectedCurrency } = useCurrencyStore();
   const [price, setPrice] = useState<string>("");
   const [selectedCrypto, setSelectedCrypto] = useState<string>("");
-
-  useEffect(() => {
-    fetchCryptoRates();
-  }, []);
-
-  const fetchCryptoRates = async () => {
-    const { data, error } = await supabase
-      .from('crypto_rates')
-      .select('*')
-      .eq('is_active', true);
-
-    if (error) {
-      console.error('Error fetching crypto rates:', error);
-      return;
-    }
-
-    if (data) {
-      console.log('Fetched crypto rates:', data);
-      setCryptoRates(data);
-    }
-  };
 
   const handlePriceChange = (value: string) => {
     setPrice(value);
     const numericPrice = parseFloat(value) || 0;
     
-    if (selectedCrypto && cryptoRates.length > 0) {
+    if (selectedCrypto && cryptoRates) {
       const selectedRate = cryptoRates.find(rate => rate.symbol === selectedCrypto);
       if (selectedRate) {
         let cryptoAmount;
@@ -133,15 +105,25 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
                   <Select onValueChange={handleCryptoChange}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez une crypto" />
+                        <SelectValue placeholder={
+                          isLoadingRates 
+                            ? "Chargement..." 
+                            : "Sélectionnez une crypto"
+                        } />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {cryptoRates.map((crypto) => (
-                        <SelectItem key={crypto.symbol} value={crypto.symbol}>
-                          {crypto.name} ({crypto.symbol})
-                        </SelectItem>
-                      ))}
+                      {isLoadingRates ? (
+                        <div className="flex items-center justify-center p-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      ) : (
+                        cryptoRates?.map((crypto) => (
+                          <SelectItem key={crypto.symbol} value={crypto.symbol}>
+                            {crypto.name} ({crypto.symbol})
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />

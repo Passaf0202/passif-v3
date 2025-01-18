@@ -18,6 +18,21 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     }
   };
 
+  const handleCardClick = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target && target.files) {
+        const files = Array.from(target.files);
+        onImagesChange(files);
+      }
+    };
+    input.click();
+  };
+
   const isVehicle = category === "Véhicules";
   const vehiclePhotoTypes = [
     { label: "3/4 avant gauche", required: true },
@@ -45,15 +60,11 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <Card className="relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 border-dashed">
+        <Card 
+          className="relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 border-dashed"
+          onClick={handleCardClick}
+        >
           <CardContent className="flex flex-col items-center justify-center h-full p-4">
-            <Input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageChange}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-            />
             <Camera className="h-8 w-8 mb-2 text-gray-400" />
             <span className="text-sm text-center text-gray-500">
               Ajouter des photos
@@ -64,9 +75,10 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         {isVehicle && vehiclePhotoTypes.map((type, index) => (
           <Card 
             key={index}
-            className={`relative aspect-square border-2 ${
+            className={`relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 ${
               type.required ? 'border-primary border-dashed' : 'border-gray-200 border-dashed'
             }`}
+            onClick={handleCardClick}
           >
             <CardContent className="flex flex-col items-center justify-center h-full p-4">
               <ImagePlus className="h-8 w-8 mb-2 text-gray-400" />

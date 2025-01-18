@@ -8,33 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 
-interface ListingDetailsProps {
-  listing: {
-    id: string;
-    title: string;
-    price: number;
-    description: string;
-    images: string[];
-    location: string;
-    user_id: string;
-    brand?: string;
-    condition?: string;
-    color?: string[];
-    material?: string[];
-    crypto_currency?: string;
-    crypto_amount?: number;
-    model?: string;
-    year?: number;
-    shipping_method?: string;
-    shipping_weight?: number;
-    user: {
-      avatar_url: string | null;
-      full_name: string;
-      wallet_address: string | null;
-    };
-  };
-}
-
 export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -111,24 +84,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
                   <p>{listing.brand}</p>
                 </div>
               )}
-              {listing.condition && (
-                <div>
-                  <p className="text-sm text-gray-500">État</p>
-                  <p>{listing.condition}</p>
-                </div>
-              )}
-              {listing.color && listing.color.length > 0 && (
-                <div>
-                  <p className="text-sm text-gray-500">Couleur</p>
-                  <p>{listing.color.join(", ")}</p>
-                </div>
-              )}
-              {listing.material && listing.material.length > 0 && (
-                <div>
-                  <p className="text-sm text-gray-500">Matière</p>
-                  <p>{listing.material.join(", ")}</p>
-                </div>
-              )}
               {listing.model && (
                 <div>
                   <p className="text-sm text-gray-500">Modèle</p>
@@ -141,16 +96,58 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
                   <p>{listing.year}</p>
                 </div>
               )}
+              {listing.mileage && (
+                <div>
+                  <p className="text-sm text-gray-500">Kilométrage</p>
+                  <p>{listing.mileage.toLocaleString()} km</p>
+                </div>
+              )}
+              {listing.condition && (
+                <div>
+                  <p className="text-sm text-gray-500">État</p>
+                  <p>{listing.condition}</p>
+                </div>
+              )}
+              {listing.color && listing.color.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-500">Couleur</p>
+                  <p>{listing.color.join(", ")}</p>
+                </div>
+              )}
+              {listing.transmission && (
+                <div>
+                  <p className="text-sm text-gray-500">Transmission</p>
+                  <p>{listing.transmission}</p>
+                </div>
+              )}
+              {listing.fuel_type && (
+                <div>
+                  <p className="text-sm text-gray-500">Carburant</p>
+                  <p>{listing.fuel_type}</p>
+                </div>
+              )}
+              {listing.doors && (
+                <div>
+                  <p className="text-sm text-gray-500">Nombre de portes</p>
+                  <p>{listing.doors}</p>
+                </div>
+              )}
+              {listing.crit_air && (
+                <div>
+                  <p className="text-sm text-gray-500">Vignette Crit'Air</p>
+                  <p>{listing.crit_air}</p>
+                </div>
+              )}
+              {listing.emission_class && (
+                <div>
+                  <p className="text-sm text-gray-500">Classe d'émission</p>
+                  <p>{listing.emission_class}</p>
+                </div>
+              )}
               {listing.shipping_method && (
                 <div>
                   <p className="text-sm text-gray-500">Mode de livraison</p>
                   <p>{listing.shipping_method}</p>
-                </div>
-              )}
-              {listing.shipping_weight && (
-                <div>
-                  <p className="text-sm text-gray-500">Poids</p>
-                  <p>{listing.shipping_weight} kg</p>
                 </div>
               )}
               {listing.crypto_currency && (
