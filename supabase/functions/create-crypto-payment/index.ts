@@ -47,6 +47,8 @@ serve(async (req) => {
       throw new Error('Listing not found');
     }
 
+    console.log('Listing details:', listing);
+
     const merchantKey = Deno.env.get('CRYPTOMUS_MERCHANT_KEY');
     const paymentKey = Deno.env.get('CRYPTOMUS_PAYMENT_KEY');
 
@@ -55,7 +57,7 @@ serve(async (req) => {
       throw new Error('Payment service configuration missing');
     }
 
-    // Créer la signature pour l'API Cryptomus
+    // Create signature for Cryptomus API
     const payload = {
       merchant_id: merchantKey,
       amount: listing.crypto_amount.toString(),
@@ -76,7 +78,7 @@ serve(async (req) => {
 
     console.log('Creating Cryptomus payment with payload:', payload);
 
-    // Créer le paiement via l'API Cryptomus
+    // Create payment via Cryptomus API
     const response = await fetch('https://api.cryptomus.com/v1/payment', {
       method: 'POST',
       headers: {
@@ -89,14 +91,14 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Cryptomus API error:', errorText);
-      throw new Error('Failed to create payment with provider');
+      console.error('Cryptomus API error response:', errorText);
+      throw new Error(`Cryptomus API error: ${errorText}`);
     }
 
     const paymentData = await response.json();
     console.log('Payment created:', paymentData);
 
-    // Créer l'enregistrement de transaction
+    // Create transaction record
     const { error: transactionError } = await supabaseClient
       .from('transactions')
       .insert({
