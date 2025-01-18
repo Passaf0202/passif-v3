@@ -1,16 +1,16 @@
-import { useCryptoRates } from "./useCryptoRates";
-import { useCurrencyStore } from "@/stores/currencyStore";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrencyStore } from "@/stores/currencyStore";
 
 export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
   const { selectedCurrency } = useCurrencyStore();
 
-  // Fetch real-time rate from database via Edge Function
-  const { data: rate } = useQuery({
-    queryKey: ['coinbase-rate', cryptoCurrency, selectedCurrency],
+  const { data: rateData } = useQuery({
+    queryKey: ['crypto-rate', cryptoCurrency, selectedCurrency],
     queryFn: async () => {
       try {
+        console.log(`Fetching rate for ${cryptoCurrency} in ${selectedCurrency}`);
+        
         const { data, error } = await supabase.functions.invoke('get-coinbase-rate', {
           body: { 
             cryptoCurrency: cryptoCurrency || 'BNB',
@@ -30,33 +30,28 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
         return null;
       }
     },
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 10000, // Refresh every 10 seconds
   });
 
   const calculateCryptoAmount = () => {
-    if (!price) {
-      console.log('No price provided');
+    if (!price || !rateData) {
+      console.log('No price or rate available');
       return null;
     }
 
     const targetCrypto = cryptoCurrency || 'BNB';
-    
-    if (rate) {
-      const cryptoAmount = price / rate;
-      console.log(`Calculated ${targetCrypto} amount using rate:`, {
-        price,
-        rate,
-        amount: cryptoAmount
-      });
-      
-      return {
-        amount: cryptoAmount,
-        currency: targetCrypto
-      };
-    }
+    const cryptoAmount = price / rateData;
 
-    console.log('No rates available for conversion');
-    return null;
+    console.log(`Calculated ${targetCrypto} amount:`, {
+      price,
+      rate: rateData,
+      amount: cryptoAmount
+    });
+    
+    return {
+      amount: cryptoAmount,
+      currency: targetCrypto
+    };
   };
 
   return calculateCryptoAmount();
