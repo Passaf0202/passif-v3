@@ -68,10 +68,16 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   };
 
   const calculateCryptoAmount = () => {
-    if (!cryptoRates || !listing.crypto_currency) return null;
+    if (!cryptoRates || !Array.isArray(cryptoRates) || !listing.crypto_currency) {
+      console.log('Invalid cryptoRates or missing crypto_currency:', { cryptoRates, currency: listing.crypto_currency });
+      return null;
+    }
     
     const rate = cryptoRates.find(r => r.symbol === listing.crypto_currency);
-    if (!rate) return null;
+    if (!rate) {
+      console.log('Rate not found for currency:', listing.crypto_currency);
+      return null;
+    }
 
     let price = listing.price;
     switch (selectedCurrency) {
