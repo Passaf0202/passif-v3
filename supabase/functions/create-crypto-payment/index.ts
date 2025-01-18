@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -15,10 +16,14 @@ serve(async (req) => {
     const { listingId, buyerAddress } = await req.json();
     console.log('Creating payment for listing:', listingId, 'buyer:', buyerAddress);
 
+    if (!listingId || !buyerAddress) {
+      throw new Error('Missing required parameters');
+    }
+
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
     // Get listing details
@@ -33,28 +38,35 @@ serve(async (req) => {
       .eq('id', listingId)
       .single();
 
-    if (listingError) throw listingError;
-    if (!listing) throw new Error('Listing not found');
+    if (listingError) {
+      console.error('Error fetching listing:', listingError);
+      throw new Error('Failed to fetch listing details');
+    }
+
+    if (!listing) {
+      throw new Error('Listing not found');
+    }
 
     const merchantKey = Deno.env.get('CRYPTOMUS_MERCHANT_KEY');
     const paymentKey = Deno.env.get('CRYPTOMUS_PAYMENT_KEY');
 
     if (!merchantKey || !paymentKey) {
-      throw new Error('Cryptomus API keys not configured');
+      console.error('Cryptomus API keys not configured');
+      throw new Error('Payment service configuration missing');
     }
 
     // Créer la signature pour l'API Cryptomus
     const payload = {
       merchant_id: merchantKey,
-      amount: listing.price.toString(),
-      currency: "EUR",
-      order_id: `${listingId}-${Date.now()}`,
+      amount: listing.crypto_amount.toString(),
+      currency: listing.crypto_currency,
       network: listing.crypto_currency?.toLowerCase() || "tron",
+      order_id: `${listingId}-${Date.now()}`,
+      from_currency: "EUR",
+      to_currency: listing.crypto_currency,
       url_callback: `${Deno.env.get('SUPABASE_URL')}/functions/v1/handle-crypto-payment`,
-      url_return: `${req.headers.get('origin')}/listings/${listingId}`,
       is_payment_multiple: false,
-      lifetime: "24", // Durée de validité du paiement en heures
-      to_currency: listing.crypto_currency || "USDT",
+      lifetime: "24",
       additional_data: {
         listing_id: listingId,
         buyer_address: buyerAddress,
@@ -64,7 +76,7 @@ serve(async (req) => {
 
     console.log('Creating Cryptomus payment with payload:', payload);
 
-    // Appel à l'API Cryptomus pour créer le paiement
+    // Créer le paiement via l'API Cryptomus
     const response = await fetch('https://api.cryptomus.com/v1/payment', {
       method: 'POST',
       headers: {
@@ -76,30 +88,31 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('Cryptomus API error:', error);
-      throw new Error('Failed to create payment');
+      const errorText = await response.text();
+      console.error('Cryptomus API error:', errorText);
+      throw new Error('Failed to create payment with provider');
     }
 
     const paymentData = await response.json();
     console.log('Payment created:', paymentData);
 
-    // Créer l'enregistrement de transaction dans la base de données
+    // Créer l'enregistrement de transaction
     const { error: transactionError } = await supabaseClient
       .from('transactions')
       .insert({
         listing_id: listingId,
         buyer_id: buyerAddress,
-        amount: listing.price,
-        commission_amount: listing.price * 0.05, // 5% de commission
+        seller_id: listing.user_id,
+        amount: listing.crypto_amount,
+        commission_amount: listing.crypto_amount * 0.05, // 5% commission
         status: 'pending',
-        network: listing.crypto_currency || "USDT",
-        token_symbol: listing.crypto_currency || "USDT"
+        network: listing.crypto_currency,
+        token_symbol: listing.crypto_currency
       });
 
     if (transactionError) {
       console.error('Error creating transaction:', transactionError);
-      throw transactionError;
+      throw new Error('Failed to record transaction');
     }
 
     return new Response(
@@ -109,10 +122,11 @@ serve(async (req) => {
         status: 200,
       }
     );
+
   } catch (error) {
-    console.error('Error creating payment:', error);
+    console.error('Error processing payment:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Failed to create payment' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
@@ -121,7 +135,6 @@ serve(async (req) => {
   }
 });
 
-// Fonction utilitaire pour créer la signature Cryptomus
 async function createSignature(payload: any, paymentKey: string): Promise<string> {
   const encodedPayload = btoa(JSON.stringify(payload));
   const encoder = new TextEncoder();
