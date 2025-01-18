@@ -1,53 +1,50 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Navbar } from "./Navbar";
-import { ProfilePhotoUpload } from "./ProfilePhotoUpload";
+import { Card, CardContent } from "@/components/ui/card";
 import { ProfileHeader } from "./profile/ProfileHeader";
 import { ProfileForm } from "./profile/ProfileForm";
 import { useProfile } from "./profile/useProfile";
-import { StripeOnboardingButton } from "./StripeOnboardingButton";
 
 export function UserProfile() {
   const {
-    loading,
     profile,
-    editing,
+    isLoading,
+    error,
     formData,
     setFormData,
+    editing,
     setEditing,
-    updateProfile,
-    handleAvatarUpdate,
+    handleSave,
   } = useProfile();
 
-  if (loading) {
+  if (isLoading) {
     return <div>Chargement...</div>;
   }
 
+  if (error) {
+    return <div>Erreur: {error.message}</div>;
+  }
+
+  if (!profile) {
+    return <div>Profil non trouvé</div>;
+  }
+
   return (
-    <div>
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <Card className="w-full max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>
-              <ProfileHeader
-                editing={editing}
-                onEditClick={() => setEditing(true)}
-                onSaveClick={updateProfile}
-              />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <ProfilePhotoUpload
-              userId={profile?.id || ""}
-              currentAvatarUrl={profile?.avatar_url}
-              onAvatarUpdate={handleAvatarUpdate}
+    <div className="container max-w-4xl py-8">
+      <div className="space-y-8">
+        <Card>
+          <CardContent className="p-6">
+            <ProfileHeader
+              profile={profile}
+              editing={editing}
+              onEdit={() => setEditing(true)}
+              onSave={handleSave}
+              onCancel={() => setEditing(false)}
             />
             <ProfileForm
+              profile={profile}
               formData={formData}
               editing={editing}
               onChange={setFormData}
             />
-            <StripeOnboardingButton />
           </CardContent>
         </Card>
       </div>
