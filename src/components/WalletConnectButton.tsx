@@ -17,19 +17,33 @@ export function WalletConnectButton() {
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
     try {
+      if (!user?.id) {
+        console.log('No user ID available for profile update');
+        return;
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({ 
           wallet_address: walletAddress,
         })
-        .eq('id', user?.id);
+        .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating profile:', error);
+        throw error;
+      }
+      
       console.log('Profile updated with wallet address:', walletAddress);
     } catch (error) {
       console.error('Error updating profile:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le profil",
+        variant: "destructive",
+      });
     }
-  }, [user?.id]);
+  }, [user?.id, toast]);
 
   useEffect(() => {
     if (isConnected && address && user) {
@@ -60,13 +74,14 @@ export function WalletConnectButton() {
           description: "Votre portefeuille a été déconnecté",
         });
       } else {
+        console.log('Tentative de connexion au wallet...');
         await open();
       }
     } catch (error) {
       console.error('Connection error:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de se connecter au portefeuille",
+        description: "Impossible de se connecter au portefeuille. Veuillez réessayer.",
         variant: "destructive",
       });
     }
