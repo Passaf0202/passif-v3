@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 console.log("Starting get-coinbase-rate function...")
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     console.log('Successfully retrieved rates:', rates)
     return new Response(
       JSON.stringify({
-        rate: rates.rate_eur // Return EUR rate directly
+        rate: rates.rate_eur
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
