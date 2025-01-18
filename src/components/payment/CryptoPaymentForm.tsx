@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, Info } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccount } from 'wagmi';
@@ -17,6 +17,12 @@ interface CryptoPaymentFormProps {
   onPaymentComplete: () => void;
 }
 
+interface EscrowError {
+  available: string;
+  required: string;
+  missing: string;
+}
+
 export function CryptoPaymentForm({
   listingId,
   title,
@@ -27,11 +33,12 @@ export function CryptoPaymentForm({
 }: CryptoPaymentFormProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [escrowError, setEscrowError] = useState<EscrowError | null>(null);
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handlePayment = async () => {
+  const handlePayment = async (includeEscrowFees: boolean = false) => {
     if (!isConnected || !address) {
       toast({
         title: "Erreur",
@@ -53,6 +60,7 @@ export function CryptoPaymentForm({
     try {
       setIsProcessing(true);
       setError(null);
+      setEscrowError(null);
       console.log('Starting payment process for listing:', listingId);
 
       // Récupérer les détails de l'annonce et du vendeur
@@ -79,7 +87,8 @@ export function CryptoPaymentForm({
         listingId,
         buyerAddress: address,
         sellerAddress: listing.user.wallet_address,
-        amount: cryptoAmount
+        amount: cryptoAmount,
+        includeEscrowFees
       });
 
       const { data, error } = await supabase.functions.invoke('handle-crypto-payment', {
@@ -87,14 +96,16 @@ export function CryptoPaymentForm({
           listingId,
           buyerAddress: address,
           sellerAddress: listing.user.wallet_address,
-          amount: cryptoAmount.toString()
+          amount: cryptoAmount.toString(),
+          includeEscrowFees
         }
       });
 
       if (error) {
         // Vérifier si c'est une erreur de fonds insuffisants dans l'escrow
         if (error.message?.includes('Insufficient funds in escrow account')) {
-          setError("Le service de paiement est temporairement indisponible. Veuillez réessayer plus tard ou contacter le support.");
+          const errorDetails = JSON.parse(error.message).details;
+          setEscrowError(errorDetails);
           return;
         }
         throw error;
@@ -157,8 +168,29 @@ export function CryptoPaymentForm({
           </Alert>
         )}
 
+        {escrowError && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription className="space-y-4">
+              <p>Le service d'escrow nécessite un rechargement. Vous pouvez :</p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>Attendre que le service soit rechargé (quelques heures)</li>
+                <li>Payer les frais d'escrow vous-même (+{Number(escrowError.missing).toFixed(6)} ETH)</li>
+              </ul>
+              <Button 
+                variant="outline"
+                onClick={() => handlePayment(true)}
+                disabled={isProcessing}
+                className="w-full mt-2"
+              >
+                Payer avec les frais d'escrow
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Button 
-          onClick={handlePayment} 
+          onClick={() => handlePayment(false)} 
           disabled={isProcessing || !isConnected || !cryptoAmount}
           className="w-full"
         >

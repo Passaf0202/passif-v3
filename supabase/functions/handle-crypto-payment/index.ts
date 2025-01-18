@@ -10,88 +10,90 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { listingId, buyerAddress, sellerAddress, amount } = await req.json()
-    console.log('Processing payment for:', { listingId, buyerAddress, sellerAddress, amount })
+    const { listingId, buyerAddress, sellerAddress, amount, includeEscrowFees } = await req.json();
+    console.log('Processing payment for:', { listingId, buyerAddress, sellerAddress, amount, includeEscrowFees });
 
     if (!listingId || !buyerAddress || !sellerAddress || !amount) {
-      throw new Error('Missing required parameters')
+      throw new Error('Missing required parameters');
     }
 
     // Vérifier que le montant est valide
     if (isNaN(Number(amount)) || Number(amount) <= 0) {
-      throw new Error('Invalid amount')
+      throw new Error('Invalid amount');
     }
 
-    const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY')
+    const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY');
     if (!privateKey) {
-      throw new Error('Contract private key not configured')
+      throw new Error('Contract private key not configured');
     }
 
     // Ensure private key starts with 0x
-    const formattedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`
-    console.log('Using escrow account with formatted private key')
+    const formattedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
+    console.log('Using escrow account with formatted private key');
 
-    const account = privateKeyToAccount(formattedPrivateKey as `0x${string}`)
-    console.log('Using escrow account:', account.address)
+    const account = privateKeyToAccount(formattedPrivateKey as `0x${string}`);
+    console.log('Using escrow account:', account.address);
 
     const publicClient = createPublicClient({
       chain: sepolia,
       transport: http()
-    })
+    });
 
     // Vérifier le solde de l'escrow account
-    const balance = await publicClient.getBalance({ address: account.address })
-    console.log('Escrow account balance:', formatEther(balance), 'ETH')
+    const balance = await publicClient.getBalance({ address: account.address });
+    console.log('Escrow account balance:', formatEther(balance), 'ETH');
 
-    const ethAmount = parseEther(amount.toString())
-    console.log('Transaction amount:', formatEther(ethAmount), 'ETH')
+    const ethAmount = parseEther(amount.toString());
+    console.log('Transaction amount:', formatEther(ethAmount), 'ETH');
 
     // Estimer le gas
     const gasEstimate = await publicClient.estimateGas({
       account,
       to: sellerAddress as `0x${string}`,
       value: ethAmount,
-    })
+    });
 
-    const gasPrice = await publicClient.getGasPrice()
-    const totalCost = (gasEstimate * gasPrice) + ethAmount
+    const gasPrice = await publicClient.getGasPrice();
+    const totalCost = (gasEstimate * gasPrice) + ethAmount;
 
     console.log('Estimated costs:', {
       gas: formatEther(gasEstimate * gasPrice),
       amount: formatEther(ethAmount),
       total: formatEther(totalCost)
-    })
+    });
 
     // Vérifier si l'escrow a assez de fonds
-    if (balance < totalCost) {
+    if (balance < totalCost && !includeEscrowFees) {
       return new Response(
         JSON.stringify({
-          error: "Insufficient funds in escrow account",
-          details: {
-            available: formatEther(balance),
-            required: formatEther(totalCost),
-            missing: formatEther(totalCost - balance)
-          }
+          error: JSON.stringify({
+            message: "Insufficient funds in escrow account",
+            details: {
+              available: formatEther(balance),
+              required: formatEther(totalCost),
+              missing: formatEther(totalCost - balance)
+            }
+          })
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400
         }
-      )
+      );
     }
 
     const walletClient = createWalletClient({
       chain: sepolia,
       transport: http()
-    })
+    });
 
     // Add 20% buffer to gas estimate
-    const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2))
-    console.log('Gas limit with buffer:', gasLimit.toString())
+    const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2));
+    console.log('Gas limit with buffer:', gasLimit.toString());
 
     // Effectuer la transaction avec les paramètres de gas
     const hash = await walletClient.sendTransaction({
@@ -100,9 +102,9 @@ serve(async (req) => {
       value: ethAmount,
       gas: gasLimit,
       chain: sepolia
-    })
+    });
 
-    console.log('Transaction hash:', hash)
+    console.log('Transaction hash:', hash);
 
     return new Response(
       JSON.stringify({ 
@@ -113,16 +115,16 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
       }
-    )
+    );
 
   } catch (error) {
-    console.error('Payment error:', error)
+    console.error('Payment error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
       }
-    )
+    );
   }
-})
+});
