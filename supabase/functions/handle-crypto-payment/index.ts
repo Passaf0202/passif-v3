@@ -43,11 +43,25 @@ serve(async (req) => {
       transport: http()
     })
 
-    // Effectuer la transaction
+    // Estimate gas for the transaction
+    const gasEstimate = await publicClient.estimateGas({
+      account,
+      to: sellerAddress as `0x${string}`,
+      value: parseEther(amount.toString()),
+    })
+
+    console.log('Estimated gas:', gasEstimate)
+
+    // Add 20% buffer to gas estimate
+    const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2))
+    console.log('Gas limit with buffer:', gasLimit)
+
+    // Effectuer la transaction avec les paramètres de gas
     const hash = await walletClient.sendTransaction({
       account,
       to: sellerAddress as `0x${string}`,
       value: parseEther(amount.toString()),
+      gas: gasLimit,
       chain: sepolia
     })
 
