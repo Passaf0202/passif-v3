@@ -5,6 +5,7 @@ export function WalletBalance() {
   const { nativeBalance, isLoading, error } = useWalletBalance();
 
   if (error) {
+    console.error('Wallet balance error:', error);
     return (
       <div className="flex items-center gap-2 bg-primary/5 py-1.5 px-3 rounded-full">
         <Wallet className="h-4 w-4 text-red-500" />
@@ -23,7 +24,7 @@ export function WalletBalance() {
             Chargement...
           </span>
         ) : (
-          <span className="text-green-600">{nativeBalance}</span>
+          <span className="text-green-600 font-medium">{nativeBalance || "0.00"}</span>
         )}
       </div>
     </div>
