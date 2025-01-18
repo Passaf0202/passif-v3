@@ -41,33 +41,31 @@ export function CryptoPaymentForm({
 
     try {
       setIsProcessing(true);
-      console.log('Processing payment for listing:', listingId);
+      console.log('Création du paiement pour l\'annonce:', listingId);
 
-      const { data, error } = await supabase.functions.invoke('handle-crypto-payment', {
+      const { data, error } = await supabase.functions.invoke('create-coinbase-payment', {
         body: { 
           listingId,
           buyerAddress: address,
-          amount: cryptoAmount,
-          currency: cryptoCurrency
         }
       });
 
       if (error) throw error;
 
-      console.log('Payment response:', data);
+      console.log('Réponse du paiement:', data);
 
-      if (data?.transactionHash) {
-        toast({
-          title: "Succès",
-          description: "Votre paiement a été initié avec succès",
-        });
-        onPaymentComplete?.();
+      // Rediriger vers la page de paiement Coinbase
+      if (data.hosted_url) {
+        window.location.href = data.hosted_url;
+      } else {
+        throw new Error('URL de paiement non trouvée');
       }
+
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error('Erreur de paiement:', error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors du paiement",
+        description: "Une erreur est survenue lors de la création du paiement",
         variant: "destructive",
       });
     } finally {
@@ -86,15 +84,14 @@ export function CryptoPaymentForm({
             <h3 className="font-medium text-lg">Détails de l'article</h3>
             <p className="text-gray-600">{title}</p>
             <div className="flex items-center gap-2 mt-2">
-              <span className="font-medium">{cryptoAmount} {cryptoCurrency}</span>
-              <span className="text-gray-500">({price} EUR)</span>
+              <span className="font-medium">{price} EUR</span>
             </div>
           </div>
 
           <Alert className="bg-blue-50">
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              Protection acheteur activée - Paiement sécurisé via smart contract
+              Paiement sécurisé via Coinbase Commerce
             </AlertDescription>
           </Alert>
 
@@ -115,18 +112,18 @@ export function CryptoPaymentForm({
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Transaction en cours...
+                  Redirection vers Coinbase...
                 </>
               ) : (
-                `Payer ${cryptoAmount} ${cryptoCurrency}`
+                `Payer ${price} EUR`
               )}
             </Button>
           )}
 
           <div className="text-sm text-gray-500 space-y-2">
-            <p>• Le paiement est sécurisé par smart contract</p>
-            <p>• Les fonds sont bloqués jusqu'à la réception de l'article</p>
-            <p>• Remboursement automatique en cas de litige</p>
+            <p>• Paiement sécurisé via Coinbase Commerce</p>
+            <p>• Support pour de multiples crypto-monnaies</p>
+            <p>• Protection acheteur incluse</p>
           </div>
         </div>
       </CardContent>
