@@ -4,38 +4,30 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
-  const { data: cryptoRates } = useCryptoRates();
   const { selectedCurrency } = useCurrencyStore();
 
-  // Fetch real-time rate from Zerion
-  const { data: zerionRate } = useQuery({
-    queryKey: ['zerion-rate', cryptoCurrency],
+  // Fetch real-time rate from Coinbase
+  const { data: coinbaseRate } = useQuery({
+    queryKey: ['coinbase-rate', cryptoCurrency, selectedCurrency],
     queryFn: async () => {
       try {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY || '',
-          },
-          body: JSON.stringify({
-            ids: 'binancecoin',
-            vs_currencies: 'eur'
-          })
+        const { data, error } = await supabase.functions.invoke('get-coinbase-rate', {
+          body: { 
+            cryptoCurrency: cryptoCurrency || 'BNB',
+            fiatCurrency: selectedCurrency
+          }
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch rate from CoinGecko');
+        if (error) {
+          console.error('Error fetching Coinbase rate:', error);
+          return null;
         }
 
-        const data = await response.json();
-        const eurRate = data.binancecoin.eur;
-        console.log('Real-time BNB/EUR rate:', eurRate);
-        return eurRate;
+        console.log('Coinbase rate response:', data);
+        return data.rate;
       } catch (error) {
-        console.error('Error fetching CoinGecko rate:', error);
-        // Fallback to fixed rate if API fails
-        return 703.46; // Current BNB rate in EUR
+        console.error('Error in Coinbase rate query:', error);
+        return null;
       }
     },
     refetchInterval: 60000, // Refresh every minute
@@ -47,47 +39,13 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
       return null;
     }
 
-    // Si une crypto est spécifiée dans l'annonce, l'utiliser, sinon BNB par défaut
     const targetCrypto = cryptoCurrency || 'BNB';
     
-    // Utiliser le taux Zerion/CoinGecko si disponible
-    if (zerionRate) {
-      const cryptoAmount = price / zerionRate;
-      console.log(`Calculated ${targetCrypto} amount using real-time rate:`, {
+    if (coinbaseRate) {
+      const cryptoAmount = price / coinbaseRate;
+      console.log(`Calculated ${targetCrypto} amount using Coinbase rate:`, {
         price,
-        rate: zerionRate,
-        amount: cryptoAmount
-      });
-      
-      return {
-        amount: cryptoAmount,
-        currency: targetCrypto
-      };
-    }
-
-    // Fallback sur les taux de la base de données si l'API n'est pas disponible
-    if (cryptoRates && Array.isArray(cryptoRates)) {
-      const rate = cryptoRates.find(r => r.symbol === targetCrypto);
-      
-      if (!rate) {
-        console.log(`${targetCrypto} rate not found in:`, cryptoRates);
-        return null;
-      }
-
-      let priceInEur = price;
-      switch (selectedCurrency) {
-        case 'USD':
-          priceInEur = price / rate.rate_usd * rate.rate_eur;
-          break;
-        case 'GBP':
-          priceInEur = price / rate.rate_gbp * rate.rate_eur;
-          break;
-      }
-
-      const cryptoAmount = priceInEur / rate.rate_eur;
-      console.log(`Calculated ${targetCrypto} amount using DB rate:`, {
-        price: priceInEur,
-        rate: rate.rate_eur,
+        rate: coinbaseRate,
         amount: cryptoAmount
       });
       
