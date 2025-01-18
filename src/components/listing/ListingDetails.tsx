@@ -8,6 +8,24 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 
+interface ListingDetailsProps {
+  listing: {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    images: string[];
+    user: {
+      id: string;
+      wallet_address?: string | null;
+    };
+    location: string;
+    user_id: string;
+    crypto_amount?: number;
+    crypto_currency?: string;
+  };
+}
+
 export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();

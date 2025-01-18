@@ -68,6 +68,15 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
     }
   }, [selectedCurrency]);
 
+  const formatPrice = (value: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: selectedCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  };
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -135,11 +144,6 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
                         cryptoRates?.map((crypto) => (
                           <SelectItem key={crypto.symbol} value={crypto.symbol}>
                             {crypto.name} ({crypto.symbol})
-                            {cryptoAmount && selectedCrypto === crypto.symbol && (
-                              <span className="ml-2 text-sm text-muted-foreground">
-                                ≈ {cryptoAmount.toFixed(8)}
-                              </span>
-                            )}
                           </SelectItem>
                         ))
                       )}

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
+import { useCurrencyStore } from "@/stores/currencyStore";
 
 export function WalletConnectButton() {
   const { address, isConnected } = useAccount()
@@ -14,6 +15,7 @@ export function WalletConnectButton() {
   const { open, isOpen } = useWeb3Modal()
   const { toast } = useToast()
   const { user } = useAuth();
+  const { selectedCurrency } = useCurrencyStore();
   const { usdBalance, nativeBalance, isLoading: isBalanceLoading, error } = useWalletBalance();
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
@@ -73,6 +75,20 @@ export function WalletConnectButton() {
     }
   };
 
+  const formatBalance = (balance: string | null) => {
+    if (!balance) return null;
+    const [amount, currency] = balance.split(' ');
+    const numericAmount = parseFloat(amount);
+    
+    // Format based on selected currency
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: selectedCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(numericAmount);
+  };
+
   return (
     <div className="flex items-center gap-3">
       {isConnected && (
@@ -87,7 +103,7 @@ export function WalletConnectButton() {
             ) : error ? (
               <span className="text-red-500">{error}</span>
             ) : nativeBalance ? (
-              <span className="text-green-600">{nativeBalance}</span>
+              <span className="text-green-600">{formatBalance(nativeBalance)}</span>
             ) : null}
           </div>
         </div>
