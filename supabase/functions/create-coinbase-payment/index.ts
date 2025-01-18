@@ -13,6 +13,7 @@ serve(async (req) => {
 
   try {
     const { listingId, buyerAddress } = await req.json()
+    console.log('Received request with:', { listingId, buyerAddress })
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -24,15 +25,19 @@ serve(async (req) => {
       .from('listings')
       .select('*, user:profiles!listings_user_id_fkey(*)')
       .eq('id', listingId)
-      .single()
+      .maybeSingle()
 
-    if (listingError || !listing) {
+    if (listingError) {
       console.error('Erreur lors de la récupération de l\'annonce:', listingError)
-      return new Response(
-        JSON.stringify({ error: 'Annonce non trouvée' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-      )
+      throw new Error('Annonce non trouvée')
     }
+
+    if (!listing) {
+      console.error('Annonce non trouvée:', listingId)
+      throw new Error('Annonce non trouvée')
+    }
+
+    console.log('Listing found:', listing)
 
     // Créer une charge Coinbase Commerce
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
@@ -52,21 +57,20 @@ serve(async (req) => {
         },
         metadata: {
           listing_id: listingId,
-          buyer_address: buyerAddress
+          buyer_address: buyerAddress,
+          seller_id: listing.user_id
         }
       })
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      console.error('Erreur Coinbase:', error)
-      return new Response(
-        JSON.stringify({ error: 'Erreur lors de la création du paiement' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
+      const errorText = await response.text()
+      console.error('Erreur Coinbase:', errorText)
+      throw new Error(`Erreur Coinbase: ${errorText}`)
     }
 
     const chargeData = await response.json()
+    console.log('Charge created:', chargeData)
 
     // Créer une transaction dans la base de données
     const { error: transactionError } = await supabase
@@ -82,21 +86,31 @@ serve(async (req) => {
 
     if (transactionError) {
       console.error('Erreur lors de la création de la transaction:', transactionError)
-      return new Response(
-        JSON.stringify({ error: 'Erreur lors de la création de la transaction' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
+      throw new Error('Erreur lors de la création de la transaction')
     }
 
     return new Response(
       JSON.stringify(chargeData),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
     )
   } catch (error) {
     console.error('Erreur inattendue:', error)
     return new Response(
-      JSON.stringify({ error: 'Une erreur inattendue est survenue' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Une erreur inattendue est survenue' 
+      }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
+        status: 500 
+      }
     )
   }
 })
