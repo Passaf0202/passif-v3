@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccount } from 'wagmi';
 import { useNavigate } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -25,6 +26,7 @@ export function CryptoPaymentForm({
   onPaymentComplete
 }: CryptoPaymentFormProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -50,6 +52,7 @@ export function CryptoPaymentForm({
 
     try {
       setIsProcessing(true);
+      setError(null);
       console.log('Starting payment process for listing:', listingId);
 
       // Récupérer les détails de l'annonce et du vendeur
@@ -89,6 +92,11 @@ export function CryptoPaymentForm({
       });
 
       if (error) {
+        // Vérifier si c'est une erreur de fonds insuffisants dans l'escrow
+        if (error.message?.includes('Insufficient funds in escrow account')) {
+          setError("Le service de paiement est temporairement indisponible. Veuillez réessayer plus tard ou contacter le support.");
+          return;
+        }
         throw error;
       }
 
@@ -114,6 +122,7 @@ export function CryptoPaymentForm({
 
     } catch (error: any) {
       console.error('Payment error:', error);
+      setError(error.message || "Une erreur est survenue lors du paiement");
       toast({
         title: "Erreur de paiement",
         description: error.message || "Une erreur est survenue lors du paiement",
@@ -140,6 +149,13 @@ export function CryptoPaymentForm({
             </p>
           )}
         </div>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         <Button 
           onClick={handlePayment} 
