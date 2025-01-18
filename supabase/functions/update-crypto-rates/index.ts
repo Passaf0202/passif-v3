@@ -14,9 +14,19 @@ serve(async (req) => {
   try {
     console.log('Fetching crypto rates from CoinGecko...')
     
-    // Fetch rates from CoinGecko API
+    const apiKey = Deno.env.get('COINGECKO_API_KEY')
+    if (!apiKey) {
+      throw new Error('CoinGecko API key not found')
+    }
+    
+    // Fetch rates from CoinGecko API with Pro API key
     const response = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,litecoin,dogecoin,tether&vs_currencies=usd,eur,gbp'
+      'https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,litecoin,dogecoin,tether&vs_currencies=usd,eur,gbp',
+      {
+        headers: {
+          'x-cg-pro-api-key': apiKey
+        }
+      }
     )
     
     if (!response.ok) {
@@ -41,6 +51,13 @@ serve(async (req) => {
         rate_usd: data.ethereum.usd,
         rate_eur: data.ethereum.eur,
         rate_gbp: data.ethereum.gbp
+      },
+      {
+        symbol: 'BNB',
+        name: 'BNB',
+        rate_usd: data.binancecoin.usd,
+        rate_eur: data.binancecoin.eur,
+        rate_gbp: data.binancecoin.gbp
       },
       {
         symbol: 'LTC',
@@ -76,7 +93,8 @@ serve(async (req) => {
         .from('crypto_rates')
         .upsert({
           ...rate,
-          last_updated: new Date().toISOString()
+          last_updated: new Date().toISOString(),
+          is_active: true
         }, {
           onConflict: 'symbol'
         })
