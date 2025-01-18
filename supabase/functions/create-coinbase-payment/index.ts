@@ -15,19 +15,23 @@ serve(async (req) => {
     const { listingId, buyerAddress } = await req.json()
     console.log('Création du paiement pour:', { listingId, buyerAddress })
     
-    const supabase = createClient(
+    if (!listingId || !buyerAddress) {
+      throw new Error('Paramètres manquants: listingId et buyerAddress sont requis')
+    }
+
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Récupérer les détails de l'annonce et du vendeur
-    const { data: listing, error: listingError } = await supabase
+    // Récupérer les détails de l'annonce avec les informations du vendeur
+    const { data: listing, error: listingError } = await supabaseClient
       .from('listings')
       .select(`
         *,
-        seller:profiles!listings_user_id_fkey(
-          wallet_address,
-          full_name
+        seller:profiles!listings_user_id_fkey (
+          id,
+          wallet_address
         )
       `)
       .eq('id', listingId)
@@ -57,7 +61,7 @@ serve(async (req) => {
 
     console.log('URLs de redirection:', { successUrl, cancelUrl })
 
-    // Créer une charge Coinbase Commerce avec escrow
+    // Créer une charge Coinbase Commerce
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
       headers: {
@@ -93,8 +97,8 @@ serve(async (req) => {
     const chargeData = await response.json()
     console.log('Charge créée:', chargeData)
 
-    // Créer une transaction avec statut escrow dans la base de données
-    const { error: transactionError } = await supabase
+    // Créer la transaction dans la base de données
+    const { error: transactionError } = await supabaseClient
       .from('transactions')
       .insert({
         listing_id: listingId,
@@ -104,11 +108,11 @@ serve(async (req) => {
         commission_amount: listing.price * 0.05, // 5% de commission
         status: 'pending',
         escrow_status: 'pending',
-        network: listing.crypto_currency,
-        token_symbol: listing.crypto_currency,
-        chain_id: 1, // Ethereum mainnet par défaut
+        network: listing.crypto_currency || 'eth',
+        token_symbol: listing.crypto_currency || 'eth',
         transaction_hash: chargeData.data.code,
-        smart_contract_address: chargeData.data.addresses?.[listing.crypto_currency?.toLowerCase() || 'eth']
+        smart_contract_address: chargeData.data.addresses?.[listing.crypto_currency?.toLowerCase() || 'eth'],
+        chain_id: 1 // Ethereum mainnet par défaut
       })
 
     if (transactionError) {

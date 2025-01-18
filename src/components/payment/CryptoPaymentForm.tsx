@@ -50,13 +50,15 @@ export function CryptoPaymentForm({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur lors de la création du paiement:', error);
+        throw error;
+      }
 
       console.log('Réponse du paiement:', data);
 
-      // Rediriger vers la page de paiement Coinbase
-      if (data.hosted_url) {
-        window.location.href = data.hosted_url;
+      if (data?.data?.hosted_url) {
+        window.location.href = data.data.hosted_url;
       } else {
         throw new Error('URL de paiement non trouvée');
       }
@@ -65,7 +67,7 @@ export function CryptoPaymentForm({
       console.error('Erreur de paiement:', error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la création du paiement",
+        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la création du paiement",
         variant: "destructive",
       });
     } finally {
@@ -85,6 +87,11 @@ export function CryptoPaymentForm({
             <p className="text-gray-600">{title}</p>
             <div className="flex items-center gap-2 mt-2">
               <span className="font-medium">{price} EUR</span>
+              {cryptoAmount && cryptoCurrency && (
+                <span className="text-gray-500">
+                  (~{cryptoAmount.toFixed(6)} {cryptoCurrency})
+                </span>
+              )}
             </div>
           </div>
 
