@@ -93,7 +93,7 @@ export function CryptoPaymentForm({
       {escrowError && (
         <EscrowAlert 
           escrowError={escrowError}
-          onPayWithEscrowFees={() => handlePayment(true)}
+          onPayWithEscrowFees={() => handlePayment()}
         />
       )}
 
@@ -102,7 +102,7 @@ export function CryptoPaymentForm({
         isConnected={isConnected}
         cryptoAmount={cryptoAmount}
         cryptoCurrency={cryptoCurrency}
-        onClick={() => handlePayment(false)}
+        onClick={() => handlePayment()}
         disabled={transactionStatus === 'pending' || transactionStatus === 'confirmed'}
       />
     </div>

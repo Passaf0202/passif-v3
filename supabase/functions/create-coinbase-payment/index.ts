@@ -15,8 +15,8 @@ serve(async (req) => {
     const { listingId, buyerAddress, sellerAddress, amount, cryptoCurrency } = await req.json()
     console.log('Creating payment for:', { listingId, buyerAddress, sellerAddress, amount, cryptoCurrency })
     
-    if (!listingId || !buyerAddress || !sellerAddress) {
-      console.error('Missing required parameters:', { listingId, buyerAddress, sellerAddress })
+    if (!listingId || !buyerAddress || !sellerAddress || !amount) {
+      console.error('Missing required parameters:', { listingId, buyerAddress, sellerAddress, amount })
       throw new Error('Missing required parameters')
     }
 
@@ -34,13 +34,7 @@ serve(async (req) => {
     console.log('Fetching listing details for ID:', listingId)
     const { data: listing, error: listingError } = await supabaseClient
       .from('listings')
-      .select(`
-        *,
-        user:profiles!listings_user_id_fkey (
-          id,
-          wallet_address
-        )
-      `)
+      .select('*, user:profiles!listings_user_id_fkey (id)')
       .eq('id', listingId)
       .maybeSingle()
 
@@ -62,13 +56,13 @@ serve(async (req) => {
       .insert({
         listing_id: listingId,
         buyer_id: buyerAddress,
-        seller_id: listing.user_id,
+        seller_id: listing.user.id,
         amount: listing.price,
         commission_amount: listing.price * 0.05,
         status: 'pending',
         escrow_status: 'pending',
-        network: listing.crypto_currency?.toLowerCase() || 'bnb',
-        token_symbol: listing.crypto_currency?.toLowerCase() || 'bnb',
+        network: cryptoCurrency?.toLowerCase() || 'bnb',
+        token_symbol: cryptoCurrency?.toLowerCase() || 'bnb',
         chain_id: 56 // BSC Mainnet
       })
 
@@ -77,7 +71,7 @@ serve(async (req) => {
       throw new Error('Error creating transaction record')
     }
 
-    // Préparer les données pour le paiement direct
+    // Prepare payment data
     const paymentData = {
       from: buyerAddress,
       to: sellerAddress,
