@@ -43,10 +43,12 @@ export function CryptoPaymentForm({
       setIsProcessing(true);
       console.log('Processing payment for listing:', listingId);
 
-      const { data, error } = await supabase.functions.invoke('create-crypto-payment', {
+      const { data, error } = await supabase.functions.invoke('handle-crypto-payment', {
         body: { 
           listingId,
           buyerAddress: address,
+          amount: cryptoAmount,
+          currency: cryptoCurrency
         }
       });
 
