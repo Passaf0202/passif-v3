@@ -23,6 +23,7 @@ interface ListingCardProps {
   created_at?: string;
   crypto_amount?: number;
   crypto_currency?: string;
+  walletAddress?: string;
 }
 
 export const ListingCard = ({ 
@@ -36,6 +37,7 @@ export const ListingCard = ({
   created_at,
   crypto_amount,
   crypto_currency,
+  walletAddress,
 }: ListingCardProps) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
@@ -48,6 +50,11 @@ export const ListingCard = ({
     if (!(e.target as HTMLElement).closest('.protection-shield')) {
       navigate(`/listings/${id}`);
     }
+  };
+
+  const truncateAddress = (address?: string) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   return (
@@ -86,6 +93,11 @@ export const ListingCard = ({
           {created_at && (
             <p className="text-xs text-gray-500 mt-1">
               {format(new Date(created_at), "d MMM yyyy", { locale: fr })}
+            </p>
+          )}
+          {walletAddress && (
+            <p className="text-xs text-gray-500 mt-1">
+              Wallet: {truncateAddress(walletAddress)}
             </p>
           )}
           <ShippingInfo method={shipping_method} />

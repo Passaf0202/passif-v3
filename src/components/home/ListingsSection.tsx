@@ -17,7 +17,12 @@ export function ListingsSection() {
           images,
           user_id,
           created_at,
-          shipping_method
+          shipping_method,
+          crypto_amount,
+          crypto_currency,
+          user:profiles!listings_user_id_fkey (
+            wallet_address
+          )
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -55,6 +60,9 @@ export function ListingsSection() {
               sellerId={listing.user_id}
               shipping_method={listing.shipping_method}
               created_at={listing.created_at}
+              crypto_amount={listing.crypto_amount}
+              crypto_currency={listing.crypto_currency}
+              walletAddress={listing.user?.wallet_address}
             />
           ))}
         </div>

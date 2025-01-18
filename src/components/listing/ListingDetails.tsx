@@ -6,6 +6,7 @@ import { ListingActions } from "./ListingActions";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface ListingDetailsProps {
   listing: {
@@ -22,9 +23,14 @@ interface ListingDetailsProps {
     material?: string[];
     crypto_currency?: string;
     crypto_amount?: number;
+    model?: string;
+    year?: number;
+    shipping_method?: string;
+    shipping_weight?: number;
     user: {
       avatar_url: string | null;
       full_name: string;
+      wallet_address: string | null;
     };
   };
 }
@@ -44,13 +50,17 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       return;
     }
     
-    // Redirection vers la page de paiement intégrée
     navigate(`/payment/${listing.id}`, { 
       state: { 
         listing,
         returnUrl: `/listings/${listing.id}`
       } 
     });
+  };
+
+  const truncateAddress = (address?: string | null) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   return (
@@ -60,7 +70,11 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       <div className="space-y-6">
         <ListingHeader title={listing.title} price={listing.price} />
         
-        <SellerInfo seller={listing.user} location={listing.location} />
+        <SellerInfo 
+          seller={listing.user} 
+          location={listing.location} 
+          walletAddress={listing.user.wallet_address}
+        />
 
         <div className="p-4 bg-blue-50 rounded-lg flex items-start space-x-3">
           <Shield className="h-5 w-5 text-blue-500 mt-0.5" />
@@ -87,28 +101,68 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
         </div>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Détails</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-500">Marque</p>
-              <p>{listing.brand || "Non spécifié"}</p>
+        <Card>
+          <CardContent className="pt-6">
+            <h2 className="text-xl font-semibold mb-4">Détails du produit</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {listing.brand && (
+                <div>
+                  <p className="text-sm text-gray-500">Marque</p>
+                  <p>{listing.brand}</p>
+                </div>
+              )}
+              {listing.condition && (
+                <div>
+                  <p className="text-sm text-gray-500">État</p>
+                  <p>{listing.condition}</p>
+                </div>
+              )}
+              {listing.color && listing.color.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-500">Couleur</p>
+                  <p>{listing.color.join(", ")}</p>
+                </div>
+              )}
+              {listing.material && listing.material.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-500">Matière</p>
+                  <p>{listing.material.join(", ")}</p>
+                </div>
+              )}
+              {listing.model && (
+                <div>
+                  <p className="text-sm text-gray-500">Modèle</p>
+                  <p>{listing.model}</p>
+                </div>
+              )}
+              {listing.year && (
+                <div>
+                  <p className="text-sm text-gray-500">Année</p>
+                  <p>{listing.year}</p>
+                </div>
+              )}
+              {listing.shipping_method && (
+                <div>
+                  <p className="text-sm text-gray-500">Mode de livraison</p>
+                  <p>{listing.shipping_method}</p>
+                </div>
+              )}
+              {listing.shipping_weight && (
+                <div>
+                  <p className="text-sm text-gray-500">Poids</p>
+                  <p>{listing.shipping_weight} kg</p>
+                </div>
+              )}
+              {listing.crypto_currency && (
+                <div>
+                  <p className="text-sm text-gray-500">Crypto-monnaie acceptée</p>
+                  <p>{listing.crypto_currency}</p>
+                </div>
+              )}
             </div>
-            <div>
-              <p className="text-sm text-gray-500">État</p>
-              <p>{listing.condition || "Non spécifié"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Couleur</p>
-              <p>{listing.color?.join(", ") || "Non spécifié"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Matière</p>
-              <p>{listing.material?.join(", ") || "Non spécifié"}</p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-}
+};
