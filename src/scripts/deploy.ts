@@ -1,7 +1,8 @@
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { localhost } from 'viem/chains';
-import { abi } from '../contracts/abi/TradecoinerEscrow.json'; '../contracts/bytecode/TradecoinerEscrow.json';
+import { abi } from '../contracts/abi/TradecoinerEscrow.json';
+import { bytecode } from '../contracts/bytecode/TradecoinerEscrow.json';
 
 // This is a development private key, DO NOT use in production
 const DEPLOYER_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
@@ -25,12 +26,9 @@ async function main() {
   try {
     console.log('Deploying contract from address:', account.address);
 
-    // Ensure bytecode is properly typed as `0x${string}`
-    const bytecode = contractBytecode as `0x${string}`;
-
     const hash = await walletClient.deployContract({
       abi,
-      bytecode,
+      bytecode: bytecode as `0x${string}`,
       account,
       chain: localhost,
       args: [], // No constructor arguments needed
