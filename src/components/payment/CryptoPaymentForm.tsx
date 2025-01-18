@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Loader2, Info } from "lucide-react";
-import { useAccount } from 'wagmi';
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { supabase } from "@/integrations/supabase/client";
+import { useAccount } from 'wagmi';
+import { useNavigate } from "react-router-dom";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -14,7 +13,7 @@ interface CryptoPaymentFormProps {
   price: number;
   cryptoAmount?: number;
   cryptoCurrency?: string;
-  onPaymentComplete?: () => void;
+  onPaymentComplete: () => void;
 }
 
 export function CryptoPaymentForm({
@@ -28,6 +27,7 @@ export function CryptoPaymentForm({
   const [isProcessing, setIsProcessing] = useState(false);
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handlePayment = async () => {
     if (!isConnected || !address) {
@@ -41,39 +41,69 @@ export function CryptoPaymentForm({
 
     try {
       setIsProcessing(true);
-      console.log('Création du paiement pour l\'annonce:', listingId);
+      console.log('Starting payment process for listing:', listingId);
 
-      const { data, error } = await supabase.functions.invoke('create-coinbase-payment', {
-        body: { 
+      // Récupérer les détails de l'annonce et du vendeur
+      const { data: listing, error: listingError } = await supabase
+        .from('listings')
+        .select(`
+          *,
+          user:profiles!listings_user_id_fkey (
+            wallet_address
+          )
+        `)
+        .eq('id', listingId)
+        .single();
+
+      if (listingError || !listing) {
+        throw new Error("Impossible de récupérer les détails de l'annonce");
+      }
+
+      if (!listing.user?.wallet_address) {
+        throw new Error("Le vendeur n'a pas connecté son portefeuille");
+      }
+
+      console.log('Initiating transaction with params:', {
+        listingId,
+        buyerAddress: address,
+        amount: cryptoAmount,
+        currency: cryptoCurrency
+      });
+
+      const { data, error } = await supabase.functions.invoke('handle-crypto-payment', {
+        body: {
           listingId,
           buyerAddress: address,
+          sellerAddress: listing.user.wallet_address,
+          amount: cryptoAmount?.toString() || "0",
+          currency: cryptoCurrency
         }
       });
 
       if (error) {
-        console.error('Erreur lors de la création du paiement:', error);
-        let errorMessage = "Une erreur est survenue lors de la création du paiement";
-        
-        if (error.message.includes("Le vendeur n'a pas connecté son portefeuille")) {
-          errorMessage = "Le vendeur n'a pas encore connecté son portefeuille. La transaction ne peut pas être effectuée pour le moment.";
-        }
-        
-        throw new Error(errorMessage);
+        throw error;
       }
 
-      console.log('Réponse du paiement:', data);
+      console.log('Transaction completed:', data);
 
-      if (data?.data?.hosted_url) {
-        window.location.href = data.data.hosted_url;
-      } else {
-        throw new Error('URL de paiement non trouvée');
-      }
+      // Mettre à jour le statut de l'annonce
+      await supabase
+        .from('listings')
+        .update({ status: 'sold', payment_status: 'completed' })
+        .eq('id', listingId);
+
+      toast({
+        title: "Paiement réussi !",
+        description: "Votre transaction a été effectuée avec succès",
+      });
+
+      onPaymentComplete();
 
     } catch (error) {
-      console.error('Erreur de paiement:', error);
+      console.error('Payment error:', error);
       toast({
-        title: "Erreur",
-        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la création du paiement",
+        title: "Erreur de paiement",
+        description: error.message || "Une erreur est survenue lors du paiement",
         variant: "destructive",
       });
     } finally {
@@ -82,63 +112,42 @@ export function CryptoPaymentForm({
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card>
       <CardHeader>
-        <CardTitle>Paiement en Crypto</CardTitle>
+        <CardTitle>Paiement en {cryptoCurrency || 'crypto'}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-medium text-lg">Détails de l'article</h3>
-            <p className="text-gray-600">{title}</p>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="font-medium">{price} EUR</span>
-              {cryptoAmount && cryptoCurrency && (
-                <span className="text-gray-500">
-                  (~{cryptoAmount.toFixed(6)} {cryptoCurrency})
-                </span>
-              )}
-            </div>
-          </div>
-
-          <Alert className="bg-blue-50">
-            <Shield className="h-4 w-4" />
-            <AlertDescription>
-              Paiement sécurisé via Coinbase Commerce
-            </AlertDescription>
-          </Alert>
-
-          {!isConnected ? (
-            <div className="text-center space-y-4 p-6 bg-gray-50 rounded-lg">
-              <Info className="h-5 w-5 mx-auto text-gray-400" />
-              <p className="text-gray-600">
-                Connectez votre portefeuille pour continuer
-              </p>
-              <WalletConnectButton />
-            </div>
-          ) : (
-            <Button
-              onClick={handlePayment}
-              disabled={isProcessing}
-              className="w-full"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Redirection vers Coinbase...
-                </>
-              ) : (
-                `Payer ${price} EUR`
-              )}
-            </Button>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <h3 className="font-medium">Détails de la transaction</h3>
+          <p className="text-sm text-gray-500">Article : {title}</p>
+          <p className="text-sm text-gray-500">Prix : {price} EUR</p>
+          {cryptoAmount && cryptoCurrency && (
+            <p className="text-sm text-gray-500">
+              Montant en crypto : {cryptoAmount} {cryptoCurrency}
+            </p>
           )}
-
-          <div className="text-sm text-gray-500 space-y-2">
-            <p>• Paiement sécurisé via Coinbase Commerce</p>
-            <p>• Support pour de multiples crypto-monnaies</p>
-            <p>• Protection acheteur incluse</p>
-          </div>
         </div>
+
+        <Button 
+          onClick={handlePayment} 
+          disabled={isProcessing || !isConnected}
+          className="w-full"
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Transaction en cours...
+            </>
+          ) : (
+            `Payer avec ${cryptoCurrency || 'crypto'}`
+          )}
+        </Button>
+
+        {!isConnected && (
+          <p className="text-sm text-red-500 text-center">
+            Veuillez connecter votre portefeuille pour effectuer le paiement
+          </p>
+        )}
       </CardContent>
     </Card>
   );

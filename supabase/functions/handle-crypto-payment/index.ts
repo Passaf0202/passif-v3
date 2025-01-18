@@ -14,8 +14,12 @@ serve(async (req) => {
   }
 
   try {
-    const { listingId, buyerAddress, amount, currency } = await req.json()
-    console.log('Processing payment for:', { listingId, buyerAddress, amount, currency })
+    const { listingId, buyerAddress, sellerAddress, amount } = await req.json()
+    console.log('Processing payment for:', { listingId, buyerAddress, sellerAddress, amount })
+
+    if (!listingId || !buyerAddress || !sellerAddress || !amount) {
+      throw new Error('Missing required parameters')
+    }
 
     const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY')
     if (!privateKey?.startsWith('0x')) {
@@ -23,7 +27,7 @@ serve(async (req) => {
     }
 
     const account = privateKeyToAccount(privateKey as `0x${string}`)
-    console.log('Using account:', account.address)
+    console.log('Using escrow account:', account.address)
 
     const publicClient = createPublicClient({
       chain: sepolia,
@@ -35,10 +39,10 @@ serve(async (req) => {
       transport: http()
     })
 
-    // Création de la transaction
+    // Effectuer la transaction
     const hash = await walletClient.sendTransaction({
       account,
-      to: buyerAddress as `0x${string}`,
+      to: sellerAddress as `0x${string}`,
       value: parseEther(amount.toString()),
       chain: sepolia
     })
