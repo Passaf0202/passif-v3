@@ -33,6 +33,7 @@ async function main() {
       abi,
       bytecode,
       account,
+      chain: localhost,
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
