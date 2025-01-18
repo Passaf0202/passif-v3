@@ -73,7 +73,7 @@ serve(async (req) => {
 
     console.log('URLs de redirection:', { successUrl, cancelUrl })
 
-    // Créer une charge Coinbase Commerce
+    // Créer une charge Coinbase Commerce avec les spécifications de la documentation
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
       headers: {
@@ -89,12 +89,16 @@ serve(async (req) => {
           amount: listing.price.toString(),
           currency: 'EUR'
         },
+        requested_info: ['name', 'email'],
+        payment_methods: listing.crypto_currency ? [listing.crypto_currency.toLowerCase()] : undefined,
         redirect_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
           listing_id: listingId,
           buyer_address: buyerAddress,
-          seller_address: listing.seller.wallet_address
+          seller_address: listing.seller.wallet_address,
+          customer_id: buyerAddress,
+          order_id: listingId
         }
       })
     })
@@ -124,8 +128,8 @@ serve(async (req) => {
         commission_amount: listing.price * 0.05, // 5% de commission
         status: 'pending',
         escrow_status: 'pending',
-        network: listing.crypto_currency || 'eth',
-        token_symbol: listing.crypto_currency || 'eth',
+        network: listing.crypto_currency?.toLowerCase() || 'eth',
+        token_symbol: listing.crypto_currency?.toLowerCase() || 'eth',
         transaction_hash: chargeData.data.code,
         smart_contract_address: chargeData.data.addresses?.[listing.crypto_currency?.toLowerCase() || 'eth'],
         chain_id: 1 // Ethereum mainnet par défaut
