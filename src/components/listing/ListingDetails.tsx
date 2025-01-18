@@ -68,36 +68,40 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   };
 
   const calculateCryptoAmount = () => {
-    if (!cryptoRates || !Array.isArray(cryptoRates) || !listing.crypto_currency) {
-      console.log('Invalid cryptoRates or missing crypto_currency:', { cryptoRates, currency: listing.crypto_currency });
-      return null;
-    }
-    
-    const rate = cryptoRates.find(r => r.symbol === listing.crypto_currency);
-    if (!rate) {
-      console.log('Rate not found for currency:', listing.crypto_currency);
+    if (!cryptoRates || !Array.isArray(cryptoRates)) {
+      console.log('Invalid cryptoRates:', cryptoRates);
       return null;
     }
 
-    let price = listing.price;
+    // On utilise ETH par défaut
+    const ethRate = cryptoRates.find(r => r.symbol === 'ETH');
+    if (!ethRate) {
+      console.log('ETH rate not found in:', cryptoRates);
+      return null;
+    }
+
+    console.log('Using ETH rate:', ethRate);
+
+    let priceInEur = listing.price;
+    // Convertir le prix en EUR si nécessaire
     switch (selectedCurrency) {
       case 'USD':
-        price = price * rate.rate_usd;
+        priceInEur = listing.price / ethRate.rate_usd * ethRate.rate_eur;
         break;
       case 'GBP':
-        price = price * rate.rate_gbp;
-        break;
-      default: // EUR
-        price = price * rate.rate_eur;
+        priceInEur = listing.price / ethRate.rate_gbp * ethRate.rate_eur;
         break;
     }
+
+    // Calculer le montant en ETH
+    const ethAmount = priceInEur / ethRate.rate_eur;
+    console.log('Calculated ETH amount:', ethAmount, 'for price:', priceInEur, 'EUR');
     
-    return price;
+    return ethAmount;
   };
 
   const cryptoAmount = calculateCryptoAmount();
 
-  // Vérifier si l'objet user existe avant de l'utiliser
   if (!listing.user) {
     console.error("User information is missing from the listing");
     return (
@@ -116,7 +120,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           title={listing.title} 
           price={listing.price} 
           cryptoAmount={cryptoAmount}
-          cryptoCurrency={listing.crypto_currency}
+          cryptoCurrency="ETH"
         />
         
         <SellerInfo 
@@ -141,7 +145,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           title={listing.title}
           price={listing.price}
           cryptoAmount={cryptoAmount}
-          cryptoCurrency={listing.crypto_currency}
+          cryptoCurrency="ETH"
           handleBuyClick={handleBuyClick}
         />
 
