@@ -26,33 +26,23 @@ serve(async (req) => {
       throw new Error('Invalid amount');
     }
 
-    const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY');
-    if (!privateKey) {
-      throw new Error('Contract private key not configured');
-    }
-
-    // Ensure private key starts with 0x
-    const formattedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
-    console.log('Using escrow account with formatted private key');
-
-    const account = privateKeyToAccount(formattedPrivateKey as `0x${string}`);
-    console.log('Using escrow account:', account.address);
-
     const publicClient = createPublicClient({
       chain: sepolia,
       transport: http()
     });
 
-    // Vérifier le solde de l'escrow account
-    const balance = await publicClient.getBalance({ address: account.address });
-    console.log('Escrow account balance:', formatEther(balance), 'ETH');
+    // Vérifier le solde de l'acheteur (qui servira d'escrow)
+    const balance = await publicClient.getBalance({ 
+      address: buyerAddress as `0x${string}` 
+    });
+    console.log('Buyer balance:', formatEther(balance), 'ETH');
 
     const ethAmount = parseEther(amount.toString());
     console.log('Transaction amount:', formatEther(ethAmount), 'ETH');
 
     // Estimer le gas
     const gasEstimate = await publicClient.estimateGas({
-      account,
+      account: buyerAddress as `0x${string}`,
       to: sellerAddress as `0x${string}`,
       value: ethAmount,
     });
@@ -66,10 +56,10 @@ serve(async (req) => {
       total: formatEther(totalCost)
     });
 
-    // Si l'escrow n'a pas assez de fonds et que l'utilisateur n'a pas accepté de payer les frais
-    if (balance < totalCost && !includeEscrowFees) {
+    // Si l'acheteur n'a pas assez de fonds
+    if (balance < totalCost) {
       const error = {
-        error: `insufficient_escrow_funds`,
+        error: 'insufficient_escrow_funds',
         details: {
           have: formatEther(balance),
           want: formatEther(totalCost),
@@ -85,18 +75,18 @@ serve(async (req) => {
       );
     }
 
+    // Add 20% buffer to gas estimate
+    const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2));
+    console.log('Gas limit with buffer:', gasLimit.toString());
+
+    // Créer une transaction depuis le wallet de l'acheteur (qui sert d'escrow)
     const walletClient = createWalletClient({
       chain: sepolia,
       transport: http()
     });
 
-    // Add 20% buffer to gas estimate
-    const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2));
-    console.log('Gas limit with buffer:', gasLimit.toString());
-
-    // Si l'utilisateur accepte de payer les frais d'escrow, on procède à la transaction
     const hash = await walletClient.sendTransaction({
-      account,
+      account: buyerAddress as `0x${string}`,
       to: sellerAddress as `0x${string}`,
       value: ethAmount,
       gas: gasLimit,
