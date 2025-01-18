@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
+import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { abi } from '../contracts/abi/TradecoinerEscrow.json';
@@ -24,12 +24,14 @@ async function main() {
     const account = privateKeyToAccount(privateKey as `0x${string}`);
     console.log('Deploying contract from:', account.address);
 
+    // Use legacy transaction type to avoid EIP-4844 requirements
     const hash = await walletClient.deployContract({
       account,
       abi,
       bytecode: bytecode as `0x${string}`,
       args: [],
-      chain: sepolia
+      chain: sepolia,
+      type: 'legacy' // Explicitly use legacy transaction type
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
