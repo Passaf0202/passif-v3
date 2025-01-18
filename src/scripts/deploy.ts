@@ -30,6 +30,7 @@ async function main() {
       abi,
       bytecode: bytecode as `0x${string}`,
       account,
+      chain: localhost,
       args: [], // No constructor arguments needed
       gas: BigInt(3000000)
     });
