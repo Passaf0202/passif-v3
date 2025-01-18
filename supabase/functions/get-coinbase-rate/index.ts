@@ -1,84 +1,81 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+console.log("Starting get-coinbase-rate function...")
 
-serve(async (req) => {
-  // Handle CORS preflight requests
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { cryptoCurrency, fiatCurrency } = await req.json()
-    console.log('Fetching rate for:', { cryptoCurrency, fiatCurrency })
-
-    const coinbaseApiKey = Deno.env.get('COINBASE_COMMERCE_API_KEY')
-    if (!coinbaseApiKey) {
-      throw new Error('COINBASE_COMMERCE_API_KEY is not configured')
-    }
-
-    // Using Coinbase Commerce API to get exchange rates
-    console.log('Making request to Coinbase API...')
-    const response = await fetch(
-      'https://api.commerce.coinbase.com/v2/exchange-rates?currency=BNB',
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
-        headers: {
-          'X-CC-Api-Key': coinbaseApiKey,
-          'X-CC-Version': '2018-03-22',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
       }
     )
 
-    if (!response.ok) {
-      console.error('Coinbase API response:', await response.text())
-      throw new Error(`Coinbase API error: ${response.statusText}`)
+    console.log('Fetching BNB rate from database...')
+    const { data: rates, error: dbError } = await supabaseClient
+      .from('crypto_rates')
+      .select('*')
+      .eq('symbol', 'BNB')
+      .eq('is_active', true)
+      .single()
+
+    if (dbError) {
+      console.error('Database error:', dbError)
+      throw new Error('Failed to fetch rates from database')
     }
 
-    const data = await response.json()
-    console.log('Coinbase response:', data)
-
-    // Extract the specific rate we need
-    const rates = data.data?.rates
     if (!rates) {
-      console.error('No rates found in response:', data)
-      throw new Error('No rates found in Coinbase API response')
+      console.log('No rates found, using fallback rate')
+      // Fallback rate if no data is found
+      return new Response(
+        JSON.stringify({
+          data: {
+            currency: 'BNB',
+            rates: {
+              EUR: 250, // Fallback rate
+            }
+          }
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      )
     }
 
-    // For BNB/EUR conversion
-    const bnbToUsd = 1 / parseFloat(rates['BNB']) // Convert BNB to USD first
-    const usdToEur = parseFloat(rates['EUR'])     // Then USD to EUR
-    const rate = bnbToUsd * usdToEur              // Final BNB to EUR rate
-
-    console.log('Calculated rate:', {
-      bnbToUsd,
-      usdToEur,
-      finalRate: rate
-    })
-
+    console.log('Successfully retrieved rates:', rates)
     return new Response(
-      JSON.stringify({ rate }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
+      JSON.stringify({
+        data: {
+          currency: 'BNB',
+          rates: {
+            EUR: rates.rate_eur,
+          }
         }
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
       }
     )
+
   } catch (error) {
     console.error('Error in get-coinbase-rate:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
-        status: 500
+      JSON.stringify({
+        error: `Internal Server Error: ${error.message}`
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
       }
     )
   }
