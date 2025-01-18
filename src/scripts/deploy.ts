@@ -30,10 +30,10 @@ async function main() {
       abi,
       bytecode: bytecode as `0x${string}`,
       account,
-      chain: localhost,
       args: [], // No constructor arguments needed
       gas: BigInt(3000000),
-      type: 'legacy' as const // Use legacy transaction type to avoid kzg requirement
+      gasPrice: BigInt(1000000000), // Add explicit gasPrice for legacy transactions
+      chain: localhost
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
