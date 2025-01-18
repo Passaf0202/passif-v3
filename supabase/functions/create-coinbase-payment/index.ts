@@ -50,6 +50,13 @@ serve(async (req) => {
 
     console.log('Annonce trouvée:', listing)
 
+    // Construire les URLs absolues pour la redirection
+    const baseUrl = Deno.env.get('APP_URL') || 'http://localhost:5173'
+    const successUrl = new URL(`/payment/success/${listingId}`, baseUrl).toString()
+    const cancelUrl = new URL(`/payment/cancel/${listingId}`, baseUrl).toString()
+
+    console.log('URLs de redirection:', { successUrl, cancelUrl })
+
     // Créer une charge Coinbase Commerce avec escrow
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
@@ -66,8 +73,8 @@ serve(async (req) => {
           amount: listing.price.toString(),
           currency: 'EUR'
         },
-        redirect_url: `${Deno.env.get('APP_URL')}/payment/success/${listingId}`,
-        cancel_url: `${Deno.env.get('APP_URL')}/payment/cancel/${listingId}`,
+        redirect_url: successUrl,
+        cancel_url: cancelUrl,
         metadata: {
           listing_id: listingId,
           buyer_address: buyerAddress,
