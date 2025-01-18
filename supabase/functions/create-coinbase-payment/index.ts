@@ -16,6 +16,7 @@ serve(async (req) => {
     console.log('Creating payment for:', { listingId, buyerAddress, sellerAddress, amount, cryptoCurrency })
     
     if (!listingId || !buyerAddress || !sellerAddress) {
+      console.error('Missing required parameters:', { listingId, buyerAddress, sellerAddress })
       throw new Error('Missing required parameters')
     }
 
@@ -36,7 +37,7 @@ serve(async (req) => {
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
     // Fetch listing details
-    console.log('Fetching listing details...')
+    console.log('Fetching listing details for ID:', listingId)
     const { data: listing, error: listingError } = await supabaseClient
       .from('listings')
       .select(`
