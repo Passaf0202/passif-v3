@@ -1,16 +1,45 @@
-import { ethers } from "hardhat";
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { localhost } from 'viem/chains';
+import { abi } from '../contracts/abi/TradecoinerEscrow.json';
+import { bytecode } from '../contracts/bytecode/TradecoinerEscrow.json';
+
+// This is a development private key, DO NOT use in production
+const DEPLOYER_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
+  console.log('Starting deployment...');
 
-  console.log("Deploying contracts with the account:", deployer.address);
+  const account = privateKeyToAccount(DEPLOYER_PRIVATE_KEY);
+  
+  const publicClient = createPublicClient({
+    chain: localhost,
+    transport: http()
+  });
 
-  const TradecoinerEscrow = await ethers.getContractFactory("TradecoinerEscrow");
-  const escrow = await TradecoinerEscrow.deploy();
+  const walletClient = createWalletClient({
+    account,
+    chain: localhost,
+    transport: http()
+  });
 
-  await escrow.waitForDeployment();
+  try {
+    console.log('Deploying contract from address:', account.address);
 
-  console.log("TradecoinerEscrow deployed to:", await escrow.getAddress());
+    const hash = await walletClient.deployContract({
+      abi,
+      bytecode,
+      account,
+    });
+
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    
+    console.log('Contract deployed to:', receipt.contractAddress);
+    return receipt.contractAddress;
+  } catch (error) {
+    console.error('Error deploying contract:', error);
+    throw error;
+  }
 }
 
 main()
