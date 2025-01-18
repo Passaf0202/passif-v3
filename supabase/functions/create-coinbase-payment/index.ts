@@ -19,7 +19,6 @@ serve(async (req) => {
       throw new Error('Paramètres manquants: listingId et buyerAddress sont requis')
     }
 
-    // Vérifier les variables d'environnement
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const coinbaseApiKey = Deno.env.get('COINBASE_COMMERCE_API_KEY')
@@ -43,7 +42,9 @@ serve(async (req) => {
         *,
         seller:profiles!listings_user_id_fkey (
           id,
-          wallet_address
+          wallet_address,
+          full_name,
+          email
         )
       `)
       .eq('id', listingId)
@@ -73,7 +74,34 @@ serve(async (req) => {
 
     console.log('URLs de redirection:', { successUrl, cancelUrl })
 
-    // Créer une charge Coinbase Commerce avec les spécifications de la documentation
+    // Créer une charge Coinbase Commerce selon la documentation
+    const chargeData = {
+      name: listing.title,
+      description: listing.description,
+      pricing_type: 'fixed_price',
+      local_price: {
+        amount: listing.price.toString(),
+        currency: 'EUR'
+      },
+      requested_info: ['name', 'email'],
+      redirect_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: {
+        listing_id: listingId,
+        buyer_address: buyerAddress,
+        seller_address: listing.seller.wallet_address,
+        customer_id: buyerAddress,
+        order_id: listingId
+      }
+    }
+
+    // Ajouter les méthodes de paiement si spécifiées
+    if (listing.crypto_currency) {
+      chargeData['payment_methods'] = [listing.crypto_currency.toLowerCase()]
+    }
+
+    console.log('Création de la charge Coinbase:', chargeData)
+
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
       headers: {
@@ -81,26 +109,7 @@ serve(async (req) => {
         'X-CC-Api-Key': coinbaseApiKey,
         'X-CC-Version': '2018-03-22'
       },
-      body: JSON.stringify({
-        name: listing.title,
-        description: listing.description,
-        pricing_type: 'fixed_price',
-        local_price: {
-          amount: listing.price.toString(),
-          currency: 'EUR'
-        },
-        requested_info: ['name', 'email'],
-        payment_methods: listing.crypto_currency ? [listing.crypto_currency.toLowerCase()] : undefined,
-        redirect_url: successUrl,
-        cancel_url: cancelUrl,
-        metadata: {
-          listing_id: listingId,
-          buyer_address: buyerAddress,
-          seller_address: listing.seller.wallet_address,
-          customer_id: buyerAddress,
-          order_id: listingId
-        }
-      })
+      body: JSON.stringify(chargeData)
     })
 
     if (!response.ok) {
@@ -109,11 +118,11 @@ serve(async (req) => {
       throw new Error(`Erreur Coinbase: ${errorText}`)
     }
 
-    const chargeData = await response.json()
-    console.log('Charge créée:', chargeData)
+    const responseData = await response.json()
+    console.log('Réponse Coinbase:', responseData)
 
-    if (!chargeData.data?.code) {
-      console.error('Réponse Coinbase invalide:', chargeData)
+    if (!responseData.data?.code) {
+      console.error('Réponse Coinbase invalide:', responseData)
       throw new Error('Code de charge invalide reçu de Coinbase')
     }
 
@@ -130,8 +139,8 @@ serve(async (req) => {
         escrow_status: 'pending',
         network: listing.crypto_currency?.toLowerCase() || 'eth',
         token_symbol: listing.crypto_currency?.toLowerCase() || 'eth',
-        transaction_hash: chargeData.data.code,
-        smart_contract_address: chargeData.data.addresses?.[listing.crypto_currency?.toLowerCase() || 'eth'],
+        transaction_hash: responseData.data.code,
+        smart_contract_address: responseData.data.addresses?.[listing.crypto_currency?.toLowerCase() || 'eth'],
         chain_id: 1 // Ethereum mainnet par défaut
       })
 
@@ -141,7 +150,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify(chargeData),
+      JSON.stringify(responseData),
       { 
         headers: { 
           ...corsHeaders, 
