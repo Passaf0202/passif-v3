@@ -87,7 +87,7 @@ export function WalletConnectButton() {
             ) : error ? (
               <span className="text-red-500">{error}</span>
             ) : (
-              <span className="text-green-600">{nativeBalance || "0,00"}</span>
+              <span className="text-green-600">{nativeBalance}</span>
             )}
           </div>
         </div>
