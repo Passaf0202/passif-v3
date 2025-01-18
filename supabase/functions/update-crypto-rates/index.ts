@@ -12,110 +12,129 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Fetching crypto rates from CoinGecko...')
+    console.log('Starting crypto rates update...')
     
     const apiKey = Deno.env.get('COINGECKO_API_KEY')
     if (!apiKey) {
       throw new Error('CoinGecko API key not found')
     }
     
-    // Fetch rates from CoinGecko Pro API
-    const response = await fetch(
-      'https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,litecoin,dogecoin,tether&vs_currencies=usd,eur,gbp',
-      {
-        headers: {
-          'x-cg-pro-api-key': apiKey
+    // Configuration de la requête avec timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 secondes timeout
+    
+    console.log('Fetching rates from CoinGecko Pro API...')
+    
+    try {
+      const response = await fetch(
+        'https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,litecoin,dogecoin,tether&vs_currencies=usd,eur,gbp',
+        {
+          headers: {
+            'x-cg-pro-api-key': apiKey,
+            'Accept': 'application/json'
+          },
+          signal: controller.signal
+        }
+      )
+      
+      clearTimeout(timeoutId)
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('CoinGecko API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        })
+        throw new Error(`Failed to fetch crypto rates: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      console.log('Received rates from CoinGecko:', JSON.stringify(data, null, 2))
+
+      // Map CoinGecko response to our format
+      const cryptoRates = [
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          rate_usd: data.bitcoin.usd,
+          rate_eur: data.bitcoin.eur,
+          rate_gbp: data.bitcoin.gbp
+        },
+        {
+          symbol: 'ETH',
+          name: 'Ethereum',
+          rate_usd: data.ethereum.usd,
+          rate_eur: data.ethereum.eur,
+          rate_gbp: data.ethereum.gbp
+        },
+        {
+          symbol: 'BNB',
+          name: 'BNB',
+          rate_usd: data.binancecoin.usd,
+          rate_eur: data.binancecoin.eur,
+          rate_gbp: data.binancecoin.gbp
+        },
+        {
+          symbol: 'LTC',
+          name: 'Litecoin',
+          rate_usd: data.litecoin.usd,
+          rate_eur: data.litecoin.eur,
+          rate_gbp: data.litecoin.gbp
+        },
+        {
+          symbol: 'DOGE',
+          name: 'Dogecoin',
+          rate_usd: data.dogecoin.usd,
+          rate_eur: data.dogecoin.eur,
+          rate_gbp: data.dogecoin.gbp
+        },
+        {
+          symbol: 'USDT',
+          name: 'Tether',
+          rate_usd: data.tether.usd,
+          rate_eur: data.tether.eur,
+          rate_gbp: data.tether.gbp
+        }
+      ]
+
+      // Update rates in Supabase
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      )
+
+      console.log('Updating rates in database...')
+
+      for (const rate of cryptoRates) {
+        const { error } = await supabase
+          .from('crypto_rates')
+          .upsert({
+            ...rate,
+            last_updated: new Date().toISOString(),
+            is_active: true
+          }, {
+            onConflict: 'symbol'
+          })
+
+        if (error) {
+          console.error('Error updating rate for', rate.symbol, error)
+        } else {
+          console.log('Successfully updated rate for', rate.symbol)
         }
       }
-    )
-    
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('CoinGecko API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
-      })
-      throw new Error(`Failed to fetch crypto rates: ${response.status} ${response.statusText}`)
+
+      return new Response(
+        JSON.stringify({ success: true, updated: cryptoRates.length }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+
+    } catch (fetchError) {
+      console.error('Fetch error:', fetchError)
+      throw new Error(`Failed to fetch from CoinGecko: ${fetchError.message}`)
+    } finally {
+      clearTimeout(timeoutId)
     }
-
-    const data = await response.json()
-    console.log('Received rates from CoinGecko:', JSON.stringify(data, null, 2))
-
-    // Map CoinGecko response to our format
-    const cryptoRates = [
-      {
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        rate_usd: data.bitcoin.usd,
-        rate_eur: data.bitcoin.eur,
-        rate_gbp: data.bitcoin.gbp
-      },
-      {
-        symbol: 'ETH',
-        name: 'Ethereum',
-        rate_usd: data.ethereum.usd,
-        rate_eur: data.ethereum.eur,
-        rate_gbp: data.ethereum.gbp
-      },
-      {
-        symbol: 'BNB',
-        name: 'BNB',
-        rate_usd: data.binancecoin.usd,
-        rate_eur: data.binancecoin.eur,
-        rate_gbp: data.binancecoin.gbp
-      },
-      {
-        symbol: 'LTC',
-        name: 'Litecoin',
-        rate_usd: data.litecoin.usd,
-        rate_eur: data.litecoin.eur,
-        rate_gbp: data.litecoin.gbp
-      },
-      {
-        symbol: 'DOGE',
-        name: 'Dogecoin',
-        rate_usd: data.dogecoin.usd,
-        rate_eur: data.dogecoin.eur,
-        rate_gbp: data.dogecoin.gbp
-      },
-      {
-        symbol: 'USDT',
-        name: 'Tether',
-        rate_usd: data.tether.usd,
-        rate_eur: data.tether.eur,
-        rate_gbp: data.tether.gbp
-      }
-    ]
-
-    // Update rates in Supabase
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    for (const rate of cryptoRates) {
-      const { error } = await supabase
-        .from('crypto_rates')
-        .upsert({
-          ...rate,
-          last_updated: new Date().toISOString(),
-          is_active: true
-        }, {
-          onConflict: 'symbol'
-        })
-
-      if (error) {
-        console.error('Error updating rate for', rate.symbol, error)
-      } else {
-        console.log('Successfully updated rate for', rate.symbol)
-      }
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, updated: cryptoRates.length }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
 
   } catch (error) {
     console.error('Error:', error)
