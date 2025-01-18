@@ -61,12 +61,17 @@ serve(async (req) => {
 
     console.log('URLs de redirection:', { successUrl, cancelUrl })
 
+    const coinbaseApiKey = Deno.env.get('COINBASE_COMMERCE_API_KEY')
+    if (!coinbaseApiKey) {
+      throw new Error('COINBASE_COMMERCE_API_KEY non configurée')
+    }
+
     // Créer une charge Coinbase Commerce
     const response = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CC-Api-Key': Deno.env.get('COINBASE_COMMERCE_API_KEY') ?? '',
+        'X-CC-Api-Key': coinbaseApiKey,
         'X-CC-Version': '2018-03-22'
       },
       body: JSON.stringify({
@@ -82,8 +87,7 @@ serve(async (req) => {
         metadata: {
           listing_id: listingId,
           buyer_address: buyerAddress,
-          seller_address: listing.seller.wallet_address,
-          escrow: true
+          seller_address: listing.seller.wallet_address
         }
       })
     })
@@ -96,6 +100,10 @@ serve(async (req) => {
 
     const chargeData = await response.json()
     console.log('Charge créée:', chargeData)
+
+    if (!chargeData.data?.code) {
+      throw new Error('Code de charge invalide reçu de Coinbase')
+    }
 
     // Créer la transaction dans la base de données
     const { error: transactionError } = await supabaseClient
