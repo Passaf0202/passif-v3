@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { usePublicClient } from "wagmi";
 
 interface EscrowError {
   available: string;
@@ -9,18 +10,67 @@ interface EscrowError {
   missing: string;
 }
 
+type TransactionStatus = 'none' | 'pending' | 'confirmed' | 'failed';
+
 interface UseEscrowPaymentProps {
   listingId: string;
   address?: string;
+  onTransactionHash?: (hash: string) => void;
+  onConfirmation?: (confirmations: number) => void;
   onPaymentComplete: () => void;
 }
 
-export function useEscrowPayment({ listingId, address, onPaymentComplete }: UseEscrowPaymentProps) {
+export function useEscrowPayment({ 
+  listingId, 
+  address,
+  onTransactionHash,
+  onConfirmation,
+  onPaymentComplete 
+}: UseEscrowPaymentProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [escrowError, setEscrowError] = useState<EscrowError | null>(null);
+  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>('none');
+  const [currentHash, setCurrentHash] = useState<string | null>(null);
+  
   const { toast } = useToast();
   const navigate = useNavigate();
+  const publicClient = usePublicClient();
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    const checkTransaction = async () => {
+      if (currentHash && transactionStatus === 'pending') {
+        try {
+          const receipt = await publicClient.getTransactionReceipt({ hash: currentHash as `0x${string}` });
+          
+          if (receipt) {
+            onConfirmation?.(Number(receipt.blockNumber));
+            if (receipt.status === 'success') {
+              setTransactionStatus('confirmed');
+              onPaymentComplete();
+            } else {
+              setTransactionStatus('failed');
+              setError("La transaction a échoué");
+            }
+          }
+        } catch (error) {
+          console.error('Error checking transaction:', error);
+        }
+      }
+    };
+
+    if (currentHash && transactionStatus === 'pending') {
+      interval = setInterval(checkTransaction, 5000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [currentHash, transactionStatus, publicClient, onConfirmation, onPaymentComplete]);
 
   const handlePayment = async (includeEscrowFees: boolean = false) => {
     if (!address) {
@@ -97,27 +147,21 @@ export function useEscrowPayment({ listingId, address, onPaymentComplete }: UseE
         throw error;
       }
 
-      console.log('Transaction completed:', data);
-
-      // Mettre à jour le statut de l'annonce
-      await supabase
-        .from('listings')
-        .update({ 
-          status: 'sold', 
-          payment_status: 'completed'
-        })
-        .eq('id', listingId);
-
-      toast({
-        title: "Paiement réussi !",
-        description: "Votre transaction a été effectuée avec succès",
-      });
-
-      onPaymentComplete();
+      if (data?.transactionHash) {
+        setCurrentHash(data.transactionHash);
+        setTransactionStatus('pending');
+        onTransactionHash?.(data.transactionHash);
+        
+        toast({
+          title: "Transaction envoyée",
+          description: "La transaction a été envoyée avec succès. Veuillez patienter pendant la confirmation.",
+        });
+      }
 
     } catch (error: any) {
       console.error('Payment error:', error);
       setError(error.message || "Une erreur est survenue lors du paiement");
+      setTransactionStatus('failed');
       toast({
         title: "Erreur de paiement",
         description: error.message || "Une erreur est survenue lors du paiement",
@@ -132,6 +176,7 @@ export function useEscrowPayment({ listingId, address, onPaymentComplete }: UseE
     isProcessing,
     error,
     escrowError,
+    transactionStatus,
     handlePayment
   };
 }

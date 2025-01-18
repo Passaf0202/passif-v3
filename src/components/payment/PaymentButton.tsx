@@ -7,20 +7,22 @@ interface PaymentButtonProps {
   cryptoAmount?: number;
   cryptoCurrency?: string;
   onClick: () => void;
+  disabled?: boolean;
 }
 
 export function PaymentButton({ 
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency, 
-  onClick 
+  cryptoCurrency,
+  onClick,
+  disabled = false
 }: PaymentButtonProps) {
   return (
     <>
       <Button 
         onClick={onClick} 
-        disabled={isProcessing || !isConnected || !cryptoAmount}
+        disabled={isProcessing || !isConnected || !cryptoAmount || disabled}
         className="w-full"
       >
         {isProcessing ? (
@@ -28,19 +30,21 @@ export function PaymentButton({
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Transaction en cours...
           </>
+        ) : disabled ? (
+          "Transaction en attente de confirmation..."
         ) : (
           `Payer avec ${cryptoCurrency || 'crypto'}`
         )}
       </Button>
 
       {!isConnected && (
-        <p className="text-sm text-red-500 text-center">
+        <p className="text-sm text-red-500 text-center mt-2">
           Veuillez connecter votre portefeuille pour effectuer le paiement
         </p>
       )}
 
       {!cryptoAmount && (
-        <p className="text-sm text-red-500 text-center">
+        <p className="text-sm text-red-500 text-center mt-2">
           Le montant en crypto n'est pas disponible pour le moment
         </p>
       )}
