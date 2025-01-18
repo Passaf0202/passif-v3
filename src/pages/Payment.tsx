@@ -41,9 +41,12 @@ export default function Payment() {
         .from('crypto_rates')
         .select('*')
         .eq('symbol', 'BNB')
-        .single();
+        .maybeSingle(); // Changed from single() to maybeSingle()
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching BNB rate:', error);
+        return null;
+      }
       return data;
     }
   });
