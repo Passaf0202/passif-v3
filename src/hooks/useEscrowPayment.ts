@@ -62,6 +62,10 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
+      if (!listing.crypto_amount || listing.crypto_amount <= 0) {
+        throw new Error("Le montant en crypto n'est pas valide");
+      }
+
       // Récupérer le contrat d'escrow actif
       const escrowContract = await getActiveContract();
       if (!escrowContract) {
