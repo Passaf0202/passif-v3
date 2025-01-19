@@ -72,22 +72,18 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
   const handleConfirmation = async () => {
     try {
       setIsLoading(true);
+      console.log("Sending confirmation for transaction:", transactionId);
 
-      // Appeler la fonction Edge pour gérer la confirmation
-      const response = await fetch("/api/release-escrow", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('release-escrow', {
+        body: {
           transactionId,
           action: "confirm",
           userId: currentUserId,
-        }),
+        },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to confirm transaction");
+      if (error) {
+        throw error;
       }
 
       toast({

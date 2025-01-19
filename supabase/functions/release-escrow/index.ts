@@ -7,6 +7,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -52,37 +53,6 @@ serve(async (req) => {
 
     if (updateError) {
       throw new Error('Erreur lors de la mise à jour de la transaction')
-    }
-
-    // Si les deux parties ont confirmé, libérer les fonds
-    if (
-      (userId === transaction.buyer_id && transaction.seller_confirmation) ||
-      (userId === transaction.seller_id && transaction.buyer_confirmation)
-    ) {
-      // Appeler l'API Coinbase pour libérer les fonds
-      const response = await fetch(`https://api.commerce.coinbase.com/charges/${transaction.transaction_hash}/resolve`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CC-Api-Key': Deno.env.get('COINBASE_COMMERCE_API_KEY') ?? '',
-          'X-CC-Version': '2018-03-22'
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la libération des fonds')
-      }
-
-      // Mettre à jour le statut final de la transaction
-      await supabase
-        .from('transactions')
-        .update({
-          status: 'completed',
-          escrow_status: 'completed',
-          escrow_release_time: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', transactionId)
     }
 
     return new Response(
