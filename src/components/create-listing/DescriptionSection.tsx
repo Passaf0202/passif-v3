@@ -22,7 +22,6 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
 
   const handlePriceChange = (value: string) => {
     setPrice(value);
-    // Convertir en string pour le formulaire
     form.setValue('price', value);
     
     if (selectedCrypto && cryptoRates) {
