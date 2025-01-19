@@ -69,11 +69,11 @@ export const useEscrowContract = () => {
   };
 
   const getContract = async (address: string) => {
-    if (!window.ethereum) {
-      console.error('MetaMask not installed');
-      throw new Error('Veuillez installer MetaMask pour continuer');
+    if (!walletClient || !window.ethereum) {
+      console.error('Wallet not connected');
+      return null;
     }
-
+    
     try {
       console.log('Creating contract instance for address:', address);
       
@@ -82,6 +82,7 @@ export const useEscrowContract = () => {
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: '0x61' }], // BSC Testnet chainId
       }).catch(async (switchError: any) => {
+        // Si le réseau n'existe pas, on l'ajoute
         if (switchError.code === 4902) {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
@@ -101,30 +102,10 @@ export const useEscrowContract = () => {
           throw switchError;
         }
       });
-
-      // Créer le provider et le signer
+      
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      
-      // Demander l'accès aux comptes
-      const accounts = await provider.send("eth_requestAccounts", []);
-      if (!accounts || accounts.length === 0) {
-        throw new Error('Veuillez connecter votre portefeuille MetaMask');
-      }
-      
       const signer = provider.getSigner();
-      console.log('Connected account:', await signer.getAddress());
-
-      // Vérifier que le contrat est déployé
-      const code = await provider.getCode(address);
-      if (code === '0x') {
-        throw new Error('Le contrat n\'est pas déployé à cette adresse');
-      }
-
-      // Créer l'instance du contrat
-      const contract = new ethers.Contract(address, ESCROW_ABI, signer);
-      console.log('Contract instance created successfully');
-      
-      return contract;
+      return new ethers.Contract(address, ESCROW_ABI, signer);
     } catch (error) {
       console.error('Error creating contract instance:', error);
       throw error;
