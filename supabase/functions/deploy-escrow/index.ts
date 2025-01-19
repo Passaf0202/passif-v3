@@ -17,10 +17,23 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY');
+    let privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY');
 
     if (!supabaseUrl || !supabaseKey || !privateKey) {
       throw new Error('Missing environment variables');
+    }
+
+    // Ensure the private key starts with '0x'
+    if (!privateKey.startsWith('0x')) {
+      privateKey = `0x${privateKey}`;
+    }
+
+    // Validate private key format
+    try {
+      new ethers.Wallet(privateKey);
+    } catch (error) {
+      console.error('Invalid private key format:', error);
+      throw new Error('Invalid private key format. Please ensure it is a valid 32-byte hexadecimal string');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -46,6 +59,7 @@ serve(async (req) => {
     const factory = new ethers.ContractFactory(escrowAbi, bytecode, wallet);
     
     // Déployer avec une adresse de test pour l'initialisation
+    console.log('Deploying contract with initial value...');
     const escrow = await factory.deploy(wallet.address, { value: ethers.utils.parseEther("0.01") });
     await escrow.deployed();
 
