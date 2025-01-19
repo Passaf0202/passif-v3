@@ -30,17 +30,28 @@ export function useEscrowPayment({
     updateTransactionStatus
   } = useTransactionManager();
 
-  const formatAddress = (address: string): string => {
-    // Retirer les espaces et mettre en minuscules
-    let formattedAddress = address.trim().toLowerCase();
+  const ensureValidAddress = (address: string): string => {
+    if (!address) throw new Error("Adresse invalide");
     
-    // Retirer le préfixe 0x s'il existe
-    if (formattedAddress.startsWith('0x')) {
-      formattedAddress = formattedAddress.slice(2);
+    // Nettoyer l'adresse
+    let cleanAddress = address.trim().toLowerCase();
+    
+    // Ajouter le préfixe 0x si nécessaire
+    if (!cleanAddress.startsWith('0x')) {
+      cleanAddress = `0x${cleanAddress}`;
     }
     
-    // Ajouter le préfixe 0x
-    return `0x${formattedAddress}`;
+    // Vérifier la longueur (42 caractères = 0x + 40 caractères hex)
+    if (cleanAddress.length !== 42) {
+      throw new Error(`Adresse invalide: ${cleanAddress}`);
+    }
+    
+    // Vérifier que c'est une adresse hexadécimale valide
+    if (!/^0x[0-9a-f]{40}$/i.test(cleanAddress)) {
+      throw new Error(`Format d'adresse invalide: ${cleanAddress}`);
+    }
+    
+    return cleanAddress;
   };
 
   const handlePayment = async () => {
@@ -77,15 +88,9 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      // Formater et valider l'adresse du vendeur
-      const sellerAddress = formatAddress(listing.user.wallet_address);
-      console.log('Formatted seller address:', sellerAddress);
-
-      // Vérifier que l'adresse est valide (42 caractères avec le préfixe 0x)
-      if (sellerAddress.length !== 42) {
-        console.error('Invalid seller address length:', sellerAddress);
-        throw new Error("L'adresse du vendeur n'est pas valide");
-      }
+      // Valider et formater l'adresse du vendeur
+      const sellerAddress = ensureValidAddress(listing.user.wallet_address);
+      console.log('Validated seller address:', sellerAddress);
 
       // Récupérer le taux BNB actuel
       const { data: cryptoRate } = await supabase
@@ -178,7 +183,7 @@ export function useEscrowPayment({
           method: 'eth_gasPrice'
         });
 
-        // Envoyer la transaction avec l'adresse correctement formatée
+        // Envoyer la transaction avec l'adresse validée
         const tx = await escrow.deposit(
           sellerAddress,
           { 
