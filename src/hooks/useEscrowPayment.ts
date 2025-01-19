@@ -3,7 +3,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { parseEther } from "viem";
-import { mainnet } from 'wagmi/chains';
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -71,6 +70,8 @@ export function useEscrowPayment({
         to: listing.user.wallet_address as `0x${string}`,
         value: parseEther(listing.crypto_amount?.toString() || '0'),
         from: address as `0x${string}`,
+        type: 'legacy' as const,
+        kzg: undefined
       });
 
       console.log('Transaction sent:', hash);
