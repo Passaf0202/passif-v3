@@ -9,16 +9,21 @@ interface CarSpecificDetailsProps {
 
 export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarSpecificDetailsProps) {
   const renderSelectItems = (values: string[]) => {
-    return values
-      .filter(value => value && value.trim() !== '') // Filter out empty or whitespace-only values
-      .map((value) => {
-        const trimmedValue = value.trim();
-        return (
-          <SelectItem key={trimmedValue} value={trimmedValue}>
-            {trimmedValue}
-          </SelectItem>
-        );
-      });
+    // Filter out null, undefined, empty strings, and whitespace-only strings
+    const validValues = values.filter(value => 
+      value && 
+      typeof value === 'string' && 
+      value.trim() !== ''
+    );
+
+    // Log the values for debugging
+    console.log("Valid values for select items:", validValues);
+
+    return validValues.map((value) => (
+      <SelectItem key={value} value={value}>
+        {value}
+      </SelectItem>
+    ));
   };
 
   return (
