@@ -72,7 +72,8 @@ export function useEscrowPayment({
         from: address as `0x${string}`,
         type: 'legacy' as const,
         kzg: undefined,
-        account: address as `0x${string}`
+        account: address as `0x${string}`,
+        chain: undefined
       });
 
       console.log('Transaction sent:', hash);
