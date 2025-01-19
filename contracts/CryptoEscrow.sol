@@ -13,7 +13,6 @@ contract CryptoEscrow {
     event FundsDeposited(address buyer, address seller, uint256 amount);
     event TransactionConfirmed(address confirmer);
     event FundsReleased(address seller, uint256 amount);
-    event TransactionCancelled(string reason);
 
     modifier onlyBuyerOrSeller() {
         require(msg.sender == buyer || msg.sender == seller, "Not authorized");
