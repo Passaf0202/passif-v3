@@ -32,7 +32,7 @@ export const useEscrowContract = () => {
       }
 
       if (!data) {
-        console.error('No active contract found');
+        console.log('No active contract found, deploying new one...');
         // Appeler la fonction de déploiement
         const { data: deployResponse, error: deployError } = await supabase.functions.invoke('deploy-escrow');
         
@@ -40,6 +40,8 @@ export const useEscrowContract = () => {
           console.error('Error deploying contract:', deployError);
           throw deployError;
         }
+
+        console.log('Contract deployed:', deployResponse);
 
         // Récupérer le contrat nouvellement déployé
         const { data: newContract, error: fetchError } = await supabase
@@ -54,7 +56,7 @@ export const useEscrowContract = () => {
           throw new Error('Failed to fetch newly deployed contract');
         }
 
-        console.log('New contract deployed and fetched:', newContract);
+        console.log('New contract fetched:', newContract);
         return newContract;
       }
 
