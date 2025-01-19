@@ -75,37 +75,9 @@ export function useEscrowPayment({
         throw new Error("Le contrat d'escrow n'est pas disponible");
       }
 
-      // Créer la transaction dans la base de données
-      const transaction = await createTransaction(
-        listingId,
-        address,
-        validatedListing.user.id,
-        validatedListing.crypto_amount,
-        0,
-        escrowContract.address,
-        escrowContract.chain_id
-      );
-
-      // Obtenir l'instance du contrat
-      const escrow = await getContract(escrowContract.address);
-      if (!escrow) throw new Error("Impossible d'initialiser le contrat");
-
       try {
         const amountInWei = parseEther(validatedListing.crypto_amount.toString());
         console.log('Amount in Wei:', amountInWei.toString());
-
-        // Configuration spécifique pour BSC
-        const gasLimit = 300000; // Augmenté pour plus de marge
-        const gasPrice = await window.ethereum.request({
-          method: 'eth_gasPrice'
-        });
-
-        console.log('Transaction parameters:', {
-          seller: validatedListing.user.wallet_address,
-          value: amountInWei.toString(),
-          gasLimit,
-          gasPrice
-        });
 
         // Vérifier le solde avant la transaction
         const balance = await window.ethereum.request({
@@ -117,15 +89,30 @@ export function useEscrowPayment({
           throw new Error("Fonds insuffisants dans votre portefeuille");
         }
 
-        // Envoyer la transaction
-        const tx = await escrow.deposit(
-          validatedListing.user.wallet_address,
-          { 
-            value: amountInWei,
-            gasLimit: gasLimit,
-            gasPrice: gasPrice
-          }
+        // Obtenir l'instance du contrat
+        const escrow = await getContract(escrowContract.address);
+        if (!escrow) throw new Error("Impossible d'initialiser le contrat");
+
+        // Créer la transaction dans la base de données
+        const transaction = await createTransaction(
+          listingId,
+          address,
+          validatedListing.user.id,
+          validatedListing.crypto_amount,
+          0,
+          escrowContract.address,
+          escrowContract.chain_id
         );
+
+        // Envoyer la transaction
+        console.log('Sending transaction with parameters:', {
+          seller: validatedListing.user.wallet_address,
+          value: amountInWei.toString()
+        });
+
+        const tx = await escrow.constructor(validatedListing.user.wallet_address, {
+          value: amountInWei
+        });
 
         console.log('Transaction sent:', tx.hash);
         setTransactionStatus('pending');
@@ -139,10 +126,20 @@ export function useEscrowPayment({
 
         if (receipt.status === 1) {
           await updateTransactionStatus(transaction.id, 'processing', tx.hash);
+          
+          // Mettre à jour le statut des fonds comme sécurisés
+          await supabase
+            .from('transactions')
+            .update({
+              funds_secured: true,
+              funds_secured_at: new Date().toISOString()
+            })
+            .eq('id', transaction.id);
+
           setTransactionStatus('confirmed');
           toast({
             title: "Transaction confirmée",
-            description: "Le paiement a été effectué avec succès",
+            description: "Les fonds ont été sécurisés dans le contrat d'escrow",
           });
           onPaymentComplete();
         } else {
@@ -162,18 +159,13 @@ export function useEscrowPayment({
           throw new Error("Fonds insuffisants dans votre portefeuille");
         }
         
-        // Vérifier si c'est une erreur de revert
-        if (txError.code === 'CALL_EXCEPTION') {
-          const reason = txError.reason || "La transaction a été rejetée par le contrat";
-          toast({
-            title: "Erreur de transaction",
-            description: reason,
-            variant: "destructive",
-          });
-          throw new Error(reason);
-        }
-        
-        throw txError;
+        const errorMessage = txError.reason || txError.message || "La transaction a échoué";
+        toast({
+          title: "Erreur de transaction",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        throw new Error(errorMessage);
       }
 
     } catch (error: any) {
