@@ -24,6 +24,7 @@ export const useEscrowContract = () => {
         .select('*')
         .eq('name', 'Escrow')
         .eq('is_active', true)
+        .eq('network', 'bsc_testnet') // S'assurer qu'on récupère le contrat sur BSC
         .maybeSingle();
 
       if (error) {
@@ -32,8 +33,7 @@ export const useEscrowContract = () => {
       }
 
       if (!data) {
-        console.log('No active contract found, deploying new one...');
-        // Appeler la fonction de déploiement
+        console.log('No active contract found on BSC, deploying new one...');
         const { data: deployResponse, error: deployError } = await supabase.functions.invoke('deploy-escrow');
         
         if (deployError) {
@@ -43,12 +43,12 @@ export const useEscrowContract = () => {
 
         console.log('Contract deployed:', deployResponse);
 
-        // Récupérer le contrat nouvellement déployé
         const { data: newContract, error: fetchError } = await supabase
           .from('smart_contracts')
           .select('*')
           .eq('name', 'Escrow')
           .eq('is_active', true)
+          .eq('network', 'bsc_testnet')
           .maybeSingle();
 
         if (fetchError || !newContract) {
@@ -76,7 +76,11 @@ export const useEscrowContract = () => {
     
     try {
       console.log('Creating contract instance for address:', address);
+      
+      // Configuration spécifique pour BSC Testnet
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("wallet_switchEthereumChain", [{ chainId: "0x61" }]); // BSC Testnet
+      
       const signer = provider.getSigner();
       return new ethers.Contract(address, ESCROW_ABI, signer);
     } catch (error) {

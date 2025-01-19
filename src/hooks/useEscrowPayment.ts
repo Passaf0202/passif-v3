@@ -65,7 +65,7 @@ export function useEscrowPayment({
       // Validation stricte du montant en crypto
       if (!listing.crypto_amount || typeof listing.crypto_amount !== 'number' || listing.crypto_amount <= 0) {
         console.error('Invalid crypto amount:', listing.crypto_amount);
-        throw new Error("Le montant en crypto n'est pas valide. Montant reçu: " + listing.crypto_amount);
+        throw new Error("Le montant en crypto n'est pas valide");
       }
 
       // Récupérer le contrat d'escrow actif
@@ -77,7 +77,9 @@ export function useEscrowPayment({
       console.log('Payment details:', {
         amount: listing.crypto_amount,
         sellerAddress: listing.user.wallet_address,
-        escrowAddress: escrowContract.address
+        escrowAddress: escrowContract.address,
+        network: 'BSC Testnet',
+        chainId: escrowContract.chain_id
       });
 
       // Créer la transaction dans la base de données
@@ -99,12 +101,19 @@ export function useEscrowPayment({
         const amountInWei = parseEther(listing.crypto_amount.toString());
         console.log('Amount in Wei:', amountInWei.toString());
 
+        // Configuration spécifique pour BSC
+        const gasLimit = 200000; // Gas limit plus bas pour BSC
+        const gasPrice = await window.ethereum.request({
+          method: 'eth_gasPrice'
+        });
+
         // Envoyer la transaction
         const tx = await escrow.deposit(
           listing.user.wallet_address,
           { 
             value: amountInWei,
-            gasLimit: 500000
+            gasLimit: gasLimit,
+            gasPrice: gasPrice
           }
         );
 
