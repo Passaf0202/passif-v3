@@ -1,116 +1,34 @@
-import { usePublicClient, useWalletClient } from 'wagmi';
 import { ethers } from "ethers";
-import { supabase } from "@/integrations/supabase/client";
-
-const ESCROW_ABI = [
-  "constructor(address _seller) payable",
-  "function deposit(address _seller) external payable",
-  "function confirmTransaction() public",
-  "function getStatus() public view returns (bool, bool, bool, bool)",
-  "event FundsDeposited(address buyer, address seller, uint256 amount)",
-  "event TransactionConfirmed(address confirmer)",
-  "event FundsReleased(address seller, uint256 amount)"
-];
+import { ESCROW_ABI, ESCROW_BYTECODE } from "./escrowConstants";
 
 export const useEscrowContract = () => {
-  const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
-
-  const getActiveContract = async () => {
-    try {
-      console.log('Fetching active contract...');
-      const { data, error } = await supabase
-        .from('smart_contracts')
-        .select('*')
-        .eq('name', 'Escrow')
-        .eq('is_active', true)
-        .eq('network', 'bsc_testnet')
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching active contract:', error);
-        throw error;
-      }
-
-      if (!data) {
-        console.log('No active contract found on BSC, deploying new one...');
-        const { data: deployResponse, error: deployError } = await supabase.functions.invoke('deploy-escrow');
-        
-        if (deployError) {
-          console.error('Error deploying contract:', deployError);
-          throw deployError;
-        }
-
-        console.log('Contract deployed:', deployResponse);
-
-        const { data: newContract, error: fetchError } = await supabase
-          .from('smart_contracts')
-          .select('*')
-          .eq('name', 'Escrow')
-          .eq('is_active', true)
-          .eq('network', 'bsc_testnet')
-          .maybeSingle();
-
-        if (fetchError || !newContract) {
-          console.error('Error fetching newly deployed contract:', fetchError);
-          throw new Error('Failed to fetch newly deployed contract');
-        }
-
-        console.log('New contract fetched:', newContract);
-        return newContract;
-      }
-
-      console.log('Active contract found:', data);
-      return data;
-    } catch (error) {
-      console.error('Error in getActiveContract:', error);
-      throw error;
+  const deployNewContract = async (sellerAddress: string, amount: ethers.BigNumber) => {
+    if (!window.ethereum) {
+      throw new Error("MetaMask n'est pas installé");
     }
-  };
 
-  const getContract = async (address: string) => {
-    if (!walletClient || !window.ethereum) {
-      console.error('Wallet not connected');
-      return null;
-    }
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+
+    console.log('Deploying new escrow contract with params:', {
+      seller: sellerAddress,
+      value: amount.toString()
+    });
+
+    const factory = new ethers.ContractFactory(
+      ESCROW_ABI,
+      ESCROW_BYTECODE,
+      signer
+    );
+
+    const contract = await factory.deploy(sellerAddress, { value: amount });
+    console.log('Waiting for deployment transaction:', contract.deployTransaction.hash);
     
-    try {
-      console.log('Creating contract instance for address:', address);
-      
-      // Forcer le changement de réseau vers BSC Testnet
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x61' }], // BSC Testnet chainId
-      }).catch(async (switchError: any) => {
-        // Si le réseau n'existe pas, on l'ajoute
-        if (switchError.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x61',
-              chainName: 'BSC Testnet',
-              nativeCurrency: {
-                name: 'BNB',
-                symbol: 'tBNB',
-                decimals: 18
-              },
-              rpcUrls: ['https://data-seed-prebsc-1-s1.bnbchain.org:8545'],
-              blockExplorerUrls: ['https://testnet.bscscan.com']
-            }]
-          });
-        } else {
-          throw switchError;
-        }
-      });
-      
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      return new ethers.Contract(address, ESCROW_ABI, signer);
-    } catch (error) {
-      console.error('Error creating contract instance:', error);
-      throw error;
-    }
+    const receipt = await contract.deployTransaction.wait();
+    console.log('Deployment receipt:', receipt);
+
+    return { contract, receipt };
   };
 
-  return { getContract, getActiveContract };
+  return { deployNewContract };
 };

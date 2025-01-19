@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 export const validateAndUpdateCryptoAmount = async (listing: any) => {
   console.log('Validating crypto amount for listing:', listing);
   
-  // Si le montant en crypto est déjà valide, on le retourne
   if (listing.crypto_amount && 
       typeof listing.crypto_amount === 'number' && 
       listing.crypto_amount > 0) {
@@ -11,7 +10,6 @@ export const validateAndUpdateCryptoAmount = async (listing: any) => {
     return listing;
   }
 
-  // Récupérer le taux BNB actuel
   const { data: cryptoRate, error: rateError } = await supabase
     .from('crypto_rates')
     .select('*')
@@ -30,12 +28,7 @@ export const validateAndUpdateCryptoAmount = async (listing: any) => {
   }
 
   const cryptoAmount = Number(listing.price) / cryptoRate.rate_eur;
-  console.log('Calculated crypto amount:', {
-    price: listing.price,
-    rate: cryptoRate.rate_eur,
-    amount: cryptoAmount
-  });
-
+  
   if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
     console.error('Invalid crypto amount calculated:', {
       price: listing.price,
@@ -45,7 +38,6 @@ export const validateAndUpdateCryptoAmount = async (listing: any) => {
     throw new Error("Erreur lors du calcul du montant en crypto");
   }
 
-  // Mettre à jour l'annonce avec le montant calculé
   const { error: updateError } = await supabase
     .from('listings')
     .update({
