@@ -77,19 +77,23 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
+      if (!listing.crypto_amount || !listing.crypto_currency) {
+        throw new Error("Les détails de paiement en crypto ne sont pas disponibles");
+      }
+
       // Calculer la commission (2% du montant)
-      const commission = listing.crypto_amount ? listing.crypto_amount * 0.02 : 0;
+      const commission = listing.crypto_amount * 0.02;
 
       // Créer la transaction dans la base de données
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
         .insert({
           listing_id: listingId,
-          buyer_id: profile.id, // Using the profile ID instead of wallet address
+          buyer_id: profile.id,
           seller_id: listing.user.id,
           amount: listing.crypto_amount,
           commission_amount: commission,
-          token_symbol: listing.crypto_currency || 'BNB',
+          token_symbol: listing.crypto_currency,
           status: 'pending',
           escrow_status: 'pending'
         })
@@ -100,10 +104,16 @@ export function useEscrowPayment({
         throw new Error("Erreur lors de la création de la transaction");
       }
 
+      console.log('Sending transaction with details:', {
+        to: listing.user.wallet_address,
+        value: listing.crypto_amount,
+        currency: listing.crypto_currency
+      });
+
       // Envoyer la transaction
       const hash = await walletClient.sendTransaction({
         to: listing.user.wallet_address as `0x${string}`,
-        value: parseEther(listing.crypto_amount?.toString() || '0'),
+        value: parseEther(listing.crypto_amount.toString()),
         from: address as `0x${string}`,
         type: 'legacy' as const,
         kzg: undefined,
