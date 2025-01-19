@@ -17,7 +17,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY');
+    const privateKey = Deno.env.get('Private_KEY_BSC'); // Utilisation de la nouvelle clé
 
     if (!supabaseUrl || !supabaseKey || !privateKey) {
       throw new Error('Missing required environment variables');
@@ -25,22 +25,25 @@ serve(async (req) => {
 
     // Validate and format private key
     let formattedPrivateKey = privateKey.trim().toLowerCase();
-    if (formattedPrivateKey.startsWith('0x')) {
-      formattedPrivateKey = formattedPrivateKey.slice(2);
+    if (!formattedPrivateKey.startsWith('0x')) {
+      formattedPrivateKey = `0x${formattedPrivateKey}`;
     }
 
-    console.log('Private key length:', formattedPrivateKey.length);
+    console.log('Private key length:', formattedPrivateKey.length - 2); // -2 pour le préfixe 0x
     
     // Strict validation
-    if (!/^[0-9a-f]{64}$/.test(formattedPrivateKey)) {
+    const privateKeyWithoutPrefix = formattedPrivateKey.startsWith('0x') 
+      ? formattedPrivateKey.slice(2) 
+      : formattedPrivateKey;
+      
+    if (!/^[0-9a-f]{64}$/i.test(privateKeyWithoutPrefix)) {
       console.error('Invalid private key format:', {
-        length: formattedPrivateKey.length,
-        isHex: /^[0-9a-f]*$/.test(formattedPrivateKey),
+        length: privateKeyWithoutPrefix.length,
+        isHex: /^[0-9a-f]*$/i.test(privateKeyWithoutPrefix),
       });
-      throw new Error(`Invalid private key format. Must be a 64-character hexadecimal string. Current length: ${formattedPrivateKey.length}`);
+      throw new Error(`Invalid private key format. Must be a 64-character hexadecimal string. Current length: ${privateKeyWithoutPrefix.length}`);
     }
 
-    formattedPrivateKey = `0x${formattedPrivateKey}`;
     console.log('Private key validated successfully');
 
     // Initialize Supabase client
