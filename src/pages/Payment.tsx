@@ -6,9 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-// Taux de repli si l'API ne répond pas (1 BNB = 250 EUR)
-const FALLBACK_BNB_RATE = 250;
-
 export default function Payment() {
   const { id } = useParams();
   const location = useLocation();
@@ -76,6 +73,46 @@ export default function Payment() {
     enabled: !!id
   });
 
+  // Calculate and update crypto amount
+  const { data: updatedListing } = useQuery({
+    queryKey: ['update-crypto-amount', currentListing?.id, cryptoRates],
+    queryFn: async () => {
+      if (!currentListing || !cryptoRates) return currentListing;
+
+      const bnbRate = cryptoRates.rate_eur;
+      const cryptoAmount = Number(currentListing.price) / bnbRate;
+
+      console.log('Payment details:', {
+        listingPrice: currentListing.price,
+        bnbRate,
+        cryptoAmount,
+      });
+
+      if (!currentListing.crypto_amount) {
+        const { data, error } = await supabase
+          .from('listings')
+          .update({
+            crypto_amount: cryptoAmount,
+            crypto_currency: 'BNB'
+          })
+          .eq('id', currentListing.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error updating crypto amount:', error);
+          return currentListing;
+        }
+
+        console.log('Updated listing with crypto amount:', data);
+        return data;
+      }
+
+      return currentListing;
+    },
+    enabled: !!currentListing && !!cryptoRates,
+  });
+
   if (isListingLoading || isRatesLoading) {
     return (
       <div>
@@ -99,47 +136,10 @@ export default function Payment() {
     );
   }
 
-  // Calculate and update crypto amount if needed
-  const updateCryptoAmount = async () => {
-    const bnbRate = cryptoRates?.rate_eur || FALLBACK_BNB_RATE;
-    const cryptoAmount = Number(currentListing.price) / bnbRate;
-
-    console.log('Payment details:', {
-      listingPrice: currentListing.price,
-      bnbRate,
-      cryptoAmount,
-      usingFallbackRate: !cryptoRates
-    });
-
-    // Update the listing with the calculated crypto amount if it's not set
-    if (!currentListing.crypto_amount) {
-      const { error } = await supabase
-        .from('listings')
-        .update({
-          crypto_amount: cryptoAmount,
-          crypto_currency: 'BNB'
-        })
-        .eq('id', currentListing.id);
-
-      if (error) {
-        console.error('Error updating crypto amount:', error);
-      } else {
-        console.log('Updated crypto amount:', cryptoAmount);
-        currentListing.crypto_amount = cryptoAmount;
-        currentListing.crypto_currency = 'BNB';
-      }
-    }
-
-    return cryptoAmount;
-  };
-
-  // Ensure crypto amount is set
-  if (!currentListing.crypto_amount) {
-    updateCryptoAmount();
-  }
+  const finalListing = updatedListing || currentListing;
 
   const handlePaymentComplete = () => {
-    navigate(returnUrl || `/listings/${currentListing.id}`);
+    navigate(returnUrl || `/listings/${finalListing.id}`);
   };
 
   return (
@@ -150,10 +150,10 @@ export default function Payment() {
           <EscrowDetails transactionId={transaction.id} />
         ) : (
           <CryptoPaymentForm
-            listingId={currentListing.id}
-            title={currentListing.title}
-            price={currentListing.price}
-            cryptoAmount={currentListing.crypto_amount}
+            listingId={finalListing.id}
+            title={finalListing.title}
+            price={finalListing.price}
+            cryptoAmount={finalListing.crypto_amount}
             cryptoCurrency="BNB"
             onPaymentComplete={handlePaymentComplete}
           />
