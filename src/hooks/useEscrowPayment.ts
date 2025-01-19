@@ -107,6 +107,7 @@ export function useEscrowPayment({
       }
 
       console.log('Sending transaction with details:', {
+        from: address,
         to: listing.user.wallet_address,
         value: listing.crypto_amount,
         currency: listing.crypto_currency,
@@ -115,10 +116,9 @@ export function useEscrowPayment({
 
       // Envoyer la transaction sur BSC
       const hash = await walletClient.sendTransaction({
+        from: address as `0x${string}`,
         to: listing.user.wallet_address as `0x${string}`,
         value: parseEther(listing.crypto_amount.toString()),
-        chain: bsc,
-        type: 'legacy'
       });
 
       console.log('Transaction sent:', hash);
