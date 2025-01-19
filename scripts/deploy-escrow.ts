@@ -1,5 +1,10 @@
 import { ethers } from "hardhat";
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+
+// Créer le client Supabase avec les variables d'environnement
+const supabaseUrl = process.env.SUPABASE_URL || "";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
   try {
@@ -9,9 +14,12 @@ async function main() {
     const CryptoEscrow = await ethers.getContractFactory("CryptoEscrow");
     console.log("Contract factory created");
 
-    // Deploy the contract
-    console.log("Deploying CryptoEscrow...");
-    const escrow = await CryptoEscrow.deploy();
+    // Get the deployer's address
+    const [deployer] = await ethers.getSigners();
+    console.log("Deploying with account:", deployer.address);
+
+    // Deploy the contract with a dummy seller address (it will be set per transaction)
+    const escrow = await CryptoEscrow.deploy(deployer.address);
     await escrow.waitForDeployment();
     
     const escrowAddress = await escrow.getAddress();
@@ -22,7 +30,7 @@ async function main() {
       .from('smart_contracts')
       .insert([
         {
-          name: 'Escrow', // Changed from 'CryptoEscrow' to 'Escrow' to match the query
+          name: 'Escrow',
           address: escrowAddress,
           network: 'bsc_testnet',
           chain_id: 97,
