@@ -48,7 +48,7 @@ export function CryptoPaymentForm({
     if (transactionStatus === 'confirmed') {
       toast({
         title: "Transaction confirmée",
-        description: `La transaction a été confirmée avec ${confirmations} confirmations`,
+        description: `Les fonds ont été bloqués avec succès. Ils seront libérés une fois que l'acheteur et le vendeur auront confirmé la transaction.`,
       });
     }
   }, [transactionStatus, confirmations, toast]);
@@ -69,7 +69,7 @@ export function CryptoPaymentForm({
             <p>Confirmations : {confirmations}</p>
             <p>Statut : {
               transactionStatus === 'pending' ? 'En attente de confirmation...' :
-              transactionStatus === 'confirmed' ? 'Transaction confirmée ✅' :
+              transactionStatus === 'confirmed' ? 'Fonds bloqués ✅' :
               transactionStatus === 'failed' ? 'Transaction échouée ❌' :
               'En cours...'
             }</p>

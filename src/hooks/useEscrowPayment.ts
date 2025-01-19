@@ -66,6 +66,25 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
+      // Créer la transaction dans la base de données
+      const { data: transaction, error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          listing_id: listingId,
+          buyer_id: address,
+          seller_id: listing.user.id,
+          amount: listing.crypto_amount,
+          token_symbol: listing.crypto_currency || 'BNB',
+          status: 'pending',
+          escrow_status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (transactionError) {
+        throw new Error("Erreur lors de la création de la transaction");
+      }
+
       // Envoyer la transaction
       const hash = await walletClient.sendTransaction({
         to: listing.user.wallet_address as `0x${string}`,
@@ -94,9 +113,10 @@ export function useEscrowPayment({
           .update({
             funds_secured: true,
             funds_secured_at: new Date().toISOString(),
-            transaction_hash: hash
+            transaction_hash: hash,
+            status: 'processing'
           })
-          .eq('listing_id', listingId);
+          .eq('id', transaction.id);
 
         if (updateError) {
           console.error('Error updating transaction:', updateError);
@@ -107,7 +127,7 @@ export function useEscrowPayment({
         onPaymentComplete();
         toast({
           title: "Succès",
-          description: "Le paiement a été effectué et les fonds sont sécurisés",
+          description: "Les fonds ont été bloqués avec succès. Ils seront libérés une fois que l'acheteur et le vendeur auront confirmé la transaction.",
         });
       } else {
         setTransactionStatus('failed');
