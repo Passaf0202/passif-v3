@@ -13,6 +13,7 @@ contract CryptoEscrow {
     event FundsDeposited(address buyer, address seller, uint256 amount);
     event TransactionConfirmed(address confirmer);
     event FundsReleased(address seller, uint256 amount);
+    event DepositError(string reason);
 
     modifier onlyBuyerOrSeller() {
         require(msg.sender == buyer || msg.sender == seller, "Not authorized");
@@ -27,6 +28,7 @@ contract CryptoEscrow {
     constructor(address _seller) payable {
         require(_seller != address(0), "Invalid seller address");
         require(_seller != msg.sender, "Seller cannot be buyer");
+        require(msg.value > 0, "Amount must be greater than 0");
         
         buyer = msg.sender;
         seller = _seller;
@@ -40,6 +42,12 @@ contract CryptoEscrow {
         require(_seller != address(0), "Invalid seller address");
         require(_seller != msg.sender, "Seller cannot be buyer");
         require(!fundsDeposited, "Funds already deposited");
+        require(msg.value > 0, "Amount must be greater than 0");
+        
+        if (fundsDeposited) {
+            emit DepositError("Funds already deposited");
+            revert("Funds already deposited");
+        }
         
         buyer = msg.sender;
         seller = _seller;

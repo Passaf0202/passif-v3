@@ -95,10 +95,27 @@ export function useEscrowPayment({
         console.log('Amount in Wei:', amountInWei.toString());
 
         // Configuration spécifique pour BSC
-        const gasLimit = 200000;
+        const gasLimit = 300000; // Augmenté pour plus de marge
         const gasPrice = await window.ethereum.request({
           method: 'eth_gasPrice'
         });
+
+        console.log('Transaction parameters:', {
+          seller: validatedListing.user.wallet_address,
+          value: amountInWei.toString(),
+          gasLimit,
+          gasPrice
+        });
+
+        // Vérifier le solde avant la transaction
+        const balance = await window.ethereum.request({
+          method: 'eth_getBalance',
+          params: [address, 'latest'],
+        });
+        
+        if (BigInt(balance) < BigInt(amountInWei.toString())) {
+          throw new Error("Fonds insuffisants dans votre portefeuille");
+        }
 
         // Envoyer la transaction
         const tx = await escrow.deposit(
@@ -129,8 +146,9 @@ export function useEscrowPayment({
           });
           onPaymentComplete();
         } else {
+          console.error('Transaction failed:', receipt);
           setTransactionStatus('failed');
-          throw new Error("La transaction a échoué");
+          throw new Error("La transaction a échoué sur la blockchain");
         }
       } catch (txError: any) {
         console.error('Transaction error:', txError);
@@ -142,6 +160,17 @@ export function useEscrowPayment({
             variant: "destructive",
           });
           throw new Error("Fonds insuffisants dans votre portefeuille");
+        }
+        
+        // Vérifier si c'est une erreur de revert
+        if (txError.code === 'CALL_EXCEPTION') {
+          const reason = txError.reason || "La transaction a été rejetée par le contrat";
+          toast({
+            title: "Erreur de transaction",
+            description: reason,
+            variant: "destructive",
+          });
+          throw new Error(reason);
         }
         
         throw txError;
