@@ -119,6 +119,7 @@ export function useEscrowPayment({
         from: address as `0x${string}`,
         to: listing.user.wallet_address as `0x${string}`,
         value: parseEther(listing.crypto_amount.toString()),
+        kzg: undefined
       });
 
       console.log('Transaction sent:', hash);
