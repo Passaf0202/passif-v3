@@ -102,10 +102,24 @@ export const useEscrowContract = () => {
           throw switchError;
         }
       });
+
+      // Vérifier que nous sommes bien sur BSC Testnet
+      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+      if (chainId !== '0x61') {
+        throw new Error('Veuillez vous connecter au réseau BSC Testnet');
+      }
       
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      return new ethers.Contract(address, ESCROW_ABI, signer);
+      const contract = new ethers.Contract(address, ESCROW_ABI, signer);
+
+      // Vérifier que le contrat est déployé
+      const code = await provider.getCode(address);
+      if (code === '0x') {
+        throw new Error('Le contrat nest pas déployé à cette adresse');
+      }
+
+      return contract;
     } catch (error) {
       console.error('Error creating contract instance:', error);
       throw error;
