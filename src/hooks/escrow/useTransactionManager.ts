@@ -18,6 +18,16 @@ export const useTransactionManager = () => {
     contractAddress: string,
     chainId: number
   ) => {
+    console.log('Creating transaction:', {
+      listingId,
+      buyerId,
+      sellerId,
+      amount,
+      commission,
+      contractAddress,
+      chainId
+    });
+
     const { data, error: transactionError } = await supabase
       .from('transactions')
       .insert({
@@ -41,6 +51,7 @@ export const useTransactionManager = () => {
       throw new Error("Erreur lors de la création de la transaction");
     }
 
+    console.log('Transaction created:', data);
     return data;
   };
 
@@ -49,6 +60,12 @@ export const useTransactionManager = () => {
     status: 'pending' | 'processing' | 'completed' | 'failed',
     txHash?: string
   ) => {
+    console.log('Updating transaction status:', {
+      transactionId,
+      status,
+      txHash
+    });
+
     const updates: any = {
       status,
       updated_at: new Date().toISOString()
@@ -67,6 +84,8 @@ export const useTransactionManager = () => {
       console.error('Error updating transaction:', error);
       throw error;
     }
+
+    console.log('Transaction status updated successfully');
   };
 
   return {

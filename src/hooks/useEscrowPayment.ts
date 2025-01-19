@@ -2,6 +2,7 @@ import { useEscrowContract } from './escrow/useEscrowContract';
 import { useTransactionManager } from './escrow/useTransactionManager';
 import { supabase } from "@/integrations/supabase/client";
 import { parseEther } from "viem";
+import { useToast } from "@/components/ui/use-toast";
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -18,6 +19,7 @@ export function useEscrowPayment({
   onPaymentComplete 
 }: UseEscrowPaymentProps) {
   const { getContract } = useEscrowContract();
+  const { toast } = useToast();
   const {
     isProcessing,
     setIsProcessing,
@@ -117,6 +119,10 @@ export function useEscrowPayment({
       if (receipt.status === 1) {
         await updateTransactionStatus(transaction.id, 'processing', tx.hash);
         setTransactionStatus('confirmed');
+        toast({
+          title: "Transaction confirmée",
+          description: "Le paiement a été effectué avec succès",
+        });
         onPaymentComplete();
       } else {
         setTransactionStatus('failed');
@@ -127,6 +133,11 @@ export function useEscrowPayment({
       console.error('Payment error:', error);
       setError(error.message || "Une erreur est survenue lors du paiement");
       setTransactionStatus('failed');
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors du paiement",
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
     }
