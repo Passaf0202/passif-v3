@@ -77,12 +77,6 @@ export const useEscrowContract = () => {
     try {
       console.log('Creating contract instance for address:', address);
       
-      // Forcer la reconnexion à MetaMask
-      await window.ethereum.request({ 
-        method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: {} }]
-      });
-      
       // Forcer le changement de réseau vers BSC Testnet
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
@@ -108,20 +102,18 @@ export const useEscrowContract = () => {
         }
       });
 
-      // Récupérer les comptes connectés
-      const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
-      });
+      // Créer le provider et le signer
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       
+      // Demander l'accès aux comptes
+      const accounts = await provider.send("eth_requestAccounts", []);
       if (!accounts || accounts.length === 0) {
         throw new Error('Veuillez connecter votre portefeuille MetaMask');
       }
-
-      // Créer une nouvelle instance du provider et signer
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []); // Forcer la connexion
-      const signer = provider.getSigner();
       
+      const signer = provider.getSigner();
+      console.log('Connected account:', await signer.getAddress());
+
       // Vérifier que le contrat est déployé
       const code = await provider.getCode(address);
       if (code === '0x') {

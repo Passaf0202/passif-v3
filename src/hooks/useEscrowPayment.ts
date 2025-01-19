@@ -30,9 +30,7 @@ export function useEscrowPayment({
     updateTransactionStatus
   } = useTransactionManager();
 
-  const ensureValidAddress = (address: string): string => {
-    if (!address) throw new Error("Adresse invalide");
-    
+  const formatAddress = (address: string): string => {
     // Nettoyer l'adresse
     let cleanAddress = address.trim().toLowerCase();
     
@@ -88,47 +86,9 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      // Valider et formater l'adresse du vendeur
-      const sellerAddress = ensureValidAddress(listing.user.wallet_address);
-      console.log('Validated seller address:', sellerAddress);
-
-      // Récupérer le taux BNB actuel
-      const { data: cryptoRate } = await supabase
-        .from('crypto_rates')
-        .select('*')
-        .eq('symbol', 'BNB')
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (!cryptoRate) {
-        console.error('No active BNB rate found');
-        throw new Error("Impossible de récupérer le taux de conversion BNB");
-      }
-
-      // Calculer ou vérifier le montant en crypto
-      let cryptoAmount = listing.crypto_amount;
-      if (!cryptoAmount || typeof cryptoAmount !== 'number' || cryptoAmount <= 0) {
-        cryptoAmount = Number(listing.price) / cryptoRate.rate_eur;
-        console.log('Calculated new crypto amount:', {
-          price: listing.price,
-          rate: cryptoRate.rate_eur,
-          amount: cryptoAmount
-        });
-
-        // Mettre à jour l'annonce avec le nouveau montant
-        const { error: updateError } = await supabase
-          .from('listings')
-          .update({
-            crypto_amount: cryptoAmount,
-            crypto_currency: 'BNB'
-          })
-          .eq('id', listing.id);
-
-        if (updateError) {
-          console.error('Error updating listing with crypto amount:', updateError);
-          throw new Error("Erreur lors de la mise à jour du montant en crypto");
-        }
-      }
+      // Formater et valider l'adresse du vendeur
+      const sellerAddress = formatAddress(listing.user.wallet_address);
+      console.log('Formatted seller address:', sellerAddress);
 
       // Récupérer le contrat d'escrow actif
       const escrowContract = await getActiveContract();
@@ -138,7 +98,7 @@ export function useEscrowPayment({
       }
 
       console.log('Payment details:', {
-        amount: cryptoAmount,
+        amount: listing.crypto_amount,
         sellerAddress,
         escrowAddress: escrowContract.address,
         network: 'BSC Testnet',
@@ -150,7 +110,7 @@ export function useEscrowPayment({
         listingId,
         address,
         listing.user.id,
-        cryptoAmount,
+        listing.crypto_amount || 0,
         0,
         escrowContract.address,
         escrowContract.chain_id
@@ -164,35 +124,11 @@ export function useEscrowPayment({
       }
 
       try {
-        const amountInWei = parseEther(cryptoAmount.toString());
+        const amountInWei = parseEther(listing.crypto_amount?.toString() || "0");
         console.log('Amount in Wei:', amountInWei.toString());
 
-        // Vérifier la balance avant la transaction
-        const balance = await window.ethereum.request({
-          method: 'eth_getBalance',
-          params: [address, 'latest'],
-        });
-        
-        if (BigInt(balance) < BigInt(amountInWei.toString())) {
-          throw new Error("Fonds insuffisants dans votre portefeuille");
-        }
-
-        // Configuration spécifique pour BSC
-        const gasLimit = 200000;
-        const gasPrice = await window.ethereum.request({
-          method: 'eth_gasPrice'
-        });
-
-        // Envoyer la transaction avec l'adresse validée
-        const tx = await escrow.deposit(
-          sellerAddress,
-          { 
-            value: amountInWei,
-            gasLimit: gasLimit,
-            gasPrice: gasPrice
-          }
-        );
-
+        // Envoyer la transaction
+        const tx = await escrow.deposit(sellerAddress, { value: amountInWei });
         console.log('Transaction sent:', tx.hash);
         setTransactionStatus('pending');
         
@@ -218,16 +154,6 @@ export function useEscrowPayment({
         }
       } catch (txError: any) {
         console.error('Transaction error:', txError);
-        
-        if (txError.code === 'INSUFFICIENT_FUNDS') {
-          toast({
-            title: "Fonds insuffisants",
-            description: "Votre portefeuille ne contient pas assez de BNB pour effectuer cette transaction",
-            variant: "destructive",
-          });
-          throw new Error("Fonds insuffisants dans votre portefeuille");
-        }
-        
         throw txError;
       }
 
