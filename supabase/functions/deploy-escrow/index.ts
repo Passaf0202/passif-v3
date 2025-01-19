@@ -23,17 +23,32 @@ serve(async (req) => {
       throw new Error('Missing environment variables');
     }
 
-    // Ensure the private key starts with '0x'
-    if (!privateKey.startsWith('0x')) {
-      privateKey = `0x${privateKey}`;
+    // Remove any whitespace and normalize the private key
+    privateKey = privateKey.trim();
+
+    // Remove '0x' prefix if present
+    if (privateKey.startsWith('0x')) {
+      privateKey = privateKey.slice(2);
     }
 
-    // Validate private key format
+    // Validate that the private key is a 64-character hex string (32 bytes)
+    const privateKeyRegex = /^[0-9a-fA-F]{64}$/;
+    if (!privateKeyRegex.test(privateKey)) {
+      throw new Error('Invalid private key format. Must be a 64-character hexadecimal string');
+    }
+
+    // Add '0x' prefix back for ethers.js
+    privateKey = `0x${privateKey}`;
+
+    console.log('Private key format validated');
+
+    // Test wallet creation
     try {
-      new ethers.Wallet(privateKey);
+      const testWallet = new ethers.Wallet(privateKey);
+      console.log('Wallet address:', testWallet.address);
     } catch (error) {
-      console.error('Invalid private key format:', error);
-      throw new Error('Invalid private key format. Please ensure it is a valid 32-byte hexadecimal string');
+      console.error('Error creating wallet:', error);
+      throw new Error('Invalid private key: Unable to create wallet');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
