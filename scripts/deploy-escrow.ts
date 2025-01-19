@@ -15,14 +15,14 @@ async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deploying with account:", deployer.address);
 
-    // Déployer avec une adresse de test pour l'initialisation
+    // Deploy with a test address for initialization
     const escrow = await CryptoEscrow.deploy(deployer.address, { value: ethers.parseEther("0.01") });
     await escrow.waitForDeployment();
     
     const escrowAddress = await escrow.getAddress();
     console.log("CryptoEscrow deployed to:", escrowAddress);
 
-    // Désactiver tous les contrats existants
+    // Disable all existing contracts
     const { error: updateError } = await supabase
       .from('smart_contracts')
       .update({ is_active: false })
@@ -32,7 +32,7 @@ async function main() {
       console.error("Error updating existing contracts:", updateError);
     }
 
-    // Stocker la nouvelle adresse du contrat dans Supabase
+    // Store the new contract address in Supabase
     const { error } = await supabase
       .from('smart_contracts')
       .insert([

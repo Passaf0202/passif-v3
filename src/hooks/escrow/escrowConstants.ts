@@ -94,6 +94,14 @@ export const ESCROW_ABI = [
     "outputs": [{"name": "", "type": "uint256"}],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "fallback"
   }
 ];
 

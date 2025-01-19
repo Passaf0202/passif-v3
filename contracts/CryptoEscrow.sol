@@ -37,25 +37,19 @@ contract CryptoEscrow {
         emit FundsDeposited(buyer, seller, amount);
     }
 
+    // Add receive function to accept BNB
+    receive() external payable {}
+
+    // Add fallback function to accept BNB with data
+    fallback() external payable {}
+
     function deposit(address _seller) external payable {
         emit DepositAttempt(msg.sender, _seller, msg.value);
         
-        if (_seller == address(0)) {
-            emit DepositError("Invalid seller address");
-            revert("Invalid seller address");
-        }
-        if (_seller == msg.sender) {
-            emit DepositError("Seller cannot be buyer");
-            revert("Seller cannot be buyer");
-        }
-        if (msg.value == 0) {
-            emit DepositError("Amount must be greater than 0");
-            revert("Amount must be greater than 0");
-        }
-        if (amount > 0) {
-            emit DepositError("Funds already deposited");
-            revert("Funds already deposited");
-        }
+        require(_seller != address(0), "Invalid seller address");
+        require(_seller != msg.sender, "Seller cannot be buyer");
+        require(msg.value > 0, "Amount must be greater than 0");
+        require(amount == 0, "Funds already deposited");
         
         buyer = msg.sender;
         seller = _seller;
