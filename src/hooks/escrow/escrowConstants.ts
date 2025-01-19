@@ -1,5 +1,6 @@
 export const ESCROW_ABI = [
   "constructor(address _seller) payable",
+  "function deposit(address _seller) external payable",
   "function confirmTransaction() public",
   "function getStatus() public view returns (bool _buyerConfirmed, bool _sellerConfirmed, bool _fundsReleased)",
   "event FundsDeposited(address buyer, address seller, uint256 amount)",
