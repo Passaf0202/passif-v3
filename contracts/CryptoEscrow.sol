@@ -21,6 +21,14 @@ contract CryptoEscrow {
         emit FundsDeposited(buyer, seller, amount);
     }
 
+    function deposit(address _seller) external payable {
+        require(msg.value > 0, "Amount must be greater than 0");
+        buyer = msg.sender;
+        seller = _seller;
+        amount = msg.value;
+        emit FundsDeposited(buyer, seller, amount);
+    }
+
     function confirmTransaction() public {
         require(msg.sender == buyer || msg.sender == seller, "Not authorized");
         require(!fundsReleased, "Funds already released");

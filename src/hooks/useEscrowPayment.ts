@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 
 const ESCROW_ABI = [
   "constructor(address _seller) payable",
+  "function deposit(address _seller) external payable",
   "function confirmTransaction() public",
   "function getStatus() public view returns (bool, bool, bool)",
   "event FundsDeposited(address buyer, address seller, uint256 amount)",
@@ -117,7 +118,7 @@ export function useEscrowPayment({
           network: escrowContract.network
         })
         .select()
-        .maybeSingle();
+        .single();
 
       if (transactionError || !transaction) {
         console.error('Transaction creation error:', transactionError);

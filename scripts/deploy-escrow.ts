@@ -1,7 +1,6 @@
 import { ethers } from "hardhat";
 import { createClient } from "@supabase/supabase-js";
 
-// Créer le client Supabase avec les variables d'environnement
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -10,6 +9,16 @@ async function main() {
   try {
     console.log("Starting deployment to BSC Testnet...");
     
+    // Désactiver tous les contrats existants
+    const { error: updateError } = await supabase
+      .from('smart_contracts')
+      .update({ is_active: false })
+      .eq('name', 'Escrow');
+
+    if (updateError) {
+      console.error("Error updating existing contracts:", updateError);
+    }
+
     // Get the contract factory
     const CryptoEscrow = await ethers.getContractFactory("CryptoEscrow");
     console.log("Contract factory created");
@@ -18,7 +27,7 @@ async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deploying with account:", deployer.address);
 
-    // Deploy the contract with a dummy seller address (it will be set per transaction)
+    // Deploy the contract with a dummy seller address
     const escrow = await CryptoEscrow.deploy(deployer.address);
     await escrow.waitForDeployment();
     
