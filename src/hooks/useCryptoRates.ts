@@ -23,6 +23,11 @@ export function useCryptoRates() {
         throw error;
       }
 
+      if (!data || !Array.isArray(data)) {
+        console.error('Invalid crypto rates data:', data);
+        return [];
+      }
+
       console.log('Crypto rates fetched:', data);
       return data as CryptoRate[];
     },

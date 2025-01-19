@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useCurrencyStore } from "@/stores/currencyStore";
 
 export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
@@ -23,25 +22,34 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
         const data = await response.json();
         const rate = data[getCoinGeckoId(cryptoCurrency)][selectedCurrency.toLowerCase()];
         
+        if (!rate || typeof rate !== 'number' || rate <= 0) {
+          console.error('Invalid rate received:', rate);
+          return getFallbackRate(cryptoCurrency);
+        }
+        
         console.log('Rate response:', { rate, currency: cryptoCurrency });
         return rate;
       } catch (error) {
         console.error('Error in rate query:', error);
-        // Utiliser les taux de repli en cas d'erreur
         return getFallbackRate(cryptoCurrency);
       }
     },
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: 10000,
   });
 
   const calculateCryptoAmount = () => {
-    if (!price || !rateData) {
-      console.log('No price or rate available');
+    if (!price || typeof price !== 'number' || !rateData || typeof rateData !== 'number') {
+      console.log('Invalid price or rate:', { price, rateData });
       return null;
     }
 
     const targetCrypto = cryptoCurrency || 'BNB';
     const cryptoAmount = price / rateData;
+
+    if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
+      console.error('Invalid crypto amount calculated:', cryptoAmount);
+      return null;
+    }
 
     console.log(`Calculated ${targetCrypto} amount:`, {
       price,
@@ -58,7 +66,6 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
   return calculateCryptoAmount();
 };
 
-// Fonction helper pour obtenir l'ID CoinGecko
 function getCoinGeckoId(currency?: string): string {
   const mapping: Record<string, string> = {
     'BNB': 'binancecoin',
@@ -69,13 +76,12 @@ function getCoinGeckoId(currency?: string): string {
   return mapping[currency || 'BNB'] || 'binancecoin';
 }
 
-// Taux de repli en cas d'erreur d'API
 function getFallbackRate(currency?: string): number {
   const fallbackRates: Record<string, number> = {
-    'BNB': 250, // 1 BNB = 250 EUR
-    'ETH': 2500, // 1 ETH = 2500 EUR
-    'BTC': 40000, // 1 BTC = 40000 EUR
-    'SOL': 90, // 1 SOL = 90 EUR
+    'BNB': 250,
+    'ETH': 2500,
+    'BTC': 40000,
+    'SOL': 90,
   };
   return fallbackRates[currency || 'BNB'] || 250;
 }

@@ -62,8 +62,10 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      if (!listing.crypto_amount || listing.crypto_amount <= 0) {
-        throw new Error("Le montant en crypto n'est pas valide");
+      // Validation stricte du montant en crypto
+      if (!listing.crypto_amount || typeof listing.crypto_amount !== 'number' || listing.crypto_amount <= 0) {
+        console.error('Invalid crypto amount:', listing.crypto_amount);
+        throw new Error("Le montant en crypto n'est pas valide. Montant reçu: " + listing.crypto_amount);
       }
 
       // Récupérer le contrat d'escrow actif
@@ -84,7 +86,7 @@ export function useEscrowPayment({
         address,
         listing.user.id,
         listing.crypto_amount,
-        0, // Pas de commission pour les tests
+        0,
         escrowContract.address,
         escrowContract.chain_id
       );
@@ -94,12 +96,15 @@ export function useEscrowPayment({
       if (!escrow) throw new Error("Impossible d'initialiser le contrat");
 
       try {
-        // Envoyer la transaction avec un gas limit plus élevé
+        const amountInWei = parseEther(listing.crypto_amount.toString());
+        console.log('Amount in Wei:', amountInWei.toString());
+
+        // Envoyer la transaction
         const tx = await escrow.deposit(
           listing.user.wallet_address,
           { 
-            value: parseEther(listing.crypto_amount.toString()),
-            gasLimit: 500000 // Augmenter la limite de gas
+            value: amountInWei,
+            gasLimit: 500000
           }
         );
 
@@ -131,7 +136,7 @@ export function useEscrowPayment({
         if (txError.code === 'INSUFFICIENT_FUNDS') {
           toast({
             title: "Fonds insuffisants",
-            description: "Votre portefeuille ne contient pas assez de BNB pour effectuer cette transaction. Veuillez vous assurer d'avoir suffisamment de BNB pour couvrir le montant et les frais de transaction.",
+            description: "Votre portefeuille ne contient pas assez de BNB pour effectuer cette transaction",
             variant: "destructive",
           });
           throw new Error("Fonds insuffisants dans votre portefeuille");
