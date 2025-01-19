@@ -25,7 +25,6 @@ contract CryptoEscrow {
     }
 
     constructor(address _seller) payable {
-        require(msg.value > 0, "Amount must be greater than 0");
         require(_seller != address(0), "Invalid seller address");
         require(_seller != msg.sender, "Seller cannot be buyer");
         

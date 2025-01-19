@@ -72,12 +72,8 @@ export function useEscrowPayment({
         throw new Error("Le contrat d'escrow n'est pas disponible");
       }
 
-      // Calculer la commission (2% du montant)
-      const commission = Number(listing.crypto_amount) * 0.02;
-      const totalAmount = Number(listing.crypto_amount) + commission;
-
       console.log('Payment details:', {
-        amount: totalAmount,
+        amount: listing.crypto_amount,
         sellerAddress: listing.user.wallet_address,
         escrowAddress: escrowContract.address
       });
@@ -88,7 +84,7 @@ export function useEscrowPayment({
         address,
         listing.user.id,
         listing.crypto_amount,
-        commission,
+        0, // Pas de commission pour les tests
         escrowContract.address,
         escrowContract.chain_id
       );
@@ -98,10 +94,13 @@ export function useEscrowPayment({
       if (!escrow) throw new Error("Impossible d'initialiser le contrat");
 
       try {
-        // Envoyer la transaction
+        // Envoyer la transaction avec un gas limit plus élevé
         const tx = await escrow.deposit(
           listing.user.wallet_address,
-          { value: parseEther(totalAmount.toString()) }
+          { 
+            value: parseEther(listing.crypto_amount.toString()),
+            gasLimit: 500000 // Augmenter la limite de gas
+          }
         );
 
         console.log('Transaction sent:', tx.hash);
@@ -129,7 +128,6 @@ export function useEscrowPayment({
       } catch (txError: any) {
         console.error('Transaction error:', txError);
         
-        // Gérer spécifiquement l'erreur de fonds insuffisants
         if (txError.code === 'INSUFFICIENT_FUNDS') {
           toast({
             title: "Fonds insuffisants",
