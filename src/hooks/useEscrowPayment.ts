@@ -30,6 +30,11 @@ export function useEscrowPayment({
     updateTransactionStatus
   } = useTransactionManager();
 
+  const ensureHexPrefix = (address: string) => {
+    if (!address) return address;
+    return address.startsWith('0x') ? address : `0x${address}`;
+  };
+
   const handlePayment = async () => {
     if (!address) {
       setError("Veuillez connecter votre portefeuille pour continuer");
@@ -63,6 +68,10 @@ export function useEscrowPayment({
         console.error('No wallet address found for seller');
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
+
+      // S'assurer que l'adresse du vendeur a le préfixe 0x
+      const sellerAddress = ensureHexPrefix(listing.user.wallet_address);
+      console.log('Seller address with prefix:', sellerAddress);
 
       // Récupérer le taux BNB actuel
       const { data: cryptoRate } = await supabase
@@ -111,7 +120,7 @@ export function useEscrowPayment({
 
       console.log('Payment details:', {
         amount: cryptoAmount,
-        sellerAddress: listing.user.wallet_address,
+        sellerAddress,
         escrowAddress: escrowContract.address,
         network: 'BSC Testnet',
         chainId: escrowContract.chain_id
@@ -155,9 +164,9 @@ export function useEscrowPayment({
           method: 'eth_gasPrice'
         });
 
-        // Envoyer la transaction
+        // Envoyer la transaction avec l'adresse du vendeur correctement formatée
         const tx = await escrow.deposit(
-          listing.user.wallet_address,
+          sellerAddress,
           { 
             value: amountInWei,
             gasLimit: gasLimit,
