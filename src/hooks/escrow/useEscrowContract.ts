@@ -69,20 +69,25 @@ export const useEscrowContract = () => {
   };
 
   const getContract = async (address: string) => {
-    if (!walletClient || !window.ethereum) {
-      console.error('Wallet not connected');
-      return null;
+    if (!window.ethereum) {
+      console.error('MetaMask not installed');
+      throw new Error('Veuillez installer MetaMask pour continuer');
     }
-    
+
     try {
       console.log('Creating contract instance for address:', address);
+      
+      // Forcer la reconnexion à MetaMask
+      await window.ethereum.request({ 
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }]
+      });
       
       // Forcer le changement de réseau vers BSC Testnet
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: '0x61' }], // BSC Testnet chainId
       }).catch(async (switchError: any) => {
-        // Si le réseau n'existe pas, on l'ajoute
         if (switchError.code === 4902) {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
@@ -103,22 +108,30 @@ export const useEscrowContract = () => {
         }
       });
 
-      // Vérifier que nous sommes bien sur BSC Testnet
-      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      if (chainId !== '0x61') {
-        throw new Error('Veuillez vous connecter au réseau BSC Testnet');
-      }
+      // Récupérer les comptes connectés
+      const accounts = await window.ethereum.request({ 
+        method: 'eth_requestAccounts' 
+      });
       
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(address, ESCROW_ABI, signer);
+      if (!accounts || accounts.length === 0) {
+        throw new Error('Veuillez connecter votre portefeuille MetaMask');
+      }
 
+      // Créer une nouvelle instance du provider et signer
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []); // Forcer la connexion
+      const signer = provider.getSigner();
+      
       // Vérifier que le contrat est déployé
       const code = await provider.getCode(address);
       if (code === '0x') {
-        throw new Error('Le contrat nest pas déployé à cette adresse');
+        throw new Error('Le contrat n\'est pas déployé à cette adresse');
       }
 
+      // Créer l'instance du contrat
+      const contract = new ethers.Contract(address, ESCROW_ABI, signer);
+      console.log('Contract instance created successfully');
+      
       return contract;
     } catch (error) {
       console.error('Error creating contract instance:', error);
