@@ -53,7 +53,7 @@ export default function Payment() {
 
   const currentListing = listing || fetchedListing;
 
-  // Nouvelle query pour récupérer la transaction
+  // Updated query to get the most recent active transaction
   const { data: transaction } = useQuery({
     queryKey: ['transaction', id],
     queryFn: async () => {
@@ -61,12 +61,16 @@ export default function Payment() {
         .from('transactions')
         .select('*')
         .eq('listing_id', id)
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       
       if (error) {
-        console.log('No transaction found for this listing');
+        console.log('Error fetching transaction:', error);
         return null;
       }
+      
+      console.log('Latest transaction:', data);
       return data;
     },
     enabled: !!id
