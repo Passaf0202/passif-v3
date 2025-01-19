@@ -5,13 +5,12 @@ import { useCurrencyStore } from "@/stores/currencyStore";
 export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
   const { selectedCurrency } = useCurrencyStore();
 
-  const { data: rateData } = useQuery({
-    queryKey: ['crypto-rate', cryptoCurrency, selectedCurrency],
+  const { data: cryptoRates } = useQuery({
+    queryKey: ['crypto-rates'],
     queryFn: async () => {
       try {
-        console.log(`Fetching rate for ${cryptoCurrency} in ${selectedCurrency}`);
+        console.log(`Récupération du taux pour ${cryptoCurrency} en ${selectedCurrency}`);
         
-        // Récupérer le taux depuis la table crypto_rates
         const { data: rates, error } = await supabase
           .from('crypto_rates')
           .select('*')
@@ -22,48 +21,55 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
         if (error) throw error;
         
         if (!rates) {
-          console.error('No rate found for', cryptoCurrency);
+          console.error('Aucun taux trouvé pour', cryptoCurrency);
           return null;
         }
 
-        const rate = selectedCurrency === 'EUR' ? rates.rate_eur : 
-                    selectedCurrency === 'GBP' ? rates.rate_gbp : 
-                    rates.rate_usd;
-
-        console.log('Rate found:', { 
-          currency: cryptoCurrency,
-          selectedCurrency,
-          rate
-        });
-        
-        return rate;
+        console.log('Taux récupérés:', rates);
+        return rates;
       } catch (error) {
-        console.error('Error in rate query:', error);
+        console.error('Erreur lors de la récupération des taux:', error);
         return null;
       }
     },
-    refetchInterval: 10000, // Refresh every 10 seconds
+    enabled: !!cryptoCurrency,
+    refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
   });
 
   const calculateCryptoAmount = () => {
-    if (!price || !rateData) {
-      console.log('No price or rate available');
+    if (!price || !cryptoRates) {
+      console.log('Pas de prix ou de taux disponible');
       return null;
     }
 
-    const targetCrypto = cryptoCurrency || 'BNB';
-    // Diviser le prix en EUR par le taux pour obtenir le montant en crypto
-    const cryptoAmount = price / rateData;
+    // Sélectionner le bon taux selon la devise
+    let rate: number;
+    switch (selectedCurrency) {
+      case 'USD':
+        rate = Number(cryptoRates.rate_usd);
+        break;
+      case 'GBP':
+        rate = Number(cryptoRates.rate_gbp);
+        break;
+      default: // EUR
+        rate = Number(cryptoRates.rate_eur);
+        break;
+    }
 
-    console.log(`Calculated ${targetCrypto} amount:`, {
-      price,
-      rate: rateData,
-      amount: cryptoAmount
+    // Calculer le montant en crypto
+    const cryptoAmount = price / rate;
+
+    console.log('Calcul de la conversion:', {
+      prix: price,
+      devise: selectedCurrency,
+      taux: rate,
+      montantCrypto: cryptoAmount,
+      crypto: cryptoCurrency
     });
-    
+
     return {
       amount: cryptoAmount,
-      currency: targetCrypto
+      currency: cryptoCurrency || 'BNB'
     };
   };
 
