@@ -22,7 +22,7 @@ async function main() {
       .from('smart_contracts')
       .insert([
         {
-          name: 'CryptoEscrow',
+          name: 'Escrow', // Changed from 'CryptoEscrow' to 'Escrow' to match the query
           address: escrowAddress,
           network: 'bsc_testnet',
           chain_id: 97,

@@ -63,7 +63,7 @@ export function useEscrowPayment({
           )
         `)
         .eq('id', listingId)
-        .single();
+        .maybeSingle();
 
       if (listingError || !listing) {
         throw new Error("Impossible de récupérer les détails de l'annonce");
@@ -74,15 +74,20 @@ export function useEscrowPayment({
       }
 
       // Récupérer le contrat d'escrow actif
-      const { data: escrowContract } = await supabase
+      const { data: escrowContract, error: escrowError } = await supabase
         .from('smart_contracts')
         .select('*')
         .eq('name', 'Escrow')
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
+
+      if (escrowError) {
+        console.error('Error fetching escrow contract:', escrowError);
+        throw new Error("Erreur lors de la récupération du contrat d'escrow");
+      }
 
       if (!escrowContract) {
-        throw new Error("Le contrat d'escrow n'est pas disponible");
+        throw new Error("Le contrat d'escrow n'est pas disponible. Veuillez contacter le support.");
       }
 
       // Calculer la commission (2% du montant)
@@ -112,9 +117,9 @@ export function useEscrowPayment({
           network: escrowContract.network
         })
         .select()
-        .single();
+        .maybeSingle();
 
-      if (transactionError) {
+      if (transactionError || !transaction) {
         console.error('Transaction creation error:', transactionError);
         throw new Error("Erreur lors de la création de la transaction");
       }
