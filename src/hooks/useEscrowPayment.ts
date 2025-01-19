@@ -3,6 +3,16 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { parseEther } from "viem";
+import { ethers } from "ethers";
+
+const ESCROW_ABI = [
+  "constructor(address _seller) payable",
+  "function confirmTransaction() public",
+  "function getStatus() public view returns (bool, bool, bool)",
+  "event FundsDeposited(address buyer, address seller, uint256 amount)",
+  "event TransactionConfirmed(address confirmer)",
+  "event FundsReleased(address seller, uint256 amount)"
+];
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -68,6 +78,25 @@ export function useEscrowPayment({
 
       // Calculer la commission (2% du montant)
       const commission = Number(listing.crypto_amount) * 0.02;
+      const totalAmount = Number(listing.crypto_amount) + commission;
+
+      // Déployer le contrat d'escrow
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const escrowFactory = new ethers.ContractFactory(
+        ESCROW_ABI,
+        "0x...", // Bytecode will be added after contract deployment
+        signer
+      );
+
+      const escrowContract = await escrowFactory.deploy(
+        listing.user.wallet_address,
+        { value: parseEther(totalAmount.toString()) }
+      );
+
+      const deployTx = await escrowContract.waitForDeployment();
+      const escrowAddress = await escrowContract.getAddress();
+      console.log('Escrow contract deployed at:', escrowAddress);
 
       // Créer la transaction dans la base de données
       const { data: transaction, error: transactionError } = await supabase
@@ -80,7 +109,8 @@ export function useEscrowPayment({
           commission_amount: commission,
           token_symbol: listing.crypto_currency || 'BNB',
           status: 'pending',
-          escrow_status: 'pending'
+          escrow_status: 'pending',
+          smart_contract_address: escrowAddress
         })
         .select()
         .single();
@@ -90,35 +120,17 @@ export function useEscrowPayment({
         throw new Error("Erreur lors de la création de la transaction");
       }
 
-      // Envoyer la transaction
-      const hash = await walletClient.sendTransaction({
-        to: listing.user.wallet_address as `0x${string}`,
-        value: parseEther(listing.crypto_amount?.toString() || '0'),
-        from: address as `0x${string}`,
-        type: 'legacy' as const,
-        kzg: undefined,
-        account: address as `0x${string}`,
-        chain: undefined
-      });
+      const receipt = await deployTx.wait();
+      console.log('Transaction receipt:', receipt);
 
-      console.log('Transaction sent:', hash);
-      setCurrentHash(hash);
-      setTransactionStatus('pending');
-      onTransactionHash?.(hash);
-
-      // Attendre la confirmation
-      const receipt = await publicClient.waitForTransactionReceipt({ 
-        hash: hash as `0x${string}`,
-      });
-
-      if (receipt.status === 'success') {
+      if (receipt.status === 1) {
         // Mettre à jour la transaction pour indiquer que les fonds sont sécurisés
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
             funds_secured: true,
             funds_secured_at: new Date().toISOString(),
-            transaction_hash: hash,
+            transaction_hash: receipt.hash,
             status: 'processing'
           })
           .eq('id', transaction.id);
