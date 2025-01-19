@@ -5,6 +5,13 @@ export const ESCROW_ABI = [
     "type": "constructor"
   },
   {
+    "inputs": [{"name": "_seller", "type": "address"}],
+    "name": "deposit",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "confirmTransaction",
     "outputs": [],
