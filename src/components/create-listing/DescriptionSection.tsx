@@ -21,8 +21,8 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
   const [cryptoAmount, setCryptoAmount] = useState<number | null>(null);
 
   const handlePriceChange = (value: string) => {
+    console.log("Price changed:", value);
     setPrice(value);
-    // Convertir en string pour le formulaire
     form.setValue('price', value);
     
     if (selectedCrypto && cryptoRates) {
@@ -31,21 +31,37 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
   };
 
   const updateCryptoAmount = (priceValue: number, cryptoSymbol: string) => {
+    console.log("Updating crypto amount:", { priceValue, cryptoSymbol, selectedCurrency });
+    
     if (cryptoRates) {
       const selectedRate = cryptoRates.find(rate => rate.symbol === cryptoSymbol);
       if (selectedRate) {
+        console.log("Found rate:", selectedRate);
+        
         let cryptoAmount;
+        let rate;
+        
         switch (selectedCurrency) {
           case 'USD':
-            cryptoAmount = priceValue / selectedRate.rate_usd;
+            rate = selectedRate.rate_usd;
             break;
           case 'GBP':
-            cryptoAmount = priceValue / selectedRate.rate_gbp;
+            rate = selectedRate.rate_gbp;
             break;
           default: // EUR
-            cryptoAmount = priceValue / selectedRate.rate_eur;
+            rate = selectedRate.rate_eur;
             break;
         }
+        
+        // Si le prix est en devise, on divise par le taux pour obtenir le montant en crypto
+        cryptoAmount = priceValue / rate;
+        
+        console.log("Calculated crypto amount:", {
+          priceValue,
+          rate,
+          cryptoAmount,
+          currency: selectedCurrency
+        });
         
         setCryptoAmount(cryptoAmount);
         form.setValue('crypto_amount', cryptoAmount);
@@ -55,6 +71,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
   };
 
   const handleCryptoChange = (value: string) => {
+    console.log("Crypto changed:", value);
     setSelectedCrypto(value);
     if (price) {
       updateCryptoAmount(parseFloat(price) || 0, value);
@@ -63,6 +80,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
 
   useEffect(() => {
     if (price && selectedCrypto) {
+      console.log("Currency changed, updating amounts");
       updateCryptoAmount(parseFloat(price) || 0, selectedCrypto);
     }
   }, [selectedCurrency]);
