@@ -140,7 +140,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         </div>
 
         {!transaction.funds_secured && (
-          <Alert variant="warning">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               Le paiement n'a pas encore été effectué. Veuillez procéder au paiement avant de confirmer la réception.
