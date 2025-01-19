@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EscrowStatus } from "./EscrowStatus";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/components/ui/use-toast";
+import { Shield, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAccount } from 'wagmi';
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -10,55 +13,150 @@ interface EscrowDetailsProps {
 
 export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const [transaction, setTransaction] = useState<any>(null);
-  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { address } = useAccount();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchTransaction = async () => {
       const { data, error } = await supabase
-        .from("transactions")
-        .select("*, listings(*)")
-        .eq("id", transactionId)
-        .single();
+        .from('transactions')
+        .select(`
+          *,
+          buyer:profiles!transactions_buyer_id_fkey (
+            wallet_address
+          ),
+          seller:profiles!transactions_seller_id_fkey (
+            wallet_address
+          )
+        `)
+        .eq('id', transactionId)
+        .maybeSingle();
 
       if (error) {
-        console.error("Error fetching transaction:", error);
+        console.error('Error fetching transaction:', error);
         return;
       }
 
+      console.log('Transaction data:', data);
       setTransaction(data);
     };
 
     fetchTransaction();
+
+    // Souscrire aux changements de la transaction
+    const subscription = supabase
+      .channel('transaction_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions',
+          filter: `id=eq.${transactionId}`,
+        },
+        (payload) => {
+          console.log('Transaction updated:', payload);
+          setTransaction(payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [transactionId]);
 
-  if (!transaction || !user) return null;
+  const handleConfirmation = async () => {
+    if (!transaction || !address) return;
+
+    setIsLoading(true);
+    try {
+      const isBuyer = address.toLowerCase() === transaction.buyer.wallet_address?.toLowerCase();
+      const isSeller = address.toLowerCase() === transaction.seller.wallet_address?.toLowerCase();
+
+      if (!isBuyer && !isSeller) {
+        throw new Error("Vous n'êtes pas autorisé à confirmer cette transaction");
+      }
+
+      const { error } = await supabase
+        .from('transactions')
+        .update({
+          buyer_confirmation: isBuyer ? true : transaction.buyer_confirmation,
+          seller_confirmation: isSeller ? true : transaction.seller_confirmation,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', transactionId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Confirmation enregistrée",
+        description: "Votre confirmation a été prise en compte",
+      });
+    } catch (error: any) {
+      console.error('Error confirming transaction:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!transaction) {
+    return <div>Chargement...</div>;
+  }
+
+  const isBuyer = address?.toLowerCase() === transaction.buyer.wallet_address?.toLowerCase();
+  const isSeller = address?.toLowerCase() === transaction.seller.wallet_address?.toLowerCase();
+  const canConfirm = transaction.funds_secured && (isBuyer || isSeller);
+  const hasConfirmed = (isBuyer && transaction.buyer_confirmation) || 
+                      (isSeller && transaction.seller_confirmation);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Détails de la transaction</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          Système d'escrow
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="font-medium">Article</h3>
-          <p className="text-sm text-muted-foreground">
-            {transaction.listings.title}
-          </p>
-        </div>
+      <CardContent className="space-y-4">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Cette transaction est sécurisée par notre système d'escrow. Les fonds seront libérés une fois que l'acheteur et le vendeur auront confirmé la transaction.
+          </AlertDescription>
+        </Alert>
 
         <div className="space-y-2">
-          <h3 className="font-medium">Montant</h3>
-          <p className="text-sm text-muted-foreground">
-            {transaction.amount} {transaction.token_symbol}
-          </p>
+          <p>Statut : {transaction.escrow_status}</p>
+          <p>Fonds sécurisés : {transaction.funds_secured ? 'Oui' : 'Non'}</p>
+          <p>Confirmation acheteur : {transaction.buyer_confirmation ? 'Oui' : 'Non'}</p>
+          <p>Confirmation vendeur : {transaction.seller_confirmation ? 'Oui' : 'Non'}</p>
         </div>
 
-        <EscrowStatus
-          transactionId={transaction.id}
-          buyerId={transaction.buyer_id}
-          sellerId={transaction.seller_id}
-          currentUserId={user.id}
-        />
+        {!transaction.funds_secured && (
+          <Alert variant="warning">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Le paiement n'a pas encore été effectué. Veuillez procéder au paiement avant de confirmer la réception.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <Button 
+          onClick={handleConfirmation} 
+          disabled={!canConfirm || hasConfirmed || isLoading}
+          className="w-full"
+        >
+          {isLoading ? "En cours..." : 
+           hasConfirmed ? "Confirmation envoyée" : 
+           "Confirmer la réception"}
+        </Button>
       </CardContent>
     </Card>
   );

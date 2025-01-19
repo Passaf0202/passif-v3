@@ -11,23 +11,29 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
       try {
         console.log(`Fetching rate for ${cryptoCurrency} in ${selectedCurrency}`);
         
-        // Utiliser CoinGecko pour obtenir les taux
-        const response = await fetch(
-          `https://api.coingecko.com/api/v3/simple/price?ids=${getCoinGeckoId(cryptoCurrency)}&vs_currencies=${selectedCurrency.toLowerCase()}`
-        );
+        // Récupérer le taux depuis la table crypto_rates
+        const { data: rates, error } = await supabase
+          .from('crypto_rates')
+          .select('*')
+          .eq('symbol', cryptoCurrency || 'BNB')
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (error) throw error;
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch rates from CoinGecko');
+        if (!rates) {
+          console.log('Using fallback rate');
+          return getFallbackRate(cryptoCurrency);
         }
 
-        const data = await response.json();
-        const rate = data[getCoinGeckoId(cryptoCurrency)][selectedCurrency.toLowerCase()];
-        
+        const rate = selectedCurrency === 'EUR' ? rates.rate_eur : 
+                    selectedCurrency === 'GBP' ? rates.rate_gbp : 
+                    rates.rate_usd;
+
         console.log('Rate response:', { rate, currency: cryptoCurrency });
         return rate;
       } catch (error) {
         console.error('Error in rate query:', error);
-        // Utiliser les taux de repli en cas d'erreur
         return getFallbackRate(cryptoCurrency);
       }
     },
@@ -41,6 +47,7 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
     }
 
     const targetCrypto = cryptoCurrency || 'BNB';
+    // Diviser le prix en EUR par le taux pour obtenir le montant en crypto
     const cryptoAmount = price / rateData;
 
     console.log(`Calculated ${targetCrypto} amount:`, {
@@ -58,18 +65,6 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
   return calculateCryptoAmount();
 };
 
-// Fonction helper pour obtenir l'ID CoinGecko
-function getCoinGeckoId(currency?: string): string {
-  const mapping: Record<string, string> = {
-    'BNB': 'binancecoin',
-    'ETH': 'ethereum',
-    'BTC': 'bitcoin',
-    'SOL': 'solana',
-  };
-  return mapping[currency || 'BNB'] || 'binancecoin';
-}
-
-// Taux de repli en cas d'erreur d'API
 function getFallbackRate(currency?: string): number {
   const fallbackRates: Record<string, number> = {
     'BNB': 250, // 1 BNB = 250 EUR
