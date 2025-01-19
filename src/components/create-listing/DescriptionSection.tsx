@@ -31,8 +31,10 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
 
   const updateCryptoAmount = (priceValue: number, cryptoSymbol: string) => {
     if (cryptoRates) {
+      console.log("Updating crypto amount with:", { priceValue, cryptoSymbol, cryptoRates });
       const selectedRate = cryptoRates.find(rate => rate.symbol === cryptoSymbol);
       if (selectedRate) {
+        console.log("Found rate:", selectedRate);
         let cryptoAmount;
         switch (selectedCurrency) {
           case 'USD':
@@ -46,14 +48,20 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
             break;
         }
         
+        console.log("Calculated crypto amount:", cryptoAmount);
         setCryptoAmount(cryptoAmount);
         form.setValue('crypto_amount', cryptoAmount);
         form.setValue('crypto_currency', cryptoSymbol);
+      } else {
+        console.log("Rate not found for symbol:", cryptoSymbol);
       }
+    } else {
+      console.log("No crypto rates available");
     }
   };
 
   const handleCryptoChange = (value: string) => {
+    console.log("Selected crypto changed to:", value);
     setSelectedCrypto(value);
     if (price) {
       updateCryptoAmount(parseFloat(price) || 0, value);
@@ -97,7 +105,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
                   <FormLabel>Prix ({selectedCurrency})</FormLabel>
                   <FormControl>
                     <Input
-                      type="text"
+                      type="number"
                       placeholder={`Prix en ${selectedCurrency}`}
                       onChange={(e) => handlePriceChange(e.target.value)}
                       value={price}
@@ -114,7 +122,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cryptomonnaie</FormLabel>
-                  <Select onValueChange={handleCryptoChange}>
+                  <Select onValueChange={handleCryptoChange} value={selectedCrypto}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={
