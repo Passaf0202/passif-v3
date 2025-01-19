@@ -1,6 +1,7 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { CryptoPaymentForm } from "@/components/payment/CryptoPaymentForm";
+import { EscrowDetails } from "@/components/escrow/EscrowDetails";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -15,7 +16,6 @@ export default function Payment() {
   const listing = location.state?.listing;
   const returnUrl = location.state?.returnUrl;
 
-  // Fetch listing if not provided in location state
   const { data: fetchedListing, isLoading: isListingLoading } = useQuery({
     queryKey: ['listing', id],
     queryFn: async () => {
@@ -52,8 +52,26 @@ export default function Payment() {
   });
 
   const currentListing = listing || fetchedListing;
-  
-  // Afficher un état de chargement pendant la récupération des données
+
+  // Nouvelle query pour récupérer la transaction
+  const { data: transaction } = useQuery({
+    queryKey: ['transaction', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('listing_id', id)
+        .single();
+      
+      if (error) {
+        console.log('No transaction found for this listing');
+        return null;
+      }
+      return data;
+    },
+    enabled: !!id
+  });
+
   if (isListingLoading || isRatesLoading) {
     return (
       <div>
@@ -124,14 +142,18 @@ export default function Payment() {
     <div>
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <CryptoPaymentForm
-          listingId={currentListing.id}
-          title={currentListing.title}
-          price={currentListing.price}
-          cryptoAmount={currentListing.crypto_amount}
-          cryptoCurrency="BNB"
-          onPaymentComplete={handlePaymentComplete}
-        />
+        {transaction ? (
+          <EscrowDetails transactionId={transaction.id} />
+        ) : (
+          <CryptoPaymentForm
+            listingId={currentListing.id}
+            title={currentListing.title}
+            price={currentListing.price}
+            cryptoAmount={currentListing.crypto_amount}
+            cryptoCurrency="BNB"
+            onPaymentComplete={handlePaymentComplete}
+          />
+        )}
       </div>
     </div>
   );
