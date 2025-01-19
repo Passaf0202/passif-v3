@@ -1,34 +1,50 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
+import { Shield } from "lucide-react";
 
 interface EscrowAlertProps {
-  escrowError: {
-    available: string;
-    required: string;
-    missing: string;
-  };
-  onPayWithEscrowFees: () => void;
+  open: boolean;
+  onClose: () => void;
 }
 
-export function EscrowAlert({ escrowError, onPayWithEscrowFees }: EscrowAlertProps) {
+export function EscrowAlert({ open, onClose }: EscrowAlertProps) {
   return (
-    <Alert>
-      <Info className="h-4 w-4" />
-      <AlertDescription className="space-y-4">
-        <p>Le service d'escrow nécessite un rechargement. Vous pouvez :</p>
-        <ul className="list-disc pl-4 space-y-1">
-          <li>Attendre que le service soit rechargé (quelques heures)</li>
-          <li>Payer les frais d'escrow vous-même (+{escrowError.missing} ETH)</li>
-        </ul>
-        <Button 
-          variant="outline"
-          onClick={onPayWithEscrowFees}
-          className="w-full mt-2"
-        >
-          Payer avec les frais d'escrow
-        </Button>
-      </AlertDescription>
-    </Alert>
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle className="flex items-center">
+            <Shield className="mr-2 h-5 w-5" />
+            Paiement sécurisé via Escrow
+          </SheetTitle>
+          <SheetDescription className="space-y-4">
+            <p>
+              Le paiement sécurisé via Escrow fonctionne en plusieurs étapes :
+            </p>
+            <ol className="list-decimal pl-4 space-y-2">
+              <li>
+                Les fonds sont bloqués dans un contrat intelligent (smart contract)
+              </li>
+              <li>
+                Le vendeur est notifié et expédie l'article
+              </li>
+              <li>
+                À la réception, vous confirmez la réception et les fonds sont
+                automatiquement libérés
+              </li>
+            </ol>
+            <p className="text-sm text-muted-foreground mt-4">
+              En cas de litige, notre équipe peut intervenir pour résoudre la
+              situation.
+            </p>
+          </SheetDescription>
+        </SheetHeader>
+      </SheetContent>
+    </Sheet>
   );
 }
