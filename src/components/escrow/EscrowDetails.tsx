@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Shield, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAccount } from 'wagmi';
+import { CryptoPaymentForm } from "@/components/payment/CryptoPaymentForm";
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -13,13 +14,15 @@ interface EscrowDetailsProps {
 
 export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const [transaction, setTransaction] = useState<any>(null);
+  const [listing, setListing] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { address } = useAccount();
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchTransaction = async () => {
-      const { data, error } = await supabase
+    const fetchTransactionAndListing = async () => {
+      // Fetch transaction
+      const { data: transactionData, error: transactionError } = await supabase
         .from('transactions')
         .select(`
           *,
@@ -28,21 +31,25 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           ),
           seller:profiles!transactions_seller_id_fkey (
             wallet_address
+          ),
+          listing:listings!transactions_listing_id_fkey (
+            *
           )
         `)
         .eq('id', transactionId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching transaction:', error);
+      if (transactionError) {
+        console.error('Error fetching transaction:', transactionError);
         return;
       }
 
-      console.log('Transaction data:', data);
-      setTransaction(data);
+      console.log('Transaction data:', transactionData);
+      setTransaction(transactionData);
+      setListing(transactionData.listing);
     };
 
-    fetchTransaction();
+    fetchTransactionAndListing();
 
     // Souscrire aux changements de la transaction
     const subscription = supabase
@@ -106,7 +113,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     }
   };
 
-  if (!transaction) {
+  if (!transaction || !listing) {
     return <div>Chargement...</div>;
   }
 
@@ -139,24 +146,42 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           <p>Confirmation vendeur : {transaction.seller_confirmation ? 'Oui' : 'Non'}</p>
         </div>
 
-        {!transaction.funds_secured && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Le paiement n'a pas encore été effectué. Veuillez procéder au paiement avant de confirmer la réception.
-            </AlertDescription>
-          </Alert>
+        {!transaction.funds_secured ? (
+          <>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Le paiement n'a pas encore été effectué. Veuillez procéder au paiement avant de confirmer la réception.
+              </AlertDescription>
+            </Alert>
+            
+            {isBuyer && (
+              <CryptoPaymentForm
+                listingId={listing.id}
+                title={listing.title}
+                price={listing.price}
+                cryptoAmount={listing.crypto_amount}
+                cryptoCurrency={listing.crypto_currency}
+                onPaymentComplete={() => {
+                  toast({
+                    title: "Paiement effectué",
+                    description: "Les fonds ont été sécurisés avec succès",
+                  });
+                }}
+              />
+            )}
+          </>
+        ) : (
+          <Button 
+            onClick={handleConfirmation} 
+            disabled={!canConfirm || hasConfirmed || isLoading}
+            className="w-full"
+          >
+            {isLoading ? "En cours..." : 
+             hasConfirmed ? "Confirmation envoyée" : 
+             "Confirmer la réception"}
+          </Button>
         )}
-
-        <Button 
-          onClick={handleConfirmation} 
-          disabled={!canConfirm || hasConfirmed || isLoading}
-          className="w-full"
-        >
-          {isLoading ? "En cours..." : 
-           hasConfirmed ? "Confirmation envoyée" : 
-           "Confirmer la réception"}
-        </Button>
       </CardContent>
     </Card>
   );
