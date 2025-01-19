@@ -4,6 +4,7 @@ import { validateAndUpdateCryptoAmount } from './useCryptoAmount';
 import { supabase } from "@/integrations/supabase/client";
 import { parseEther } from "viem";
 import { useToast } from "@/components/ui/use-toast";
+import { ethers } from 'ethers';
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -80,18 +81,12 @@ export function useEscrowPayment({
         console.log('Amount in Wei:', amountInWei.toString());
 
         // Vérifier le solde avant la transaction
-        const balance = await window.ethereum.request({
-          method: 'eth_getBalance',
-          params: [address, 'latest'],
-        });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const balance = await provider.getBalance(address);
         
-        if (BigInt(balance) < BigInt(amountInWei.toString())) {
+        if (balance.lt(amountInWei)) {
           throw new Error("Fonds insuffisants dans votre portefeuille");
         }
-
-        // Obtenir l'instance du contrat
-        const escrow = await getContract(escrowContract.address);
-        if (!escrow) throw new Error("Impossible d'initialiser le contrat");
 
         // Créer la transaction dans la base de données
         const transaction = await createTransaction(
@@ -104,35 +99,47 @@ export function useEscrowPayment({
           escrowContract.chain_id
         );
 
-        // Envoyer la transaction
-        console.log('Sending transaction with parameters:', {
+        // Déployer un nouveau contrat d'escrow pour cette transaction
+        const factory = new ethers.ContractFactory(
+          escrowContract.abi,
+          escrowContract.bytecode,
+          provider.getSigner()
+        );
+
+        console.log('Deploying new escrow contract with params:', {
           seller: validatedListing.user.wallet_address,
           value: amountInWei.toString()
         });
 
-        const tx = await escrow.constructor(validatedListing.user.wallet_address, {
-          value: amountInWei
-        });
+        const escrow = await factory.deploy(
+          validatedListing.user.wallet_address,
+          { value: amountInWei }
+        );
 
-        console.log('Transaction sent:', tx.hash);
+        console.log('Waiting for deployment transaction:', escrow.deployTransaction.hash);
         setTransactionStatus('pending');
         
         if (onTransactionHash) {
-          onTransactionHash(tx.hash);
+          onTransactionHash(escrow.deployTransaction.hash);
         }
 
-        const receipt = await tx.wait();
-        console.log('Transaction receipt:', receipt);
+        const receipt = await escrow.deployTransaction.wait();
+        console.log('Deployment receipt:', receipt);
 
         if (receipt.status === 1) {
-          await updateTransactionStatus(transaction.id, 'processing', tx.hash);
+          await updateTransactionStatus(
+            transaction.id, 
+            'processing', 
+            escrow.deployTransaction.hash
+          );
           
           // Mettre à jour le statut des fonds comme sécurisés
           await supabase
             .from('transactions')
             .update({
               funds_secured: true,
-              funds_secured_at: new Date().toISOString()
+              funds_secured_at: new Date().toISOString(),
+              smart_contract_address: escrow.address
             })
             .eq('id', transaction.id);
 
@@ -143,8 +150,6 @@ export function useEscrowPayment({
           });
           onPaymentComplete();
         } else {
-          console.error('Transaction failed:', receipt);
-          setTransactionStatus('failed');
           throw new Error("La transaction a échoué sur la blockchain");
         }
       } catch (txError: any) {
