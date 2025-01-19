@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { parseEther } from "viem";
@@ -66,28 +66,11 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      // Créer la transaction
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-coinbase-payment', {
-        body: {
-          listingId,
-          buyerAddress: address,
-          sellerAddress: listing.user.wallet_address,
-          amount: listing.price.toString(),
-          cryptoCurrency: 'ETH'
-        }
-      });
-
-      if (paymentError) {
-        console.error('Error creating payment:', paymentError);
-        throw new Error("Impossible de créer la transaction de paiement");
-      }
-
       // Envoyer la transaction
       const hash = await walletClient.sendTransaction({
         to: listing.user.wallet_address as `0x${string}`,
         value: parseEther(listing.crypto_amount?.toString() || '0'),
-        account: address as `0x${string}`,
-        chain: mainnet,
+        from: address as `0x${string}`,
       });
 
       console.log('Transaction sent:', hash);
