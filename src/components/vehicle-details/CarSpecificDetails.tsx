@@ -10,12 +10,15 @@ interface CarSpecificDetailsProps {
 export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarSpecificDetailsProps) {
   const renderSelectItems = (values: string[]) => {
     return values
-      .filter(value => value && value.trim() !== '') // Filtrer les valeurs vides
-      .map((value) => (
-        <SelectItem key={value} value={value}>
-          {value}
-        </SelectItem>
-      ));
+      .filter(value => value && value.trim() !== '') // Filter out empty or whitespace-only values
+      .map((value) => {
+        const trimmedValue = value.trim();
+        return (
+          <SelectItem key={trimmedValue} value={trimmedValue}>
+            {trimmedValue}
+          </SelectItem>
+        );
+      });
   };
 
   return (
