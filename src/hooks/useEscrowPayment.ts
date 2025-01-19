@@ -64,6 +64,11 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
+      if (!listing.crypto_amount) {
+        console.error('No crypto amount found for listing');
+        throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
+      }
+
       // Récupérer le contrat actif
       const { data: activeContract } = await supabase
         .from('smart_contracts')
