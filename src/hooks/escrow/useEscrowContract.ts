@@ -6,7 +6,7 @@ const ESCROW_ABI = [
   "constructor(address _seller) payable",
   "function deposit(address _seller) external payable",
   "function confirmTransaction() public",
-  "function getStatus() public view returns (bool, bool, bool)",
+  "function getStatus() public view returns (bool, bool, bool, bool)",
   "event FundsDeposited(address buyer, address seller, uint256 amount)",
   "event TransactionConfirmed(address confirmer)",
   "event FundsReleased(address seller, uint256 amount)"
@@ -19,28 +19,50 @@ export const useEscrowContract = () => {
   const getActiveContract = async () => {
     try {
       console.log('Fetching active contract...');
-      const { data: contract, error } = await supabase
+      const { data, error } = await supabase
         .from('smart_contracts')
         .select('*')
         .eq('name', 'Escrow')
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching active contract:', error);
         throw error;
       }
 
-      if (!contract) {
+      if (!data) {
         console.error('No active contract found');
-        throw new Error('No active contract found');
+        // Appeler la fonction de déploiement
+        const { data: deployResponse, error: deployError } = await supabase.functions.invoke('deploy-escrow');
+        
+        if (deployError) {
+          console.error('Error deploying contract:', deployError);
+          throw deployError;
+        }
+
+        // Récupérer le contrat nouvellement déployé
+        const { data: newContract, error: fetchError } = await supabase
+          .from('smart_contracts')
+          .select('*')
+          .eq('name', 'Escrow')
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (fetchError || !newContract) {
+          console.error('Error fetching newly deployed contract:', fetchError);
+          throw new Error('Failed to fetch newly deployed contract');
+        }
+
+        console.log('New contract deployed and fetched:', newContract);
+        return newContract;
       }
 
-      console.log('Active contract found:', contract);
-      return contract;
+      console.log('Active contract found:', data);
+      return data;
     } catch (error) {
       console.error('Error in getActiveContract:', error);
-      return null;
+      throw error;
     }
   };
 
@@ -57,7 +79,7 @@ export const useEscrowContract = () => {
       return new ethers.Contract(address, ESCROW_ABI, signer);
     } catch (error) {
       console.error('Error creating contract instance:', error);
-      return null;
+      throw error;
     }
   };
 

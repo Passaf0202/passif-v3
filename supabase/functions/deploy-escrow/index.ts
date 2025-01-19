@@ -43,7 +43,7 @@ serve(async (req) => {
 
     const factory = new ethers.ContractFactory(escrowAbi, bytecode, wallet);
     
-    // Déployer avec une adresse temporaire et un petit montant pour l'initialisation
+    // Déployer avec une adresse de test pour l'initialisation
     const escrow = await factory.deploy(wallet.address, { value: ethers.utils.parseEther("0.01") });
     await escrow.deployed();
 
