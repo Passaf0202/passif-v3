@@ -71,7 +71,8 @@ export function useEscrowPayment({
         value: parseEther(listing.crypto_amount?.toString() || '0'),
         from: address as `0x${string}`,
         type: 'legacy' as const,
-        kzg: undefined
+        kzg: undefined,
+        account: address as `0x${string}`
       });
 
       console.log('Transaction sent:', hash);
