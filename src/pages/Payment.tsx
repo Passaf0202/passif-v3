@@ -57,16 +57,18 @@ export default function Payment() {
   const { data: transaction } = useQuery({
     queryKey: ['transaction', id],
     queryFn: async () => {
+      console.log('Fetching transaction for listing:', id);
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
         .eq('listing_id', id)
-        .single();
+        .maybeSingle();
       
       if (error) {
-        console.log('No transaction found for this listing');
+        console.error('Error fetching transaction:', error);
         return null;
       }
+      console.log('Transaction data:', data);
       return data;
     },
     enabled: !!id
