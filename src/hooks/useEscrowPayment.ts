@@ -51,7 +51,8 @@ export function useEscrowPayment({
         .select(`
           *,
           user:profiles!listings_user_id_fkey (
-            wallet_address
+            wallet_address,
+            id
           )
         `)
         .eq('id', listingId)
@@ -87,11 +88,26 @@ export function useEscrowPayment({
       });
 
       if (receipt.status === 'success') {
+        // Mettre à jour la transaction pour indiquer que les fonds sont sécurisés
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            funds_secured: true,
+            funds_secured_at: new Date().toISOString(),
+            transaction_hash: hash
+          })
+          .eq('listing_id', listingId);
+
+        if (updateError) {
+          console.error('Error updating transaction:', updateError);
+          throw new Error("Erreur lors de la mise à jour de la transaction");
+        }
+
         setTransactionStatus('confirmed');
         onPaymentComplete();
         toast({
           title: "Succès",
-          description: "Le paiement a été effectué avec succès",
+          description: "Le paiement a été effectué et les fonds sont sécurisés",
         });
       } else {
         setTransactionStatus('failed');

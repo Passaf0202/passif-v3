@@ -365,6 +365,8 @@ export type Database = {
           dispute_status: string | null
           escrow_release_time: string | null
           escrow_status: string | null
+          funds_secured: boolean | null
+          funds_secured_at: string | null
           id: string
           listing_id: string | null
           network: string | null
@@ -388,6 +390,8 @@ export type Database = {
           dispute_status?: string | null
           escrow_release_time?: string | null
           escrow_status?: string | null
+          funds_secured?: boolean | null
+          funds_secured_at?: string | null
           id?: string
           listing_id?: string | null
           network?: string | null
@@ -411,6 +415,8 @@ export type Database = {
           dispute_status?: string | null
           escrow_release_time?: string | null
           escrow_status?: string | null
+          funds_secured?: boolean | null
+          funds_secured_at?: string | null
           id?: string
           listing_id?: string | null
           network?: string | null

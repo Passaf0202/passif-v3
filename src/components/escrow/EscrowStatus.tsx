@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, AlertTriangle, Check, Loader2 } from "lucide-react";
+import { Shield, AlertTriangle, Check, Loader2, Lock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,6 +16,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
   const [status, setStatus] = useState<string>("pending");
   const [isLoading, setIsLoading] = useState(false);
   const [hasConfirmed, setHasConfirmed] = useState(false);
+  const [fundsSecured, setFundsSecured] = useState(false);
   const { toast } = useToast();
 
   const isUserBuyer = currentUserId === buyerId;
@@ -24,7 +25,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
     const fetchTransactionStatus = async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select("escrow_status, buyer_confirmation, seller_confirmation")
+        .select("escrow_status, buyer_confirmation, seller_confirmation, funds_secured")
         .eq("id", transactionId)
         .single();
 
@@ -37,6 +38,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
       setHasConfirmed(
         isUserBuyer ? data.buyer_confirmation : data.seller_confirmation
       );
+      setFundsSecured(data.funds_secured);
     };
 
     fetchTransactionStatus();
@@ -60,6 +62,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
               ? payload.new.buyer_confirmation
               : payload.new.seller_confirmation
           );
+          setFundsSecured(payload.new.funds_secured);
         }
       )
       .subscribe();
@@ -73,6 +76,16 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
     try {
       setIsLoading(true);
       console.log("Sending confirmation for transaction:", transactionId);
+
+      // Si c'est le vendeur qui confirme, vérifier que les fonds sont sécurisés
+      if (!isUserBuyer && !fundsSecured) {
+        toast({
+          title: "Action impossible",
+          description: "Les fonds de l'acheteur doivent d'abord être sécurisés",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const { data, error } = await supabase.functions.invoke('release-escrow', {
         body: {
@@ -126,10 +139,19 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
         </AlertDescription>
       </Alert>
 
+      {!fundsSecured && !isUserBuyer && (
+        <Alert variant="destructive">
+          <Lock className="h-4 w-4" />
+          <AlertDescription>
+            En attente de la sécurisation des fonds par l'acheteur
+          </AlertDescription>
+        </Alert>
+      )}
+
       {status === "pending" && !hasConfirmed && (
         <Button
           onClick={handleConfirmation}
-          disabled={isLoading}
+          disabled={isLoading || (!isUserBuyer && !fundsSecured)}
           className="w-full"
         >
           {isLoading ? (
