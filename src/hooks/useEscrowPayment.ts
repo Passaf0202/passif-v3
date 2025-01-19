@@ -66,6 +66,9 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
+      // Calculer la commission (2% du montant)
+      const commission = Number(listing.crypto_amount) * 0.02;
+
       // Créer la transaction dans la base de données
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
@@ -74,6 +77,7 @@ export function useEscrowPayment({
           buyer_id: address,
           seller_id: listing.user.id,
           amount: listing.crypto_amount,
+          commission_amount: commission,
           token_symbol: listing.crypto_currency || 'BNB',
           status: 'pending',
           escrow_status: 'pending'
@@ -82,6 +86,7 @@ export function useEscrowPayment({
         .single();
 
       if (transactionError) {
+        console.error('Transaction creation error:', transactionError);
         throw new Error("Erreur lors de la création de la transaction");
       }
 
