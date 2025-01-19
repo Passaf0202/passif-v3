@@ -17,35 +17,38 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    let privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY');
+    const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY');
 
     if (!supabaseUrl || !supabaseKey || !privateKey) {
       throw new Error('Missing environment variables');
     }
 
-    // Remove any whitespace and normalize the private key
-    privateKey = privateKey.trim();
-
+    console.log('Validating private key format...');
+    
+    // Clean and normalize the private key
+    let cleanPrivateKey = privateKey.trim();
+    
     // Remove '0x' prefix if present
-    if (privateKey.startsWith('0x')) {
-      privateKey = privateKey.slice(2);
+    if (cleanPrivateKey.startsWith('0x')) {
+      cleanPrivateKey = cleanPrivateKey.slice(2);
     }
 
-    // Validate that the private key is a 64-character hex string (32 bytes)
-    const privateKeyRegex = /^[0-9a-fA-F]{64}$/;
-    if (!privateKeyRegex.test(privateKey)) {
+    console.log('Private key length:', cleanPrivateKey.length);
+    console.log('Private key format:', cleanPrivateKey.match(/^[0-9a-fA-F]+$/) ? 'Valid hex' : 'Invalid hex');
+
+    // Validate hex format and length
+    if (!cleanPrivateKey.match(/^[0-9a-fA-F]{64}$/)) {
       throw new Error('Invalid private key format. Must be a 64-character hexadecimal string');
     }
 
-    // Add '0x' prefix back for ethers.js
-    privateKey = `0x${privateKey}`;
-
-    console.log('Private key format validated');
+    // Add '0x' prefix for ethers.js
+    const formattedPrivateKey = `0x${cleanPrivateKey}`;
 
     // Test wallet creation
+    let wallet;
     try {
-      const testWallet = new ethers.Wallet(privateKey);
-      console.log('Wallet address:', testWallet.address);
+      wallet = new ethers.Wallet(formattedPrivateKey);
+      console.log('Wallet created successfully. Address:', wallet.address);
     } catch (error) {
       console.error('Error creating wallet:', error);
       throw new Error('Invalid private key: Unable to create wallet');
@@ -55,9 +58,9 @@ serve(async (req) => {
 
     // BSC Testnet provider
     const provider = new ethers.providers.JsonRpcProvider('https://data-seed-prebsc-1-s1.binance.org:8545/');
-    const wallet = new ethers.Wallet(privateKey, provider);
+    wallet = wallet.connect(provider);
 
-    console.log('Wallet address:', wallet.address);
+    console.log('Connected wallet to BSC Testnet');
 
     const escrowAbi = [
       "constructor(address _seller) payable",
@@ -73,7 +76,6 @@ serve(async (req) => {
 
     const factory = new ethers.ContractFactory(escrowAbi, bytecode, wallet);
     
-    // Déployer avec une adresse de test pour l'initialisation
     console.log('Deploying contract with initial value...');
     const escrow = await factory.deploy(wallet.address, { value: ethers.utils.parseEther("0.01") });
     await escrow.deployed();
