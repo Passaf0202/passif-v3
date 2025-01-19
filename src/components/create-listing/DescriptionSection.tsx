@@ -8,7 +8,6 @@ import { UseFormReturn } from "react-hook-form";
 import { useCryptoRates } from "@/hooks/useCryptoRates";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { Loader2 } from "lucide-react";
-import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 
 interface DescriptionSectionProps {
   form: UseFormReturn<any>;
@@ -19,30 +18,54 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
   const { selectedCurrency } = useCurrencyStore();
   const [price, setPrice] = useState<string>("");
   const [selectedCrypto, setSelectedCrypto] = useState<string>("");
-
-  const cryptoConversion = useCryptoConversion(
-    parseFloat(price) || 0,
-    selectedCrypto
-  );
+  const [cryptoAmount, setCryptoAmount] = useState<number | null>(null);
 
   const handlePriceChange = (value: string) => {
-    console.log("Prix saisi:", value);
     setPrice(value);
+    // Convertir en string pour le formulaire
     form.setValue('price', value);
+    
+    if (selectedCrypto && cryptoRates) {
+      updateCryptoAmount(parseFloat(value) || 0, selectedCrypto);
+    }
+  };
+
+  const updateCryptoAmount = (priceValue: number, cryptoSymbol: string) => {
+    if (cryptoRates) {
+      const selectedRate = cryptoRates.find(rate => rate.symbol === cryptoSymbol);
+      if (selectedRate) {
+        let cryptoAmount;
+        switch (selectedCurrency) {
+          case 'USD':
+            cryptoAmount = priceValue / selectedRate.rate_usd;
+            break;
+          case 'GBP':
+            cryptoAmount = priceValue / selectedRate.rate_gbp;
+            break;
+          default: // EUR
+            cryptoAmount = priceValue / selectedRate.rate_eur;
+            break;
+        }
+        
+        setCryptoAmount(cryptoAmount);
+        form.setValue('crypto_amount', cryptoAmount);
+        form.setValue('crypto_currency', cryptoSymbol);
+      }
+    }
   };
 
   const handleCryptoChange = (value: string) => {
-    console.log("Crypto sélectionnée:", value);
     setSelectedCrypto(value);
+    if (price) {
+      updateCryptoAmount(parseFloat(price) || 0, value);
+    }
   };
 
   useEffect(() => {
-    if (cryptoConversion) {
-      console.log("Mise à jour des valeurs du formulaire:", cryptoConversion);
-      form.setValue('crypto_amount', cryptoConversion.amount);
-      form.setValue('crypto_currency', cryptoConversion.currency);
+    if (price && selectedCrypto) {
+      updateCryptoAmount(parseFloat(price) || 0, selectedCrypto);
     }
-  }, [cryptoConversion, form]);
+  }, [selectedCurrency]);
 
   return (
     <Card>
@@ -116,9 +139,9 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
                       )}
                     </SelectContent>
                   </Select>
-                  {cryptoConversion && (
+                  {cryptoAmount && selectedCrypto && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      ≈ {cryptoConversion.amount.toFixed(8)} {cryptoConversion.currency}
+                      ≈ {cryptoAmount.toFixed(8)} {selectedCrypto}
                     </p>
                   )}
                   <FormMessage />

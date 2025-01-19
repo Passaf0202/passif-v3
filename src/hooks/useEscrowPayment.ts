@@ -3,7 +3,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { parseEther } from "viem";
-import { bsc } from 'viem/chains';
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -27,8 +26,8 @@ export function useEscrowPayment({
   const [currentHash, setCurrentHash] = useState<string | null>(null);
   
   const { toast } = useToast();
-  const publicClient = usePublicClient({ chainId: bsc.id });
-  const { data: walletClient } = useWalletClient({ chainId: bsc.id });
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
 
   const handlePayment = async () => {
     if (!address || !walletClient) {
@@ -45,17 +44,6 @@ export function useEscrowPayment({
       setError(null);
       setEscrowError(null);
       console.log('Starting payment process for listing:', listingId);
-
-      // Get the user's profile ID first
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('wallet_address', address)
-        .maybeSingle();
-
-      if (profileError || !profile) {
-        throw new Error("Impossible de récupérer votre profil");
-      }
 
       // Récupérer les détails de l'annonce et du vendeur
       const { data: listing, error: listingError } = await supabase
@@ -78,26 +66,17 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      if (!listing.crypto_amount || !listing.crypto_currency) {
-        throw new Error("Les détails de paiement en crypto ne sont pas disponibles");
-      }
-
-      // Calculer la commission (2% du montant)
-      const commission = listing.crypto_amount * 0.02;
-
       // Créer la transaction dans la base de données
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
         .insert({
           listing_id: listingId,
-          buyer_id: profile.id,
+          buyer_id: address,
           seller_id: listing.user.id,
           amount: listing.crypto_amount,
-          commission_amount: commission,
-          token_symbol: listing.crypto_currency,
+          token_symbol: listing.crypto_currency || 'BNB',
           status: 'pending',
-          escrow_status: 'pending',
-          chain_id: bsc.id
+          escrow_status: 'pending'
         })
         .select()
         .single();
@@ -106,22 +85,15 @@ export function useEscrowPayment({
         throw new Error("Erreur lors de la création de la transaction");
       }
 
-      console.log('Sending transaction with details:', {
-        from: address,
-        to: listing.user.wallet_address,
-        value: listing.crypto_amount,
-        currency: listing.crypto_currency,
-        chainId: bsc.id
-      });
-
-      // Envoyer la transaction sur BSC
+      // Envoyer la transaction
       const hash = await walletClient.sendTransaction({
-        account: address as `0x${string}`,
-        from: address as `0x${string}`,
         to: listing.user.wallet_address as `0x${string}`,
-        value: parseEther(listing.crypto_amount.toString()),
-        chain: undefined,
-        kzg: undefined
+        value: parseEther(listing.crypto_amount?.toString() || '0'),
+        from: address as `0x${string}`,
+        type: 'legacy' as const,
+        kzg: undefined,
+        account: address as `0x${string}`,
+        chain: undefined
       });
 
       console.log('Transaction sent:', hash);
