@@ -8,7 +8,6 @@ interface UseEscrowPaymentProps {
   listingId: string;
   address?: string;
   onTransactionHash?: (hash: string) => void;
-  onConfirmation?: (confirmations: number) => void;
   onPaymentComplete: () => void;
 }
 
@@ -18,7 +17,7 @@ export function useEscrowPayment({
   onTransactionHash,
   onPaymentComplete 
 }: UseEscrowPaymentProps) {
-  const { getContract } = useEscrowContract();
+  const { getContract, getActiveContract } = useEscrowContract();
   const { toast } = useToast();
   const {
     isProcessing,
@@ -64,14 +63,8 @@ export function useEscrowPayment({
       }
 
       // Récupérer le contrat d'escrow actif
-      const { data: escrowContract, error: escrowError } = await supabase
-        .from('smart_contracts')
-        .select('*')
-        .eq('name', 'Escrow')
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (escrowError || !escrowContract) {
+      const escrowContract = await getActiveContract();
+      if (!escrowContract) {
         throw new Error("Le contrat d'escrow n'est pas disponible");
       }
 
