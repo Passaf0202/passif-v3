@@ -1,8 +1,8 @@
 import { useEscrowContract } from './escrow/useEscrowContract';
 import { useTransactionManager } from './escrow/useTransactionManager';
 import { supabase } from "@/integrations/supabase/client";
-import { parseEther } from "viem";
 import { useToast } from "@/components/ui/use-toast";
+import { parseEther } from "viem";
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -29,11 +29,6 @@ export function useEscrowPayment({
     createTransaction,
     updateTransactionStatus
   } = useTransactionManager();
-
-  const ensureHexPrefix = (address: string) => {
-    if (!address) return address;
-    return address.startsWith('0x') ? address : `0x${address}`;
-  };
 
   const handlePayment = async () => {
     if (!address) {
@@ -69,9 +64,12 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      // S'assurer que l'adresse du vendeur a le préfixe 0x
-      const sellerAddress = ensureHexPrefix(listing.user.wallet_address);
-      console.log('Seller address with prefix:', sellerAddress);
+      // S'assurer que l'adresse du vendeur est valide
+      const sellerAddress = listing.user.wallet_address.toLowerCase();
+      if (!sellerAddress.startsWith('0x') || sellerAddress.length !== 42) {
+        console.error('Invalid seller address format:', sellerAddress);
+        throw new Error("L'adresse du vendeur n'est pas valide");
+      }
 
       // Récupérer le taux BNB actuel
       const { data: cryptoRate } = await supabase
@@ -164,7 +162,7 @@ export function useEscrowPayment({
           method: 'eth_gasPrice'
         });
 
-        // Envoyer la transaction avec l'adresse du vendeur correctement formatée
+        // Envoyer la transaction
         const tx = await escrow.deposit(
           sellerAddress,
           { 
