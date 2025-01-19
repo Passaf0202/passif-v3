@@ -2,6 +2,11 @@ import { ethers } from "ethers";
 import { ESCROW_ABI, ESCROW_BYTECODE } from "./escrowConstants";
 import { supabase } from "@/integrations/supabase/client";
 
+interface DeployOptions {
+  gasLimit?: ethers.BigNumber;
+  gasPrice?: ethers.BigNumber;
+}
+
 export const useEscrowContract = () => {
   const getActiveContract = async () => {
     console.log('Fetching active smart contract...');
@@ -40,7 +45,11 @@ export const useEscrowContract = () => {
     }
   };
 
-  const deployNewContract = async (sellerAddress: string, amount: ethers.BigNumber) => {
+  const deployNewContract = async (
+    sellerAddress: string, 
+    amount: ethers.BigNumber,
+    options?: DeployOptions
+  ) => {
     if (!window.ethereum) {
       throw new Error("MetaMask n'est pas installé");
     }
@@ -50,7 +59,9 @@ export const useEscrowContract = () => {
 
     console.log('Deploying new escrow contract with params:', {
       seller: sellerAddress,
-      value: amount.toString()
+      value: amount.toString(),
+      gasLimit: options?.gasLimit?.toString(),
+      gasPrice: options?.gasPrice?.toString()
     });
 
     const factory = new ethers.ContractFactory(
@@ -59,7 +70,11 @@ export const useEscrowContract = () => {
       signer
     );
 
-    const contract = await factory.deploy(sellerAddress, { value: amount });
+    const deployOptions: any = { value: amount };
+    if (options?.gasLimit) deployOptions.gasLimit = options.gasLimit;
+    if (options?.gasPrice) deployOptions.gasPrice = options.gasPrice;
+
+    const contract = await factory.deploy(sellerAddress, deployOptions);
     console.log('Waiting for deployment transaction:', contract.deployTransaction.hash);
     
     const receipt = await contract.deployTransaction.wait();

@@ -59,40 +59,61 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      // Valider et mettre à jour le montant en crypto si nécessaire
-      const validatedListing = await validateAndUpdateCryptoAmount(listing);
-      console.log('Validated listing:', validatedListing);
+      if (!listing.crypto_amount) {
+        throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
+      }
 
       // Vérifier le solde avant la transaction
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
       const balance = await provider.getBalance(address);
-      const amountInWei = ethers.utils.parseEther(validatedListing.crypto_amount.toString());
+      const amountInWei = ethers.utils.parseEther(listing.crypto_amount.toString());
       
       if (balance.lt(amountInWei)) {
         throw new Error("Fonds insuffisants dans votre portefeuille");
       }
 
-      // Déployer le contrat d'escrow
+      // Estimer le gas nécessaire
+      const gasPrice = await provider.getGasPrice();
+      const gasLimit = ethers.BigNumber.from("200000"); // Augmenter la limite de gas
+      const totalCost = amountInWei.add(gasPrice.mul(gasLimit));
+      
+      if (balance.lt(totalCost)) {
+        throw new Error("Fonds insuffisants pour couvrir les frais de transaction");
+      }
+
+      console.log('Deploying contract with params:', {
+        sellerAddress: listing.user.wallet_address,
+        amount: ethers.utils.formatEther(amountInWei),
+        gasLimit: gasLimit.toString(),
+        gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
+      });
+
+      // Déployer le contrat d'escrow avec des paramètres de gas explicites
       const { contract, receipt } = await deployNewContract(
-        validatedListing.user.wallet_address,
-        amountInWei
+        listing.user.wallet_address,
+        amountInWei,
+        {
+          gasLimit,
+          gasPrice
+        }
       );
+
+      console.log('Contract deployed:', {
+        address: contract.address,
+        transactionHash: receipt.transactionHash
+      });
 
       // Créer la transaction dans la base de données
       const transaction = await createTransaction(
         listingId,
         address,
-        validatedListing.user.id,
-        validatedListing.crypto_amount,
+        listing.user.id,
+        listing.crypto_amount,
         0,
         contract.address,
         97 // BSC Testnet chain ID
       );
-
-      console.log('Contract deployed and transaction created:', {
-        contractAddress: contract.address,
-        transactionId: transaction.id
-      });
 
       if (receipt.status === 1) {
         await updateTransactionStatus(transaction.id, 'processing', receipt.transactionHash);
