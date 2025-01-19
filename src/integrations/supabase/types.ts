@@ -352,6 +352,39 @@ export type Database = {
         }
         Relationships: []
       }
+      smart_contracts: {
+        Row: {
+          address: string
+          chain_id: number
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          network: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          chain_id: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          network: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          chain_id?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          network?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number

@@ -1,12 +1,11 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, Loader2 } from "lucide-react";
-import { useAccount } from 'wagmi';
-import { TransactionDetails } from "./TransactionDetails";
-import { EscrowAlert } from "./EscrowAlert";
-import { PaymentButton } from "./PaymentButton";
+import { useState } from "react";
 import { useEscrowPayment } from "@/hooks/useEscrowPayment";
-import { useEffect, useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2, Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { EscrowAlert } from "./EscrowAlert";
+import { TransactionDetails } from "./TransactionDetails";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -22,88 +21,89 @@ export function CryptoPaymentForm({
   title,
   price,
   cryptoAmount,
-  cryptoCurrency,
-  onPaymentComplete
+  cryptoCurrency = "BNB",
+  onPaymentComplete,
 }: CryptoPaymentFormProps) {
-  const { address, isConnected } = useAccount();
-  const { toast } = useToast();
-  const [transactionHash, setTransactionHash] = useState<string | null>(null);
-  const [confirmations, setConfirmations] = useState(0);
+  const { user } = useAuth();
+  const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   
-  const { 
-    isProcessing, 
-    error, 
-    escrowError,
+  const {
+    handlePayment,
+    isProcessing,
+    error,
     transactionStatus,
-    handlePayment 
-  } = useEscrowPayment({ 
-    listingId, 
-    address,
-    onTransactionHash: (hash) => setTransactionHash(hash),
-    onConfirmation: (confirmationCount) => setConfirmations(confirmationCount),
-    onPaymentComplete 
+  } = useEscrowPayment({
+    listingId,
+    address: user?.id,
+    onPaymentComplete,
   });
 
-  useEffect(() => {
-    if (transactionStatus === 'confirmed') {
-      toast({
-        title: "Transaction confirmée",
-        description: `Les fonds ont été bloqués avec succès. Ils seront libérés une fois que l'acheteur et le vendeur auront confirmé la transaction.`,
-      });
-    }
-  }, [transactionStatus, confirmations, toast]);
+  if (!cryptoAmount) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <Loader2 className="h-6 w-6 animate-spin" />
+        <span className="ml-2">Calcul du montant en cours...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <TransactionDetails 
-        title={title}
-        price={price}
-        cryptoAmount={cryptoAmount}
-        cryptoCurrency={cryptoCurrency}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Paiement sécurisé</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TransactionDetails
+            title={title}
+            price={price}
+            cryptoAmount={cryptoAmount}
+            cryptoCurrency={cryptoCurrency}
+          />
 
-      {transactionHash && (
-        <Alert>
-          <AlertDescription className="flex flex-col gap-2">
-            <p>Hash de transaction : {transactionHash}</p>
-            <p>Confirmations : {confirmations}</p>
-            <p>Statut : {
-              transactionStatus === 'pending' ? 'En attente de confirmation...' :
-              transactionStatus === 'confirmed' ? 'Fonds bloqués ✅' :
-              transactionStatus === 'failed' ? 'Transaction échouée ❌' :
-              'En cours...'
-            }</p>
-            {transactionStatus === 'pending' && (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>En attente de confirmation...</span>
-              </div>
+          <div className="mt-6">
+            <Button
+              onClick={() => setShowEscrowInfo(true)}
+              variant="outline"
+              className="w-full mb-4"
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Comment fonctionne le paiement sécurisé ?
+            </Button>
+
+            <Button
+              onClick={handlePayment}
+              disabled={isProcessing}
+              className="w-full"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Transaction en cours...
+                </>
+              ) : (
+                "Payer maintenant"
+              )}
+            </Button>
+
+            {error && (
+              <p className="text-red-500 text-sm mt-2">
+                Erreur: {error}
+              </p>
             )}
-          </AlertDescription>
-        </Alert>
-      )}
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+            {transactionStatus === 'confirmed' && (
+              <p className="text-green-500 text-sm mt-2">
+                Transaction confirmée !
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-      {escrowError && (
-        <EscrowAlert 
-          escrowError={escrowError}
-          onPayWithEscrowFees={() => handlePayment()}
-        />
-      )}
-
-      <PaymentButton 
-        isProcessing={isProcessing}
-        isConnected={isConnected}
-        cryptoAmount={cryptoAmount}
-        cryptoCurrency={cryptoCurrency}
-        onClick={() => handlePayment()}
-        disabled={transactionStatus === 'pending' || transactionStatus === 'confirmed'}
+      <EscrowAlert
+        open={showEscrowInfo}
+        onClose={() => setShowEscrowInfo(false)}
       />
     </div>
   );

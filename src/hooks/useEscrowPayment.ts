@@ -31,9 +31,7 @@ export function useEscrowPayment({
 }: UseEscrowPaymentProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [escrowError, setEscrowError] = useState<null>(null);
   const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
-  const [currentHash, setCurrentHash] = useState<string | null>(null);
   
   const { toast } = useToast();
   const publicClient = usePublicClient();
@@ -52,7 +50,6 @@ export function useEscrowPayment({
     try {
       setIsProcessing(true);
       setError(null);
-      setEscrowError(null);
       console.log('Starting payment process for listing:', listingId);
 
       // Récupérer les détails de l'annonce et du vendeur
@@ -76,29 +73,29 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
+      // Récupérer le contrat d'escrow actif
+      const { data: escrowContract } = await supabase
+        .from('smart_contracts')
+        .select('*')
+        .eq('name', 'Escrow')
+        .eq('is_active', true)
+        .single();
+
+      if (!escrowContract) {
+        throw new Error("Le contrat d'escrow n'est pas disponible");
+      }
+
       // Calculer la commission (2% du montant)
       const commission = Number(listing.crypto_amount) * 0.02;
       const totalAmount = Number(listing.crypto_amount) + commission;
 
-      // Déployer le contrat d'escrow
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = await provider.getSigner();
-      const escrowFactory = new ethers.ContractFactory(
-        ESCROW_ABI,
-        "0x...", // Bytecode will be added after contract deployment
-        signer
-      );
+      console.log('Payment details:', {
+        amount: totalAmount,
+        sellerAddress: listing.user.wallet_address,
+        escrowAddress: escrowContract.address
+      });
 
-      const escrowContract = await escrowFactory.deploy(
-        listing.user.wallet_address,
-        { value: parseEther(totalAmount.toString()) }
-      );
-
-      const deployTx = await escrowContract.waitForDeployment();
-      const escrowAddress = await escrowContract.getAddress();
-      console.log('Escrow contract deployed at:', escrowAddress);
-
-      // Créer la transaction dans la base de données
+      // Créer la transaction
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
         .insert({
@@ -110,7 +107,9 @@ export function useEscrowPayment({
           token_symbol: listing.crypto_currency || 'BNB',
           status: 'pending',
           escrow_status: 'pending',
-          smart_contract_address: escrowAddress
+          smart_contract_address: escrowContract.address,
+          chain_id: escrowContract.chain_id,
+          network: escrowContract.network
         })
         .select()
         .single();
@@ -120,17 +119,41 @@ export function useEscrowPayment({
         throw new Error("Erreur lors de la création de la transaction");
       }
 
-      const receipt = await deployTx.wait();
+      // Envoyer la transaction
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      
+      const escrow = new ethers.Contract(
+        escrowContract.address,
+        ESCROW_ABI,
+        signer
+      );
+
+      console.log('Initiating transaction with contract:', escrowContract.address);
+
+      const tx = await escrow.deposit(
+        listing.user.wallet_address,
+        { value: parseEther(totalAmount.toString()) }
+      );
+
+      console.log('Transaction sent:', tx.hash);
+      setTransactionStatus('pending');
+      
+      if (onTransactionHash) {
+        onTransactionHash(tx.hash);
+      }
+
+      const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Mettre à jour la transaction pour indiquer que les fonds sont sécurisés
+        // Mettre à jour la transaction
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
             funds_secured: true,
             funds_secured_at: new Date().toISOString(),
-            transaction_hash: receipt.hash,
+            transaction_hash: receipt.transactionHash,
             status: 'processing'
           })
           .eq('id', transaction.id);
@@ -142,9 +165,10 @@ export function useEscrowPayment({
 
         setTransactionStatus('confirmed');
         onPaymentComplete();
+        
         toast({
           title: "Succès",
-          description: "Les fonds ont été bloqués avec succès. Ils seront libérés une fois que l'acheteur et le vendeur auront confirmé la transaction.",
+          description: "Les fonds ont été bloqués avec succès",
         });
       } else {
         setTransactionStatus('failed');
@@ -168,7 +192,6 @@ export function useEscrowPayment({
   return {
     isProcessing,
     error,
-    escrowError,
     transactionStatus,
     handlePayment
   };
