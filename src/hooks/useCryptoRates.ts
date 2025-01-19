@@ -23,6 +23,7 @@ export function useCryptoRates() {
         throw error;
       }
 
+      console.log('Crypto rates fetched:', data);
       return data as CryptoRate[];
     },
     refetchInterval: 60000, // Refresh every minute

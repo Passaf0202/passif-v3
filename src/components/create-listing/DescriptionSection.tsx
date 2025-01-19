@@ -30,7 +30,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
   };
 
   const updateCryptoAmount = (priceValue: number, cryptoSymbol: string) => {
-    if (cryptoRates) {
+    if (cryptoRates && Array.isArray(cryptoRates)) {
       console.log("Updating crypto amount with:", { priceValue, cryptoSymbol, cryptoRates });
       const selectedRate = cryptoRates.find(rate => rate.symbol === cryptoSymbol);
       if (selectedRate) {
@@ -56,7 +56,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
         console.log("Rate not found for symbol:", cryptoSymbol);
       }
     } else {
-      console.log("No crypto rates available");
+      console.log("No crypto rates available or invalid format:", cryptoRates);
     }
   };
 
@@ -69,10 +69,10 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
   };
 
   useEffect(() => {
-    if (price && selectedCrypto) {
+    if (price && selectedCrypto && cryptoRates) {
       updateCryptoAmount(parseFloat(price) || 0, selectedCrypto);
     }
-  }, [selectedCurrency]);
+  }, [selectedCurrency, cryptoRates]);
 
   return (
     <Card>
@@ -138,11 +138,13 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
                           <Loader2 className="h-4 w-4 animate-spin" />
                         </div>
                       ) : (
-                        cryptoRates?.map((crypto) => (
+                        Array.isArray(cryptoRates) ? cryptoRates.map((crypto) => (
                           <SelectItem key={crypto.symbol} value={crypto.symbol}>
                             {crypto.name} ({crypto.symbol})
                           </SelectItem>
-                        ))
+                        )) : (
+                          <SelectItem value="">Aucune crypto disponible</SelectItem>
+                        )
                       )}
                     </SelectContent>
                   </Select>
