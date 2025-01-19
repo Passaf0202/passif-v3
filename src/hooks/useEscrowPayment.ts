@@ -45,6 +45,17 @@ export function useEscrowPayment({
       setEscrowError(null);
       console.log('Starting payment process for listing:', listingId);
 
+      // Get the user's profile ID first
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('wallet_address', address)
+        .maybeSingle();
+
+      if (profileError || !profile) {
+        throw new Error("Impossible de récupérer votre profil");
+      }
+
       // Récupérer les détails de l'annonce et du vendeur
       const { data: listing, error: listingError } = await supabase
         .from('listings')
@@ -74,7 +85,7 @@ export function useEscrowPayment({
         .from('transactions')
         .insert({
           listing_id: listingId,
-          buyer_id: address,
+          buyer_id: profile.id, // Using the profile ID instead of wallet address
           seller_id: listing.user.id,
           amount: listing.crypto_amount,
           commission_amount: commission,
