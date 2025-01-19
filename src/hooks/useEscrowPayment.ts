@@ -81,7 +81,7 @@ export function useEscrowPayment({
       const totalAmount = Number(listing.crypto_amount) + commission;
 
       // Déployer le contrat d'escrow
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = await provider.getSigner();
       const escrowFactory = new ethers.ContractFactory(
         ESCROW_ABI,
