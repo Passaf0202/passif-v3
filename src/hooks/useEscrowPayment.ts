@@ -30,6 +30,19 @@ export function useEscrowPayment({
     updateTransactionStatus
   } = useTransactionManager();
 
+  const formatAddress = (address: string): string => {
+    // Retirer les espaces et mettre en minuscules
+    let formattedAddress = address.trim().toLowerCase();
+    
+    // Retirer le préfixe 0x s'il existe
+    if (formattedAddress.startsWith('0x')) {
+      formattedAddress = formattedAddress.slice(2);
+    }
+    
+    // Ajouter le préfixe 0x
+    return `0x${formattedAddress}`;
+  };
+
   const handlePayment = async () => {
     if (!address) {
       setError("Veuillez connecter votre portefeuille pour continuer");
@@ -64,10 +77,13 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      // S'assurer que l'adresse du vendeur est valide
-      const sellerAddress = listing.user.wallet_address.toLowerCase();
-      if (!sellerAddress.startsWith('0x') || sellerAddress.length !== 42) {
-        console.error('Invalid seller address format:', sellerAddress);
+      // Formater et valider l'adresse du vendeur
+      const sellerAddress = formatAddress(listing.user.wallet_address);
+      console.log('Formatted seller address:', sellerAddress);
+
+      // Vérifier que l'adresse est valide (42 caractères avec le préfixe 0x)
+      if (sellerAddress.length !== 42) {
+        console.error('Invalid seller address length:', sellerAddress);
         throw new Error("L'adresse du vendeur n'est pas valide");
       }
 
@@ -162,7 +178,7 @@ export function useEscrowPayment({
           method: 'eth_gasPrice'
         });
 
-        // Envoyer la transaction
+        // Envoyer la transaction avec l'adresse correctement formatée
         const tx = await escrow.deposit(
           sellerAddress,
           { 
