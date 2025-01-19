@@ -55,17 +55,49 @@ export function useEscrowPayment({
         .maybeSingle();
 
       if (listingError || !listing) {
+        console.error('Error fetching listing:', listingError);
         throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
       if (!listing.user?.wallet_address) {
+        console.error('No wallet address found for seller');
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      // Validation stricte du montant en crypto
+      // Vérification stricte du montant en crypto
       if (!listing.crypto_amount || typeof listing.crypto_amount !== 'number' || listing.crypto_amount <= 0) {
-        console.error('Invalid crypto amount:', listing.crypto_amount);
-        throw new Error("Le montant en crypto n'est pas valide");
+        console.error('Invalid crypto amount:', {
+          amount: listing.crypto_amount,
+          type: typeof listing.crypto_amount
+        });
+        
+        // Récupérer le taux BNB actuel et calculer le montant
+        const { data: cryptoRate } = await supabase
+          .from('crypto_rates')
+          .select('*')
+          .eq('symbol', 'BNB')
+          .maybeSingle();
+
+        if (!cryptoRate) {
+          throw new Error("Impossible de récupérer le taux de conversion BNB");
+        }
+
+        listing.crypto_amount = Number(listing.price) / cryptoRate.rate_eur;
+        listing.crypto_currency = 'BNB';
+
+        // Mettre à jour l'annonce avec le nouveau montant
+        const { error: updateError } = await supabase
+          .from('listings')
+          .update({
+            crypto_amount: listing.crypto_amount,
+            crypto_currency: 'BNB'
+          })
+          .eq('id', listing.id);
+
+        if (updateError) {
+          console.error('Error updating listing with crypto amount:', updateError);
+          throw new Error("Erreur lors de la mise à jour du montant en crypto");
+        }
       }
 
       // Récupérer le contrat d'escrow actif
@@ -102,7 +134,7 @@ export function useEscrowPayment({
         console.log('Amount in Wei:', amountInWei.toString());
 
         // Configuration spécifique pour BSC
-        const gasLimit = 200000; // Gas limit plus bas pour BSC
+        const gasLimit = 200000;
         const gasPrice = await window.ethereum.request({
           method: 'eth_gasPrice'
         });

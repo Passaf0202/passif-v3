@@ -24,7 +24,7 @@ export const useEscrowContract = () => {
         .select('*')
         .eq('name', 'Escrow')
         .eq('is_active', true)
-        .eq('network', 'bsc_testnet') // S'assurer qu'on récupère le contrat sur BSC
+        .eq('network', 'bsc_testnet')
         .maybeSingle();
 
       if (error) {
@@ -77,10 +77,33 @@ export const useEscrowContract = () => {
     try {
       console.log('Creating contract instance for address:', address);
       
-      // Configuration spécifique pour BSC Testnet
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("wallet_switchEthereumChain", [{ chainId: "0x61" }]); // BSC Testnet
+      // Forcer le changement de réseau vers BSC Testnet
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x61' }], // BSC Testnet chainId
+      }).catch(async (switchError: any) => {
+        // Si le réseau n'existe pas, on l'ajoute
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x61',
+              chainName: 'BSC Testnet',
+              nativeCurrency: {
+                name: 'BNB',
+                symbol: 'tBNB',
+                decimals: 18
+              },
+              rpcUrls: ['https://data-seed-prebsc-1-s1.bnbchain.org:8545'],
+              blockExplorerUrls: ['https://testnet.bscscan.com']
+            }]
+          });
+        } else {
+          throw switchError;
+        }
+      });
       
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       return new ethers.Contract(address, ESCROW_ABI, signer);
     } catch (error) {
