@@ -70,34 +70,7 @@ export function useEscrowPayment({
           amount: listing.crypto_amount,
           type: typeof listing.crypto_amount
         });
-        
-        // Récupérer le taux BNB actuel et calculer le montant
-        const { data: cryptoRate } = await supabase
-          .from('crypto_rates')
-          .select('*')
-          .eq('symbol', 'BNB')
-          .maybeSingle();
-
-        if (!cryptoRate) {
-          throw new Error("Impossible de récupérer le taux de conversion BNB");
-        }
-
-        listing.crypto_amount = Number(listing.price) / cryptoRate.rate_eur;
-        listing.crypto_currency = 'BNB';
-
-        // Mettre à jour l'annonce avec le nouveau montant
-        const { error: updateError } = await supabase
-          .from('listings')
-          .update({
-            crypto_amount: listing.crypto_amount,
-            crypto_currency: 'BNB'
-          })
-          .eq('id', listing.id);
-
-        if (updateError) {
-          console.error('Error updating listing with crypto amount:', updateError);
-          throw new Error("Erreur lors de la mise à jour du montant en crypto");
-        }
+        throw new Error("Le montant en crypto n'est pas valide");
       }
 
       // Récupérer le contrat d'escrow actif

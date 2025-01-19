@@ -38,19 +38,20 @@ export default function Payment() {
         .from('crypto_rates')
         .select('*')
         .eq('symbol', 'BNB')
+        .eq('is_active', true)
         .maybeSingle();
       
       if (error) {
         console.error('Error fetching BNB rate:', error);
         return null;
       }
+      console.log('Fetched crypto rates:', data);
       return data;
     }
   });
 
   const currentListing = listing || fetchedListing;
 
-  // Updated query to get the most recent active transaction
   const { data: transaction } = useQuery({
     queryKey: ['transaction', id],
     queryFn: async () => {
@@ -77,40 +78,50 @@ export default function Payment() {
   const { data: updatedListing } = useQuery({
     queryKey: ['update-crypto-amount', currentListing?.id, cryptoRates],
     queryFn: async () => {
-      if (!currentListing || !cryptoRates) return currentListing;
-
-      const bnbRate = cryptoRates.rate_eur;
-      const cryptoAmount = Number(currentListing.price) / bnbRate;
-
-      console.log('Payment details:', {
-        listingPrice: currentListing.price,
-        bnbRate,
-        cryptoAmount,
-      });
-
-      if (!currentListing.crypto_amount) {
-        const { data, error } = await supabase
-          .from('listings')
-          .update({
-            crypto_amount: cryptoAmount,
-            crypto_currency: 'BNB'
-          })
-          .eq('id', currentListing.id)
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Error updating crypto amount:', error);
-          return currentListing;
-        }
-
-        console.log('Updated listing with crypto amount:', data);
-        return data;
+      if (!currentListing || !cryptoRates) {
+        console.log('Missing data for crypto calculation:', { currentListing, cryptoRates });
+        return currentListing;
       }
 
-      return currentListing;
+      const bnbRate = cryptoRates.rate_eur;
+      if (!bnbRate || bnbRate <= 0) {
+        console.error('Invalid BNB rate:', bnbRate);
+        throw new Error('Taux de conversion BNB invalide');
+      }
+
+      const cryptoAmount = Number(currentListing.price) / bnbRate;
+      console.log('Calculated crypto amount:', {
+        price: currentListing.price,
+        bnbRate,
+        cryptoAmount
+      });
+
+      if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
+        console.error('Invalid crypto amount calculated:', cryptoAmount);
+        throw new Error('Montant en crypto invalide');
+      }
+
+      // Mettre à jour l'annonce avec le montant en crypto
+      const { data, error } = await supabase
+        .from('listings')
+        .update({
+          crypto_amount: cryptoAmount,
+          crypto_currency: 'BNB'
+        })
+        .eq('id', currentListing.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating crypto amount:', error);
+        throw error;
+      }
+
+      console.log('Updated listing with crypto amount:', data);
+      return data;
     },
     enabled: !!currentListing && !!cryptoRates,
+    retry: false
   });
 
   if (isListingLoading || isRatesLoading) {
