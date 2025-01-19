@@ -9,16 +9,14 @@ async function main() {
   try {
     console.log("Starting deployment to BSC Testnet...");
     
-    // Get the contract factory
     const CryptoEscrow = await ethers.getContractFactory("CryptoEscrow");
     console.log("Contract factory created");
 
-    // Get the deployer's address
     const [deployer] = await ethers.getSigners();
     console.log("Deploying with account:", deployer.address);
 
-    // Deploy the contract with a dummy seller address (will be set during deposit)
-    const escrow = await CryptoEscrow.deploy(deployer.address);
+    // Déployer avec une adresse de test pour l'initialisation
+    const escrow = await CryptoEscrow.deploy(deployer.address, { value: ethers.parseEther("0.01") });
     await escrow.waitForDeployment();
     
     const escrowAddress = await escrow.getAddress();
@@ -34,7 +32,7 @@ async function main() {
       console.error("Error updating existing contracts:", updateError);
     }
 
-    // Store the contract address in Supabase
+    // Stocker la nouvelle adresse du contrat dans Supabase
     const { error } = await supabase
       .from('smart_contracts')
       .insert([
