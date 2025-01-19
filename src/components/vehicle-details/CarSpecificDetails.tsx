@@ -8,6 +8,16 @@ interface CarSpecificDetailsProps {
 }
 
 export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarSpecificDetailsProps) {
+  const renderSelectItems = (values: string[]) => {
+    return values
+      .filter(value => value && value.trim() !== '') // Filtrer les valeurs vides
+      .map((value) => (
+        <SelectItem key={value} value={value}>
+          {value}
+        </SelectItem>
+      ));
+  };
+
   return (
     <>
       <FormItem>
@@ -19,11 +29,7 @@ export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarS
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            {getAttributeValues("fuel_type").map((fuel) => (
-              <SelectItem key={fuel} value={fuel}>
-                {fuel}
-              </SelectItem>
-            ))}
+            {renderSelectItems(getAttributeValues("fuel_type"))}
           </SelectContent>
         </Select>
         <FormMessage />
@@ -38,11 +44,7 @@ export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarS
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            {getAttributeValues("transmission_type").map((transmission) => (
-              <SelectItem key={transmission} value={transmission}>
-                {transmission}
-              </SelectItem>
-            ))}
+            {renderSelectItems(getAttributeValues("transmission_type"))}
           </SelectContent>
         </Select>
         <FormMessage />
@@ -57,11 +59,7 @@ export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarS
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            {getAttributeValues("vehicle_type").map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
-              </SelectItem>
-            ))}
+            {renderSelectItems(getAttributeValues("vehicle_type"))}
           </SelectContent>
         </Select>
         <FormMessage />
@@ -76,11 +74,7 @@ export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarS
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            {getAttributeValues("doors").map((doors) => (
-              <SelectItem key={doors} value={doors}>
-                {doors}
-              </SelectItem>
-            ))}
+            {renderSelectItems(getAttributeValues("doors"))}
           </SelectContent>
         </Select>
         <FormMessage />
@@ -95,11 +89,7 @@ export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarS
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            {getAttributeValues("upholstery").map((upholstery) => (
-              <SelectItem key={upholstery} value={upholstery}>
-                {upholstery}
-              </SelectItem>
-            ))}
+            {renderSelectItems(getAttributeValues("upholstery"))}
           </SelectContent>
         </Select>
         <FormMessage />
@@ -114,11 +104,7 @@ export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarS
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            {getAttributeValues("color").map((color) => (
-              <SelectItem key={color} value={color}>
-                {color}
-              </SelectItem>
-            ))}
+            {renderSelectItems(getAttributeValues("color"))}
           </SelectContent>
         </Select>
         <FormMessage />
@@ -180,11 +166,7 @@ export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarS
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            {getAttributeValues("crit_air").map((crit) => (
-              <SelectItem key={crit} value={crit}>
-                {crit}
-              </SelectItem>
-            ))}
+            {renderSelectItems(getAttributeValues("crit_air"))}
           </SelectContent>
         </Select>
         <FormMessage />
@@ -199,11 +181,7 @@ export function CarSpecificDetails({ getAttributeValues, onDetailsChange }: CarS
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            {getAttributeValues("emission_class").map((emission) => (
-              <SelectItem key={emission} value={emission}>
-                {emission}
-              </SelectItem>
-            ))}
+            {renderSelectItems(getAttributeValues("emission_class"))}
           </SelectContent>
         </Select>
         <FormMessage />
