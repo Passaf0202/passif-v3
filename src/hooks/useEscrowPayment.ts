@@ -65,13 +65,26 @@ export function useEscrowPayment({
       }
 
       // Récupérer le contrat actif
-      const escrow = await getContract();
+      const { data: activeContract } = await supabase
+        .from('smart_contracts')
+        .select('*')
+        .eq('is_active', true)
+        .eq('network', 'bsc_testnet')
+        .single();
+
+      if (!activeContract) {
+        throw new Error("Aucun contrat actif trouvé");
+      }
+
+      // Récupérer le contrat avec l'adresse
+      const escrow = await getContract(activeContract.address);
       if (!escrow) throw new Error("Impossible d'initialiser le contrat");
 
       console.log('Payment details:', {
         amount: listing.crypto_amount,
         sellerAddress: listing.user.wallet_address,
-        buyerAddress: address
+        buyerAddress: address,
+        contractAddress: activeContract.address
       });
 
       // Créer la transaction dans la base de données
@@ -80,7 +93,9 @@ export function useEscrowPayment({
         address,
         listing.user.id,
         listing.crypto_amount,
-        0
+        0,
+        activeContract.address,
+        activeContract.chain_id
       );
 
       try {
