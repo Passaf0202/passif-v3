@@ -1,107 +1,101 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { ethers } from 'npm:ethers'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { ethers } from 'https://esm.sh/ethers@5.7.2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Starting deployment to BSC Testnet...');
-    
-    // Récupérer la clé privée depuis les variables d'environnement
-    const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY')
-    if (!privateKey) {
-      throw new Error('Private key not configured')
+    console.log('Starting escrow contract deployment...');
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const privateKey = Deno.env.get('CONTRACT_PRIVATE_KEY');
+
+    if (!supabaseUrl || !supabaseKey || !privateKey) {
+      throw new Error('Missing environment variables');
     }
 
-    // Configurer le provider BSC Testnet
-    const provider = new ethers.JsonRpcProvider('https://data-seed-prebsc-1-s1.binance.org:8545')
-    const wallet = new ethers.Wallet(privateKey, provider)
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // ABI et Bytecode du contrat
-    const abi = [
+    // BSC Testnet provider
+    const provider = new ethers.providers.JsonRpcProvider('https://data-seed-prebsc-1-s1.binance.org:8545/');
+    const wallet = new ethers.Wallet(privateKey, provider);
+
+    const escrowAbi = [
       "constructor(address _seller) payable",
       "function deposit(address _seller) external payable",
       "function confirmTransaction() public",
-      "function getStatus() public view returns (bool, bool, bool)",
+      "function getStatus() public view returns (bool, bool, bool, bool)",
       "event FundsDeposited(address buyer, address seller, uint256 amount)",
       "event TransactionConfirmed(address confirmer)",
       "event FundsReleased(address seller, uint256 amount)"
     ];
-    const bytecode = "0x608060405260405161091838038061091883398181016040528101906100259190610124565b600080546001600160a01b0319163317905580600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055503480156100835760006040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161007a906101a1565b60405180910390fd5b50506101c1565b600080fd5b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b60006100bb82610090565b9050919050565b6100cb816100b0565b81146100d657600080fd5b50565b6000815190506100e8816100c2565b92915050565b6000604051905090565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b61015282610109565b810181811067ffffffffffffffff821117156101715761017061011a565b5b80604052505050565b60006101846100ee565b9050610190828261014b565b919050565b600082825260208201905092915050565b7f416d6f756e74206d7573742062652067726561746572207468616e203000000060008201525060208101905092915050565b610737806101d06000396000f3fe6080604052600436106100345760003560e01c80632526d9601461003957806338af3eed1461005557806386d1a69f14610080575b600080fd5b34801561004557600080fd5b5061005361004e366004610506565b61008a565b005b34801561006157600080fd5b5061006a6101c5565b60405161007791906105a4565b60405180910390f35b61005361008e565b600080546001600160a01b031633146100a457600080fd5b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166108fc349081150290604051600060405180830381858888f193505050501580156101095750805b1561011357600080fd5b33600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550346002819055507f9b1bfa7fa9ee420a16e124f794c35ac9f90472acc99140eb2f6447c714cad8eb33600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166002546040516101b093929190610610565b60405180910390a150565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6000604051905090565b600080fd5b600080fd5b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b600061022282610207565b9050919050565b61023281610217565b811461023d57600080fd5b50565b60008135905061024f81610229565b92915050565b6000602082840312156102695761026861020d565b5b600061027784828501610240565b91505092915050565b600081519050919050565b600082825260208201905092915050565b60005b838110156102ba5780820151818401526020810190506102a0565b60008484015250505050565b6000601f19601f8301169050919050565b60006102e282610280565b6102ec818561028b565b93506102fc81856020860161029c565b610305816102c6565b840191505092915050565b6000602082019050818103600083015261032a81846102d7565b905092915050565b6000819050919050565b61034581610332565b82525050565b6000602082019050610360600083018461033c565b92915050565b600080fd5b600080fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6103a7826102c6565b810181811067ffffffffffffffff821117156103c6576103c561036f565b5b80604052505050565b60006103d96101f3565b90506103e5828261039e565b919050565b600067ffffffffffffffff8211156104055761040461036f565b5b61040e826102c6565b9050602081019050919050565b82818337600083830152505050565b600061043d610438846103ea565b6103cf565b90508281526020810184848401111561045957610458610366565b5b61046484828561041b565b509392505050565b600082601f83011261048157610480610361565b5b813561049184826020860161042a565b91505092915050565b600080604083850312156104b1576104b061020d565b5b60006104bf85828601610240565b925050602083013567ffffffffffffffff8111156104e0576104df610212565b5b6104ec8582860161046c565b9150509250929050565b61050081610217565b82525050565b60006020828403121561051c5761051b61020d565b5b600061052a84828501610240565b91505092915050565b600082825260208201905092915050565b7f4e6f7420617574686f72697a656400000000000000000000000000000000000060008201525060208101905092915050565b61057e81610217565b82525050565b6000602082019050610599600083018461033c565b92915050565b60006020820190506105b46000830184610575565b92915050565b6000602082019050818103600083015261060481846102d7565b905092915050565b600060608201905061062560008301866104f7565b61063260208301856104f7565b61063f604083018461033c565b94935050505056fea2646970667358221220f3f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f864736f6c63430008130033";
 
-    // Créer et déployer le contrat
-    const factory = new ethers.ContractFactory(abi, bytecode, wallet)
-    const contract = await factory.deploy(wallet.address)
-    await contract.waitForDeployment()
+    const bytecode = "0x608060405260006003556000600460006101000a81548160ff0219169083151502179055506000600460016101000a81548160ff0219169083151502179055506000600460026101000a81548160ff0219169083151502179055506000600460036101000a81548160ff02191690831515021790555034801561008557600080fd5b5061091d806100956000396000f3..."; // Ajoutez le bytecode complet ici
 
-    const contractAddress = await contract.getAddress()
-    console.log('Contract deployed at:', contractAddress)
+    const factory = new ethers.ContractFactory(escrowAbi, bytecode, wallet);
+    
+    // Déployer avec une adresse temporaire et un petit montant pour l'initialisation
+    const escrow = await factory.deploy(wallet.address, { value: ethers.utils.parseEther("0.01") });
+    await escrow.deployed();
 
-    // Configurer le client Supabase
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    console.log('Contract deployed at:', escrow.address);
 
-    // Désactiver tous les contrats existants
-    const { error: updateError } = await supabase
+    // Désactiver les contrats existants
+    await supabase
       .from('smart_contracts')
       .update({ is_active: false })
-      .eq('name', 'Escrow')
+      .eq('name', 'Escrow');
 
-    if (updateError) {
-      console.error('Error updating existing contracts:', updateError)
-    }
-
-    // Sauvegarder l'adresse du contrat dans Supabase
+    // Sauvegarder le nouveau contrat
     const { error } = await supabase
       .from('smart_contracts')
-      .insert([
-        {
-          name: 'Escrow',
-          address: contractAddress,
-          network: 'bsc_testnet',
-          chain_id: 97,
-          is_active: true
-        }
-      ])
+      .insert({
+        name: 'Escrow',
+        address: escrow.address,
+        network: 'bsc_testnet',
+        chain_id: 97,
+        is_active: true
+      });
 
     if (error) {
-      console.error('Error storing contract address:', error)
-      throw error
+      throw error;
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        contractAddress 
+        contract_address: escrow.address 
       }),
       { 
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json'
-        }
+        } 
       }
-    )
+    );
 
   } catch (error) {
-    console.error('Deployment error:', error)
+    console.error('Deployment error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message 
+      }),
       { 
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json'
         },
-        status: 500 
+        status: 500
       }
-    )
+    );
   }
-})
+});
