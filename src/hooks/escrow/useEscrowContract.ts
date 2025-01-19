@@ -18,6 +18,7 @@ export const useEscrowContract = () => {
 
   const getActiveContract = async () => {
     try {
+      console.log('Fetching active contract...');
       const { data: contract, error } = await supabase
         .from('smart_contracts')
         .select('*')
@@ -25,18 +26,32 @@ export const useEscrowContract = () => {
         .eq('is_active', true)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching active contract:', error);
+        throw error;
+      }
+
+      if (!contract) {
+        console.error('No active contract found');
+        throw new Error('No active contract found');
+      }
+
+      console.log('Active contract found:', contract);
       return contract;
     } catch (error) {
-      console.error('Error fetching active contract:', error);
+      console.error('Error in getActiveContract:', error);
       return null;
     }
   };
 
   const getContract = async (address: string) => {
-    if (!walletClient || !window.ethereum) return null;
+    if (!walletClient || !window.ethereum) {
+      console.error('Wallet not connected');
+      return null;
+    }
     
     try {
+      console.log('Creating contract instance for address:', address);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       return new ethers.Contract(address, ESCROW_ABI, signer);
