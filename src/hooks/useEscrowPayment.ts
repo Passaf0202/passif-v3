@@ -3,6 +3,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { parseEther } from "viem";
+import { bsc } from 'viem/chains';
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -26,8 +27,8 @@ export function useEscrowPayment({
   const [currentHash, setCurrentHash] = useState<string | null>(null);
   
   const { toast } = useToast();
-  const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient({ chainId: bsc.id });
+  const { data: walletClient } = useWalletClient({ chainId: bsc.id });
 
   const handlePayment = async () => {
     if (!address || !walletClient) {
@@ -95,7 +96,8 @@ export function useEscrowPayment({
           commission_amount: commission,
           token_symbol: listing.crypto_currency,
           status: 'pending',
-          escrow_status: 'pending'
+          escrow_status: 'pending',
+          chain_id: bsc.id
         })
         .select()
         .single();
@@ -107,18 +109,15 @@ export function useEscrowPayment({
       console.log('Sending transaction with details:', {
         to: listing.user.wallet_address,
         value: listing.crypto_amount,
-        currency: listing.crypto_currency
+        currency: listing.crypto_currency,
+        chainId: bsc.id
       });
 
-      // Envoyer la transaction
+      // Envoyer la transaction sur BSC
       const hash = await walletClient.sendTransaction({
         to: listing.user.wallet_address as `0x${string}`,
         value: parseEther(listing.crypto_amount.toString()),
-        from: address as `0x${string}`,
-        type: 'legacy' as const,
-        kzg: undefined,
-        account: address as `0x${string}`,
-        chain: undefined
+        chain: bsc
       });
 
       console.log('Transaction sent:', hash);

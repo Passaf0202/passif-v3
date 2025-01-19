@@ -22,19 +22,24 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
         if (error) throw error;
         
         if (!rates) {
-          console.log('Using fallback rate');
-          return getFallbackRate(cryptoCurrency);
+          console.error('No rate found for', cryptoCurrency);
+          return null;
         }
 
         const rate = selectedCurrency === 'EUR' ? rates.rate_eur : 
                     selectedCurrency === 'GBP' ? rates.rate_gbp : 
                     rates.rate_usd;
 
-        console.log('Rate response:', { rate, currency: cryptoCurrency });
+        console.log('Rate found:', { 
+          currency: cryptoCurrency,
+          selectedCurrency,
+          rate
+        });
+        
         return rate;
       } catch (error) {
         console.error('Error in rate query:', error);
-        return getFallbackRate(cryptoCurrency);
+        return null;
       }
     },
     refetchInterval: 10000, // Refresh every 10 seconds
@@ -64,13 +69,3 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
 
   return calculateCryptoAmount();
 };
-
-function getFallbackRate(currency?: string): number {
-  const fallbackRates: Record<string, number> = {
-    'BNB': 250, // 1 BNB = 250 EUR
-    'ETH': 2500, // 1 ETH = 2500 EUR
-    'BTC': 40000, // 1 BTC = 40000 EUR
-    'SOL': 90, // 1 SOL = 90 EUR
-  };
-  return fallbackRates[currency || 'BNB'] || 250;
-}
