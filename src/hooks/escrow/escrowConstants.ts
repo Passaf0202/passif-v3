@@ -5,29 +5,22 @@ export const ESCROW_ABI = [
     "type": "constructor"
   },
   {
-    "inputs": [{"name": "_seller", "type": "address"}],
-    "name": "deposit",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "confirmTransaction",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getStatus",
-    "outputs": [
-      {"name": "_buyerConfirmed", "type": "bool"},
-      {"name": "_sellerConfirmed", "type": "bool"},
-      {"name": "_fundsReleased", "type": "bool"}
+    "anonymous": false,
+    "inputs": [
+      {"indexed": false, "name": "sender", "type": "address"},
+      {"indexed": false, "name": "seller", "type": "address"},
+      {"indexed": false, "name": "value", "type": "uint256"}
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "name": "DepositAttempt",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": false, "name": "reason", "type": "string"}
+    ],
+    "name": "DepositError",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -55,6 +48,52 @@ export const ESCROW_ABI = [
     ],
     "name": "FundsReleased",
     "type": "event"
+  },
+  {
+    "inputs": [{"name": "_seller", "type": "address"}],
+    "name": "deposit",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "confirmTransaction",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getStatus",
+    "outputs": [
+      {"name": "_buyerConfirmed", "type": "bool"},
+      {"name": "_sellerConfirmed", "type": "bool"},
+      {"name": "_fundsReleased", "type": "bool"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "buyer",
+    "outputs": [{"name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "seller",
+    "outputs": [{"name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "amount",
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
