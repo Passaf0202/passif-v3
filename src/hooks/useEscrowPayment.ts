@@ -93,33 +93,49 @@ export function useEscrowPayment({
       const escrow = await getContract(escrowContract.address);
       if (!escrow) throw new Error("Impossible d'initialiser le contrat");
 
-      // Envoyer la transaction
-      const tx = await escrow.deposit(
-        listing.user.wallet_address,
-        { value: parseEther(totalAmount.toString()) }
-      );
+      try {
+        // Envoyer la transaction
+        const tx = await escrow.deposit(
+          listing.user.wallet_address,
+          { value: parseEther(totalAmount.toString()) }
+        );
 
-      console.log('Transaction sent:', tx.hash);
-      setTransactionStatus('pending');
-      
-      if (onTransactionHash) {
-        onTransactionHash(tx.hash);
-      }
+        console.log('Transaction sent:', tx.hash);
+        setTransactionStatus('pending');
+        
+        if (onTransactionHash) {
+          onTransactionHash(tx.hash);
+        }
 
-      const receipt = await tx.wait();
-      console.log('Transaction receipt:', receipt);
+        const receipt = await tx.wait();
+        console.log('Transaction receipt:', receipt);
 
-      if (receipt.status === 1) {
-        await updateTransactionStatus(transaction.id, 'processing', tx.hash);
-        setTransactionStatus('confirmed');
-        toast({
-          title: "Transaction confirmée",
-          description: "Le paiement a été effectué avec succès",
-        });
-        onPaymentComplete();
-      } else {
-        setTransactionStatus('failed');
-        throw new Error("La transaction a échoué");
+        if (receipt.status === 1) {
+          await updateTransactionStatus(transaction.id, 'processing', tx.hash);
+          setTransactionStatus('confirmed');
+          toast({
+            title: "Transaction confirmée",
+            description: "Le paiement a été effectué avec succès",
+          });
+          onPaymentComplete();
+        } else {
+          setTransactionStatus('failed');
+          throw new Error("La transaction a échoué");
+        }
+      } catch (txError: any) {
+        console.error('Transaction error:', txError);
+        
+        // Gérer spécifiquement l'erreur de fonds insuffisants
+        if (txError.code === 'INSUFFICIENT_FUNDS') {
+          toast({
+            title: "Fonds insuffisants",
+            description: "Votre portefeuille ne contient pas assez de BNB pour effectuer cette transaction. Veuillez vous assurer d'avoir suffisamment de BNB pour couvrir le montant et les frais de transaction.",
+            variant: "destructive",
+          });
+          throw new Error("Fonds insuffisants dans votre portefeuille");
+        }
+        
+        throw txError;
       }
 
     } catch (error: any) {
