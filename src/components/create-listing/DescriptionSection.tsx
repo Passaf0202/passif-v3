@@ -21,7 +21,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
   const [cryptoAmount, setCryptoAmount] = useState<number | null>(null);
 
   const handlePriceChange = (value: string) => {
-    console.log("Price changed:", value);
+    console.log("Prix saisi:", value);
     setPrice(value);
     form.setValue('price', value);
     
@@ -31,47 +31,50 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
   };
 
   const updateCryptoAmount = (priceValue: number, cryptoSymbol: string) => {
-    console.log("Updating crypto amount:", { priceValue, cryptoSymbol, selectedCurrency });
+    console.log("Mise à jour du montant crypto:", { 
+      priceValue, 
+      cryptoSymbol, 
+      devise: selectedCurrency 
+    });
     
     if (cryptoRates) {
       const selectedRate = cryptoRates.find(rate => rate.symbol === cryptoSymbol);
       if (selectedRate) {
-        console.log("Found rate:", selectedRate);
+        console.log("Taux trouvé:", selectedRate);
         
-        let cryptoAmount;
-        let rate;
-        
+        // Sélectionner le bon taux selon la devise
+        let rate: number;
         switch (selectedCurrency) {
           case 'USD':
-            rate = selectedRate.rate_usd;
+            rate = Number(selectedRate.rate_usd);
             break;
           case 'GBP':
-            rate = selectedRate.rate_gbp;
+            rate = Number(selectedRate.rate_gbp);
             break;
           default: // EUR
-            rate = selectedRate.rate_eur;
+            rate = Number(selectedRate.rate_eur);
             break;
         }
+
+        // Calculer le montant en crypto
+        const calculatedAmount = priceValue / rate;
         
-        // Si le prix est en devise, on divise par le taux pour obtenir le montant en crypto
-        cryptoAmount = priceValue / rate;
-        
-        console.log("Calculated crypto amount:", {
-          priceValue,
-          rate,
-          cryptoAmount,
-          currency: selectedCurrency
+        console.log("Calcul du montant en crypto:", {
+          prixEnDevise: priceValue,
+          tauxDeChange: rate,
+          montantCrypto: calculatedAmount,
+          devise: selectedCurrency
         });
         
-        setCryptoAmount(cryptoAmount);
-        form.setValue('crypto_amount', cryptoAmount);
+        setCryptoAmount(calculatedAmount);
+        form.setValue('crypto_amount', calculatedAmount);
         form.setValue('crypto_currency', cryptoSymbol);
       }
     }
   };
 
   const handleCryptoChange = (value: string) => {
-    console.log("Crypto changed:", value);
+    console.log("Crypto sélectionnée:", value);
     setSelectedCrypto(value);
     if (price) {
       updateCryptoAmount(parseFloat(price) || 0, value);
@@ -80,7 +83,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
 
   useEffect(() => {
     if (price && selectedCrypto) {
-      console.log("Currency changed, updating amounts");
+      console.log("Devise changée, mise à jour des montants");
       updateCryptoAmount(parseFloat(price) || 0, selectedCrypto);
     }
   }, [selectedCurrency]);
