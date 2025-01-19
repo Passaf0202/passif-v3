@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { parseEther } from "viem";
@@ -86,11 +85,7 @@ export function useEscrowPayment({
       const hash = await walletClient.sendTransaction({
         to: listing.user.wallet_address as `0x${string}`,
         value: parseEther(listing.crypto_amount?.toString() || '0'),
-        chain: mainnet,
-        kzg: {
-          commitmentBytes: "0x",
-          proofBytes: "0x"
-        }
+        chain: mainnet
       });
 
       console.log('Transaction sent:', hash);
