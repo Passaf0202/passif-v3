@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { EscrowAlert } from "./EscrowAlert";
 import { TransactionDetails } from "./TransactionDetails";
 import { useAccount } from 'wagmi';
-import { PaymentStatus } from "./PaymentStatus";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -79,14 +78,16 @@ export function CryptoPaymentForm({
               disabled={isProcessing || !isConnected || !cryptoAmount}
               className="w-full"
             >
-              <PaymentStatus
-                isProcessing={isProcessing}
-                error={error}
-                transactionStatus={transactionStatus}
-                isConnected={isConnected}
-                cryptoAmount={cryptoAmount}
-                cryptoCurrency={cryptoCurrency}
-              />
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Transaction en cours...
+                </>
+              ) : !isConnected ? (
+                "Connectez votre portefeuille"
+              ) : (
+                `Payer ${cryptoAmount.toFixed(6)} ${cryptoCurrency}`
+              )}
             </Button>
 
             {error && (
