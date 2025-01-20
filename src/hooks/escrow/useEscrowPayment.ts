@@ -38,6 +38,43 @@ export function useEscrowPayment({
       setError(null);
       console.log('Starting payment process for listing:', listingId);
 
+      // Vérifier que nous sommes sur le bon réseau (BSC Testnet)
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const network = await provider.getNetwork();
+      
+      if (network.chainId !== 97) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x61' }], // 97 en hexadécimal
+          });
+        } catch (switchError: any) {
+          // Si le réseau n'est pas configuré, on l'ajoute
+          if (switchError.code === 4902) {
+            try {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x61',
+                  chainName: 'BSC Testnet',
+                  nativeCurrency: {
+                    name: 'BNB',
+                    symbol: 'BNB',
+                    decimals: 18
+                  },
+                  rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545'],
+                  blockExplorerUrls: ['https://testnet.bscscan.com']
+                }]
+              });
+            } catch (addError) {
+              throw new Error("Impossible d'ajouter le réseau BSC Testnet");
+            }
+          } else {
+            throw new Error("Veuillez changer manuellement pour le réseau BSC Testnet");
+          }
+        }
+      }
+
       // Récupérer les détails de l'annonce et du vendeur
       const { data: listing, error: listingError } = await supabase
         .from('listings')
@@ -64,7 +101,6 @@ export function useEscrowPayment({
       }
 
       // Vérifier le solde avant la transaction
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const balance = await provider.getBalance(address);
       const amountInWei = ethers.utils.parseEther(listing.crypto_amount.toString());
