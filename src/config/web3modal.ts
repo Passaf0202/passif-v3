@@ -5,7 +5,7 @@ import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 // Your WalletConnect Project ID
 export const projectId = '3225e25c4d47b78232829662814a3d58'
 
-// Supported chains configuration
+// Force BSC Testnet as the only supported chain
 const chains = [bscTestnet]
 
 const { publicClient, webSocketPublicClient } = configureChains(
@@ -13,16 +13,17 @@ const { publicClient, webSocketPublicClient } = configureChains(
   [w3mProvider({ projectId })]
 )
 
-// Wagmi configuration
+// Wagmi configuration with enforced chain
 export const wagmiConfig = createConfig({
   autoConnect: true,
   connectors: w3mConnectors({ 
     chains,
     projectId,
+    version: '2', // Use latest version
   }),
   publicClient,
   webSocketPublicClient
 })
 
-// Ethereum client for Web3Modal
+// Ethereum client for Web3Modal with enforced chain
 export const ethereumClient = new EthereumClient(wagmiConfig, chains)
