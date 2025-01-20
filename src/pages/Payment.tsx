@@ -20,13 +20,7 @@ export default function Payment() {
       
       const { data, error } = await supabase
         .from('listings')
-        .select(`
-          *,
-          user:profiles!listings_user_id_fkey (
-            id,
-            wallet_address
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
       

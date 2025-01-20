@@ -6,7 +6,6 @@ import { Loader2, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { EscrowAlert } from "./EscrowAlert";
 import { TransactionDetails } from "./TransactionDetails";
-import { useAccount } from 'wagmi';
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -26,7 +25,6 @@ export function CryptoPaymentForm({
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
-  const { address, isConnected } = useAccount();
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   
   const {
@@ -75,7 +73,7 @@ export function CryptoPaymentForm({
 
             <Button
               onClick={handlePayment}
-              disabled={isProcessing || !isConnected || !cryptoAmount}
+              disabled={isProcessing}
               className="w-full"
             >
               {isProcessing ? (
@@ -83,10 +81,8 @@ export function CryptoPaymentForm({
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Transaction en cours...
                 </>
-              ) : !isConnected ? (
-                "Connectez votre portefeuille"
               ) : (
-                `Payer ${cryptoAmount.toFixed(6)} ${cryptoCurrency}`
+                "Payer maintenant"
               )}
             </Button>
 

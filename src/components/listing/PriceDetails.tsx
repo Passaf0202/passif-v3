@@ -42,7 +42,7 @@ export const PriceDetails = ({ price, protectionFee, cryptoAmount, cryptoCurrenc
 
   const formatCryptoAmount = (amount?: number, currency?: string) => {
     if (!amount || !currency) return '';
-    return `${amount.toFixed(8)} ${currency}`;
+    return `${amount.toFixed(6)} ${currency}`;
   };
 
   return (

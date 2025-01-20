@@ -13,7 +13,6 @@ export function useCryptoRates() {
   return useQuery({
     queryKey: ['crypto-rates'],
     queryFn: async () => {
-      console.log('Fetching crypto rates...');
       const { data, error } = await supabase
         .from('crypto_rates')
         .select('*')
