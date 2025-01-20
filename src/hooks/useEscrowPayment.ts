@@ -64,9 +64,14 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      if (!listing.crypto_amount) {
-        console.error('No crypto amount found for listing');
-        throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
+      if (!listing.crypto_amount || !listing.crypto_currency) {
+        console.error('Missing crypto details:', { amount: listing.crypto_amount, currency: listing.crypto_currency });
+        throw new Error("Les détails de la crypto-monnaie ne sont pas définis pour cette annonce");
+      }
+
+      // Vérifier que la crypto-monnaie est BNB
+      if (listing.crypto_currency !== 'BNB') {
+        throw new Error("Cette annonce n'accepte que les paiements en BNB");
       }
 
       // Récupérer le contrat actif
