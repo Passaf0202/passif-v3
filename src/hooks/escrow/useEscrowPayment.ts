@@ -1,9 +1,8 @@
+import { useEscrowContract } from './useEscrowContract';
+import { useTransactionManager } from './useTransactionManager';
+import { supabase } from "@/integrations/supabase/client";
 import { ethers } from "ethers";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useEscrowContract } from "./useEscrowContract";
-import { useTransactionUpdater } from "./useTransactionUpdater";
-import { validateAndUpdateCryptoAmount } from "./useCryptoAmount";
 import { useState } from "react";
 
 interface UseEscrowPaymentProps {
@@ -24,8 +23,8 @@ export function useEscrowPayment({
   const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
   
   const { toast } = useToast();
-  const { deployNewContract } = useEscrowContract();
-  const { createTransaction, updateTransactionStatus } = useTransactionUpdater();
+  const { getContract, getActiveContract } = useEscrowContract();
+  const { createTransaction, updateTransactionStatus } = useTransactionManager();
 
   const handlePayment = async () => {
     if (!address) {
@@ -75,6 +74,12 @@ export function useEscrowPayment({
         }
       }
 
+      // Vérifier à nouveau le réseau après le changement
+      const updatedNetwork = await provider.getNetwork();
+      if (updatedNetwork.chainId !== 97) {
+        throw new Error("Vous devez être sur le réseau BSC Testnet pour effectuer le paiement");
+      }
+
       // Récupérer les détails de l'annonce et du vendeur
       const { data: listing, error: listingError } = await supabase
         .from('listings')
@@ -96,8 +101,26 @@ export function useEscrowPayment({
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      if (!listing.crypto_amount) {
+      if (!listing.crypto_amount || !listing.crypto_currency) {
         throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
+      }
+
+      if (listing.crypto_currency !== 'BNB') {
+        throw new Error(`Cette annonce requiert un paiement en ${listing.crypto_currency}`);
+      }
+
+      // Récupérer le contrat actif
+      const activeContract = await getActiveContract();
+      if (!activeContract) {
+        throw new Error("Aucun contrat actif trouvé");
+      }
+
+      console.log('Using active contract:', activeContract.address);
+
+      // Récupérer l'instance du contrat
+      const contract = await getContract(activeContract.address);
+      if (!contract) {
+        throw new Error("Impossible d'initialiser le contrat");
       }
 
       // Vérifier le solde avant la transaction
@@ -106,39 +129,8 @@ export function useEscrowPayment({
       const amountInWei = ethers.utils.parseEther(listing.crypto_amount.toString());
       
       if (balance.lt(amountInWei)) {
-        throw new Error("Fonds insuffisants dans votre portefeuille");
+        throw new Error(`Fonds insuffisants. Vous avez besoin de ${listing.crypto_amount} BNB`);
       }
-
-      // Estimer le gas nécessaire
-      const gasPrice = await provider.getGasPrice();
-      const gasLimit = ethers.BigNumber.from("200000"); // Augmenter la limite de gas
-      const totalCost = amountInWei.add(gasPrice.mul(gasLimit));
-      
-      if (balance.lt(totalCost)) {
-        throw new Error("Fonds insuffisants pour couvrir les frais de transaction");
-      }
-
-      console.log('Deploying contract with params:', {
-        sellerAddress: listing.user.wallet_address,
-        amount: ethers.utils.formatEther(amountInWei),
-        gasLimit: gasLimit.toString(),
-        gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
-      });
-
-      // Déployer le contrat d'escrow avec des paramètres de gas explicites
-      const { contract, receipt } = await deployNewContract(
-        listing.user.wallet_address,
-        amountInWei,
-        {
-          gasLimit,
-          gasPrice
-        }
-      );
-
-      console.log('Contract deployed:', {
-        address: contract.address,
-        transactionHash: receipt.transactionHash
-      });
 
       // Créer la transaction dans la base de données
       const transaction = await createTransaction(
@@ -147,12 +139,32 @@ export function useEscrowPayment({
         listing.user.id,
         listing.crypto_amount,
         0,
-        contract.address,
+        activeContract.address,
         97 // BSC Testnet chain ID
       );
 
+      console.log('Transaction created in database:', transaction);
+
+      // Appeler la fonction deposit du contrat avec les paramètres spécifiques pour BNB
+      const tx = await contract.deposit(listing.user.wallet_address, {
+        value: amountInWei,
+        gasLimit: 200000,
+        gasPrice: await provider.getGasPrice()
+      });
+
+      console.log('Transaction sent:', tx.hash);
+      setTransactionStatus('pending');
+      
+      if (onTransactionHash) {
+        onTransactionHash(tx.hash);
+      }
+
+      // Attendre la confirmation
+      const receipt = await tx.wait();
+      console.log('Transaction receipt:', receipt);
+
       if (receipt.status === 1) {
-        await updateTransactionStatus(transaction.id, 'processing', receipt.transactionHash);
+        await updateTransactionStatus(transaction.id, 'processing', tx.hash);
         setTransactionStatus('confirmed');
         toast({
           title: "Transaction confirmée",
@@ -160,7 +172,7 @@ export function useEscrowPayment({
         });
         onPaymentComplete();
       } else {
-        throw new Error("La transaction a échoué sur la blockchain");
+        throw new Error("La transaction a échoué");
       }
 
     } catch (error: any) {
