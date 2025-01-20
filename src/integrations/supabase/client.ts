@@ -11,12 +11,28 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true
     },
     global: {
       headers: {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       },
     },
+    db: {
+      schema: 'public'
+    }
+  }
+);
+
+// Add error logging for debugging
+supabase.from('categories').select('*').then(
+  (response) => {
+    if (response.error) {
+      console.error('Supabase connection test error:', response.error);
+    } else {
+      console.log('Supabase connection test successful');
+    }
   }
 );
