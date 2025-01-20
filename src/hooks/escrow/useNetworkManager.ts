@@ -1,4 +1,5 @@
 import { useToast } from "@/components/ui/use-toast";
+import { ethers } from "ethers";
 
 export function useNetworkManager() {
   const { toast } = useToast();
