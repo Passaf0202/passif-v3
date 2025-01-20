@@ -26,45 +26,41 @@ serve(async (req) => {
 
     console.log('Fetching balance for wallet:', address)
     
-    const zerionApiKey = Deno.env.get('ZERION_API_KEY')
-    if (!zerionApiKey) {
-      throw new Error('ZERION_API_KEY is not configured')
+    // Appel à l'API BSCScan pour obtenir le solde
+    const bscApiKey = Deno.env.get('BSC_API_KEY')
+    if (!bscApiKey) {
+      throw new Error('BSC_API_KEY is not configured')
     }
 
-    // Zerion expects the API key followed by a colon in Basic auth
-    const credentials = btoa(`${zerionApiKey}:`)
-    console.log('Using Basic auth with API key')
-
     const response = await fetch(
-      `https://api.zerion.io/v1/wallets/${address}/portfolio`,
+      `https://api.bscscan.com/api?module=account&action=balance&address=${address}&apikey=${bscApiKey}`,
       {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Authorization': `Basic ${credentials}`
         }
       }
     )
 
     if (!response.ok) {
       const errorData = await response.text()
-      console.error('Zerion API error:', {
+      console.error('BSCScan API error:', {
         status: response.status,
         statusText: response.statusText,
-        body: errorData,
-        headers: Object.fromEntries(response.headers.entries())
+        body: errorData
       })
-      throw new Error(`Zerion API error: ${response.status} ${response.statusText}`)
+      throw new Error(`BSCScan API error: ${response.status} ${response.statusText}`)
     }
 
     const data = await response.json()
-    console.log('Zerion API response:', JSON.stringify(data, null, 2))
+    console.log('BSCScan API response:', JSON.stringify(data, null, 2))
 
-    // Extract the total value from the response
-    const totalValue = data.data.attributes.total.positions
+    // Convertir le solde de Wei en BNB
+    const balanceInWei = data.result
+    const balanceInBNB = parseInt(balanceInWei) / 1e18
 
     return new Response(
-      JSON.stringify({ total_value_usd: totalValue }),
+      JSON.stringify({ balance: balanceInBNB }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
