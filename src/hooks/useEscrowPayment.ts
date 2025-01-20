@@ -1,9 +1,8 @@
-import { useEscrowContract } from './escrow/useEscrowContract';
-import { useTransactionManager } from './escrow/useTransactionManager';
-import { supabase } from "@/integrations/supabase/client";
-import { parseEther } from "viem";
-import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { useNetworkManager } from './escrow/useNetworkManager';
+import { fetchListingDetails } from './escrow/useListingDetails';
+import { usePaymentProcessor } from './escrow/usePaymentProcessor';
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -23,8 +22,8 @@ export function useEscrowPayment({
   const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
   
   const { toast } = useToast();
-  const { getContract, getActiveContract } = useEscrowContract();
-  const { createTransaction, updateTransactionStatus } = useTransactionManager();
+  const { ensureCorrectNetwork } = useNetworkManager();
+  const { processPayment } = usePaymentProcessor();
 
   const handlePayment = async () => {
     if (!address) {
@@ -37,88 +36,25 @@ export function useEscrowPayment({
       setError(null);
       console.log('Starting payment process for listing:', listingId);
 
-      // Récupérer les détails de l'annonce et du vendeur
-      const { data: listing, error: listingError } = await supabase
-        .from('listings')
-        .select(`
-          *,
-          user:profiles!listings_user_id_fkey (
-            wallet_address,
-            id
-          )
-        `)
-        .eq('id', listingId)
-        .maybeSingle();
+      // S'assurer qu'on est sur le bon réseau
+      await ensureCorrectNetwork();
 
-      if (listingError || !listing) {
-        throw new Error("Impossible de récupérer les détails de l'annonce");
+      // Récupérer les détails de l'annonce
+      const listing = await fetchListingDetails(listingId);
+
+      // Vérifier que la crypto est bien BNB
+      if (listing.crypto_currency !== 'BNB') {
+        throw new Error(`Cette annonce requiert un paiement en ${listing.crypto_currency}`);
       }
 
-      if (!listing.user?.wallet_address) {
-        throw new Error("Le vendeur n'a pas connecté son portefeuille");
-      }
-
-      if (!listing.crypto_amount) {
-        throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
-      }
-
-      // Récupérer le contrat actif
-      const activeContract = await getActiveContract();
-      if (!activeContract) {
-        throw new Error("Aucun contrat actif trouvé");
-      }
-
-      console.log('Using active contract:', activeContract.address);
-
-      // Récupérer l'instance du contrat
-      const contract = await getContract(activeContract.address);
-      if (!contract) {
-        throw new Error("Impossible d'initialiser le contrat");
-      }
-
-      const amountInWei = parseEther(listing.crypto_amount.toString());
-      console.log('Payment amount in Wei:', amountInWei);
-
-      // Créer la transaction dans la base de données
-      const transaction = await createTransaction(
-        listingId,
-        address,
-        listing.user.id,
-        listing.crypto_amount,
-        0,
-        activeContract.address,
-        97 // BSC Testnet chain ID
-      );
-
-      console.log('Transaction created in database:', transaction);
-
-      // Appeler la fonction deposit du contrat
-      const tx = await contract.deposit(listing.user.wallet_address, {
-        value: amountInWei,
-        gasLimit: 200000
-      });
-
-      console.log('Transaction sent:', tx.hash);
       setTransactionStatus('pending');
+
+      // Traiter le paiement
+      const success = await processPayment(listing, address, onTransactionHash);
       
-      if (onTransactionHash) {
-        onTransactionHash(tx.hash);
-      }
-
-      // Attendre la confirmation
-      const receipt = await tx.wait();
-      console.log('Transaction receipt:', receipt);
-
-      if (receipt.status === 1) {
-        await updateTransactionStatus(transaction.id, 'processing', tx.hash);
+      if (success) {
         setTransactionStatus('confirmed');
-        toast({
-          title: "Transaction confirmée",
-          description: "Le paiement a été effectué avec succès",
-        });
         onPaymentComplete();
-      } else {
-        throw new Error("La transaction a échoué");
       }
 
     } catch (error: any) {
