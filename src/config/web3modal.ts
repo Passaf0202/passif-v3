@@ -1,11 +1,12 @@
-import { createConfig, configureChains, mainnet } from 'wagmi'
+import { createConfig, configureChains } from 'wagmi'
+import { bscTestnet } from 'wagmi/chains'
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 
 // Your WalletConnect Project ID
 export const projectId = '3225e25c4d47b78232829662814a3d58'
 
 // Supported chains configuration
-const chains = [mainnet]
+const chains = [bscTestnet]
 
 const { publicClient, webSocketPublicClient } = configureChains(
   chains,
