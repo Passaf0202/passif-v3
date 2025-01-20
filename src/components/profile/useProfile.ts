@@ -36,19 +36,30 @@ export function useProfile() {
 
   async function checkUser() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log("Checking user session:", user);
+      
+      if (userError) {
+        console.error("Error checking user:", userError);
+        throw userError;
+      }
+
       if (!user) {
+        console.log("No user found, redirecting to auth");
         navigate("/auth");
       }
     } catch (error) {
-      console.error("Error checking user:", error);
+      console.error("Error in checkUser:", error);
       navigate("/auth");
     }
   }
 
   async function getProfile() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log("Getting profile for user:", user);
+      
+      if (userError) throw userError;
       
       if (!user) {
         navigate("/auth");
@@ -61,8 +72,12 @@ export function useProfile() {
         .eq("id", user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
 
+      console.log("Profile data fetched:", data);
       setProfile(data);
       setFormData({
         first_name: data.first_name || "",
@@ -73,10 +88,10 @@ export function useProfile() {
         username: data.username || "",
       });
     } catch (error) {
-      console.error("Error loading profile:", error);
+      console.error("Error in getProfile:", error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger le profil",
+        description: "Impossible de charger le profil. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
@@ -86,19 +101,28 @@ export function useProfile() {
 
   async function updateProfile() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      setLoading(true);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) throw userError;
       
       if (!user) {
         navigate("/auth");
         return;
       }
 
+      console.log("Updating profile for user:", user.id);
+      console.log("Update data:", formData);
+
       const { error } = await supabase
         .from("profiles")
         .update(formData)
         .eq("id", user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating profile:", error);
+        throw error;
+      }
 
       toast({
         title: "Succès",
@@ -106,14 +130,16 @@ export function useProfile() {
       });
       
       setEditing(false);
-      getProfile();
+      await getProfile();
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error("Error in updateProfile:", error);
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour le profil",
+        description: "Impossible de mettre à jour le profil. Veuillez réessayer.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   }
 
