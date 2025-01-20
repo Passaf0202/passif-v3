@@ -3,6 +3,7 @@ import { useTransactionManager } from './escrow/useTransactionManager';
 import { supabase } from "@/integrations/supabase/client";
 import { parseEther } from "viem";
 import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -17,18 +18,13 @@ export function useEscrowPayment({
   onTransactionHash,
   onPaymentComplete 
 }: UseEscrowPaymentProps) {
-  const { getContract } = useEscrowContract();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
+  
   const { toast } = useToast();
-  const {
-    isProcessing,
-    setIsProcessing,
-    error,
-    setError,
-    transactionStatus,
-    setTransactionStatus,
-    createTransaction,
-    updateTransactionStatus
-  } = useTransactionManager();
+  const { getContract, getActiveContract } = useEscrowContract();
+  const { createTransaction, updateTransactionStatus } = useTransactionManager();
 
   const handlePayment = async () => {
     if (!address) {
@@ -55,47 +51,33 @@ export function useEscrowPayment({
         .maybeSingle();
 
       if (listingError || !listing) {
-        console.error('Error fetching listing:', listingError);
         throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
       if (!listing.user?.wallet_address) {
-        console.error('No wallet address found for seller');
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
-      if (!listing.crypto_amount || !listing.crypto_currency) {
-        console.error('Missing crypto details:', { amount: listing.crypto_amount, currency: listing.crypto_currency });
-        throw new Error("Les détails de la crypto-monnaie ne sont pas définis pour cette annonce");
-      }
-
-      // Vérifier que la crypto-monnaie est BNB
-      if (listing.crypto_currency !== 'BNB') {
-        throw new Error("Cette annonce n'accepte que les paiements en BNB");
+      if (!listing.crypto_amount) {
+        throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
       }
 
       // Récupérer le contrat actif
-      const { data: activeContract } = await supabase
-        .from('smart_contracts')
-        .select('*')
-        .eq('is_active', true)
-        .eq('network', 'bsc_testnet')
-        .single();
-
+      const activeContract = await getActiveContract();
       if (!activeContract) {
         throw new Error("Aucun contrat actif trouvé");
       }
 
-      // Récupérer le contrat avec l'adresse
-      const escrow = await getContract(activeContract.address);
-      if (!escrow) throw new Error("Impossible d'initialiser le contrat");
+      console.log('Using active contract:', activeContract.address);
 
-      console.log('Payment details:', {
-        amount: listing.crypto_amount,
-        sellerAddress: listing.user.wallet_address,
-        buyerAddress: address,
-        contractAddress: activeContract.address
-      });
+      // Récupérer l'instance du contrat
+      const contract = await getContract(activeContract.address);
+      if (!contract) {
+        throw new Error("Impossible d'initialiser le contrat");
+      }
+
+      const amountInWei = parseEther(listing.crypto_amount.toString());
+      console.log('Payment amount in Wei:', amountInWei);
 
       // Créer la transaction dans la base de données
       const transaction = await createTransaction(
@@ -105,56 +87,38 @@ export function useEscrowPayment({
         listing.crypto_amount,
         0,
         activeContract.address,
-        activeContract.chain_id
+        97 // BSC Testnet chain ID
       );
 
-      try {
-        const amountInWei = parseEther(listing.crypto_amount.toString());
-        console.log('Amount in Wei:', amountInWei);
+      console.log('Transaction created in database:', transaction);
 
-        // Configuration spécifique pour BSC
-        const gasLimit = 200000;
-        
-        // Envoyer la transaction
-        const tx = await escrow.deposit(listing.user.wallet_address, {
-          value: amountInWei,
-          gasLimit: gasLimit
+      // Appeler la fonction deposit du contrat
+      const tx = await contract.deposit(listing.user.wallet_address, {
+        value: amountInWei,
+        gasLimit: 200000
+      });
+
+      console.log('Transaction sent:', tx.hash);
+      setTransactionStatus('pending');
+      
+      if (onTransactionHash) {
+        onTransactionHash(tx.hash);
+      }
+
+      // Attendre la confirmation
+      const receipt = await tx.wait();
+      console.log('Transaction receipt:', receipt);
+
+      if (receipt.status === 1) {
+        await updateTransactionStatus(transaction.id, 'processing', tx.hash);
+        setTransactionStatus('confirmed');
+        toast({
+          title: "Transaction confirmée",
+          description: "Le paiement a été effectué avec succès",
         });
-
-        console.log('Transaction sent:', tx.hash);
-        setTransactionStatus('pending');
-        
-        if (onTransactionHash) {
-          onTransactionHash(tx.hash);
-        }
-
-        const receipt = await tx.wait();
-        console.log('Transaction receipt:', receipt);
-
-        if (receipt.status === 1) {
-          await updateTransactionStatus(transaction.id, 'processing', tx.hash);
-          setTransactionStatus('confirmed');
-          toast({
-            title: "Transaction confirmée",
-            description: "Le paiement a été effectué avec succès",
-          });
-          onPaymentComplete();
-        } else {
-          throw new Error("La transaction a échoué");
-        }
-      } catch (txError: any) {
-        console.error('Transaction error:', txError);
-        
-        if (txError.code === 'INSUFFICIENT_FUNDS') {
-          toast({
-            title: "Fonds insuffisants",
-            description: "Votre portefeuille ne contient pas assez de BNB pour effectuer cette transaction",
-            variant: "destructive",
-          });
-          throw new Error("Fonds insuffisants dans votre portefeuille");
-        }
-        
-        throw txError;
+        onPaymentComplete();
+      } else {
+        throw new Error("La transaction a échoué");
       }
 
     } catch (error: any) {
