@@ -18,6 +18,7 @@ export const wagmiConfig = createConfig({
   connectors: w3mConnectors({ 
     projectId,
     chains,
+    version: '2', // Specify version explicitly
   }),
   publicClient,
   webSocketPublicClient
