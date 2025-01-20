@@ -24,16 +24,16 @@ serve(async (req) => {
       )
     }
 
-    console.log('Fetching balance for wallet:', address)
-    
-    // Appel à l'API BSCScan pour obtenir le solde
     const bscApiKey = Deno.env.get('BSC_API_KEY')
     if (!bscApiKey) {
       throw new Error('BSC_API_KEY is not configured')
     }
 
+    console.log('Fetching balance for wallet:', address)
+    
+    // Appel à l'API BSCScan pour obtenir le solde
     const response = await fetch(
-      `https://api.bscscan.com/api?module=account&action=balance&address=${address}&apikey=${bscApiKey}`,
+      `https://api-testnet.bscscan.com/api?module=account&action=balance&address=${address}&apikey=${bscApiKey}`,
       {
         method: 'GET',
         headers: {
