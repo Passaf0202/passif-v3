@@ -27,31 +27,54 @@ export const useTransactionManager = () => {
       chainId
     });
 
-    const { data, error: transactionError } = await supabase
-      .from('transactions')
-      .insert({
-        listing_id: listingId,
-        buyer_id: buyerId,
-        seller_id: sellerId,
-        amount: amount,
-        commission_amount: commission,
-        status: 'pending',
-        escrow_status: 'pending',
-        smart_contract_address: contractAddress,
-        chain_id: chainId,
-        network: 'bsc_testnet',
-        token_symbol: 'BNB'
-      })
-      .select()
-      .single();
-
-    if (transactionError) {
-      console.error('Transaction creation error:', transactionError);
-      throw new Error("Erreur lors de la création de la transaction");
+    // Vérifier que l'utilisateur est authentifié
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      throw new Error("Vous devez être connecté pour créer une transaction");
     }
 
-    console.log('Transaction created:', data);
-    return data;
+    // Vérifier que l'utilisateur est bien l'acheteur
+    if (user.id !== buyerId) {
+      console.error('User ID mismatch:', { userId: user.id, buyerId });
+      throw new Error("Vous n'êtes pas autorisé à créer cette transaction");
+    }
+
+    try {
+      const { data, error: insertError } = await supabase
+        .from('transactions')
+        .insert({
+          listing_id: listingId,
+          buyer_id: buyerId,
+          seller_id: sellerId,
+          amount: amount,
+          commission_amount: commission,
+          status: 'pending',
+          escrow_status: 'pending',
+          smart_contract_address: contractAddress,
+          chain_id: chainId,
+          network: 'bsc_testnet',
+          token_symbol: 'BNB'
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Transaction creation error:', {
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+          code: insertError.code
+        });
+        throw new Error("Erreur lors de la création de la transaction");
+      }
+
+      console.log('Transaction created successfully:', data);
+      return data;
+    } catch (error: any) {
+      console.error('Error in createTransaction:', error);
+      throw error;
+    }
   };
 
   const updateTransactionStatus = async (
@@ -65,6 +88,11 @@ export const useTransactionManager = () => {
       txHash
     });
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error("Vous devez être connecté pour mettre à jour une transaction");
+    }
+
     const updates: any = {
       status,
       updated_at: new Date().toISOString()
@@ -74,17 +102,23 @@ export const useTransactionManager = () => {
       updates.transaction_hash = txHash;
     }
 
-    const { error } = await supabase
-      .from('transactions')
-      .update(updates)
-      .eq('id', transactionId);
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update(updates)
+        .eq('id', transactionId)
+        .filter('buyer_id', 'eq', user.id);
 
-    if (error) {
-      console.error('Error updating transaction:', error);
+      if (error) {
+        console.error('Error updating transaction:', error);
+        throw error;
+      }
+
+      console.log('Transaction status updated successfully');
+    } catch (error) {
+      console.error('Error in updateTransactionStatus:', error);
       throw error;
     }
-
-    console.log('Transaction status updated successfully');
   };
 
   return {
