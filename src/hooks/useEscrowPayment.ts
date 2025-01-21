@@ -92,11 +92,21 @@ export function useEscrowPayment({
         contractAddress: activeContract.address
       });
 
-      // Créer la transaction dans la base de données
+      // Créer la transaction dans la base de données avec les IDs corrects
+      const { data: buyerProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('wallet_address', address)
+        .maybeSingle();
+
+      if (!buyerProfile?.id) {
+        throw new Error("Profil de l'acheteur non trouvé");
+      }
+
       const transaction = await createTransaction(
         listingId,
-        address,
-        listing.user.id,
+        buyerProfile.id, // Use the buyer's profile ID
+        listing.user.id, // Use the seller's profile ID
         listing.crypto_amount,
         0,
         activeContract.address,
