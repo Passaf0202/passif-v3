@@ -25,7 +25,10 @@ export default function Payment() {
   } = useQuery({
     queryKey: ['listing', id],
     queryFn: async () => {
-      if (initialListing) return initialListing;
+      if (initialListing) {
+        console.log('Using initial listing:', initialListing);
+        return initialListing;
+      }
       
       console.log('Fetching listing with ID:', id);
       const { data, error } = await supabase
@@ -77,7 +80,7 @@ export default function Payment() {
     }
   });
 
-  // Fetch transaction data - Updated to include proper filters
+  // Fetch transaction data
   const { data: transaction } = useQuery({
     queryKey: ['transaction', id, user?.id],
     queryFn: async () => {
@@ -103,55 +106,6 @@ export default function Payment() {
   });
 
   const currentListing = initialListing || fetchedListing;
-
-  // Calculate and update crypto amount
-  const { data: updatedListing } = useQuery({
-    queryKey: ['update-crypto-amount', currentListing?.id, cryptoRates],
-    queryFn: async () => {
-      if (!currentListing || !cryptoRates) {
-        console.log('Missing data for crypto calculation:', { currentListing, cryptoRates });
-        return currentListing;
-      }
-
-      const bnbRate = cryptoRates.rate_eur;
-      if (!bnbRate || bnbRate <= 0) {
-        console.error('Invalid BNB rate:', bnbRate);
-        throw new Error('Taux de conversion BNB invalide');
-      }
-
-      const cryptoAmount = Number(currentListing.price) / bnbRate;
-      console.log('Calculated crypto amount:', {
-        price: currentListing.price,
-        bnbRate,
-        cryptoAmount
-      });
-
-      if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
-        console.error('Invalid crypto amount calculated:', cryptoAmount);
-        throw new Error('Montant en crypto invalide');
-      }
-
-      const { data, error } = await supabase
-        .from('listings')
-        .update({
-          crypto_amount: cryptoAmount,
-          crypto_currency: 'BNB'
-        })
-        .eq('id', currentListing.id)
-        .select()
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error updating crypto amount:', error);
-        throw error;
-      }
-
-      console.log('Updated listing with crypto amount:', data);
-      return data;
-    },
-    enabled: !!currentListing && !!cryptoRates && !transaction,
-    retry: false
-  });
 
   const handleBackToHome = () => {
     navigate('/');
@@ -205,8 +159,6 @@ export default function Payment() {
     );
   }
 
-  const finalListing = updatedListing || currentListing;
-
   return (
     <div>
       <Navbar />
@@ -215,12 +167,12 @@ export default function Payment() {
           <EscrowDetails transactionId={transaction.id} />
         ) : (
           <CryptoPaymentForm
-            listingId={finalListing.id}
-            title={finalListing.title}
-            price={finalListing.price}
-            cryptoAmount={finalListing.crypto_amount}
+            listingId={currentListing.id}
+            title={currentListing.title}
+            price={currentListing.price}
+            cryptoAmount={currentListing.crypto_amount}
             cryptoCurrency="BNB"
-            onPaymentComplete={() => navigate(returnUrl || `/listings/${finalListing.id}`)}
+            onPaymentComplete={() => navigate(returnUrl || `/listings/${currentListing.id}`)}
           />
         )}
       </div>
