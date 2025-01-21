@@ -17,7 +17,6 @@ export default function CreateListing() {
       const uploadedUrls: string[] = [];
 
       for (const image of images) {
-        // Vérifier que c'est bien une image
         if (!image.type.startsWith('image/')) {
           console.error(`File ${image.name} is not an image (type: ${image.type})`);
           continue;
@@ -30,7 +29,7 @@ export default function CreateListing() {
         const { error: uploadError, data } = await supabase.storage
           .from("listings-images")
           .upload(fileName, image, {
-            contentType: image.type, // Spécifier explicitement le type MIME
+            contentType: image.type,
             upsert: false
           });
 
@@ -70,7 +69,7 @@ export default function CreateListing() {
       console.log("Starting listing creation with values:", values);
 
       let imageUrls: string[] = [];
-      if (values.images.length > 0) {
+      if (values.images?.length > 0) {
         imageUrls = await uploadImages(values.images);
       }
 
@@ -84,7 +83,7 @@ export default function CreateListing() {
           price: Number(values.price),
           location: values.location,
           images: imageUrls,
-          user_id: user.id,
+          user_id: user.id, // Explicitly set the user_id
           status: 'active',
           category: values.category,
           subcategory: values.subcategory,
@@ -96,7 +95,7 @@ export default function CreateListing() {
           shipping_method: values.shipping_method,
           shipping_weight: values.shipping_weight,
         })
-        .select()
+        .select('*')
         .single();
 
       if (insertError) {
