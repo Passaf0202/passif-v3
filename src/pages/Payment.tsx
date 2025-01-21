@@ -5,6 +5,7 @@ import { EscrowDetails } from "@/components/escrow/EscrowDetails";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Payment() {
   const { id } = useParams();
@@ -13,7 +14,7 @@ export default function Payment() {
   const listing = location.state?.listing;
   const returnUrl = location.state?.returnUrl;
 
-  const { data: fetchedListing, isLoading: isListingLoading } = useQuery({
+  const { data: fetchedListing, isLoading: isListingLoading, error: listingError } = useQuery({
     queryKey: ['listing', id],
     queryFn: async () => {
       if (listing) return listing;
@@ -22,9 +23,10 @@ export default function Payment() {
         .from('listings')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
+      if (!data) throw new Error('Listing not found');
       return data;
     },
     enabled: !listing && !!id
@@ -60,7 +62,6 @@ export default function Payment() {
         .select('*')
         .eq('listing_id', id)
         .order('created_at', { ascending: false })
-        .limit(1)
         .maybeSingle();
       
       if (error) {
@@ -101,7 +102,6 @@ export default function Payment() {
         throw new Error('Montant en crypto invalide');
       }
 
-      // Mettre à jour l'annonce avec le montant en crypto
       const { data, error } = await supabase
         .from('listings')
         .update({
@@ -110,7 +110,7 @@ export default function Payment() {
         })
         .eq('id', currentListing.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error updating crypto amount:', error);
@@ -136,12 +136,16 @@ export default function Payment() {
     );
   }
 
-  if (!currentListing) {
+  if (listingError || !currentListing) {
     return (
       <div>
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <p className="text-center text-gray-500">Annonce non trouvée</p>
+          <Alert variant="destructive">
+            <AlertDescription>
+              Cette annonce n'existe pas ou n'est plus disponible
+            </AlertDescription>
+          </Alert>
         </div>
       </div>
     );

@@ -31,7 +31,6 @@ serve(async (req) => {
       throw new Error('ZERION_API_KEY is not configured')
     }
 
-    // Zerion expects the API key followed by a colon in Basic auth
     const credentials = btoa(`${zerionApiKey}:`)
     console.log('Using Basic auth with API key')
 
@@ -51,8 +50,7 @@ serve(async (req) => {
       console.error('Zerion API error:', {
         status: response.status,
         statusText: response.statusText,
-        body: errorData,
-        headers: Object.fromEntries(response.headers.entries())
+        body: errorData
       })
       throw new Error(`Zerion API error: ${response.status} ${response.statusText}`)
     }
@@ -60,7 +58,6 @@ serve(async (req) => {
     const data = await response.json()
     console.log('Zerion API response:', JSON.stringify(data, null, 2))
 
-    // Extract the total value from the response
     const totalValue = data.data.attributes.total.positions
 
     return new Response(
