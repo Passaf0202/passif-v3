@@ -157,10 +157,6 @@ export default function Payment() {
     navigate('/');
   };
 
-  const handlePaymentComplete = () => {
-    navigate(returnUrl || `/listings/${currentListing.id}`);
-  };
-
   if (isListingLoading || isRatesLoading) {
     return (
       <div>
@@ -224,7 +220,7 @@ export default function Payment() {
             price={finalListing.price}
             cryptoAmount={finalListing.crypto_amount}
             cryptoCurrency="BNB"
-            onPaymentComplete={handlePaymentComplete}
+            onPaymentComplete={() => navigate(returnUrl || `/listings/${finalListing.id}`)}
           />
         )}
       </div>
