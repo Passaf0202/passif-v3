@@ -77,11 +77,11 @@ export default function Payment() {
     }
   });
 
-  // Fetch transaction data
+  // Fetch transaction data - Updated to include proper filters
   const { data: transaction } = useQuery({
-    queryKey: ['transaction', id],
+    queryKey: ['transaction', id, user?.id],
     queryFn: async () => {
-      if (!user) return null;
+      if (!user?.id || !id) return null;
       
       const { data, error } = await supabase
         .from('transactions')
@@ -92,14 +92,14 @@ export default function Payment() {
         .maybeSingle();
       
       if (error) {
-        console.log('Error fetching transaction:', error);
+        console.error('Error fetching transaction:', error);
         return null;
       }
       
       console.log('Latest transaction:', data);
       return data;
     },
-    enabled: !!id && !!user
+    enabled: !!id && !!user?.id
   });
 
   const currentListing = initialListing || fetchedListing;
