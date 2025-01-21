@@ -99,11 +99,11 @@ export function useEscrowPayment({
         contractAddress: activeContract.address
       });
 
-      // Créer la transaction dans la base de données
+      // Créer la transaction dans la base de données avec l'ID du profil de l'utilisateur
       const transaction = await createTransaction(
         listingId,
         authUser.id, // Use the authenticated user's ID
-        listing.user.id,
+        listing.user.id, // Use the seller's profile ID
         listing.crypto_amount,
         0,
         activeContract.address,
