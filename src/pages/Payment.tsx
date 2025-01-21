@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 export default function Payment() {
   const { id } = useParams();
@@ -22,7 +23,15 @@ export default function Payment() {
       console.log('Fetching listing with ID:', id);
       const { data, error } = await supabase
         .from('listings')
-        .select('*')
+        .select(`
+          *,
+          user:profiles!listings_user_id_fkey (
+            id,
+            wallet_address,
+            avatar_url,
+            full_name
+          )
+        `)
         .eq('id', id)
         .maybeSingle();
       
@@ -62,6 +71,40 @@ export default function Payment() {
   });
 
   const currentListing = listing || fetchedListing;
+
+  const handleBackToHome = () => {
+    navigate('/');
+  };
+
+  if (isListingLoading || isRatesLoading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p className="ml-2">Chargement des données...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (listingError || !currentListing) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>
+              Cette annonce n'existe pas ou n'est plus disponible
+            </AlertDescription>
+          </Alert>
+          <Button onClick={handleBackToHome} variant="outline">
+            Retour à l'accueil
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const { data: transaction } = useQuery({
     queryKey: ['transaction', id],
@@ -132,33 +175,6 @@ export default function Payment() {
     enabled: !!currentListing && !!cryptoRates,
     retry: false
   });
-
-  if (isListingLoading || isRatesLoading) {
-    return (
-      <div>
-        <Navbar />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="ml-2">Chargement des données...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (listingError || !currentListing) {
-    return (
-      <div>
-        <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <Alert variant="destructive">
-            <AlertDescription>
-              Cette annonce n'existe pas ou n'est plus disponible
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    );
-  }
 
   const finalListing = updatedListing || currentListing;
 
