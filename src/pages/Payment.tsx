@@ -7,18 +7,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Payment() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const initialListing = location.state?.listing;
   const returnUrl = location.state?.returnUrl;
 
   // Fetch listing data
   const { 
     data: fetchedListing, 
-    isLoading: isListingLoading, 
+    isLoading: isListingLoading,
     error: listingError 
   } = useQuery({
     queryKey: ['listing', id],
@@ -75,14 +77,17 @@ export default function Payment() {
     }
   });
 
-  // Fetch transaction data - always fetch this regardless of listing state
+  // Fetch transaction data
   const { data: transaction } = useQuery({
     queryKey: ['transaction', id],
     queryFn: async () => {
+      if (!user) return null;
+      
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
         .eq('listing_id', id)
+        .eq('buyer_id', user.id)
         .order('created_at', { ascending: false })
         .maybeSingle();
       
@@ -94,7 +99,7 @@ export default function Payment() {
       console.log('Latest transaction:', data);
       return data;
     },
-    enabled: !!id
+    enabled: !!id && !!user
   });
 
   const currentListing = initialListing || fetchedListing;
@@ -176,6 +181,24 @@ export default function Payment() {
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
               Cette annonce n'existe pas ou n'est plus disponible
+            </AlertDescription>
+          </Alert>
+          <Button onClick={handleBackToHome} variant="outline">
+            Retour à l'accueil
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>
+              Veuillez vous connecter pour accéder à cette page
             </AlertDescription>
           </Alert>
           <Button onClick={handleBackToHome} variant="outline">
