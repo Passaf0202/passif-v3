@@ -14,6 +14,7 @@ export default function CreateListing() {
 
   const uploadImages = async (images: File[]) => {
     try {
+      console.log("Starting image upload process");
       const uploadedUrls: string[] = [];
 
       for (const image of images) {
@@ -67,6 +68,7 @@ export default function CreateListing() {
     try {
       setIsSubmitting(true);
       console.log("Starting listing creation with values:", values);
+      console.log("Current user:", user);
 
       let imageUrls: string[] = [];
       if (values.images?.length > 0) {
@@ -83,7 +85,7 @@ export default function CreateListing() {
           price: Number(values.price),
           location: values.location,
           images: imageUrls,
-          user_id: user.id, // Explicitly set the user_id
+          user_id: user.id,
           status: 'active',
           category: values.category,
           subcategory: values.subcategory,
@@ -94,6 +96,8 @@ export default function CreateListing() {
           material: values.material,
           shipping_method: values.shipping_method,
           shipping_weight: values.shipping_weight,
+          crypto_currency: values.crypto_currency,
+          crypto_amount: values.crypto_amount
         })
         .select('*')
         .single();
