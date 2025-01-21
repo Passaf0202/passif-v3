@@ -38,28 +38,38 @@ export function useEscrowPayment({
       setError(null);
       console.log('Starting payment process for listing:', listingId);
 
+      // Get the authenticated user first
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError || !authUser) {
+        console.error('Auth error:', authError);
+        throw new Error("Vous devez être connecté pour effectuer un paiement");
+      }
+
       // Récupérer les détails de l'annonce et du vendeur
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .select(`
           *,
           user:profiles!listings_user_id_fkey (
-            wallet_address,
-            id
+            id,
+            wallet_address
           )
         `)
         .eq('id', listingId)
-        .maybeSingle();
+        .single();
 
       if (listingError || !listing) {
+        console.error('Error fetching listing:', listingError);
         throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
       if (!listing.user?.wallet_address) {
+        console.error('No wallet address found for seller');
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
       if (!listing.crypto_amount) {
+        console.error('No crypto amount found for listing');
         throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
       }
 
@@ -104,11 +114,11 @@ export function useEscrowPayment({
         transactionHash: receipt.transactionHash
       });
 
-      // Créer la transaction dans la base de données
+      // Create transaction with correct user IDs
       const transaction = await createTransaction(
         listingId,
-        address,
-        listing.user.id,
+        authUser.id, // Use authenticated user ID for buyer
+        listing.user.id, // Use seller's profile ID
         listing.crypto_amount,
         0,
         contract.address,
