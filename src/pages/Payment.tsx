@@ -12,13 +12,18 @@ export default function Payment() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const listing = location.state?.listing;
+  const initialListing = location.state?.listing;
   const returnUrl = location.state?.returnUrl;
 
-  const { data: fetchedListing, isLoading: isListingLoading, error: listingError } = useQuery({
+  // Fetch listing data
+  const { 
+    data: fetchedListing, 
+    isLoading: isListingLoading, 
+    error: listingError 
+  } = useQuery({
     queryKey: ['listing', id],
     queryFn: async () => {
-      if (listing) return listing;
+      if (initialListing) return initialListing;
       
       console.log('Fetching listing with ID:', id);
       const { data, error } = await supabase
@@ -46,11 +51,11 @@ export default function Payment() {
       console.log('Fetched listing:', data);
       return data;
     },
-    enabled: !listing && !!id,
+    enabled: !initialListing && !!id,
     retry: false
   });
 
-  // Fetch current BNB rate
+  // Fetch crypto rates
   const { data: cryptoRates, isLoading: isRatesLoading } = useQuery({
     queryKey: ['crypto-rates'],
     queryFn: async () => {
@@ -70,42 +75,7 @@ export default function Payment() {
     }
   });
 
-  const currentListing = listing || fetchedListing;
-
-  const handleBackToHome = () => {
-    navigate('/');
-  };
-
-  if (isListingLoading || isRatesLoading) {
-    return (
-      <div>
-        <Navbar />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="ml-2">Chargement des données...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (listingError || !currentListing) {
-    return (
-      <div>
-        <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>
-              Cette annonce n'existe pas ou n'est plus disponible
-            </AlertDescription>
-          </Alert>
-          <Button onClick={handleBackToHome} variant="outline">
-            Retour à l'accueil
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
+  // Fetch transaction data - always fetch this regardless of listing state
   const { data: transaction } = useQuery({
     queryKey: ['transaction', id],
     queryFn: async () => {
@@ -126,6 +96,8 @@ export default function Payment() {
     },
     enabled: !!id
   });
+
+  const currentListing = initialListing || fetchedListing;
 
   // Calculate and update crypto amount
   const { data: updatedListing } = useQuery({
@@ -172,15 +144,49 @@ export default function Payment() {
       console.log('Updated listing with crypto amount:', data);
       return data;
     },
-    enabled: !!currentListing && !!cryptoRates,
+    enabled: !!currentListing && !!cryptoRates && !transaction,
     retry: false
   });
 
-  const finalListing = updatedListing || currentListing;
+  const handleBackToHome = () => {
+    navigate('/');
+  };
 
   const handlePaymentComplete = () => {
-    navigate(returnUrl || `/listings/${finalListing.id}`);
+    navigate(returnUrl || `/listings/${currentListing.id}`);
   };
+
+  if (isListingLoading || isRatesLoading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p className="ml-2">Chargement des données...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (listingError || !currentListing) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>
+              Cette annonce n'existe pas ou n'est plus disponible
+            </AlertDescription>
+          </Alert>
+          <Button onClick={handleBackToHome} variant="outline">
+            Retour à l'accueil
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const finalListing = updatedListing || currentListing;
 
   return (
     <div>
