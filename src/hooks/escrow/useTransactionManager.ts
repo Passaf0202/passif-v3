@@ -27,20 +27,18 @@ export const useTransactionManager = () => {
       chainId
     });
 
-    // Vérifier que l'utilisateur est authentifié
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      console.error('Auth error:', authError);
-      throw new Error("Vous devez être connecté pour créer une transaction");
-    }
-
-    // Vérifier que l'utilisateur est bien l'acheteur
-    if (user.id !== buyerId) {
-      console.error('User ID mismatch:', { userId: user.id, buyerId });
-      throw new Error("Vous n'êtes pas autorisé à créer cette transaction");
-    }
-
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Vous devez être connecté pour créer une transaction");
+      }
+
+      // Verify that the authenticated user is the buyer
+      if (user.id !== buyerId) {
+        console.error('User ID mismatch:', { userId: user.id, buyerId });
+        throw new Error("Vous n'êtes pas autorisé à créer cette transaction");
+      }
+
       const { data, error: insertError } = await supabase
         .from('transactions')
         .insert({
@@ -56,7 +54,7 @@ export const useTransactionManager = () => {
           network: 'bsc_testnet',
           token_symbol: 'BNB'
         })
-        .select()
+        .select('*')
         .single();
 
       if (insertError) {
@@ -88,21 +86,21 @@ export const useTransactionManager = () => {
       txHash
     });
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error("Vous devez être connecté pour mettre à jour une transaction");
-    }
-
-    const updates: any = {
-      status,
-      updated_at: new Date().toISOString()
-    };
-
-    if (txHash) {
-      updates.transaction_hash = txHash;
-    }
-
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Vous devez être connecté pour mettre à jour une transaction");
+      }
+
+      const updates: any = {
+        status,
+        updated_at: new Date().toISOString()
+      };
+
+      if (txHash) {
+        updates.transaction_hash = txHash;
+      }
+
       const { error } = await supabase
         .from('transactions')
         .update(updates)
