@@ -19,17 +19,26 @@ export default function Payment() {
     queryFn: async () => {
       if (listing) return listing;
       
+      console.log('Fetching listing with ID:', id);
       const { data, error } = await supabase
         .from('listings')
         .select('*')
         .eq('id', id)
         .maybeSingle();
       
-      if (error) throw error;
-      if (!data) throw new Error('Listing not found');
+      if (error) {
+        console.error('Error fetching listing:', error);
+        throw error;
+      }
+      if (!data) {
+        console.log('No listing found with ID:', id);
+        throw new Error('Listing not found');
+      }
+      console.log('Fetched listing:', data);
       return data;
     },
-    enabled: !listing && !!id
+    enabled: !listing && !!id,
+    retry: false
   });
 
   // Fetch current BNB rate
