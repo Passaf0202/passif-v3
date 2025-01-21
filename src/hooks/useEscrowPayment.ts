@@ -41,6 +41,13 @@ export function useEscrowPayment({
       setError(null);
       console.log('Starting payment process for listing:', listingId);
 
+      // Get the authenticated user first
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError || !authUser) {
+        console.error('Auth error:', authError);
+        throw new Error("Vous devez être connecté pour effectuer un paiement");
+      }
+
       // Récupérer les détails de l'annonce et du vendeur
       const { data: listing, error: listingError } = await supabase
         .from('listings')
@@ -92,16 +99,10 @@ export function useEscrowPayment({
         contractAddress: activeContract.address
       });
 
-      // Récupérer le profil de l'utilisateur connecté
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) {
-        throw new Error("Utilisateur non connecté");
-      }
-
       // Créer la transaction dans la base de données
       const transaction = await createTransaction(
         listingId,
-        user.id, // Use the authenticated user's ID
+        authUser.id, // Use the authenticated user's ID
         listing.user.id,
         listing.crypto_amount,
         0,
