@@ -38,7 +38,7 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
         
         console.log('Rate response:', { rate, currency: cryptoCurrency });
 
-        // Update listing with crypto amount if we have a listing ID
+        // Only update listing if we have a valid listing ID and price
         if (listingId && price && rate) {
           const cryptoAmount = price / rate;
           await updateListingCryptoAmount(listingId, cryptoAmount, cryptoCurrency);
@@ -83,6 +83,12 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
 
 async function updateListingCryptoAmount(listingId: string, amount: number, currency: string) {
   try {
+    // Verify we have a valid listing ID before attempting update
+    if (!listingId || typeof listingId !== 'string') {
+      console.error('Invalid listing ID:', listingId);
+      return;
+    }
+
     const { error } = await supabase
       .from('listings')
       .update({
