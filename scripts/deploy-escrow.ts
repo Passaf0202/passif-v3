@@ -7,11 +7,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
   try {
-    console.log("Starting deployment to Polygon Mumbai...");
-    console.log("Network config:", {
-      chainId: 80001,
-      url: "https://rpc-mumbai.maticvigil.com"
-    });
+    console.log("Starting deployment to BSC Testnet...");
     
     const CryptoEscrow = await ethers.getContractFactory("CryptoEscrow");
     console.log("Contract factory created successfully");
@@ -20,18 +16,25 @@ async function main() {
     console.log("Deploying with account:", deployer.address);
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
-    // Vérifier que nous avons assez de MATIC pour le déploiement
+    // Vérifier que nous avons assez de BNB pour le déploiement
     const balance = await deployer.getBalance();
     if (balance.lt(ethers.parseEther("0.1"))) {
-      throw new Error("Insufficient MATIC balance for deployment. Please get test MATIC from the faucet.");
+      throw new Error("Insufficient BNB balance for deployment");
     }
 
-    // Deploy with a test address for initialization and MATIC as default token
+    // Deploy with platform address and 5% fee
     console.log("Deploying contract...");
-    const escrow = await CryptoEscrow.deploy(deployer.address, ethers.ZeroAddress, { 
-      value: ethers.parseEther("0.01"),
-      gasLimit: 3000000
-    });
+    const platformAddress = deployer.address; // Pour le test, utiliser le déployeur comme plateforme
+    const escrow = await CryptoEscrow.deploy(
+      deployer.address, // test seller
+      platformAddress,
+      ethers.ZeroAddress, // BNB as default token
+      5, // 5% platform fee
+      { 
+        value: ethers.parseEther("0.01"),
+        gasLimit: 3000000
+      }
+    );
     
     console.log("Waiting for deployment transaction...");
     await escrow.waitForDeployment();
@@ -40,7 +43,6 @@ async function main() {
     console.log("CryptoEscrow deployed successfully to:", escrowAddress);
 
     // Disable all existing contracts
-    console.log("Updating existing contracts in database...");
     const { error: updateError } = await supabase
       .from('smart_contracts')
       .update({ is_active: false })
@@ -52,15 +54,14 @@ async function main() {
     }
 
     // Store the new contract address in Supabase
-    console.log("Storing new contract address in database...");
     const { error } = await supabase
       .from('smart_contracts')
       .insert([
         {
           name: 'Escrow',
           address: escrowAddress,
-          network: 'polygon_mumbai',
-          chain_id: 80001,
+          network: 'bsc_testnet',
+          chain_id: 97,
           is_active: true
         }
       ]);
@@ -71,7 +72,6 @@ async function main() {
     }
 
     console.log("Contract address stored successfully in Supabase");
-    console.log("Deployment completed successfully!");
     
     // Vérifier que le contrat est bien déployé
     const code = await ethers.provider.getCode(escrowAddress);
