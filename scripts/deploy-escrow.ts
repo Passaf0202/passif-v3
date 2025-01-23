@@ -31,7 +31,6 @@ async function main() {
       ethers.ZeroAddress, // POL as default token
       5, // 5% platform fee
       { 
-        value: ethers.parseEther("0.01"),
         gasLimit: 3000000
       }
     );
