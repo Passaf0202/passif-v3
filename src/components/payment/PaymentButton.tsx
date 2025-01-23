@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork, useAccount, usePrepareSendTransaction, useSendTransaction } from 'wagmi';
-import { polygonMumbai } from 'wagmi/chains';
+import { amoy } from 'viem/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { parseEther } from 'viem';
 
@@ -47,15 +47,15 @@ export function PaymentButton({
       return;
     }
 
-    if (chain?.id !== polygonMumbai.id) {
+    if (chain?.id !== amoy.id) {
       toast({
         title: "Mauvais réseau",
-        description: "Veuillez vous connecter au réseau Polygon Mumbai",
+        description: "Veuillez vous connecter au réseau Polygon Amoy",
       });
       
       if (switchNetwork) {
         try {
-          await switchNetwork(polygonMumbai.id);
+          await switchNetwork(amoy.id);
         } catch (error) {
           console.error('Error switching network:', error);
           return;
@@ -88,7 +88,7 @@ export function PaymentButton({
     }
   };
 
-  const wrongNetwork = chain?.id !== polygonMumbai.id;
+  const wrongNetwork = chain?.id !== amoy.id;
 
   return (
     <>
@@ -105,7 +105,7 @@ export function PaymentButton({
         ) : disabled ? (
           "Transaction en attente de confirmation..."
         ) : wrongNetwork ? (
-          "Veuillez vous connecter au réseau Polygon Mumbai"
+          "Veuillez vous connecter au réseau Polygon Amoy"
         ) : (
           `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}
@@ -125,7 +125,7 @@ export function PaymentButton({
 
       {wrongNetwork && (
         <p className="text-sm text-red-500 text-center mt-2">
-          Veuillez vous connecter au réseau Polygon Mumbai dans votre portefeuille
+          Veuillez vous connecter au réseau Polygon Amoy dans votre portefeuille
         </p>
       )}
     </>
