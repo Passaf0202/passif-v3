@@ -7,7 +7,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
   try {
-    console.log("Starting deployment to Polygon Mumbai...");
+    console.log("Starting deployment to Polygon Amoy...");
     
     const CryptoEscrow = await ethers.getContractFactory("CryptoEscrow");
     console.log("Contract factory created successfully");
@@ -16,10 +16,10 @@ async function main() {
     console.log("Deploying with account:", deployer.address);
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
-    // Vérifier que nous avons assez de MATIC pour le déploiement
+    // Vérifier que nous avons assez de POL pour le déploiement
     const balance = await deployer.getBalance();
     if (balance.lt(ethers.parseEther("0.1"))) {
-      throw new Error("Insufficient MATIC balance for deployment");
+      throw new Error("Insufficient POL balance for deployment");
     }
 
     // Deploy with platform address and 5% fee
@@ -28,7 +28,7 @@ async function main() {
     const escrow = await CryptoEscrow.deploy(
       deployer.address, // test seller
       platformAddress,
-      ethers.ZeroAddress, // MATIC as default token
+      ethers.ZeroAddress, // POL as default token
       5, // 5% platform fee
       { 
         value: ethers.parseEther("0.01"),
@@ -60,8 +60,8 @@ async function main() {
         {
           name: 'Escrow',
           address: escrowAddress,
-          network: 'polygon_mumbai',
-          chain_id: 80001,
+          network: 'polygon_amoy',
+          chain_id: 80002,
           is_active: true
         }
       ]);

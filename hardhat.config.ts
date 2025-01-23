@@ -16,10 +16,10 @@ const config: HardhatUserConfig = {
     }
   },
   networks: {
-    polygonMumbai: {
-      url: "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78",
+    polygonAmoy: {
+      url: "https://rpc-amoy.polygon.technology",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 80001
+      chainId: 80002
     }
   },
   paths: {
