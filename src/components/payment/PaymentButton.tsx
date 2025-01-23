@@ -42,7 +42,9 @@ export function PaymentButton({
       isConnected,
       chain,
       sellerAddress,
-      cryptoAmount
+      cryptoAmount,
+      currentNetwork: chain?.id,
+      targetNetwork: amoy.id
     });
 
     if (!isConnected) {
@@ -94,8 +96,8 @@ export function PaymentButton({
           title: "Transaction envoyée",
           description: "Votre transaction a été envoyée avec succès",
         });
+        onClick();
       }
-      onClick();
     } catch (error) {
       console.error('Transaction error:', error);
       toast({
@@ -109,7 +111,7 @@ export function PaymentButton({
   const wrongNetwork = chain?.id !== amoy.id;
 
   return (
-    <>
+    <div className="w-full">
       <Button 
         onClick={handleClick} 
         disabled={isProcessing || !isConnected || !cryptoAmount || disabled || wrongNetwork}
@@ -135,11 +137,11 @@ export function PaymentButton({
         </p>
       )}
 
-      {wrongNetwork && (
+      {wrongNetwork && isConnected && (
         <p className="text-sm text-red-500 text-center mt-2">
           Veuillez vous connecter au réseau Polygon Amoy dans votre portefeuille
         </p>
       )}
-    </>
+    </div>
   );
 }
