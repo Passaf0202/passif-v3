@@ -3,11 +3,16 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./interfaces/IEscrow.sol";
+import "./FeeManager.sol";
+import "./DisputeManager.sol";
 
-contract CryptoEscrow is ReentrancyGuard {
+contract CryptoEscrow is IEscrow, ReentrancyGuard {
+    FeeManager public feeManager;
+    DisputeManager public disputeManager;
+    
     address public buyer;
     address public seller;
-    address public platform;
     address public token;
     uint256 public amount;
     uint256 public platformFee;
@@ -15,20 +20,10 @@ contract CryptoEscrow is ReentrancyGuard {
     bool public sellerConfirmed;
     bool public fundsReleased;
     bool public disputed;
-    
-    event FundsDeposited(address buyer, address seller, address token, uint256 amount);
-    event TransactionConfirmed(address confirmer);
-    event FundsReleased(address seller, uint256 amount, uint256 fee);
-    event DisputeRaised(address raiser);
-    event DisputeResolved(address resolver, address recipient);
+    bytes32 public transactionId;
     
     modifier onlyBuyerOrSeller() {
         require(msg.sender == buyer || msg.sender == seller, "Not authorized");
-        _;
-    }
-
-    modifier onlyPlatform() {
-        require(msg.sender == platform, "Only platform can call this");
         _;
     }
 
@@ -49,14 +44,25 @@ contract CryptoEscrow is ReentrancyGuard {
         
         buyer = msg.sender;
         seller = _seller;
-        platform = _platform;
         token = _token;
+        
+        // Initialize managers
+        feeManager = new FeeManager(_platform, _platformFeePercent);
+        disputeManager = new DisputeManager();
+        
+        // Generate unique transaction ID
+        transactionId = keccak256(abi.encodePacked(
+            block.timestamp,
+            buyer,
+            seller,
+            amount
+        ));
         
         if (_token == address(0)) {
             // Native token (MATIC) payment
             require(msg.value > 0, "Amount must be greater than 0");
             amount = msg.value;
-            platformFee = (amount * _platformFeePercent) / 100;
+            platformFee = feeManager.calculateFee(amount);
         }
         
         emit FundsDeposited(buyer, seller, token, amount);
@@ -66,7 +72,7 @@ contract CryptoEscrow is ReentrancyGuard {
         address _seller,
         uint256 _amount,
         uint256 _platformFeePercent
-    ) external payable nonReentrant {
+    ) external payable override nonReentrant {
         require(_seller != address(0), "Invalid seller address");
         require(_seller != msg.sender, "Seller cannot be buyer");
         require(_amount > 0, "Amount must be greater than 0");
@@ -75,7 +81,7 @@ contract CryptoEscrow is ReentrancyGuard {
         buyer = msg.sender;
         seller = _seller;
         amount = _amount;
-        platformFee = (_amount * _platformFeePercent) / 100;
+        platformFee = feeManager.calculateFee(_amount);
         
         if (token == address(0)) {
             // Native token (MATIC) payment
@@ -92,7 +98,7 @@ contract CryptoEscrow is ReentrancyGuard {
         emit FundsDeposited(buyer, seller, token, amount);
     }
 
-    function confirmTransaction() public onlyBuyerOrSeller fundsNotReleased nonReentrant {
+    function confirmTransaction() external override onlyBuyerOrSeller fundsNotReleased nonReentrant {
         require(!disputed, "Transaction is disputed");
         
         if (msg.sender == buyer) {
@@ -110,13 +116,15 @@ contract CryptoEscrow is ReentrancyGuard {
         }
     }
 
-    function raiseDispute() external onlyBuyerOrSeller fundsNotReleased {
+    function raiseDispute() external override onlyBuyerOrSeller fundsNotReleased {
         require(!disputed, "Dispute already raised");
         disputed = true;
+        disputeManager.raiseDispute(transactionId, "Dispute raised by user");
         emit DisputeRaised(msg.sender);
     }
 
-    function resolveDispute(address payable recipient) external onlyPlatform fundsNotReleased {
+    function resolveDispute(address payable recipient) external override fundsNotReleased {
+        require(msg.sender == address(disputeManager), "Only dispute manager can resolve");
         require(disputed, "No dispute raised");
         require(recipient == buyer || recipient == seller, "Invalid recipient");
         
@@ -139,13 +147,14 @@ contract CryptoEscrow is ReentrancyGuard {
     function _releaseFunds() private {
         fundsReleased = true;
         uint256 sellerAmount = amount - platformFee;
+        address platformAddress = feeManager.platformAddress();
         
         if (token == address(0)) {
             // Release MATIC
             (bool successSeller, ) = seller.call{value: sellerAmount}("");
             require(successSeller, "MATIC transfer to seller failed");
             
-            (bool successPlatform, ) = platform.call{value: platformFee}("");
+            (bool successPlatform, ) = platformAddress.call{value: platformFee}("");
             require(successPlatform, "MATIC transfer to platform failed");
         } else {
             // Release ERC20 tokens
@@ -154,7 +163,7 @@ contract CryptoEscrow is ReentrancyGuard {
                 "Token transfer to seller failed"
             );
             require(
-                IERC20(token).transfer(platform, platformFee),
+                IERC20(token).transfer(platformAddress, platformFee),
                 "Token transfer to platform failed"
             );
         }
@@ -162,7 +171,7 @@ contract CryptoEscrow is ReentrancyGuard {
         emit FundsReleased(seller, sellerAmount, platformFee);
     }
 
-    function getStatus() public view returns (
+    function getStatus() external view override returns (
         bool _buyerConfirmed,
         bool _sellerConfirmed,
         bool _fundsReleased,
