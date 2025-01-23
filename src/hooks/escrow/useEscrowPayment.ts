@@ -1,10 +1,9 @@
+import { useState } from "react";
 import { ethers } from "ethers";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEscrowContract } from "./useEscrowContract";
 import { useTransactionUpdater } from "./useTransactionUpdater";
-import { validateAndUpdateCryptoAmount } from "./useCryptoAmount";
-import { useState } from "react";
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -36,7 +35,7 @@ export function useEscrowPayment({
     try {
       setIsProcessing(true);
       setError(null);
-      console.log('Starting payment process for listing:', listingId);
+      console.log('Starting escrow payment process for listing:', listingId);
 
       // Get the authenticated user first
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -85,14 +84,14 @@ export function useEscrowPayment({
 
       // Estimer le gas nécessaire
       const gasPrice = await provider.getGasPrice();
-      const gasLimit = ethers.BigNumber.from("200000"); // Augmenter la limite de gas
+      const gasLimit = ethers.BigNumber.from("300000"); // Augmenter la limite de gas pour le déploiement
       const totalCost = amountInWei.add(gasPrice.mul(gasLimit));
       
       if (balance.lt(totalCost)) {
         throw new Error("Fonds insuffisants pour couvrir les frais de transaction");
       }
 
-      console.log('Deploying contract with params:', {
+      console.log('Deploying escrow contract with params:', {
         sellerAddress: listing.user.wallet_address,
         amount: ethers.utils.formatEther(amountInWei),
         gasLimit: gasLimit.toString(),
@@ -109,28 +108,42 @@ export function useEscrowPayment({
         }
       );
 
-      console.log('Contract deployed:', {
+      console.log('Escrow contract deployed:', {
         address: contract.address,
         transactionHash: receipt.transactionHash
       });
 
-      // Create transaction with correct user IDs
+      // Create transaction record with correct user IDs and contract address
       const transaction = await createTransaction(
         listingId,
-        authUser.id, // Use authenticated user ID for buyer
-        listing.user.id, // Use seller's profile ID
+        authUser.id,
+        listing.user.id,
         listing.crypto_amount,
-        0,
+        listing.crypto_amount * 0.05, // 5% commission
         contract.address,
         97 // BSC Testnet chain ID
       );
 
       if (receipt.status === 1) {
+        // Mettre à jour le statut avec funds_secured = true
         await updateTransactionStatus(transaction.id, 'processing', receipt.transactionHash);
+        
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            funds_secured: true,
+            funds_secured_at: new Date().toISOString()
+          })
+          .eq('id', transaction.id);
+
+        if (updateError) {
+          console.error('Error updating transaction funds_secured status:', updateError);
+        }
+
         setTransactionStatus('confirmed');
         toast({
-          title: "Transaction confirmée",
-          description: "Le paiement a été effectué avec succès",
+          title: "Transaction initiée",
+          description: "Les fonds ont été bloqués dans le contrat d'escrow. Ils seront libérés après confirmation des deux parties.",
         });
         onPaymentComplete();
       } else {
