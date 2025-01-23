@@ -20,14 +20,12 @@ const mumbai = {
   }
 };
 
-const chains = [mumbai];
-
 const { publicClient, webSocketPublicClient } = configureChains(
-  chains,
+  [mumbai],
   [
-    w3mProvider({ projectId }),
     infuraProvider({ apiKey: '4458cf4d1689497b9a38b1d6bbf05e78' }),
-    publicProvider()
+    publicProvider(),
+    w3mProvider({ projectId })
   ]
 );
 
@@ -35,10 +33,11 @@ export const wagmiConfig = createConfig({
   autoConnect: true,
   connectors: w3mConnectors({ 
     projectId,
-    chains
+    version: 2, // Ajout de la version explicite
+    chains: [mumbai]
   }),
   publicClient,
   webSocketPublicClient
 });
 
-export const ethereumClient = new EthereumClient(wagmiConfig, chains);
+export const ethereumClient = new EthereumClient(wagmiConfig, [mumbai]);
