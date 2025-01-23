@@ -17,16 +17,24 @@ const polygonAmoy: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.public.zkevm-test.net'],
+      http: [
+        'https://polygon-amoy.blockpi.network/v1/rpc/public',
+        'https://polygon-amoy.public.blastapi.io',
+        'https://rpc.ankr.com/polygon_amoy'
+      ],
     },
     public: {
-      http: ['https://rpc.public.zkevm-test.net'],
+      http: [
+        'https://polygon-amoy.blockpi.network/v1/rpc/public',
+        'https://polygon-amoy.public.blastapi.io',
+        'https://rpc.ankr.com/polygon_amoy'
+      ],
     },
   },
   blockExplorers: {
     default: {
       name: 'PolygonScan',
-      url: 'https://testnet-zkevm.polygonscan.com',
+      url: 'https://www.oklink.com/amoy',
     },
   },
   testnet: true,
