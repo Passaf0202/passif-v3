@@ -6,6 +6,9 @@ import { Loader2, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { EscrowAlert } from "./EscrowAlert";
 import { TransactionDetails } from "./TransactionDetails";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCryptoRates } from "@/hooks/useCryptoRates";
+import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -20,12 +23,16 @@ export function CryptoPaymentForm({
   listingId,
   title,
   price,
-  cryptoAmount,
-  cryptoCurrency = "BNB",
+  cryptoAmount: initialCryptoAmount,
+  cryptoCurrency: initialCryptoCurrency = "MATIC",
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState(initialCryptoCurrency);
+  const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
+  
+  const convertedAmount = useCryptoConversion(price, selectedCurrency);
   
   const {
     handlePayment,
@@ -38,7 +45,7 @@ export function CryptoPaymentForm({
     onPaymentComplete,
   });
 
-  if (!cryptoAmount) {
+  if (!convertedAmount && !initialCryptoAmount) {
     return (
       <div className="flex items-center justify-center p-4">
         <Loader2 className="h-6 w-6 animate-spin" />
@@ -46,6 +53,9 @@ export function CryptoPaymentForm({
       </div>
     );
   }
+
+  const finalCryptoAmount = convertedAmount?.amount || initialCryptoAmount;
+  const finalCryptoCurrency = convertedAmount?.currency || selectedCurrency;
 
   return (
     <div className="space-y-6">
@@ -57,11 +67,31 @@ export function CryptoPaymentForm({
           <TransactionDetails
             title={title}
             price={price}
-            cryptoAmount={cryptoAmount}
-            cryptoCurrency={cryptoCurrency}
+            cryptoAmount={finalCryptoAmount}
+            cryptoCurrency={finalCryptoCurrency}
           />
 
-          <div className="mt-6">
+          <div className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Sélectionnez une cryptomonnaie</label>
+              <Select
+                value={selectedCurrency}
+                onValueChange={setSelectedCurrency}
+                disabled={isProcessing}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une cryptomonnaie" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cryptoRates?.map((rate) => (
+                    <SelectItem key={rate.symbol} value={rate.symbol}>
+                      {rate.name} ({rate.symbol})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <Button
               onClick={() => setShowEscrowInfo(true)}
               variant="outline"
@@ -73,7 +103,7 @@ export function CryptoPaymentForm({
 
             <Button
               onClick={handlePayment}
-              disabled={isProcessing}
+              disabled={isProcessing || !finalCryptoAmount}
               className="w-full"
             >
               {isProcessing ? (
@@ -82,7 +112,7 @@ export function CryptoPaymentForm({
                   Transaction en cours...
                 </>
               ) : (
-                "Payer maintenant"
+                `Payer ${finalCryptoAmount?.toFixed(6)} ${finalCryptoCurrency}`
               )}
             </Button>
 
