@@ -24,7 +24,7 @@ export function CryptoPaymentForm({
   title,
   price,
   cryptoAmount: initialCryptoAmount,
-  cryptoCurrency: initialCryptoCurrency = "MATIC",
+  cryptoCurrency: initialCryptoCurrency = "USDT",
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
@@ -32,7 +32,7 @@ export function CryptoPaymentForm({
   const [selectedCurrency, setSelectedCurrency] = useState(initialCryptoCurrency);
   const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
   
-  const convertedAmount = useCryptoConversion(price, selectedCurrency);
+  const convertedAmount = useCryptoConversion(price, listingId, selectedCurrency);
   
   const {
     handlePayment,

@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCurrencyStore } from "@/stores/currencyStore";
+import { supabase } from "@/integrations/supabase/client";
 
-export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
+export const useCryptoConversion = (price: number, listingId?: string, cryptoCurrency?: string) => {
   const { selectedCurrency } = useCurrencyStore();
 
   const { data: rateData } = useQuery({
@@ -28,6 +29,13 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
         }
         
         console.log('Rate response:', { rate, currency: cryptoCurrency });
+
+        // Si nous avons un listingId, mettons à jour l'annonce avec le montant en crypto
+        if (listingId && price && rate) {
+          const cryptoAmount = price / rate;
+          await updateListingCryptoAmount(listingId, cryptoAmount, cryptoCurrency || 'USDT');
+        }
+
         return rate;
       } catch (error) {
         console.error('Error in rate query:', error);
@@ -43,7 +51,7 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
       return null;
     }
 
-    const targetCrypto = cryptoCurrency || 'MATIC';
+    const targetCrypto = cryptoCurrency || 'USDT';
     const cryptoAmount = price / rateData;
 
     if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
@@ -66,13 +74,31 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
   return calculateCryptoAmount();
 };
 
+async function updateListingCryptoAmount(listingId: string, amount: number, currency: string) {
+  try {
+    const { error } = await supabase
+      .from('listings')
+      .update({
+        crypto_amount: amount,
+        crypto_currency: currency
+      })
+      .eq('id', listingId);
+
+    if (error) {
+      console.error('Error updating listing crypto amount:', error);
+    }
+  } catch (error) {
+    console.error('Error in updateListingCryptoAmount:', error);
+  }
+}
+
 function getCoinGeckoId(currency?: string): string {
   const mapping: Record<string, string> = {
     'MATIC': 'matic-network',
     'USDT': 'tether',
     'USDC': 'usd-coin',
   };
-  return mapping[currency || 'MATIC'] || 'matic-network';
+  return mapping[currency || 'USDT'] || 'tether';
 }
 
 function getFallbackRate(currency?: string): number {
@@ -81,5 +107,5 @@ function getFallbackRate(currency?: string): number {
     'USDT': 1,
     'USDC': 1,
   };
-  return fallbackRates[currency || 'MATIC'] || 1;
+  return fallbackRates[currency || 'USDT'] || 1;
 }

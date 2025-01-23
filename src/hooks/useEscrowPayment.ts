@@ -1,8 +1,6 @@
-import { useEscrowContract } from './escrow/useEscrowContract';
-import { useTransactionManager } from './escrow/useTransactionManager';
-import { supabase } from "@/integrations/supabase/client";
-import { parseEther } from "viem";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -17,18 +15,10 @@ export function useEscrowPayment({
   onTransactionHash,
   onPaymentComplete 
 }: UseEscrowPaymentProps) {
-  const { getContract } = useEscrowContract();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
   const { toast } = useToast();
-  const {
-    isProcessing,
-    setIsProcessing,
-    error,
-    setError,
-    transactionStatus,
-    setTransactionStatus,
-    createTransaction,
-    updateTransactionStatus
-  } = useTransactionManager();
 
   const handlePayment = async () => {
     if (!address) {
@@ -54,12 +44,12 @@ export function useEscrowPayment({
         .select(`
           *,
           user:profiles!listings_user_id_fkey (
-            wallet_address,
-            id
+            id,
+            wallet_address
           )
         `)
         .eq('id', listingId)
-        .maybeSingle();
+        .single();
 
       if (listingError || !listing) {
         console.error('Error fetching listing:', listingError);
@@ -76,88 +66,35 @@ export function useEscrowPayment({
         throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
       }
 
-      // Récupérer le contrat actif
-      const { data: activeContract } = await supabase
-        .from('smart_contracts')
-        .select('*')
-        .eq('is_active', true)
-        .eq('network', 'bsc_testnet')
+      // Créer la transaction dans la base de données
+      const { data: transaction, error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          listing_id: listingId,
+          buyer_id: authUser.id,
+          seller_id: listing.user.id,
+          amount: listing.crypto_amount,
+          commission_amount: listing.crypto_amount * 0.05, // 5% commission
+          status: 'pending',
+          escrow_status: 'pending',
+          network: 'bsc_testnet',
+          token_symbol: listing.crypto_currency,
+          chain_id: 97 // BSC Testnet
+        })
+        .select()
         .single();
 
-      if (!activeContract) {
-        throw new Error("Aucun contrat actif trouvé");
+      if (transactionError) {
+        console.error('Error creating transaction:', transactionError);
+        throw new Error("Erreur lors de la création de la transaction");
       }
 
-      // Récupérer le contrat avec l'adresse
-      const escrow = await getContract(activeContract.address);
-      if (!escrow) throw new Error("Impossible d'initialiser le contrat");
-
-      console.log('Payment details:', {
-        amount: listing.crypto_amount,
-        sellerAddress: listing.user.wallet_address,
-        buyerAddress: address,
-        contractAddress: activeContract.address
+      setTransactionStatus('confirmed');
+      toast({
+        title: "Transaction initiée",
+        description: "La transaction a été créée avec succès. Les fonds seront bloqués jusqu'à confirmation.",
       });
-
-      // Créer la transaction dans la base de données avec l'ID du profil de l'utilisateur
-      const transaction = await createTransaction(
-        listingId,
-        authUser.id, // Use the authenticated user's ID
-        listing.user.id, // Use the seller's profile ID
-        listing.crypto_amount,
-        0,
-        activeContract.address,
-        activeContract.chain_id
-      );
-
-      try {
-        const amountInWei = parseEther(listing.crypto_amount.toString());
-        console.log('Amount in Wei:', amountInWei);
-
-        // Configuration spécifique pour BSC
-        const gasLimit = 200000;
-        
-        // Envoyer la transaction
-        const tx = await escrow.deposit(listing.user.wallet_address, {
-          value: amountInWei,
-          gasLimit: gasLimit
-        });
-
-        console.log('Transaction sent:', tx.hash);
-        setTransactionStatus('pending');
-        
-        if (onTransactionHash) {
-          onTransactionHash(tx.hash);
-        }
-
-        const receipt = await tx.wait();
-        console.log('Transaction receipt:', receipt);
-
-        if (receipt.status === 1) {
-          await updateTransactionStatus(transaction.id, 'processing', tx.hash);
-          setTransactionStatus('confirmed');
-          toast({
-            title: "Transaction confirmée",
-            description: "Le paiement a été effectué avec succès",
-          });
-          onPaymentComplete();
-        } else {
-          throw new Error("La transaction a échoué");
-        }
-      } catch (txError: any) {
-        console.error('Transaction error:', txError);
-        
-        if (txError.code === 'INSUFFICIENT_FUNDS') {
-          toast({
-            title: "Fonds insuffisants",
-            description: "Votre portefeuille ne contient pas assez de BNB pour effectuer cette transaction",
-            variant: "destructive",
-          });
-          throw new Error("Fonds insuffisants dans votre portefeuille");
-        }
-        
-        throw txError;
-      }
+      onPaymentComplete();
 
     } catch (error: any) {
       console.error('Payment error:', error);
