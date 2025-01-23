@@ -17,7 +17,7 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
           .select('*')
           .eq('symbol', cryptoCurrency)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
         
         if (error) {
           console.error('Error fetching rate:', error);
@@ -84,18 +84,19 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
 async function updateListingCryptoAmount(listingId: string, amount: number, currency: string) {
   try {
     // Verify we have a valid listing ID before attempting update
-    if (!listingId || typeof listingId !== 'string') {
+    if (!listingId || typeof listingId !== 'string' || listingId.length !== 36) {
       console.error('Invalid listing ID:', listingId);
       return;
     }
 
+    // Update the listing with the crypto amount and currency
     const { error } = await supabase
       .from('listings')
       .update({
         crypto_amount: amount,
         crypto_currency: currency
       })
-      .eq('id', listingId);
+      .eq('id', listingId); // Use listingId, not currency for the query
 
     if (error) {
       console.error('Error updating listing crypto amount:', error);
