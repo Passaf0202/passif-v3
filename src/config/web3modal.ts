@@ -33,7 +33,6 @@ export const wagmiConfig = createConfig({
   autoConnect: true,
   connectors: w3mConnectors({ 
     projectId,
-    version: 2, // Ajout de la version explicite
     chains: [mumbai]
   }),
   publicClient,
