@@ -110,6 +110,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <ListingActions
           listingId={listing.id}
           sellerId={listing.user_id}
+          sellerAddress={listing.user.wallet_address || ''}
           title={listing.title}
           price={listing.price}
           cryptoAmount={cryptoDetails?.amount}
