@@ -16,10 +16,10 @@ const config: HardhatUserConfig = {
     }
   },
   networks: {
-    polygonZkEvmTestnet: {
-      url: "https://rpc.public.zkevm-test.net",
+    polygonMumbai: {
+      url: "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 1442
+      chainId: 80001
     }
   },
   paths: {

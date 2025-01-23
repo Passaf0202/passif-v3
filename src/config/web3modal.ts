@@ -1,40 +1,29 @@
 import { createConfig, configureChains } from 'wagmi';
-import { Chain } from 'viem/chains';
+import { polygonMumbai } from 'viem/chains';
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
 import { publicProvider } from 'wagmi/providers/public';
+import { infuraProvider } from 'wagmi/providers/infura';
 
 export const projectId = '3225e25c4d47b78232829662814a3d58';
 
-// Configuration du réseau Polygon zkEVM Testnet
-const polygonZkEvmTestnet: Chain = {
-  id: 1442,
-  name: 'Polygon zkEVM Testnet',
-  network: 'polygon-zkevm-testnet',
-  nativeCurrency: {
-    name: 'ETH',
-    symbol: 'ETH',
-    decimals: 18,
-  },
+// Configuration de Mumbai avec des providers spécifiques
+const mumbai = {
+  ...polygonMumbai,
   rpcUrls: {
+    ...polygonMumbai.rpcUrls,
     default: {
-      http: ['https://rpc.public.zkevm-test.net'],
+      http: ['https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78']
     },
     public: {
-      http: ['https://rpc.public.zkevm-test.net'],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: 'Explorer',
-      url: 'https://testnet-zkevm.polygonscan.com',
-    },
-  },
-  testnet: true,
+      http: ['https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78']
+    }
+  }
 };
 
 const { publicClient, webSocketPublicClient } = configureChains(
-  [polygonZkEvmTestnet],
+  [mumbai],
   [
+    infuraProvider({ apiKey: '4458cf4d1689497b9a38b1d6bbf05e78' }),
     publicProvider(),
     w3mProvider({ projectId })
   ]
@@ -44,10 +33,10 @@ export const wagmiConfig = createConfig({
   autoConnect: true,
   connectors: w3mConnectors({ 
     projectId,
-    chains: [polygonZkEvmTestnet]
+    chains: [mumbai]
   }),
   publicClient,
   webSocketPublicClient
 });
 
-export const ethereumClient = new EthereumClient(wagmiConfig, [polygonZkEvmTestnet]);
+export const ethereumClient = new EthereumClient(wagmiConfig, [mumbai]);
