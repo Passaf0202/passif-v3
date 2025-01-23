@@ -53,7 +53,7 @@ contract CryptoEscrow is ReentrancyGuard {
         token = _token;
         
         if (_token == address(0)) {
-            // Native token (BNB) payment
+            // Native token (MATIC) payment
             require(msg.value > 0, "Amount must be greater than 0");
             amount = msg.value;
             platformFee = (amount * _platformFeePercent) / 100;
@@ -78,8 +78,8 @@ contract CryptoEscrow is ReentrancyGuard {
         platformFee = (_amount * _platformFeePercent) / 100;
         
         if (token == address(0)) {
-            // Native token (BNB) payment
-            require(msg.value == _amount, "Incorrect BNB amount sent");
+            // Native token (MATIC) payment
+            require(msg.value == _amount, "Incorrect MATIC amount sent");
         } else {
             // ERC20 token payment
             require(msg.value == 0, "ETH value must be 0 for token transfers");
@@ -127,7 +127,7 @@ contract CryptoEscrow is ReentrancyGuard {
             fundsReleased = true;
             if (token == address(0)) {
                 (bool success, ) = buyer.call{value: amount}("");
-                require(success, "BNB transfer failed");
+                require(success, "MATIC transfer failed");
             } else {
                 require(IERC20(token).transfer(buyer, amount), "Token transfer failed");
             }
@@ -141,12 +141,12 @@ contract CryptoEscrow is ReentrancyGuard {
         uint256 sellerAmount = amount - platformFee;
         
         if (token == address(0)) {
-            // Release BNB
+            // Release MATIC
             (bool successSeller, ) = seller.call{value: sellerAmount}("");
-            require(successSeller, "BNB transfer to seller failed");
+            require(successSeller, "MATIC transfer to seller failed");
             
             (bool successPlatform, ) = platform.call{value: platformFee}("");
-            require(successPlatform, "BNB transfer to platform failed");
+            require(successPlatform, "MATIC transfer to platform failed");
         } else {
             // Release ERC20 tokens
             require(
@@ -182,9 +182,9 @@ contract CryptoEscrow is ReentrancyGuard {
         );
     }
 
-    // Add receive function to accept BNB
+    // Add receive function to accept MATIC
     receive() external payable {}
 
-    // Add fallback function to accept BNB with data
+    // Add fallback function to accept MATIC with data
     fallback() external payable {}
 }
