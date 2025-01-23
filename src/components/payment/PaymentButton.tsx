@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork, useAccount, usePrepareSendTransaction, useSendTransaction } from 'wagmi';
-import { amoy } from 'viem/chains';
+import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { parseEther } from 'viem';
 
