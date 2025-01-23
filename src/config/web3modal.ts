@@ -8,25 +8,25 @@ export const projectId = '3225e25c4d47b78232829662814a3d58';
 // Configuration du réseau Polygon Amoy Testnet
 const polygonAmoy: Chain = {
   id: 80002,
-  name: 'Polygon Amoy Testnet',
+  name: 'Polygon Amoy',
   network: 'polygon-amoy',
   nativeCurrency: {
-    name: 'POL',
-    symbol: 'POL',
+    name: 'MATIC',
+    symbol: 'MATIC',
     decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc-amoy.polygon.technology'],
+      http: ['https://rpc.public.zkevm-test.net'],
     },
     public: {
-      http: ['https://rpc-amoy.polygon.technology'],
+      http: ['https://rpc.public.zkevm-test.net'],
     },
   },
   blockExplorers: {
     default: {
-      name: 'OKLink Explorer',
-      url: 'https://www.oklink.com/amoy',
+      name: 'PolygonScan',
+      url: 'https://testnet-zkevm.polygonscan.com',
     },
   },
   testnet: true,
@@ -44,7 +44,8 @@ export const wagmiConfig = createConfig({
   autoConnect: true,
   connectors: w3mConnectors({ 
     projectId,
-    chains: [polygonAmoy]
+    chains: [polygonAmoy],
+    version: '2'
   }),
   publicClient,
   webSocketPublicClient
