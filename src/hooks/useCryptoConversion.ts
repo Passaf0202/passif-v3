@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useCryptoConversion = (price: number, listingId?: string, cryptoCurrency?: string) => {
+export const useCryptoConversion = (price: number, listingId?: string, cryptoCurrency: string = 'BNB') => {
   const { selectedCurrency } = useCurrencyStore();
 
   const { data: rateData } = useQuery({
@@ -11,17 +11,25 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
       try {
         console.log(`Fetching rate for ${cryptoCurrency} in ${selectedCurrency}`);
         
-        // Use CoinGecko for rates
-        const response = await fetch(
-          `https://api.coingecko.com/api/v3/simple/price?ids=${getCoinGeckoId(cryptoCurrency)}&vs_currencies=${selectedCurrency.toLowerCase()}`
-        );
+        // Fetch rate from our database instead of external API
+        const { data, error } = await supabase
+          .from('crypto_rates')
+          .select('*')
+          .eq('symbol', cryptoCurrency)
+          .eq('is_active', true)
+          .single();
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch rates from CoinGecko');
+        if (error) {
+          console.error('Error fetching rate:', error);
+          return getFallbackRate(cryptoCurrency);
         }
 
-        const data = await response.json();
-        const rate = data[getCoinGeckoId(cryptoCurrency)][selectedCurrency.toLowerCase()];
+        // Get the appropriate rate based on selected currency
+        const rate = selectedCurrency === 'EUR' 
+          ? data.rate_eur 
+          : selectedCurrency === 'GBP' 
+            ? data.rate_gbp 
+            : data.rate_usd;
         
         if (!rate || typeof rate !== 'number' || rate <= 0) {
           console.error('Invalid rate received:', rate);
@@ -30,10 +38,10 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
         
         console.log('Rate response:', { rate, currency: cryptoCurrency });
 
-        // Si nous avons un listingId, mettons à jour l'annonce avec le montant en crypto
+        // Update listing with crypto amount if we have a listing ID
         if (listingId && price && rate) {
           const cryptoAmount = price / rate;
-          await updateListingCryptoAmount(listingId, cryptoAmount, cryptoCurrency || 'USDT');
+          await updateListingCryptoAmount(listingId, cryptoAmount, cryptoCurrency);
         }
 
         return rate;
@@ -51,7 +59,6 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
       return null;
     }
 
-    const targetCrypto = cryptoCurrency || 'USDT';
     const cryptoAmount = price / rateData;
 
     if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
@@ -59,7 +66,7 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
       return null;
     }
 
-    console.log(`Calculated ${targetCrypto} amount:`, {
+    console.log(`Calculated ${cryptoCurrency} amount:`, {
       price,
       rate: rateData,
       amount: cryptoAmount
@@ -67,7 +74,7 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
     
     return {
       amount: cryptoAmount,
-      currency: targetCrypto
+      currency: cryptoCurrency
     };
   };
 
@@ -92,20 +99,11 @@ async function updateListingCryptoAmount(listingId: string, amount: number, curr
   }
 }
 
-function getCoinGeckoId(currency?: string): string {
-  const mapping: Record<string, string> = {
-    'MATIC': 'matic-network',
-    'USDT': 'tether',
-    'USDC': 'usd-coin',
-  };
-  return mapping[currency || 'USDT'] || 'tether';
-}
-
-function getFallbackRate(currency?: string): number {
+function getFallbackRate(currency: string): number {
   const fallbackRates: Record<string, number> = {
-    'MATIC': 1,
-    'USDT': 1,
-    'USDC': 1,
+    'BNB': 275, // EUR rate
+    'USDT': 0.92, // EUR rate
+    'USDC': 0.92, // EUR rate
   };
-  return fallbackRates[currency || 'USDT'] || 1;
+  return fallbackRates[currency] || 1;
 }

@@ -24,7 +24,7 @@ export function CryptoPaymentForm({
   title,
   price,
   cryptoAmount: initialCryptoAmount,
-  cryptoCurrency: initialCryptoCurrency = "USDT",
+  cryptoCurrency: initialCryptoCurrency = "BNB",
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
@@ -57,6 +57,13 @@ export function CryptoPaymentForm({
   const finalCryptoAmount = convertedAmount?.amount || initialCryptoAmount;
   const finalCryptoCurrency = convertedAmount?.currency || selectedCurrency;
 
+  // Available cryptocurrencies (hardcoded for now, could be fetched from backend)
+  const availableCurrencies = [
+    { symbol: "BNB", name: "Binance Coin" },
+    { symbol: "USDT", name: "Tether" },
+    { symbol: "USDC", name: "USD Coin" }
+  ];
+
   return (
     <div className="space-y-6">
       <Card>
@@ -83,9 +90,9 @@ export function CryptoPaymentForm({
                   <SelectValue placeholder="Choisir une cryptomonnaie" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cryptoRates?.map((rate) => (
-                    <SelectItem key={rate.symbol} value={rate.symbol}>
-                      {rate.name} ({rate.symbol})
+                  {availableCurrencies.map((currency) => (
+                    <SelectItem key={currency.symbol} value={currency.symbol}>
+                      {currency.name} ({currency.symbol})
                     </SelectItem>
                   ))}
                 </SelectContent>
