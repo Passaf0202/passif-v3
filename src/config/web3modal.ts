@@ -1,27 +1,45 @@
-import { createConfig, configureChains } from 'wagmi'
-import { polygonMumbai } from 'wagmi/chains'
-import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
+import { createConfig, configureChains } from 'wagmi';
+import { polygonMumbai } from 'viem/chains';
+import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
+import { publicProvider } from 'wagmi/providers/public';
+import { infuraProvider } from 'wagmi/providers/infura';
 
-export const projectId = '3225e25c4d47b78232829662814a3d58'
+export const projectId = '3225e25c4d47b78232829662814a3d58';
 
-// Force Polygon Mumbai as the only supported chain
-const chains = [polygonMumbai]
+// Configuration de Mumbai avec des providers spécifiques
+const mumbai = {
+  ...polygonMumbai,
+  rpcUrls: {
+    ...polygonMumbai.rpcUrls,
+    default: {
+      http: ['https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78']
+    },
+    public: {
+      http: ['https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78']
+    }
+  }
+};
+
+const chains = [mumbai];
 
 const { publicClient, webSocketPublicClient } = configureChains(
   chains,
-  [w3mProvider({ projectId })]
-)
+  [
+    w3mProvider({ projectId }),
+    infuraProvider({ apiKey: '4458cf4d1689497b9a38b1d6bbf05e78' }),
+    publicProvider()
+  ]
+);
 
-// Wagmi configuration with enforced chain
 export const wagmiConfig = createConfig({
   autoConnect: true,
   connectors: w3mConnectors({ 
     projectId,
-    chains
+    chains,
+    version: 2
   }),
   publicClient,
   webSocketPublicClient
-})
+});
 
-// Ethereum client for Web3Modal with enforced chain
-export const ethereumClient = new EthereumClient(wagmiConfig, chains)
+export const ethereumClient = new EthereumClient(wagmiConfig, chains);
