@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork } from 'wagmi';
+import { useNetwork, useSwitchNetwork, useAccount, usePrepareSendTransaction, useSendTransaction } from 'wagmi';
 import { polygonMumbai } from 'wagmi/chains';
 import { useToast } from "@/components/ui/use-toast";
+import { parseEther } from 'viem';
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -11,6 +12,7 @@ interface PaymentButtonProps {
   cryptoCurrency?: string;
   onClick: () => void;
   disabled?: boolean;
+  sellerAddress?: string;
 }
 
 export function PaymentButton({ 
@@ -19,17 +21,36 @@ export function PaymentButton({
   cryptoAmount, 
   cryptoCurrency = 'MATIC',
   onClick,
-  disabled = false
+  disabled = false,
+  sellerAddress
 }: PaymentButtonProps) {
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
+  const { address } = useAccount();
   const { toast } = useToast();
 
+  const { config } = usePrepareSendTransaction({
+    to: sellerAddress,
+    value: cryptoAmount ? parseEther(cryptoAmount.toString()) : undefined,
+    enabled: !!sellerAddress && !!cryptoAmount,
+  });
+
+  const { sendTransaction } = useSendTransaction(config);
+
   const handleClick = async () => {
+    if (!isConnected) {
+      toast({
+        title: "Wallet non connecté",
+        description: "Veuillez connecter votre wallet pour continuer",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (chain?.id !== polygonMumbai.id) {
       toast({
         title: "Mauvais réseau",
-        description: "Veuillez vous connecter au réseau Polygon Mumbai pour continuer",
+        description: "Veuillez vous connecter au réseau Polygon Mumbai",
       });
       
       if (switchNetwork) {
@@ -42,8 +63,29 @@ export function PaymentButton({
       }
       return;
     }
-    
-    onClick();
+
+    if (!cryptoAmount || !sellerAddress) {
+      toast({
+        title: "Erreur",
+        description: "Informations de paiement manquantes",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (sendTransaction) {
+        await sendTransaction();
+      }
+      onClick();
+    } catch (error) {
+      console.error('Transaction error:', error);
+      toast({
+        title: "Erreur de transaction",
+        description: "La transaction a échoué. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    }
   };
 
   const wrongNetwork = chain?.id !== polygonMumbai.id;
@@ -53,7 +95,7 @@ export function PaymentButton({
       <Button 
         onClick={handleClick} 
         disabled={isProcessing || !isConnected || !cryptoAmount || disabled || wrongNetwork}
-        className="w-full"
+        className="w-full bg-primary hover:bg-primary/90"
       >
         {isProcessing ? (
           <>
@@ -65,7 +107,7 @@ export function PaymentButton({
         ) : wrongNetwork ? (
           "Veuillez vous connecter au réseau Polygon Mumbai"
         ) : (
-          `Payer avec ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
+          `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}
       </Button>
 

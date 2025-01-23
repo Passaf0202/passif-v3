@@ -6,10 +6,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from 'wagmi';
 import { supabase } from "@/integrations/supabase/client";
+import { PaymentButton } from "../payment/PaymentButton";
 
 interface ListingActionsProps {
   listingId: string;
   sellerId: string;
+  sellerAddress: string;
   title: string;
   price: number;
   cryptoAmount?: number;
@@ -19,10 +21,12 @@ interface ListingActionsProps {
 
 export const ListingActions = ({ 
   listingId, 
-  sellerId, 
+  sellerId,
+  sellerAddress, 
   title, 
   price,
   cryptoAmount,
+  cryptoCurrency,
   handleBuyClick,
 }: ListingActionsProps) => {
   const { user } = useAuth();
@@ -49,28 +53,34 @@ export const ListingActions = ({
       return;
     }
 
-    if (handleBuyClick) {
-      handleBuyClick();
+    setIsProcessing(true);
+    try {
+      if (handleBuyClick) {
+        await handleBuyClick();
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors du paiement",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <Button 
-          className="w-full" 
+        <PaymentButton 
+          isProcessing={isProcessing}
+          isConnected={isConnected}
+          cryptoAmount={cryptoAmount}
+          cryptoCurrency={cryptoCurrency}
           onClick={handleCryptoPayment}
-          disabled={isProcessing}
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Traitement...
-            </>
-          ) : (
-            `Payer en ETH`
-          )}
-        </Button>
+          sellerAddress={sellerAddress}
+        />
 
         <Button variant="outline" className="w-full" asChild>
           <ContactModal
@@ -88,4 +98,4 @@ export const ListingActions = ({
       </div>
     </div>
   );
-};
+}
