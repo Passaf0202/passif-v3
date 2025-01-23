@@ -7,10 +7,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
   try {
-    console.log("Starting deployment to BSC Testnet...");
+    console.log("Starting deployment to Polygon Mumbai...");
     console.log("Network config:", {
-      chainId: 97,
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545"
+      chainId: 80001,
+      url: "https://rpc-mumbai.maticvigil.com"
     });
     
     const CryptoEscrow = await ethers.getContractFactory("CryptoEscrow");
@@ -20,17 +20,17 @@ async function main() {
     console.log("Deploying with account:", deployer.address);
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
-    // Vérifier que nous avons assez de BNB pour le déploiement
+    // Vérifier que nous avons assez de MATIC pour le déploiement
     const balance = await deployer.getBalance();
     if (balance.lt(ethers.parseEther("0.1"))) {
-      throw new Error("Insufficient BNB balance for deployment. Please get test BNB from the faucet.");
+      throw new Error("Insufficient MATIC balance for deployment. Please get test MATIC from the faucet.");
     }
 
-    // Deploy with a test address for initialization
+    // Deploy with a test address for initialization and MATIC as default token
     console.log("Deploying contract...");
-    const escrow = await CryptoEscrow.deploy(deployer.address, { 
+    const escrow = await CryptoEscrow.deploy(deployer.address, ethers.ZeroAddress, { 
       value: ethers.parseEther("0.01"),
-      gasLimit: 3000000 // Augmenter la limite de gas pour éviter les erreurs
+      gasLimit: 3000000
     });
     
     console.log("Waiting for deployment transaction...");
@@ -59,8 +59,8 @@ async function main() {
         {
           name: 'Escrow',
           address: escrowAddress,
-          network: 'bsc_testnet',
-          chain_id: 97,
+          network: 'polygon_mumbai',
+          chain_id: 80001,
           is_active: true
         }
       ]);
