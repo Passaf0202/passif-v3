@@ -89,14 +89,12 @@ export function CategorySelector({ onCategoryChange }: CategorySelectorProps) {
   };
 
   const handleCategoryChange = (value: string) => {
-    if (!value) return; // Prevent empty string values
     setSelectedCategory(value);
     const category = categories.find(c => c.id === value);
     onCategoryChange(category?.name || "");
   };
 
   const handleSubcategoryChange = (value: string) => {
-    if (!value) return; // Prevent empty string values
     setSelectedSubcategory(value);
     const subcategory = subcategories.find(c => c.id === value);
     onCategoryChange(
@@ -106,7 +104,6 @@ export function CategorySelector({ onCategoryChange }: CategorySelectorProps) {
   };
 
   const handleSubsubcategoryChange = (value: string) => {
-    if (!value) return; // Prevent empty string values
     setSelectedSubsubcategory(value);
     const subsubcategory = subsubcategories.find(c => c.id === value);
     onCategoryChange(
@@ -127,11 +124,13 @@ export function CategorySelector({ onCategoryChange }: CategorySelectorProps) {
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            {categories.filter(category => category.id && category.name).map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            ))}
+            {categories
+              .filter(category => category.id && category.name)
+              .map((category) => (
+                <SelectItem key={category.id} value={category.id || "default-id"}>
+                  {category.name}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         <FormMessage />
@@ -147,11 +146,13 @@ export function CategorySelector({ onCategoryChange }: CategorySelectorProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {subcategories.filter(subcategory => subcategory.id && subcategory.name).map((subcategory) => (
-                <SelectItem key={subcategory.id} value={subcategory.id}>
-                  {subcategory.name}
-                </SelectItem>
-              ))}
+              {subcategories
+                .filter(subcategory => subcategory.id && subcategory.name)
+                .map((subcategory) => (
+                  <SelectItem key={subcategory.id} value={subcategory.id || "default-sub-id"}>
+                    {subcategory.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           <FormMessage />
@@ -168,11 +169,13 @@ export function CategorySelector({ onCategoryChange }: CategorySelectorProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {subsubcategories.filter(subsubcategory => subsubcategory.id && subsubcategory.name).map((subsubcategory) => (
-                <SelectItem key={subsubcategory.id} value={subsubcategory.id}>
-                  {subsubcategory.name}
-                </SelectItem>
-              ))}
+              {subsubcategories
+                .filter(subsubcategory => subsubcategory.id && subsubcategory.name)
+                .map((subsubcategory) => (
+                  <SelectItem key={subsubcategory.id} value={subsubcategory.id || "default-subsub-id"}>
+                    {subsubcategory.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           <FormMessage />
