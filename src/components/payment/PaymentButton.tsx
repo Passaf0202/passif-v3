@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork } from 'wagmi';
-import { bscTestnet } from 'wagmi/chains';
+import { polygonMumbai } from 'wagmi/chains';
 import { useToast } from "@/components/ui/use-toast";
 
 interface PaymentButtonProps {
@@ -17,7 +17,7 @@ export function PaymentButton({
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency = 'BNB',
+  cryptoCurrency = 'MATIC',
   onClick,
   disabled = false
 }: PaymentButtonProps) {
@@ -26,15 +26,15 @@ export function PaymentButton({
   const { toast } = useToast();
 
   const handleClick = async () => {
-    if (chain?.id !== bscTestnet.id) {
+    if (chain?.id !== polygonMumbai.id) {
       toast({
         title: "Mauvais réseau",
-        description: "Veuillez vous connecter au réseau BSC Testnet pour continuer",
+        description: "Veuillez vous connecter au réseau Polygon Mumbai pour continuer",
       });
       
       if (switchNetwork) {
         try {
-          await switchNetwork(bscTestnet.id);
+          await switchNetwork(polygonMumbai.id);
         } catch (error) {
           console.error('Error switching network:', error);
           return;
@@ -46,7 +46,7 @@ export function PaymentButton({
     onClick();
   };
 
-  const wrongNetwork = chain?.id !== bscTestnet.id;
+  const wrongNetwork = chain?.id !== polygonMumbai.id;
 
   return (
     <>
@@ -63,7 +63,7 @@ export function PaymentButton({
         ) : disabled ? (
           "Transaction en attente de confirmation..."
         ) : wrongNetwork ? (
-          "Veuillez vous connecter au réseau BSC Testnet"
+          "Veuillez vous connecter au réseau Polygon Mumbai"
         ) : (
           `Payer avec ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}
@@ -83,7 +83,7 @@ export function PaymentButton({
 
       {wrongNetwork && (
         <p className="text-sm text-red-500 text-center mt-2">
-          Veuillez vous connecter au réseau BSC Testnet dans votre portefeuille
+          Veuillez vous connecter au réseau Polygon Mumbai dans votre portefeuille
         </p>
       )}
     </>
