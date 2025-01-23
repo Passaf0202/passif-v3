@@ -18,9 +18,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    // Fetch current rates from CoinGecko Pro API
+    // Fetch current rates from CoinGecko Pro API for multiple tokens
+    const tokens = ['matic-network', 'tether', 'usd-coin'];
     const response = await fetch(
-      'https://pro-api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd,eur,gbp',
+      `https://pro-api.coingecko.com/api/v3/simple/price?ids=${tokens.join(',')}&vs_currencies=usd,eur,gbp`,
       {
         headers: {
           'x-cg-pro-api-key': Deno.env.get('COINGECKO_API_KEY') || '',
@@ -35,25 +36,47 @@ serve(async (req) => {
     const data = await response.json()
     console.log('CoinGecko response:', data)
 
-    const bnbRates = data.binancecoin
-    
-    // Update rates in database
-    const { error: updateError } = await supabaseClient
-      .from('crypto_rates')
-      .update({
-        rate_usd: bnbRates.usd,
-        rate_eur: bnbRates.eur,
-        rate_gbp: bnbRates.gbp,
-        last_updated: new Date().toISOString()
-      })
-      .eq('symbol', 'BNB')
+    // Update rates for each token
+    const updates = [
+      {
+        symbol: 'MATIC',
+        name: 'Polygon',
+        rates: data['matic-network']
+      },
+      {
+        symbol: 'USDT',
+        name: 'Tether',
+        rates: data['tether']
+      },
+      {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        rates: data['usd-coin']
+      }
+    ];
 
-    if (updateError) {
-      throw updateError
+    for (const update of updates) {
+      const { error: updateError } = await supabaseClient
+        .from('crypto_rates')
+        .upsert({
+          symbol: update.symbol,
+          name: update.name,
+          rate_usd: update.rates.usd,
+          rate_eur: update.rates.eur,
+          rate_gbp: update.rates.gbp,
+          last_updated: new Date().toISOString(),
+          is_active: true
+        }, {
+          onConflict: 'symbol'
+        })
+
+      if (updateError) {
+        console.error(`Error updating ${update.symbol} rates:`, updateError)
+      }
     }
 
     return new Response(
-      JSON.stringify({ success: true, rates: bnbRates }),
+      JSON.stringify({ success: true, rates: data }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 

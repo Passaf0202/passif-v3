@@ -10,7 +10,7 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
       try {
         console.log(`Fetching rate for ${cryptoCurrency} in ${selectedCurrency}`);
         
-        // Utiliser CoinGecko pour obtenir les taux
+        // Use CoinGecko for rates
         const response = await fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${getCoinGeckoId(cryptoCurrency)}&vs_currencies=${selectedCurrency.toLowerCase()}`
         );
@@ -43,7 +43,7 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
       return null;
     }
 
-    const targetCrypto = cryptoCurrency || 'BNB';
+    const targetCrypto = cryptoCurrency || 'MATIC';
     const cryptoAmount = price / rateData;
 
     if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
@@ -68,20 +68,18 @@ export const useCryptoConversion = (price: number, cryptoCurrency?: string) => {
 
 function getCoinGeckoId(currency?: string): string {
   const mapping: Record<string, string> = {
-    'BNB': 'binancecoin',
-    'ETH': 'ethereum',
-    'BTC': 'bitcoin',
-    'SOL': 'solana',
+    'MATIC': 'matic-network',
+    'USDT': 'tether',
+    'USDC': 'usd-coin',
   };
-  return mapping[currency || 'BNB'] || 'binancecoin';
+  return mapping[currency || 'MATIC'] || 'matic-network';
 }
 
 function getFallbackRate(currency?: string): number {
   const fallbackRates: Record<string, number> = {
-    'BNB': 250,
-    'ETH': 2500,
-    'BTC': 40000,
-    'SOL': 90,
+    'MATIC': 1,
+    'USDT': 1,
+    'USDC': 1,
   };
-  return fallbackRates[currency || 'BNB'] || 250;
+  return fallbackRates[currency || 'MATIC'] || 1;
 }
