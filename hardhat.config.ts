@@ -1,6 +1,9 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-ethers";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -13,10 +16,10 @@ const config: HardhatUserConfig = {
     }
   },
   networks: {
-    polygonMumbai: {
-      url: "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78",
+    polygonZkEvmTestnet: {
+      url: "https://rpc.public.zkevm-test.net",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 80001
+      chainId: 1442
     }
   },
   paths: {
