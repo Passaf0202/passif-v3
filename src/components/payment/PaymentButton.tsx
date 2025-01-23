@@ -30,7 +30,7 @@ export function PaymentButton({
   const { toast } = useToast();
 
   const { config } = usePrepareSendTransaction({
-    to: sellerAddress,
+    to: sellerAddress as `0x${string}`,
     value: cryptoAmount ? parseEther(cryptoAmount.toString()) : undefined,
     enabled: !!sellerAddress && !!cryptoAmount,
   });
@@ -38,6 +38,13 @@ export function PaymentButton({
   const { sendTransaction } = useSendTransaction(config);
 
   const handleClick = async () => {
+    console.log('Payment button clicked with params:', {
+      isConnected,
+      chain,
+      sellerAddress,
+      cryptoAmount
+    });
+
     if (!isConnected) {
       toast({
         title: "Wallet non connecté",
@@ -74,8 +81,19 @@ export function PaymentButton({
     }
 
     try {
+      console.log('Initiating transaction with params:', {
+        to: sellerAddress,
+        value: cryptoAmount,
+        network: chain.name
+      });
+
       if (sendTransaction) {
-        await sendTransaction();
+        const tx = await sendTransaction();
+        console.log('Transaction sent:', tx);
+        toast({
+          title: "Transaction envoyée",
+          description: "Votre transaction a été envoyée avec succès",
+        });
       }
       onClick();
     } catch (error) {
@@ -114,12 +132,6 @@ export function PaymentButton({
       {!isConnected && (
         <p className="text-sm text-red-500 text-center mt-2">
           Veuillez connecter votre portefeuille pour effectuer le paiement
-        </p>
-      )}
-
-      {!cryptoAmount && (
-        <p className="text-sm text-red-500 text-center mt-2">
-          Le montant en crypto n'est pas disponible pour le moment
         </p>
       )}
 

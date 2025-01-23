@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { Loader2, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContactModal } from "@/components/ContactModal";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from 'wagmi';
-import { supabase } from "@/integrations/supabase/client";
 import { PaymentButton } from "../payment/PaymentButton";
 
 interface ListingActionsProps {
@@ -88,12 +86,6 @@ export const ListingActions = ({
             sellerId={sellerId}
             listingTitle={title}
           />
-        </Button>
-      </div>
-
-      <div className="flex justify-end">
-        <Button variant="ghost" size="icon">
-          <Heart className="h-5 w-5" />
         </Button>
       </div>
     </div>
