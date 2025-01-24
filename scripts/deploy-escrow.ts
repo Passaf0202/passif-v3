@@ -22,15 +22,23 @@ async function main() {
       throw new Error("Insufficient POL balance for deployment");
     }
 
+    // Augmenter la limite de gas et ajouter un prix du gas explicite
+    const gasPrice = await ethers.provider.getGasPrice();
+    const estimatedGasPrice = gasPrice.mul(120).div(100); // Augmenter de 20%
+    
+    console.log("Deploying contract with params:", {
+      gasPrice: ethers.utils.formatUnits(estimatedGasPrice, "gwei"),
+      gasLimit: 3000000
+    });
+
     // Deploy with platform address and 5% fee
-    console.log("Deploying contract...");
-    const platformAddress = deployer.address; // Pour le test, utiliser le déployeur comme plateforme
     const escrow = await CryptoEscrow.deploy(
       deployer.address, // test seller
-      platformAddress,
-      ethers.ZeroAddress, // POL as default token
+      deployer.address, // platform address (using deployer for test)
+      ethers.constants.AddressZero, // POL as default token
       5, // 5% platform fee
       { 
+        gasPrice: estimatedGasPrice,
         gasLimit: 3000000
       }
     );
