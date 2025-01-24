@@ -14,7 +14,7 @@ export const useEscrowContract = () => {
       .from('smart_contracts')
       .select('*')
       .eq('is_active', true)
-      .eq('network', 'bsc_testnet')
+      .eq('network', 'polygon_amoy')
       .single();
 
     if (error) {

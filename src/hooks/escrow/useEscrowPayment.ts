@@ -121,7 +121,7 @@ export function useEscrowPayment({
         listing.crypto_amount,
         listing.crypto_amount * 0.05, // 5% commission
         contract.address,
-        97 // BSC Testnet chain ID
+        80002 // Polygon Amoy chain ID
       );
 
       if (receipt.status === 1) {

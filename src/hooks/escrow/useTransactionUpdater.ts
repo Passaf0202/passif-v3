@@ -32,8 +32,8 @@ export const useTransactionUpdater = () => {
         escrow_status: 'pending',
         smart_contract_address: contractAddress,
         chain_id: chainId,
-        network: 'bsc_testnet',
-        token_symbol: 'BNB'
+        network: 'polygon_amoy',
+        token_symbol: 'MATIC'
       })
       .select()
       .single();
