@@ -94,7 +94,6 @@ export const ListingActions = ({
           cryptoCurrency={cryptoCurrency}
           onClick={handleCryptoPayment}
           sellerAddress={sellerAddress}
-          disabled={!sellerAddress || address === sellerAddress}
         />
 
         <Button variant="outline" className="w-full" asChild>
