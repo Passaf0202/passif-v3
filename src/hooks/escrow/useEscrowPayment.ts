@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEscrowContract } from "./useEscrowContract";
 import { useTransactionUpdater } from "./useTransactionUpdater";
+import { parseEther } from "viem";
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -76,7 +77,9 @@ export function useEscrowPayment({
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const balance = await provider.getBalance(address);
-      const amountInWei = ethers.utils.parseEther(listing.crypto_amount.toString());
+      
+      // Convert listing.crypto_amount to wei
+      const amountInWei = parseEther(listing.crypto_amount.toString());
       
       if (balance.lt(amountInWei)) {
         throw new Error("Fonds insuffisants dans votre portefeuille");
@@ -85,7 +88,7 @@ export function useEscrowPayment({
       // Estimer le gas nécessaire
       const gasPrice = await provider.getGasPrice();
       const gasLimit = ethers.BigNumber.from("300000"); // Augmenter la limite de gas pour le déploiement
-      const totalCost = amountInWei.add(gasPrice.mul(gasLimit));
+      const totalCost = ethers.BigNumber.from(amountInWei.toString()).add(gasPrice.mul(gasLimit));
       
       if (balance.lt(totalCost)) {
         throw new Error("Fonds insuffisants pour couvrir les frais de transaction");
@@ -93,7 +96,7 @@ export function useEscrowPayment({
 
       console.log('Deploying escrow contract with params:', {
         sellerAddress: listing.user.wallet_address,
-        amount: ethers.utils.formatEther(amountInWei),
+        amount: amountInWei.toString(),
         gasLimit: gasLimit.toString(),
         gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
       });
