@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork, useAccount } from 'wagmi';
+import { useNetwork, useSwitchNetwork, useAccount, usePrepareSendTransaction, useSendTransaction } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
-import { ethers } from "ethers";
-import { useEscrowContract } from "@/hooks/escrow/useEscrowContract";
+import { parseEther } from "viem";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -27,7 +26,15 @@ export function PaymentButton({
   const { switchNetwork } = useSwitchNetwork();
   const { address } = useAccount();
   const { toast } = useToast();
-  const { deployNewContract } = useEscrowContract();
+
+  // Préparation de la transaction
+  const { config } = usePrepareSendTransaction({
+    to: sellerAddress as `0x${string}`,
+    value: cryptoAmount ? parseEther(cryptoAmount.toFixed(18)) : BigInt(0),
+    enabled: !!sellerAddress && !!cryptoAmount && isConnected,
+  });
+
+  const { sendTransaction } = useSendTransaction(config);
 
   const handleClick = async () => {
     console.log('Payment button clicked with params:', {
@@ -75,38 +82,19 @@ export function PaymentButton({
     }
 
     try {
-      console.log('Deploying escrow contract with params:', {
-        seller: sellerAddress,
-        amount: cryptoAmount,
+      console.log('Sending transaction with params:', {
+        to: sellerAddress,
+        value: cryptoAmount,
         network: chain.name
       });
 
-      // Formater le montant avec 18 décimales maximum
-      const formattedAmount = Number(cryptoAmount.toFixed(18));
-      const amountInWei = ethers.utils.parseEther(formattedAmount.toString());
-      
-      const { contract, receipt } = await deployNewContract(
-        sellerAddress,
-        amountInWei,
-        {
-          gasLimit: ethers.utils.parseEther("0.3"),
-          gasPrice: ethers.utils.parseEther("0.000000035")
-        }
-      );
-
-      console.log('Escrow contract deployed:', {
-        address: contract.address,
-        transactionHash: receipt.transactionHash
-      });
-
-      if (receipt.status === 1) {
+      if (sendTransaction) {
+        await sendTransaction();
         toast({
           title: "Transaction envoyée",
-          description: "Les fonds ont été bloqués dans le contrat d'escrow",
+          description: "Votre paiement est en cours de traitement",
         });
         onClick();
-      } else {
-        throw new Error("La transaction a échoué sur la blockchain");
       }
 
     } catch (error) {
@@ -120,8 +108,7 @@ export function PaymentButton({
   };
 
   const wrongNetwork = chain?.id !== amoy.id;
-  // Désactivé temporairement pour les tests
-  const isSameAddress = false;
+  const isSameAddress = address === sellerAddress;
 
   // Calcul de l'état disabled du bouton
   const isDisabled = isProcessing || !isConnected || !cryptoAmount || wrongNetwork || isSameAddress;
