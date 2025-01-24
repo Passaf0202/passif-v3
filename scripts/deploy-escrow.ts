@@ -24,22 +24,22 @@ async function main() {
 
     // Augmenter la limite de gas et ajouter un prix du gas explicite
     const gasPrice = await ethers.provider.getGasPrice();
-    const estimatedGasPrice = gasPrice.mul(120).div(100); // Augmenter de 20%
+    const estimatedGasPrice = gasPrice.mul(150).div(100); // Augmenter de 50%
     
     console.log("Deploying contract with params:", {
       gasPrice: ethers.utils.formatUnits(estimatedGasPrice, "gwei"),
-      gasLimit: 3000000
+      gasLimit: 5000000
     });
 
     // Deploy with platform address and 5% fee
     const escrow = await CryptoEscrow.deploy(
       deployer.address, // test seller
       deployer.address, // platform address (using deployer for test)
-      ethers.constants.AddressZero, // POL as default token
       5, // 5% platform fee
       { 
+        value: ethers.parseEther("0.001"), // Ajouter une petite valeur pour le test
         gasPrice: estimatedGasPrice,
-        gasLimit: 3000000
+        gasLimit: 5000000
       }
     );
     

@@ -1,6 +1,5 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import "@nomicfoundation/hardhat-ethers";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -11,9 +10,10 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200
+        runs: 1000
       },
-      viaIR: true // Activer l'IR optimizer pour un meilleur bytecode
+      viaIR: true,
+      evmVersion: "paris"
     }
   },
   networks: {
@@ -22,7 +22,7 @@ const config: HardhatUserConfig = {
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 80002,
       gasPrice: "auto",
-      gas: 3000000
+      gas: 5000000
     }
   },
   paths: {

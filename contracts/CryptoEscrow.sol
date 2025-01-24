@@ -5,7 +5,6 @@ contract CryptoEscrow {
     address public buyer;
     address public seller;
     address public platform;
-    address public paymentToken;
     uint256 public amount;
     uint256 public platformFee;
     bool public buyerConfirmed;
@@ -29,7 +28,6 @@ contract CryptoEscrow {
     constructor(
         address _seller,
         address _platform,
-        address _paymentToken,
         uint256 _platformFee
     ) payable {
         require(_seller != address(0), "Invalid seller address");
@@ -41,7 +39,6 @@ contract CryptoEscrow {
         buyer = msg.sender;
         seller = _seller;
         platform = _platform;
-        paymentToken = _paymentToken;
         amount = msg.value;
         platformFee = _platformFee;
         
