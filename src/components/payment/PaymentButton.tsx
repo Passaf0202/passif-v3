@@ -94,8 +94,15 @@ export function PaymentButton({
       const platformAddress = await signer.getAddress();
       const platformFeePercent = 5; // 5% de frais de plateforme
 
-      // Convertir le montant en Wei avec 18 décimales
-      const amountInWei = ethers.utils.parseEther(cryptoAmount.toString());
+      // Arrondir le montant à 8 décimales maximum et le convertir en chaîne
+      const roundedAmount = Number(cryptoAmount.toFixed(8));
+      console.log('Rounded amount:', roundedAmount);
+      
+      // Convertir le montant en Wei
+      const amountInWei = ethers.utils.parseUnits(
+        roundedAmount.toString(),
+        'ether'
+      );
       console.log('Amount in Wei:', amountInWei.toString());
 
       // Vérifier le solde avant la transaction
@@ -107,7 +114,7 @@ export function PaymentButton({
       }
 
       // Estimer le gas avec une limite plus raisonnable
-      const gasLimit = ethers.BigNumber.from("500000"); // Réduit de 3000000 à 500000
+      const gasLimit = ethers.BigNumber.from("500000");
       const gasPrice = await provider.getGasPrice();
       const estimatedGasCost = gasLimit.mul(gasPrice);
       console.log('Estimated gas cost:', ethers.utils.formatEther(estimatedGasCost), 'MATIC');
