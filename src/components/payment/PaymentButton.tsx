@@ -91,18 +91,15 @@ export function PaymentButton({
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const platformAddress = await signer.getAddress();
-      const platformFeePercent = 5; // 5% de frais de plateforme
-
+      
       // S'assurer que le montant est positif et arrondi correctement
       const positiveAmount = Math.abs(cryptoAmount);
       const roundedAmount = Number(positiveAmount.toFixed(8));
       console.log('Amount to send:', roundedAmount, 'MATIC');
       
       // Convertir le montant en Wei
-      const amountInWei = ethers.utils.parseUnits(
-        roundedAmount.toString(),
-        'ether'
+      const amountInWei = ethers.utils.parseEther(
+        roundedAmount.toString()
       );
       console.log('Amount in Wei:', amountInWei.toString());
 
@@ -139,7 +136,6 @@ export function PaymentButton({
 
       console.log('Deploying contract with params:', {
         sellerAddress,
-        platformAddress,
         amount: ethers.utils.formatEther(amountInWei),
         gasLimit: gasLimit.toString(),
         gasPrice: gasPrice.toString()
@@ -147,12 +143,12 @@ export function PaymentButton({
 
       // Déployer le contrat avec les bons paramètres
       const escrowContract = await factory.deploy(
-        sellerAddress,
-        platformAddress,
-        ethers.constants.AddressZero, // Token address (0x0 pour MATIC natif)
-        platformFeePercent,
+        sellerAddress, // adresse du vendeur
+        await signer.getAddress(), // adresse de la plateforme (notre adresse pour le test)
+        ethers.constants.AddressZero, // adresse du token (0x0 pour MATIC natif)
+        5, // 5% de frais de plateforme
         { 
-          value: amountInWei,
+          value: amountInWei, // montant en MATIC à envoyer
           gasLimit,
           gasPrice
         }
