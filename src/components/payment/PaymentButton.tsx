@@ -48,23 +48,6 @@ export function PaymentButton({
       return;
     }
 
-    if (chain?.id !== amoy.id) {
-      toast({
-        title: "Mauvais réseau",
-        description: "Veuillez vous connecter au réseau Polygon Amoy",
-      });
-      
-      if (switchNetwork) {
-        try {
-          await switchNetwork(amoy.id);
-        } catch (error) {
-          console.error('Error switching network:', error);
-          return;
-        }
-      }
-      return;
-    }
-
     if (!cryptoAmount || !sellerAddress) {
       toast({
         title: "Erreur",
@@ -75,6 +58,34 @@ export function PaymentButton({
     }
 
     try {
+      if (chain?.id !== amoy.id) {
+        toast({
+          title: "Changement de réseau",
+          description: "Veuillez confirmer le changement vers Polygon Amoy",
+        });
+        
+        if (switchNetwork) {
+          try {
+            await switchNetwork(amoy.id);
+          } catch (error) {
+            console.error('Error switching network:', error);
+            toast({
+              title: "Erreur de réseau",
+              description: "Impossible de changer vers Polygon Amoy. Veuillez le faire manuellement.",
+              variant: "destructive",
+            });
+            return;
+          }
+        } else {
+          toast({
+            title: "Erreur",
+            description: "Veuillez changer manuellement vers le réseau Polygon Amoy",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       console.log('Deploying escrow contract with params:', {
         seller: sellerAddress,
         amount: cryptoAmount,
@@ -104,11 +115,11 @@ export function PaymentButton({
         throw new Error("La transaction a échoué sur la blockchain");
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Transaction error:', error);
       toast({
         title: "Erreur de transaction",
-        description: "La transaction a échoué. Veuillez réessayer.",
+        description: error.message || "La transaction a échoué. Veuillez réessayer.",
         variant: "destructive",
       });
     }
@@ -118,7 +129,7 @@ export function PaymentButton({
   const isSameAddress = address === sellerAddress;
 
   // Calcul de l'état disabled du bouton
-  const isDisabled = isProcessing || !isConnected || !cryptoAmount || wrongNetwork || isSameAddress;
+  const isDisabled = isProcessing || !isConnected || !cryptoAmount || isSameAddress;
 
   return (
     <div className="w-full">
