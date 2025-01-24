@@ -4,7 +4,7 @@ import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { ethers } from 'ethers';
-import { ESCROW_ABI, ESCROW_BYTECODE, formatAmount } from "@/hooks/escrow/escrowConstants";
+import { ESCROW_ABI, ESCROW_BYTECODE } from "@/hooks/escrow/escrowConstants";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -94,6 +94,10 @@ export function PaymentButton({
       const platformAddress = await signer.getAddress(); // Pour le test, on utilise l'adresse du signeur comme plateforme
       const platformFeePercent = 5; // 5% de frais de plateforme
 
+      // Estimer le gas nécessaire avec une limite raisonnable
+      const gasPrice = await provider.getGasPrice();
+      const gasLimit = ethers.BigNumber.from("3000000"); // Limite de gas raisonnable pour le déploiement
+
       const factory = new ethers.ContractFactory(
         ESCROW_ABI,
         ESCROW_BYTECODE,
@@ -102,13 +106,17 @@ export function PaymentButton({
 
       const amountInWei = ethers.utils.parseEther(cryptoAmount.toFixed(18));
       
-      // Déploiement avec tous les arguments requis
+      // Déploiement avec tous les arguments requis et les paramètres de gas explicites
       const escrowContract = await factory.deploy(
         sellerAddress,
         platformAddress,
         ethers.constants.AddressZero, // Token address (0x0 pour MATIC natif)
         platformFeePercent,
-        { value: amountInWei }
+        { 
+          value: amountInWei,
+          gasLimit: gasLimit,
+          gasPrice: gasPrice
+        }
       );
 
       console.log('Waiting for deployment transaction:', escrowContract.deployTransaction.hash);
