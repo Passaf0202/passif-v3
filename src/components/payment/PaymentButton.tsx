@@ -54,7 +54,7 @@ export function PaymentButton({
       const signer = provider.getSigner();
       
       // 3. Préparer le montant avec une valeur minimale pour tester
-      const testAmount = "0.001"; // Utiliser un petit montant pour tester
+      const testAmount = "0.001";
       const amountInWei = ethers.utils.parseEther(testAmount);
       
       // 4. Vérifier le solde
@@ -63,9 +63,9 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // 5. Configurer le gas de manière très conservative
+      // 5. Configurer le gas de manière conservative
       const gasPrice = await provider.getGasPrice();
-      const gasLimit = ethers.BigNumber.from("300000"); // Réduit à 300k
+      const gasLimit = ethers.BigNumber.from("300000");
       const estimatedGasCost = gasLimit.mul(gasPrice);
       const totalCost = amountInWei.add(estimatedGasCost);
 
@@ -81,7 +81,7 @@ export function PaymentButton({
       });
 
       const escrowContract = await factory.deploy(
-        sellerAddress, // seller
+        sellerAddress,
         {
           value: amountInWei,
           gasLimit,

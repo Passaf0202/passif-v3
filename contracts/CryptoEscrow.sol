@@ -60,7 +60,4 @@ contract CryptoEscrow {
     ) {
         return (buyerConfirmed, sellerConfirmed, fundsReleased);
     }
-
-    receive() external payable {}
-    fallback() external payable {}
 }
