@@ -145,6 +145,7 @@ export function PaymentButton({
         gasPrice: gasPrice.toString()
       });
 
+      // Déployer le contrat avec les bons paramètres
       const escrowContract = await factory.deploy(
         sellerAddress,
         platformAddress,
