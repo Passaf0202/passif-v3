@@ -82,12 +82,7 @@ export function PaymentButton({
     }
 
     try {
-      console.log('Initiating transaction with params:', {
-        to: sellerAddress,
-        value: cryptoAmount,
-        network: chain?.name,
-        chainId: chain?.id
-      });
+      console.log('Initiating transaction...');
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -98,9 +93,7 @@ export function PaymentButton({
       console.log('Amount to send:', roundedAmount, 'MATIC');
       
       // Convertir le montant en Wei
-      const amountInWei = ethers.utils.parseEther(
-        roundedAmount.toString()
-      );
+      const amountInWei = ethers.utils.parseEther(roundedAmount.toString());
       console.log('Amount in Wei:', amountInWei.toString());
 
       // Vérifier le solde avant la transaction
@@ -115,15 +108,8 @@ export function PaymentButton({
       const gasPrice = await provider.getGasPrice();
       console.log('Current gas price:', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei');
 
-      // Créer le contrat factory avec un gas limit fixe et raisonnable
-      const factory = new ethers.ContractFactory(
-        ESCROW_ABI,
-        ESCROW_BYTECODE,
-        signer
-      );
-
-      // Utiliser un gas limit fixe et raisonnable pour le déploiement
-      const gasLimit = ethers.BigNumber.from("3000000"); // 3M gas units
+      // Utiliser un gas limit fixe et raisonnable
+      const gasLimit = ethers.BigNumber.from("5000000"); // Augmenté à 5M
       const estimatedGasCost = gasLimit.mul(gasPrice);
       console.log('Gas limit:', gasLimit.toString());
       console.log('Estimated gas cost:', ethers.utils.formatEther(estimatedGasCost), 'MATIC');
@@ -134,6 +120,13 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
+      // Créer le contrat factory
+      const factory = new ethers.ContractFactory(
+        ESCROW_ABI,
+        ESCROW_BYTECODE,
+        signer
+      );
+
       console.log('Deploying contract with params:', {
         sellerAddress,
         amount: ethers.utils.formatEther(amountInWei),
@@ -141,14 +134,14 @@ export function PaymentButton({
         gasPrice: gasPrice.toString()
       });
 
-      // Déployer le contrat avec les bons paramètres
+      // Déployer le contrat avec les paramètres corrects
       const escrowContract = await factory.deploy(
-        sellerAddress, // adresse du vendeur
-        await signer.getAddress(), // adresse de la plateforme (notre adresse pour le test)
-        ethers.constants.AddressZero, // adresse du token (0x0 pour MATIC natif)
-        5, // 5% de frais de plateforme
-        { 
-          value: amountInWei, // montant en MATIC à envoyer
+        sellerAddress,
+        await signer.getAddress(),
+        ethers.constants.AddressZero,
+        5,
+        {
+          value: amountInWei,
           gasLimit,
           gasPrice
         }
