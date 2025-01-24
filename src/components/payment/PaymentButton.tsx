@@ -39,69 +39,54 @@ export function PaymentButton({
       return;
     }
 
-    if (chain?.id !== amoy.id) {
-      try {
-        if (switchNetwork) {
-          await switchNetwork(amoy.id);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      } catch (error) {
-        console.error('Error switching network:', error);
-        toast({
-          title: "Erreur de réseau",
-          description: "Veuillez changer manuellement vers le réseau Polygon Amoy",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
     try {
-      console.log('Initiating transaction...');
+      // 1. Vérifier et changer le réseau si nécessaire
+      if (chain?.id !== amoy.id) {
+        if (!switchNetwork) {
+          throw new Error("Impossible de changer de réseau automatiquement");
+        }
+        await switchNetwork(amoy.id);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      // 2. Initialiser le provider et le signer
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       
+      // 3. Préparer le montant
       const roundedAmount = Number(Math.abs(cryptoAmount).toFixed(8));
       const amountInWei = ethers.utils.parseEther(roundedAmount.toString());
       
-      console.log('Transaction details:', {
-        amount: roundedAmount,
-        amountInWei: amountInWei.toString(),
-        seller: sellerAddress
-      });
-
-      // Vérifier le solde
+      // 4. Vérifier le solde
       const balance = await provider.getBalance(await signer.getAddress());
       if (balance.lt(amountInWei)) {
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // Configuration optimisée du gas
+      // 5. Configurer le gas de manière conservative
       const gasPrice = await provider.getGasPrice();
-      const gasLimit = ethers.BigNumber.from("1000000"); // Réduit à 1M
+      const gasLimit = ethers.BigNumber.from("800000"); // Réduit à 800k
       const estimatedGasCost = gasLimit.mul(gasPrice);
-      
-      console.log('Gas configuration:', {
-        gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei'),
-        gasLimit: gasLimit.toString(),
-        estimatedCost: ethers.utils.formatEther(estimatedGasCost)
-      });
-
-      // Vérifier le coût total
       const totalCost = amountInWei.add(estimatedGasCost);
+
       if (balance.lt(totalCost)) {
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
-      // Créer et déployer le contrat avec des paramètres simplifiés
+      // 6. Déployer le contrat
       const factory = new ethers.ContractFactory(ESCROW_ABI, ESCROW_BYTECODE, signer);
-      
-      console.log('Deploying contract...');
+      console.log('Deploying contract with params:', {
+        seller: sellerAddress,
+        platform: await signer.getAddress(),
+        token: ethers.constants.AddressZero,
+        platformFee: 5
+      });
+
       const escrowContract = await factory.deploy(
-        sellerAddress,
-        await signer.getAddress(),
-        ethers.constants.AddressZero,
-        5,
+        sellerAddress, // seller
+        await signer.getAddress(), // platform (using deployer for testing)
+        ethers.constants.AddressZero, // token (MATIC)
+        5, // platformFeePercent
         {
           value: amountInWei,
           gasLimit,
