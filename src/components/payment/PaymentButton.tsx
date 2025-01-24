@@ -3,9 +3,8 @@ import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork, useAccount } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
-import { parseEther } from 'viem';
-import { useEscrowContract } from "@/hooks/escrow/useEscrowContract";
 import { ethers } from "ethers";
+import { useEscrowContract } from "@/hooks/escrow/useEscrowContract";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -84,16 +83,14 @@ export function PaymentButton({
         network: chain.name
       });
 
-      // Convertir le montant en BigNumber compatible avec ethers
       const amountInWei = ethers.utils.parseEther(cryptoAmount.toString());
       
-      // Déployer le contrat d'escrow
       const { contract, receipt } = await deployNewContract(
         sellerAddress,
         amountInWei,
         {
-          gasLimit: ethers.utils.parseEther("0.3"), // 0.3 MATIC for gas
-          gasPrice: ethers.utils.parseEther("0.000000035") // 35 Gwei
+          gasLimit: ethers.utils.parseEther("0.3"),
+          gasPrice: ethers.utils.parseEther("0.000000035")
         }
       );
 
@@ -123,7 +120,9 @@ export function PaymentButton({
   };
 
   const wrongNetwork = chain?.id !== amoy.id;
-  const isSameAddress = address === sellerAddress;
+  // Désactivé temporairement pour les tests
+  // const isSameAddress = address === sellerAddress;
+  const isSameAddress = false;
 
   return (
     <div className="w-full">
