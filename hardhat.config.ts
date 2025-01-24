@@ -10,10 +10,8 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 1000
-      },
-      viaIR: true,
-      evmVersion: "paris"
+        runs: 200 // Réduction du nombre de runs pour un test simple
+      }
     }
   },
   networks: {
@@ -22,7 +20,7 @@ const config: HardhatUserConfig = {
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 80002,
       gasPrice: "auto",
-      gas: 2000000
+      gas: 1000000 // Réduction de la limite de gas pour le test
     }
   },
   paths: {
