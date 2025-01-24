@@ -4,7 +4,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEscrowContract } from "./useEscrowContract";
 import { useTransactionUpdater } from "./useTransactionUpdater";
-import { parseEther } from "viem";
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -38,11 +37,14 @@ export function useEscrowPayment({
       setError(null);
       console.log('Starting escrow payment process for listing:', listingId);
 
+      // Get the authenticated user first
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
       if (authError || !authUser) {
+        console.error('Auth error:', authError);
         throw new Error("Vous devez être connecté pour effectuer un paiement");
       }
 
+      // Récupérer les détails de l'annonce et du vendeur
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .select(`
@@ -56,35 +58,54 @@ export function useEscrowPayment({
         .single();
 
       if (listingError || !listing) {
+        console.error('Error fetching listing:', listingError);
         throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
       if (!listing.user?.wallet_address) {
+        console.error('No wallet address found for seller');
         throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
 
       if (!listing.crypto_amount) {
+        console.error('No crypto amount found for listing');
         throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
       }
 
+      // Vérifier le solde avant la transaction
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
       const balance = await provider.getBalance(address);
-      
-      // Convertir le montant en wei
-      const amountInWei = parseEther(listing.crypto_amount.toString());
+      const amountInWei = ethers.utils.parseEther(listing.crypto_amount.toString());
       
       if (balance.lt(amountInWei)) {
         throw new Error("Fonds insuffisants dans votre portefeuille");
       }
 
+      // Estimer le gas nécessaire
+      const gasPrice = await provider.getGasPrice();
+      const gasLimit = ethers.BigNumber.from("300000"); // Augmenter la limite de gas pour le déploiement
+      const totalCost = amountInWei.add(gasPrice.mul(gasLimit));
+      
+      if (balance.lt(totalCost)) {
+        throw new Error("Fonds insuffisants pour couvrir les frais de transaction");
+      }
+
       console.log('Deploying escrow contract with params:', {
         sellerAddress: listing.user.wallet_address,
-        amount: amountInWei.toString(),
+        amount: ethers.utils.formatEther(amountInWei),
+        gasLimit: gasLimit.toString(),
+        gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
       });
 
+      // Déployer le contrat d'escrow avec des paramètres de gas explicites
       const { contract, receipt } = await deployNewContract(
         listing.user.wallet_address,
-        amountInWei
+        amountInWei,
+        {
+          gasLimit,
+          gasPrice
+        }
       );
 
       console.log('Escrow contract deployed:', {
@@ -92,17 +113,19 @@ export function useEscrowPayment({
         transactionHash: receipt.transactionHash
       });
 
+      // Create transaction record with correct user IDs and contract address
       const transaction = await createTransaction(
         listingId,
         authUser.id,
         listing.user.id,
         listing.crypto_amount,
-        listing.crypto_amount * 0.05,
+        listing.crypto_amount * 0.05, // 5% commission
         contract.address,
-        80002 // Polygon Amoy chain ID
+        97 // BSC Testnet chain ID
       );
 
       if (receipt.status === 1) {
+        // Mettre à jour le statut avec funds_secured = true
         await updateTransactionStatus(transaction.id, 'processing', receipt.transactionHash);
         
         const { error: updateError } = await supabase

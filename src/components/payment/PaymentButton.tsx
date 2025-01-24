@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork, useAccount } from 'wagmi';
+import { useNetwork, useSwitchNetwork, useAccount, usePrepareSendTransaction, useSendTransaction } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
-import { useEscrowContract } from "@/hooks/escrow/useEscrowContract";
-import { parseEther } from "viem";
+import { parseEther } from 'viem';
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -12,6 +11,7 @@ interface PaymentButtonProps {
   cryptoAmount?: number;
   cryptoCurrency?: string;
   onClick: () => void;
+  disabled?: boolean;
   sellerAddress?: string;
 }
 
@@ -21,13 +21,21 @@ export function PaymentButton({
   cryptoAmount, 
   cryptoCurrency = 'MATIC',
   onClick,
+  disabled = false,
   sellerAddress
 }: PaymentButtonProps) {
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   const { address } = useAccount();
   const { toast } = useToast();
-  const { deployNewContract } = useEscrowContract();
+
+  const { config } = usePrepareSendTransaction({
+    to: sellerAddress as `0x${string}`,
+    value: cryptoAmount ? parseEther(cryptoAmount.toString()) : undefined,
+    enabled: !!sellerAddress && !!cryptoAmount,
+  });
+
+  const { sendTransaction } = useSendTransaction(config);
 
   const handleClick = async () => {
     console.log('Payment button clicked with params:', {
@@ -48,6 +56,23 @@ export function PaymentButton({
       return;
     }
 
+    if (chain?.id !== amoy.id) {
+      toast({
+        title: "Mauvais réseau",
+        description: "Veuillez vous connecter au réseau Polygon Amoy",
+      });
+      
+      if (switchNetwork) {
+        try {
+          await switchNetwork(amoy.id);
+        } catch (error) {
+          console.error('Error switching network:', error);
+          return;
+        }
+      }
+      return;
+    }
+
     if (!cryptoAmount || !sellerAddress) {
       toast({
         title: "Erreur",
@@ -58,84 +83,38 @@ export function PaymentButton({
     }
 
     try {
-      if (chain?.id !== amoy.id) {
-        toast({
-          title: "Changement de réseau",
-          description: "Veuillez confirmer le changement vers Polygon Amoy",
-        });
-        
-        if (switchNetwork) {
-          try {
-            await switchNetwork(amoy.id);
-          } catch (error) {
-            console.error('Error switching network:', error);
-            toast({
-              title: "Erreur de réseau",
-              description: "Impossible de changer vers Polygon Amoy. Veuillez le faire manuellement.",
-              variant: "destructive",
-            });
-            return;
-          }
-        } else {
-          toast({
-            title: "Erreur",
-            description: "Veuillez changer manuellement vers le réseau Polygon Amoy",
-            variant: "destructive",
-          });
-          return;
-        }
-      }
-
-      console.log('Deploying escrow contract with params:', {
-        seller: sellerAddress,
-        amount: cryptoAmount,
+      console.log('Initiating transaction with params:', {
+        to: sellerAddress,
+        value: cryptoAmount,
         network: chain.name
       });
 
-      // Convertir le montant en wei avec 18 décimales maximum
-      const amountInWei = parseEther(cryptoAmount.toFixed(18));
-      
-      const { contract, receipt } = await deployNewContract(
-        sellerAddress,
-        amountInWei
-      );
-
-      console.log('Escrow contract deployed:', {
-        address: contract.address,
-        transactionHash: receipt.transactionHash
-      });
-
-      if (receipt.status === 1) {
+      if (sendTransaction) {
+        const tx = await sendTransaction();
+        console.log('Transaction sent:', tx);
         toast({
           title: "Transaction envoyée",
-          description: "Les fonds ont été bloqués dans le contrat d'escrow",
+          description: "Votre transaction a été envoyée avec succès",
         });
         onClick();
-      } else {
-        throw new Error("La transaction a échoué sur la blockchain");
       }
-
-    } catch (error: any) {
+    } catch (error) {
       console.error('Transaction error:', error);
       toast({
         title: "Erreur de transaction",
-        description: error.message || "La transaction a échoué. Veuillez réessayer.",
+        description: "La transaction a échoué. Veuillez réessayer.",
         variant: "destructive",
       });
     }
   };
 
   const wrongNetwork = chain?.id !== amoy.id;
-  const isSameAddress = address === sellerAddress;
-
-  // Calcul de l'état disabled du bouton
-  const isDisabled = isProcessing || !isConnected || !cryptoAmount || isSameAddress;
 
   return (
     <div className="w-full">
       <Button 
         onClick={handleClick} 
-        disabled={isDisabled}
+        disabled={isProcessing || !isConnected || !cryptoAmount || disabled || wrongNetwork}
         className="w-full bg-primary hover:bg-primary/90"
       >
         {isProcessing ? (
@@ -143,10 +122,10 @@ export function PaymentButton({
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Transaction en cours...
           </>
+        ) : disabled ? (
+          "Transaction en attente de confirmation..."
         ) : wrongNetwork ? (
           "Veuillez vous connecter au réseau Polygon Amoy"
-        ) : isSameAddress ? (
-          "Vous ne pouvez pas acheter votre propre article"
         ) : (
           `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}
@@ -161,12 +140,6 @@ export function PaymentButton({
       {wrongNetwork && isConnected && (
         <p className="text-sm text-red-500 text-center mt-2">
           Veuillez vous connecter au réseau Polygon Amoy dans votre portefeuille
-        </p>
-      )}
-
-      {isSameAddress && isConnected && (
-        <p className="text-sm text-red-500 text-center mt-2">
-          Vous ne pouvez pas acheter votre propre article
         </p>
       )}
     </div>

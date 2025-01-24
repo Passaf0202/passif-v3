@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 import { ESCROW_ABI, ESCROW_BYTECODE } from "./escrowConstants";
-import { useToast } from "@/components/ui/use-toast";
-import { amoy } from '@/config/chains';
+import { supabase } from "@/integrations/supabase/client";
 
 interface DeployOptions {
   gasLimit?: ethers.BigNumber;
@@ -9,11 +8,46 @@ interface DeployOptions {
 }
 
 export const useEscrowContract = () => {
-  const { toast } = useToast();
+  const getActiveContract = async () => {
+    console.log('Fetching active smart contract...');
+    const { data: contract, error } = await supabase
+      .from('smart_contracts')
+      .select('*')
+      .eq('is_active', true)
+      .eq('network', 'bsc_testnet')
+      .single();
+
+    if (error) {
+      console.error('Error fetching active contract:', error);
+      throw new Error("Impossible de récupérer le contrat actif");
+    }
+
+    console.log('Active contract found:', contract);
+    return contract;
+  };
+
+  const getContract = async (address: string) => {
+    if (!window.ethereum) {
+      throw new Error("MetaMask n'est pas installé");
+    }
+
+    console.log('Initializing contract at address:', address);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    
+    try {
+      const contract = new ethers.Contract(address, ESCROW_ABI, signer);
+      console.log('Contract initialized successfully');
+      return contract;
+    } catch (error) {
+      console.error('Error initializing contract:', error);
+      throw new Error("Erreur lors de l'initialisation du contrat");
+    }
+  };
 
   const deployNewContract = async (
     sellerAddress: string, 
-    amount: string | bigint,
+    amount: ethers.BigNumber,
     options?: DeployOptions
   ) => {
     if (!window.ethereum) {
@@ -21,55 +55,13 @@ export const useEscrowContract = () => {
     }
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const network = await provider.getNetwork();
-
-    // Vérifier si nous sommes sur le bon réseau
-    if (network.chainId !== amoy.id) {
-      console.error('Wrong network:', network.chainId, 'Expected:', amoy.id);
-      
-      try {
-        // Tenter de basculer vers Polygon Amoy
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: `0x${amoy.id.toString(16)}` }],
-        });
-      } catch (switchError: any) {
-        // Si le réseau n'est pas configuré, on l'ajoute
-        if (switchError.code === 4902) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: `0x${amoy.id.toString(16)}`,
-                  chainName: amoy.name,
-                  nativeCurrency: amoy.nativeCurrency,
-                  rpcUrls: [amoy.rpcUrls.default.http[0]],
-                  blockExplorerUrls: [amoy.blockExplorers.default.url],
-                },
-              ],
-            });
-          } catch (addError) {
-            console.error('Error adding network:', addError);
-            throw new Error("Impossible d'ajouter le réseau Polygon Amoy");
-          }
-        } else {
-          console.error('Error switching network:', switchError);
-          throw new Error("Impossible de changer de réseau");
-        }
-      }
-
-      // Vérifier à nouveau le réseau après le changement
-      const updatedNetwork = await provider.getNetwork();
-      if (updatedNetwork.chainId !== amoy.id) {
-        throw new Error("Veuillez vous connecter au réseau Polygon Amoy");
-      }
-    }
-
     const signer = provider.getSigner();
+
     console.log('Deploying new escrow contract with params:', {
       seller: sellerAddress,
-      value: amount.toString()
+      value: amount.toString(),
+      gasLimit: options?.gasLimit?.toString(),
+      gasPrice: options?.gasPrice?.toString()
     });
 
     const factory = new ethers.ContractFactory(
@@ -78,52 +70,22 @@ export const useEscrowContract = () => {
       signer
     );
 
-    // S'assurer que le montant est un BigNumber
-    const valueInWei = ethers.BigNumber.from(amount.toString());
-    const deployOptions: { 
-      value: ethers.BigNumber;
-      gasLimit?: ethers.BigNumber;
-      gasPrice?: ethers.BigNumber;
-    } = { 
-      value: valueInWei 
-    };
+    const deployOptions: any = { value: amount };
+    if (options?.gasLimit) deployOptions.gasLimit = options.gasLimit;
+    if (options?.gasPrice) deployOptions.gasPrice = options.gasPrice;
 
-    if (options?.gasLimit) {
-      deployOptions.gasLimit = options.gasLimit;
-    }
-    if (options?.gasPrice) {
-      deployOptions.gasPrice = options.gasPrice;
-    }
+    const contract = await factory.deploy(sellerAddress, deployOptions);
+    console.log('Waiting for deployment transaction:', contract.deployTransaction.hash);
+    
+    const receipt = await contract.deployTransaction.wait();
+    console.log('Deployment receipt:', receipt);
 
-    try {
-      console.log('Deploying contract with options:', deployOptions);
-      const contract = await factory.deploy(sellerAddress, deployOptions);
-      console.log('Waiting for deployment transaction:', contract.deployTransaction.hash);
-      
-      const receipt = await contract.deployTransaction.wait();
-      console.log('Deployment receipt:', receipt);
-
-      toast({
-        title: "Contrat déployé avec succès",
-        description: `Adresse du contrat : ${contract.address}`,
-      });
-
-      return { contract, receipt };
-    } catch (error: any) {
-      console.error('Contract deployment error:', error);
-      
-      // Améliorer les messages d'erreur
-      if (error.code === 'INSUFFICIENT_FUNDS') {
-        throw new Error("Fonds insuffisants pour déployer le contrat");
-      } else if (error.code === 'NETWORK_ERROR') {
-        throw new Error("Erreur de connexion au réseau Polygon Amoy");
-      } else {
-        throw new Error(`Erreur lors du déploiement du contrat: ${error.message}`);
-      }
-    }
+    return { contract, receipt };
   };
 
   return { 
-    deployNewContract
+    deployNewContract,
+    getContract,
+    getActiveContract
   };
 };

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Heart, LogOut, MessageCircle, Plus } from "lucide-react";
+import { Bell, Heart, MessageCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,28 +24,17 @@ export const NavbarActions = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Erreur lors de la déconnexion:", error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de se déconnecter",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Déconnexion réussie",
-          description: "À bientôt !",
-        });
-        navigate("/auth");
-      }
-    } catch (error) {
-      console.error("Erreur inattendue lors de la déconnexion:", error);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
       toast({
         title: "Erreur",
-        description: "Une erreur inattendue s'est produite",
+        description: "Impossible de se déconnecter",
         variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Déconnexion réussie",
+        description: "À bientôt !",
       });
     }
   };
@@ -76,15 +65,6 @@ export const NavbarActions = () => {
           <div className="flex-shrink-0">
             <WalletConnectButton />
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleLogout}
-            className="ml-2"
-            title="Se déconnecter"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
         </>
       ) : (
         <div className="flex items-center gap-2 flex-shrink-0">
