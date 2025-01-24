@@ -26,7 +26,7 @@ export function PaymentButton({
   sellerAddress
 }: PaymentButtonProps) {
   const { chain } = useNetwork();
-  const { switchNetwork, isLoading: isSwitching } = useSwitchNetwork();
+  const { switchNetwork } = useSwitchNetwork();
   const { toast } = useToast();
 
   const handleClick = async () => {
@@ -53,9 +53,9 @@ export function PaymentButton({
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       
-      // 3. Préparer le montant
-      const roundedAmount = Number(Math.abs(cryptoAmount).toFixed(8));
-      const amountInWei = ethers.utils.parseEther(roundedAmount.toString());
+      // 3. Préparer le montant avec une valeur minimale pour tester
+      const testAmount = "0.001"; // Utiliser un petit montant pour tester
+      const amountInWei = ethers.utils.parseEther(testAmount);
       
       // 4. Vérifier le solde
       const balance = await provider.getBalance(await signer.getAddress());
@@ -63,9 +63,9 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // 5. Configurer le gas de manière conservative
+      // 5. Configurer le gas de manière très conservative
       const gasPrice = await provider.getGasPrice();
-      const gasLimit = ethers.BigNumber.from("800000"); // Réduit à 800k
+      const gasLimit = ethers.BigNumber.from("300000"); // Réduit à 300k
       const estimatedGasCost = gasLimit.mul(gasPrice);
       const totalCost = amountInWei.add(estimatedGasCost);
 
@@ -73,20 +73,15 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
-      // 6. Déployer le contrat
+      // 6. Déployer le contrat avec configuration minimale
       const factory = new ethers.ContractFactory(ESCROW_ABI, ESCROW_BYTECODE, signer);
-      console.log('Deploying contract with params:', {
+      console.log('Deploying contract with minimal params:', {
         seller: sellerAddress,
-        platform: await signer.getAddress(),
-        token: ethers.constants.AddressZero,
-        platformFee: 5
+        value: ethers.utils.formatEther(amountInWei)
       });
 
       const escrowContract = await factory.deploy(
         sellerAddress, // seller
-        await signer.getAddress(), // platform (using deployer for testing)
-        ethers.constants.AddressZero, // token (MATIC)
-        5, // platformFeePercent
         {
           value: amountInWei,
           gasLimit,
@@ -119,7 +114,7 @@ export function PaymentButton({
   };
 
   const wrongNetwork = chain?.id !== amoy.id;
-  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || isSwitching;
+  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled;
 
   return (
     <div className="w-full space-y-2">
@@ -128,10 +123,10 @@ export function PaymentButton({
         disabled={buttonDisabled}
         className="w-full bg-primary hover:bg-primary/90"
       >
-        {isProcessing || isSwitching ? (
+        {isProcessing ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {isSwitching ? "Changement de réseau..." : "Transaction en cours..."}
+            Transaction en cours...
           </>
         ) : disabled ? (
           "Transaction en attente de confirmation..."
