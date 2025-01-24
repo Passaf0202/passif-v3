@@ -22,7 +22,6 @@ export function PaymentButton({
   cryptoAmount, 
   cryptoCurrency = 'MATIC',
   onClick,
-  disabled = false,
   sellerAddress
 }: PaymentButtonProps) {
   const { chain } = useNetwork();
@@ -124,11 +123,14 @@ export function PaymentButton({
   // const isSameAddress = address === sellerAddress;
   const isSameAddress = false;
 
+  // Calcul de l'état disabled du bouton
+  const isDisabled = isProcessing || !isConnected || !cryptoAmount || wrongNetwork || isSameAddress;
+
   return (
     <div className="w-full">
       <Button 
         onClick={handleClick} 
-        disabled={isProcessing || !isConnected || !cryptoAmount || disabled || wrongNetwork || isSameAddress}
+        disabled={isDisabled}
         className="w-full bg-primary hover:bg-primary/90"
       >
         {isProcessing ? (
@@ -136,8 +138,6 @@ export function PaymentButton({
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Transaction en cours...
           </>
-        ) : disabled ? (
-          "Transaction en attente de confirmation..."
         ) : wrongNetwork ? (
           "Veuillez vous connecter au réseau Polygon Amoy"
         ) : isSameAddress ? (
