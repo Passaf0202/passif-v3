@@ -32,7 +32,13 @@ export const useEscrowContract = () => {
 
     // S'assurer que le montant est un BigNumber
     const valueInWei = ethers.BigNumber.from(amount.toString());
-    const deployOptions = { value: valueInWei };
+    const deployOptions: { 
+      value: ethers.BigNumber;
+      gasLimit?: ethers.BigNumber;
+      gasPrice?: ethers.BigNumber;
+    } = { 
+      value: valueInWei 
+    };
 
     if (options?.gasLimit) {
       deployOptions.gasLimit = options.gasLimit;
