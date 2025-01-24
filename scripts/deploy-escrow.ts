@@ -16,28 +16,36 @@ async function main() {
     console.log("Deploying with account:", deployer.address);
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
+    // Créer une nouvelle adresse pour le vendeur
+    const randomWallet = ethers.Wallet.createRandom();
+    const sellerAddress = randomWallet.address;
+    console.log("Generated seller address:", sellerAddress);
+
     // Vérifier que nous avons assez de POL pour le déploiement
     const balance = await deployer.getBalance();
-    if (balance.lt(ethers.parseEther("0.1"))) {
+    const minBalance = ethers.parseEther("0.1");
+    if (balance.lt(minBalance)) {
       throw new Error("Insufficient POL balance for deployment");
     }
 
-    // Utiliser un prix du gas plus conservateur
+    // Utiliser un prix du gas plus élevé pour Polygon Amoy
     const gasPrice = await ethers.provider.getGasPrice();
-    const estimatedGasPrice = gasPrice.mul(120).div(100); // Augmenter de 20%
+    const estimatedGasPrice = gasPrice.mul(150).div(100); // Augmenter de 50%
     
     console.log("Deploying contract with params:", {
+      sellerAddress,
       gasPrice: ethers.utils.formatUnits(estimatedGasPrice, "gwei"),
-      gasLimit: 2000000
+      gasLimit: 2000000,
+      value: ethers.utils.formatEther(ethers.parseEther("0.01"))
     });
 
     // Deploy with platform address and 5% fee
     const escrow = await CryptoEscrow.deploy(
-      deployer.address, // test seller
+      sellerAddress, // Utiliser l'adresse générée comme vendeur
       deployer.address, // platform address
       5, // 5% platform fee
       { 
-        value: ethers.parseEther("0.001"), // Test value
+        value: ethers.parseEther("0.01"), // Augmenter la valeur de test
         gasPrice: estimatedGasPrice,
         gasLimit: 2000000
       }

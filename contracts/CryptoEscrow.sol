@@ -14,6 +14,7 @@ contract CryptoEscrow {
     event FundsDeposited(address buyer, address seller, uint256 amount);
     event TransactionConfirmed(address confirmer);
     event FundsReleased(address seller, uint256 amount);
+    event Debug(string message, uint256 value);
 
     modifier onlyBuyerOrSeller() {
         require(msg.sender == buyer || msg.sender == seller, "Not authorized");
@@ -35,6 +36,9 @@ contract CryptoEscrow {
         require(_seller != msg.sender, "Seller cannot be buyer");
         require(msg.value > 0, "Amount must be greater than 0");
         require(_platformFee <= 100, "Invalid platform fee");
+        
+        emit Debug("Constructor called with value", msg.value);
+        emit Debug("Gas left", gasleft());
         
         buyer = msg.sender;
         seller = _seller;
@@ -61,11 +65,12 @@ contract CryptoEscrow {
             uint256 fee = (amount * platformFee) / 100;
             uint256 sellerAmount = amount - fee;
             
-            // Utiliser call au lieu de transfer pour plus de sécurité
-            (bool platformSuccess,) = platform.call{value: fee, gas: 2300}("");
+            emit Debug("Attempting to send platform fee", fee);
+            (bool platformSuccess,) = platform.call{value: fee}("");
             require(platformSuccess, "Platform fee transfer failed");
             
-            (bool sellerSuccess,) = seller.call{value: sellerAmount, gas: 2300}("");
+            emit Debug("Attempting to send seller amount", sellerAmount);
+            (bool sellerSuccess,) = seller.call{value: sellerAmount}("");
             require(sellerSuccess, "Seller transfer failed");
             
             emit FundsReleased(seller, sellerAmount);
@@ -78,5 +83,10 @@ contract CryptoEscrow {
         bool _fundsReleased
     ) {
         return (buyerConfirmed, sellerConfirmed, fundsReleased);
+    }
+
+    // Fonction de secours pour recevoir des fonds
+    receive() external payable {
+        emit Debug("Received funds", msg.value);
     }
 }
