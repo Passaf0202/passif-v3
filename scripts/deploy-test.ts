@@ -20,6 +20,7 @@ async function main() {
     // Configuration de base pour le déploiement
     const gasPrice = await ethers.provider.getGasPrice();
     console.log("Current gas price:", ethers.utils.formatUnits(gasPrice, "gwei"), "gwei");
+    console.log("Estimated deployment cost:", ethers.utils.formatEther(gasPrice.mul(1000000)), "POL");
 
     const testContract = await TestDeploy.deploy({
       value: ethers.parseEther("0.0001"), // Très petite valeur pour le test
@@ -27,6 +28,7 @@ async function main() {
       gasLimit: 1000000 // Limite de gas réduite pour ce contrat simple
     });
     
+    console.log("Deployment transaction sent. Hash:", testContract.deployTransaction?.hash);
     console.log("Waiting for deployment transaction...");
     await testContract.waitForDeployment();
     
