@@ -30,111 +30,73 @@ export function PaymentButton({
   const { toast } = useToast();
 
   const handleClick = async () => {
-    console.log('Payment button clicked with params:', {
-      isConnected,
-      chain,
-      sellerAddress,
-      cryptoAmount,
-      currentNetwork: chain?.id,
-      targetNetwork: amoy.id
-    });
-
-    if (!isConnected) {
+    if (!isConnected || !sellerAddress || !cryptoAmount) {
       toast({
-        title: "Wallet non connecté",
-        description: "Veuillez connecter votre wallet pour continuer",
+        title: "Erreur",
+        description: "Veuillez connecter votre wallet et vérifier les informations de paiement",
         variant: "destructive",
       });
       return;
     }
 
     if (chain?.id !== amoy.id) {
-      toast({
-        title: "Mauvais réseau",
-        description: "Changement vers le réseau Polygon Amoy...",
-      });
-      
       try {
         if (switchNetwork) {
           await switchNetwork(amoy.id);
           await new Promise(resolve => setTimeout(resolve, 1000));
-        } else {
-          throw new Error("Impossible de changer de réseau automatiquement");
         }
       } catch (error) {
         console.error('Error switching network:', error);
         toast({
           title: "Erreur de réseau",
-          description: "Veuillez changer manuellement vers le réseau Polygon Amoy dans MetaMask",
+          description: "Veuillez changer manuellement vers le réseau Polygon Amoy",
           variant: "destructive",
         });
         return;
       }
     }
 
-    if (!cryptoAmount || !sellerAddress) {
-      toast({
-        title: "Erreur",
-        description: "Informations de paiement manquantes",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       console.log('Initiating transaction...');
-
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       
-      // S'assurer que le montant est positif et arrondi correctement
-      const positiveAmount = Math.abs(cryptoAmount);
-      const roundedAmount = Number(positiveAmount.toFixed(8));
-      console.log('Amount to send:', roundedAmount, 'MATIC');
-      
-      // Convertir le montant en Wei
+      const roundedAmount = Number(Math.abs(cryptoAmount).toFixed(8));
       const amountInWei = ethers.utils.parseEther(roundedAmount.toString());
-      console.log('Amount in Wei:', amountInWei.toString());
+      
+      console.log('Transaction details:', {
+        amount: roundedAmount,
+        amountInWei: amountInWei.toString(),
+        seller: sellerAddress
+      });
 
-      // Vérifier le solde avant la transaction
+      // Vérifier le solde
       const balance = await provider.getBalance(await signer.getAddress());
-      console.log('Wallet balance:', ethers.utils.formatEther(balance), 'MATIC');
-
       if (balance.lt(amountInWei)) {
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // Obtenir le prix du gas actuel
+      // Configuration optimisée du gas
       const gasPrice = await provider.getGasPrice();
-      console.log('Current gas price:', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei');
-
-      // Utiliser un gas limit fixe et raisonnable
-      const gasLimit = ethers.BigNumber.from("5000000"); // Augmenté à 5M
+      const gasLimit = ethers.BigNumber.from("1000000"); // Réduit à 1M
       const estimatedGasCost = gasLimit.mul(gasPrice);
-      console.log('Gas limit:', gasLimit.toString());
-      console.log('Estimated gas cost:', ethers.utils.formatEther(estimatedGasCost), 'MATIC');
+      
+      console.log('Gas configuration:', {
+        gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei'),
+        gasLimit: gasLimit.toString(),
+        estimatedCost: ethers.utils.formatEther(estimatedGasCost)
+      });
 
-      // Vérifier si le solde est suffisant pour couvrir le montant + les frais de gas
+      // Vérifier le coût total
       const totalCost = amountInWei.add(estimatedGasCost);
       if (balance.lt(totalCost)) {
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
-      // Créer le contrat factory
-      const factory = new ethers.ContractFactory(
-        ESCROW_ABI,
-        ESCROW_BYTECODE,
-        signer
-      );
-
-      console.log('Deploying contract with params:', {
-        sellerAddress,
-        amount: ethers.utils.formatEther(amountInWei),
-        gasLimit: gasLimit.toString(),
-        gasPrice: gasPrice.toString()
-      });
-
-      // Déployer le contrat avec les paramètres corrects
+      // Créer et déployer le contrat avec des paramètres simplifiés
+      const factory = new ethers.ContractFactory(ESCROW_ABI, ESCROW_BYTECODE, signer);
+      
+      console.log('Deploying contract...');
       const escrowContract = await factory.deploy(
         sellerAddress,
         await signer.getAddress(),
@@ -147,12 +109,11 @@ export function PaymentButton({
         }
       );
 
-      console.log('Waiting for deployment transaction:', escrowContract.deployTransaction.hash);
-      
+      console.log('Waiting for deployment...', escrowContract.deployTransaction.hash);
       const receipt = await escrowContract.deployTransaction.wait();
-      console.log('Deployment receipt:', receipt);
-
+      
       if (receipt.status === 1) {
+        console.log('Contract deployed successfully at:', escrowContract.address);
         toast({
           title: "Transaction réussie",
           description: "Les fonds ont été bloqués dans le contrat d'escrow",
