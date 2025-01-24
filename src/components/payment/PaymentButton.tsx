@@ -4,7 +4,7 @@ import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { ethers } from 'ethers';
-import { ESCROW_ABI, ESCROW_BYTECODE } from "@/hooks/escrow/escrowConstants";
+import { ESCROW_ABI, ESCROW_BYTECODE, formatAmount } from "@/hooks/escrow/escrowConstants";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
