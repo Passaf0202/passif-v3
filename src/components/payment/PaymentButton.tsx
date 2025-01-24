@@ -4,6 +4,7 @@ import { useNetwork, useSwitchNetwork, useAccount } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { parseEther } from 'viem';
+import { ethers } from 'ethers';
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -91,7 +92,34 @@ export function PaymentButton({
         chainId: chain?.id
       });
 
-      onClick();
+      // Obtenir le provider et le signer
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      // Créer la transaction
+      const transaction = {
+        to: sellerAddress,
+        value: ethers.utils.parseEther(cryptoAmount.toString()),
+      };
+
+      // Envoyer la transaction
+      const tx = await signer.sendTransaction(transaction);
+      console.log('Transaction sent:', tx);
+
+      // Attendre la confirmation de la transaction
+      const receipt = await tx.wait();
+      console.log('Transaction confirmed:', receipt);
+
+      if (receipt.status === 1) {
+        toast({
+          title: "Transaction réussie",
+          description: "Votre paiement a été effectué avec succès",
+        });
+        onClick();
+      } else {
+        throw new Error("La transaction a échoué");
+      }
+
     } catch (error) {
       console.error('Transaction error:', error);
       toast({
