@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork, useAccount } from 'wagmi';
+import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
-import { parseEther } from 'viem';
 import { ethers } from 'ethers';
+import { ESCROW_ABI } from "@/hooks/escrow/escrowConstants";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -27,7 +27,6 @@ export function PaymentButton({
 }: PaymentButtonProps) {
   const { chain } = useNetwork();
   const { switchNetwork, isLoading: isSwitching } = useSwitchNetwork();
-  const { address } = useAccount();
   const { toast } = useToast();
 
   const handleClick = async () => {
@@ -96,35 +95,42 @@ export function PaymentButton({
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
 
-      // Créer la transaction
-      const transaction = {
-        to: sellerAddress,
-        value: ethers.utils.parseEther(cryptoAmount.toString()),
-      };
+      // Déployer le contrat d'escrow
+      const factory = new ethers.ContractFactory(
+        ESCROW_ABI,
+        ESCROW_BYTECODE,
+        signer
+      );
 
-      // Envoyer la transaction
-      const tx = await signer.sendTransaction(transaction);
-      console.log('Transaction sent:', tx);
+      const amountInWei = ethers.utils.parseEther(cryptoAmount.toFixed(18));
+      
+      // Déployer le contrat avec les paramètres
+      const escrowContract = await factory.deploy(
+        sellerAddress,
+        { value: amountInWei }
+      );
 
-      // Attendre la confirmation de la transaction
-      const receipt = await tx.wait();
-      console.log('Transaction confirmed:', receipt);
+      console.log('Waiting for deployment transaction:', escrowContract.deployTransaction.hash);
+      
+      // Attendre que le contrat soit déployé
+      const receipt = await escrowContract.deployTransaction.wait();
+      console.log('Deployment receipt:', receipt);
 
       if (receipt.status === 1) {
         toast({
           title: "Transaction réussie",
-          description: "Votre paiement a été effectué avec succès",
+          description: "Les fonds ont été bloqués dans le contrat d'escrow",
         });
-        onClick();
+        onClick(); // Rediriger vers la page de confirmation
       } else {
         throw new Error("La transaction a échoué");
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Transaction error:', error);
       toast({
         title: "Erreur de transaction",
-        description: "La transaction a échoué. Veuillez réessayer.",
+        description: error.message || "La transaction a échoué. Veuillez réessayer.",
         variant: "destructive",
       });
     }
