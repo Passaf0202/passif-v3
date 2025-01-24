@@ -94,9 +94,10 @@ export function PaymentButton({
       const platformAddress = await signer.getAddress();
       const platformFeePercent = 5; // 5% de frais de plateforme
 
-      // Arrondir le montant à 8 décimales maximum et le convertir en chaîne
-      const roundedAmount = Number(cryptoAmount.toFixed(8));
-      console.log('Rounded amount:', roundedAmount);
+      // S'assurer que le montant est positif et arrondi correctement
+      const positiveAmount = Math.abs(cryptoAmount);
+      const roundedAmount = Number(positiveAmount.toFixed(8));
+      console.log('Amount to send:', roundedAmount, 'MATIC');
       
       // Convertir le montant en Wei
       const amountInWei = ethers.utils.parseUnits(
@@ -113,9 +114,25 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // Estimer le gas avec une limite plus raisonnable
-      const gasLimit = ethers.BigNumber.from("500000");
+      // Estimer le gas nécessaire
       const gasPrice = await provider.getGasPrice();
+      console.log('Current gas price:', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei');
+      
+      const factory = new ethers.ContractFactory(
+        ESCROW_ABI,
+        ESCROW_BYTECODE,
+        signer
+      );
+
+      // Estimer le gas limit pour le déploiement
+      const estimatedGas = await factory.signer.estimateGas({
+        data: factory.bytecode,
+        value: amountInWei
+      });
+      
+      const gasLimit = estimatedGas.mul(120).div(100); // Ajouter 20% de marge
+      console.log('Estimated gas limit:', gasLimit.toString());
+
       const estimatedGasCost = gasLimit.mul(gasPrice);
       console.log('Estimated gas cost:', ethers.utils.formatEther(estimatedGasCost), 'MATIC');
 
@@ -124,12 +141,6 @@ export function PaymentButton({
       if (balance.lt(totalCost)) {
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
-
-      const factory = new ethers.ContractFactory(
-        ESCROW_ABI,
-        ESCROW_BYTECODE,
-        signer
-      );
 
       console.log('Deploying contract with params:', {
         sellerAddress,
