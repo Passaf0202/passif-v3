@@ -4,7 +4,7 @@ import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { ethers } from 'ethers';
-import { ESCROW_ABI } from "@/hooks/escrow/escrowConstants";
+import { ESCROW_ABI, ESCROW_BYTECODE } from "@/hooks/escrow/escrowConstants";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -48,7 +48,6 @@ export function PaymentButton({
       return;
     }
 
-    // Vérifier explicitement si nous sommes sur le bon réseau
     if (chain?.id !== amoy.id) {
       toast({
         title: "Mauvais réseau",
@@ -58,7 +57,6 @@ export function PaymentButton({
       try {
         if (switchNetwork) {
           await switchNetwork(amoy.id);
-          // Attendre un peu que le changement de réseau soit effectif
           await new Promise(resolve => setTimeout(resolve, 1000));
         } else {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -91,11 +89,9 @@ export function PaymentButton({
         chainId: chain?.id
       });
 
-      // Obtenir le provider et le signer
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
 
-      // Déployer le contrat d'escrow
       const factory = new ethers.ContractFactory(
         ESCROW_ABI,
         ESCROW_BYTECODE,
@@ -104,7 +100,6 @@ export function PaymentButton({
 
       const amountInWei = ethers.utils.parseEther(cryptoAmount.toFixed(18));
       
-      // Déployer le contrat avec les paramètres
       const escrowContract = await factory.deploy(
         sellerAddress,
         { value: amountInWei }
@@ -112,7 +107,6 @@ export function PaymentButton({
 
       console.log('Waiting for deployment transaction:', escrowContract.deployTransaction.hash);
       
-      // Attendre que le contrat soit déployé
       const receipt = await escrowContract.deployTransaction.wait();
       console.log('Deployment receipt:', receipt);
 
@@ -121,7 +115,7 @@ export function PaymentButton({
           title: "Transaction réussie",
           description: "Les fonds ont été bloqués dans le contrat d'escrow",
         });
-        onClick(); // Rediriger vers la page de confirmation
+        onClick();
       } else {
         throw new Error("La transaction a échoué");
       }
