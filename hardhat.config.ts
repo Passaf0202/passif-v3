@@ -22,7 +22,7 @@ const config: HardhatUserConfig = {
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 80002,
       gasPrice: "auto",
-      gas: 5000000
+      gas: 2000000
     }
   },
   paths: {
