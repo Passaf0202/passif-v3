@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork, useAccount, usePrepareSendTransaction, useSendTransaction } from 'wagmi';
+import { useNetwork, useSwitchNetwork, useAccount } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
+import { useEscrowContract } from "@/hooks/escrow/useEscrowContract";
 import { parseEther } from "viem";
 
 interface PaymentButtonProps {
@@ -26,15 +27,7 @@ export function PaymentButton({
   const { switchNetwork } = useSwitchNetwork();
   const { address } = useAccount();
   const { toast } = useToast();
-
-  // Préparation de la transaction
-  const { config } = usePrepareSendTransaction({
-    to: sellerAddress as `0x${string}`,
-    value: cryptoAmount ? parseEther(cryptoAmount.toFixed(18)) : BigInt(0),
-    enabled: !!sellerAddress && !!cryptoAmount && isConnected,
-  });
-
-  const { sendTransaction } = useSendTransaction(config);
+  const { deployNewContract } = useEscrowContract();
 
   const handleClick = async () => {
     console.log('Payment button clicked with params:', {
@@ -82,19 +75,33 @@ export function PaymentButton({
     }
 
     try {
-      console.log('Sending transaction with params:', {
-        to: sellerAddress,
-        value: cryptoAmount,
+      console.log('Deploying escrow contract with params:', {
+        seller: sellerAddress,
+        amount: cryptoAmount,
         network: chain.name
       });
 
-      if (sendTransaction) {
-        await sendTransaction();
+      // Convertir le montant en wei avec 18 décimales maximum
+      const amountInWei = parseEther(cryptoAmount.toFixed(18));
+      
+      const { contract, receipt } = await deployNewContract(
+        sellerAddress,
+        amountInWei
+      );
+
+      console.log('Escrow contract deployed:', {
+        address: contract.address,
+        transactionHash: receipt.transactionHash
+      });
+
+      if (receipt.status === 1) {
         toast({
           title: "Transaction envoyée",
-          description: "Votre paiement est en cours de traitement",
+          description: "Les fonds ont été bloqués dans le contrat d'escrow",
         });
         onClick();
+      } else {
+        throw new Error("La transaction a échoué sur la blockchain");
       }
 
     } catch (error) {
