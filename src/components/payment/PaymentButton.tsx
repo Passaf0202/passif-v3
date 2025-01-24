@@ -91,6 +91,8 @@ export function PaymentButton({
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
+      const platformAddress = await signer.getAddress(); // Pour le test, on utilise l'adresse du signeur comme plateforme
+      const platformFeePercent = 5; // 5% de frais de plateforme
 
       const factory = new ethers.ContractFactory(
         ESCROW_ABI,
@@ -100,8 +102,12 @@ export function PaymentButton({
 
       const amountInWei = ethers.utils.parseEther(cryptoAmount.toFixed(18));
       
+      // Déploiement avec tous les arguments requis
       const escrowContract = await factory.deploy(
         sellerAddress,
+        platformAddress,
+        ethers.constants.AddressZero, // Token address (0x0 pour MATIC natif)
+        platformFeePercent,
         { value: amountInWei }
       );
 
