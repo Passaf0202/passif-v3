@@ -12,7 +12,6 @@ interface PaymentButtonProps {
   cryptoAmount?: number;
   cryptoCurrency?: string;
   onClick: () => void;
-  disabled?: boolean;
   sellerAddress?: string;
 }
 
@@ -82,7 +81,9 @@ export function PaymentButton({
         network: chain.name
       });
 
-      const amountInWei = ethers.utils.parseEther(cryptoAmount.toString());
+      // Formater le montant avec 18 décimales maximum
+      const formattedAmount = Number(cryptoAmount.toFixed(18));
+      const amountInWei = ethers.utils.parseEther(formattedAmount.toString());
       
       const { contract, receipt } = await deployNewContract(
         sellerAddress,
@@ -120,7 +121,6 @@ export function PaymentButton({
 
   const wrongNetwork = chain?.id !== amoy.id;
   // Désactivé temporairement pour les tests
-  // const isSameAddress = address === sellerAddress;
   const isSameAddress = false;
 
   // Calcul de l'état disabled du bouton
