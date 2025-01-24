@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork, useAccount, usePrepareSendTransaction, useSendTransaction } from 'wagmi';
+import { useNetwork, useSwitchNetwork, useAccount } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { parseEther } from 'viem';
@@ -25,18 +25,9 @@ export function PaymentButton({
   sellerAddress
 }: PaymentButtonProps) {
   const { chain } = useNetwork();
-  const { switchNetwork } = useSwitchNetwork();
+  const { switchNetwork, isLoading: isSwitching } = useSwitchNetwork();
   const { address } = useAccount();
   const { toast } = useToast();
-
-  const { config } = usePrepareSendTransaction({
-    to: sellerAddress as `0x${string}`,
-    value: cryptoAmount ? parseEther(cryptoAmount.toString()) : undefined,
-    chainId: amoy.id,
-    enabled: !!sellerAddress && !!cryptoAmount,
-  });
-
-  const { sendTransaction } = useSendTransaction(config);
 
   const handleClick = async () => {
     console.log('Payment button clicked with params:', {
@@ -57,21 +48,30 @@ export function PaymentButton({
       return;
     }
 
+    // Vérifier explicitement si nous sommes sur le bon réseau
     if (chain?.id !== amoy.id) {
       toast({
         title: "Mauvais réseau",
-        description: "Veuillez vous connecter au réseau Polygon Amoy",
+        description: "Changement vers le réseau Polygon Amoy...",
       });
       
-      if (switchNetwork) {
-        try {
+      try {
+        if (switchNetwork) {
           await switchNetwork(amoy.id);
-        } catch (error) {
-          console.error('Error switching network:', error);
-          return;
+          // Attendre un peu que le changement de réseau soit effectif
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } else {
+          throw new Error("Impossible de changer de réseau automatiquement");
         }
+      } catch (error) {
+        console.error('Error switching network:', error);
+        toast({
+          title: "Erreur de réseau",
+          description: "Veuillez changer manuellement vers le réseau Polygon Amoy dans MetaMask",
+          variant: "destructive",
+        });
+        return;
       }
-      return;
     }
 
     if (!cryptoAmount || !sellerAddress) {
@@ -87,19 +87,11 @@ export function PaymentButton({
       console.log('Initiating transaction with params:', {
         to: sellerAddress,
         value: cryptoAmount,
-        network: chain.name,
-        chainId: chain.id
+        network: chain?.name,
+        chainId: chain?.id
       });
 
-      if (sendTransaction) {
-        const tx = await sendTransaction();
-        console.log('Transaction sent:', tx);
-        toast({
-          title: "Transaction envoyée",
-          description: "Votre transaction a été envoyée avec succès",
-        });
-        onClick();
-      }
+      onClick();
     } catch (error) {
       console.error('Transaction error:', error);
       toast({
@@ -111,37 +103,38 @@ export function PaymentButton({
   };
 
   const wrongNetwork = chain?.id !== amoy.id;
+  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || isSwitching;
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-2">
       <Button 
         onClick={handleClick} 
-        disabled={isProcessing || !isConnected || !cryptoAmount || disabled || wrongNetwork}
+        disabled={buttonDisabled}
         className="w-full bg-primary hover:bg-primary/90"
       >
-        {isProcessing ? (
+        {isProcessing || isSwitching ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Transaction en cours...
+            {isSwitching ? "Changement de réseau..." : "Transaction en cours..."}
           </>
         ) : disabled ? (
           "Transaction en attente de confirmation..."
         ) : wrongNetwork ? (
-          "Veuillez vous connecter au réseau Polygon Amoy"
+          "Changer vers Polygon Amoy"
         ) : (
           `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}
       </Button>
 
       {!isConnected && (
-        <p className="text-sm text-red-500 text-center mt-2">
+        <p className="text-sm text-red-500 text-center">
           Veuillez connecter votre portefeuille pour effectuer le paiement
         </p>
       )}
 
       {wrongNetwork && isConnected && (
-        <p className="text-sm text-red-500 text-center mt-2">
-          Veuillez vous connecter au réseau Polygon Amoy dans votre portefeuille
+        <p className="text-sm text-red-500 text-center">
+          Veuillez vous connecter au réseau Polygon Amoy
         </p>
       )}
     </div>
