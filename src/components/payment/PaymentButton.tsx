@@ -4,6 +4,7 @@ import { useNetwork, useSwitchNetwork, useAccount, usePrepareSendTransaction, us
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { parseEther } from 'viem';
+import { useEscrowContract } from "@/hooks/escrow/useEscrowContract";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -28,14 +29,7 @@ export function PaymentButton({
   const { switchNetwork } = useSwitchNetwork();
   const { address } = useAccount();
   const { toast } = useToast();
-
-  const { config } = usePrepareSendTransaction({
-    to: sellerAddress as `0x${string}`,
-    value: cryptoAmount ? parseEther(cryptoAmount.toString()) : undefined,
-    enabled: !!sellerAddress && !!cryptoAmount,
-  });
-
-  const { sendTransaction } = useSendTransaction(config);
+  const { deployNewContract } = useEscrowContract();
 
   const handleClick = async () => {
     console.log('Payment button clicked with params:', {
@@ -83,21 +77,39 @@ export function PaymentButton({
     }
 
     try {
-      console.log('Initiating transaction with params:', {
-        to: sellerAddress,
-        value: cryptoAmount,
+      console.log('Deploying escrow contract with params:', {
+        seller: sellerAddress,
+        amount: cryptoAmount,
         network: chain.name
       });
 
-      if (sendTransaction) {
-        const tx = await sendTransaction();
-        console.log('Transaction sent:', tx);
+      const amountInWei = parseEther(cryptoAmount.toString());
+      
+      // Déployer le contrat d'escrow
+      const { contract, receipt } = await deployNewContract(
+        sellerAddress,
+        amountInWei,
+        {
+          gasLimit: parseEther("0.3"), // 0.3 MATIC for gas
+          gasPrice: parseEther("0.000000035") // 35 Gwei
+        }
+      );
+
+      console.log('Escrow contract deployed:', {
+        address: contract.address,
+        transactionHash: receipt.transactionHash
+      });
+
+      if (receipt.status === 1) {
         toast({
           title: "Transaction envoyée",
-          description: "Votre transaction a été envoyée avec succès",
+          description: "Les fonds ont été bloqués dans le contrat d'escrow",
         });
         onClick();
+      } else {
+        throw new Error("La transaction a échoué sur la blockchain");
       }
+
     } catch (error) {
       console.error('Transaction error:', error);
       toast({
@@ -109,12 +121,13 @@ export function PaymentButton({
   };
 
   const wrongNetwork = chain?.id !== amoy.id;
+  const isSameAddress = address === sellerAddress;
 
   return (
     <div className="w-full">
       <Button 
         onClick={handleClick} 
-        disabled={isProcessing || !isConnected || !cryptoAmount || disabled || wrongNetwork}
+        disabled={isProcessing || !isConnected || !cryptoAmount || disabled || wrongNetwork || isSameAddress}
         className="w-full bg-primary hover:bg-primary/90"
       >
         {isProcessing ? (
@@ -126,6 +139,8 @@ export function PaymentButton({
           "Transaction en attente de confirmation..."
         ) : wrongNetwork ? (
           "Veuillez vous connecter au réseau Polygon Amoy"
+        ) : isSameAddress ? (
+          "Vous ne pouvez pas acheter votre propre article"
         ) : (
           `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}
@@ -140,6 +155,12 @@ export function PaymentButton({
       {wrongNetwork && isConnected && (
         <p className="text-sm text-red-500 text-center mt-2">
           Veuillez vous connecter au réseau Polygon Amoy dans votre portefeuille
+        </p>
+      )}
+
+      {isSameAddress && isConnected && (
+        <p className="text-sm text-red-500 text-center mt-2">
+          Vous ne pouvez pas acheter votre propre article
         </p>
       )}
     </div>

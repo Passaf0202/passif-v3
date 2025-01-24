@@ -51,6 +51,22 @@ export const ListingActions = ({
       return;
     }
 
+    if (!sellerAddress) {
+      toast({
+        title: "Erreur",
+        description: "L'adresse du vendeur n'est pas disponible",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Starting crypto payment with params:', {
+      buyerAddress: address,
+      sellerAddress,
+      amount: cryptoAmount,
+      currency: cryptoCurrency
+    });
+
     setIsProcessing(true);
     try {
       if (handleBuyClick) {
@@ -78,6 +94,7 @@ export const ListingActions = ({
           cryptoCurrency={cryptoCurrency}
           onClick={handleCryptoPayment}
           sellerAddress={sellerAddress}
+          disabled={!sellerAddress || address === sellerAddress}
         />
 
         <Button variant="outline" className="w-full" asChild>
