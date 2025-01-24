@@ -30,12 +30,12 @@ async function main() {
 
     // Utiliser un prix du gas plus élevé pour Polygon Amoy
     const gasPrice = await ethers.provider.getGasPrice();
-    const estimatedGasPrice = gasPrice.mul(150).div(100); // Augmenter de 50%
+    const estimatedGasPrice = gasPrice.mul(120).div(100); // Augmenter de 20%
     
     console.log("Deploying contract with params:", {
       sellerAddress,
       gasPrice: ethers.utils.formatUnits(estimatedGasPrice, "gwei"),
-      gasLimit: 2000000,
+      gasLimit: 3000000,
       value: ethers.utils.formatEther(ethers.parseEther("0.01"))
     });
 
@@ -45,14 +45,15 @@ async function main() {
       deployer.address, // platform address
       5, // 5% platform fee
       { 
-        value: ethers.parseEther("0.01"), // Augmenter la valeur de test
+        value: ethers.parseEther("0.01"),
         gasPrice: estimatedGasPrice,
-        gasLimit: 2000000
+        gasLimit: 3000000,
+        nonce: await deployer.getTransactionCount()
       }
     );
     
     console.log("Waiting for deployment transaction...");
-    await escrow.waitForDeployment();
+    await escrow.deployed();
     
     const escrowAddress = await escrow.getAddress();
     console.log("CryptoEscrow deployed successfully to:", escrowAddress);

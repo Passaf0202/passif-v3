@@ -15,6 +15,7 @@ contract CryptoEscrow {
     event TransactionConfirmed(address confirmer);
     event FundsReleased(address seller, uint256 amount);
     event Debug(string message, uint256 value);
+    event DebugAddress(string message, address addr);
 
     modifier onlyBuyerOrSeller() {
         require(msg.sender == buyer || msg.sender == seller, "Not authorized");
@@ -39,6 +40,8 @@ contract CryptoEscrow {
         
         emit Debug("Constructor called with value", msg.value);
         emit Debug("Gas left", gasleft());
+        emit DebugAddress("Seller address", _seller);
+        emit DebugAddress("Platform address", _platform);
         
         buyer = msg.sender;
         seller = _seller;
@@ -66,11 +69,15 @@ contract CryptoEscrow {
             uint256 sellerAmount = amount - fee;
             
             emit Debug("Attempting to send platform fee", fee);
-            (bool platformSuccess,) = platform.call{value: fee}("");
+            emit DebugAddress("Platform address for fee", platform);
+            
+            (bool platformSuccess,) = platform.call{value: fee, gas: 30000}("");
             require(platformSuccess, "Platform fee transfer failed");
             
             emit Debug("Attempting to send seller amount", sellerAmount);
-            (bool sellerSuccess,) = seller.call{value: sellerAmount}("");
+            emit DebugAddress("Seller address for payment", seller);
+            
+            (bool sellerSuccess,) = seller.call{value: sellerAmount, gas: 30000}("");
             require(sellerSuccess, "Seller transfer failed");
             
             emit FundsReleased(seller, sellerAmount);
@@ -85,7 +92,6 @@ contract CryptoEscrow {
         return (buyerConfirmed, sellerConfirmed, fundsReleased);
     }
 
-    // Fonction de secours pour recevoir des fonds
     receive() external payable {
         emit Debug("Received funds", msg.value);
     }
