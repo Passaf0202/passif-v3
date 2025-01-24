@@ -1,5 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import { ethers } from 'ethers';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { ethers } from "npm:ethers@^5.7.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,7 @@ interface ContractDeploymentResponse {
   error?: string;
 }
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
     }
 
     // Initialize provider and wallet
-    const provider = new ethers.JsonRpcProvider('https://rpc-amoy.polygon.technology');
+    const provider = new ethers.providers.JsonRpcProvider('https://rpc-amoy.polygon.technology');
     const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
     console.log('Wallet address:', wallet.address);
 
@@ -46,16 +47,16 @@ Deno.serve(async (req) => {
     const contract = await factory.deploy(
       wallet.address, // test seller
       wallet.address, // platform address
-      ethers.ZeroAddress, // POL as default token
+      ethers.constants.AddressZero, // POL as default token
       5, // 5% platform fee
       { 
-        gasLimit: 3000000
+        gasLimit: ethers.BigNumber.from("3000000")
       }
     );
 
     console.log('Waiting for deployment...');
-    await contract.waitForDeployment();
-    const contractAddress = await contract.getAddress();
+    await contract.deployed();
+    const contractAddress = contract.address;
     console.log('Contract deployed to:', contractAddress);
 
     // Initialize Supabase client

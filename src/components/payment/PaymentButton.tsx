@@ -32,6 +32,7 @@ export function PaymentButton({
   const { config } = usePrepareSendTransaction({
     to: sellerAddress as `0x${string}`,
     value: cryptoAmount ? parseEther(cryptoAmount.toString()) : undefined,
+    chainId: amoy.id,
     enabled: !!sellerAddress && !!cryptoAmount,
   });
 
@@ -86,7 +87,8 @@ export function PaymentButton({
       console.log('Initiating transaction with params:', {
         to: sellerAddress,
         value: cryptoAmount,
-        network: chain.name
+        network: chain.name,
+        chainId: chain.id
       });
 
       if (sendTransaction) {
