@@ -114,26 +114,21 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // Estimer le gas nécessaire
+      // Obtenir le prix du gas actuel
       const gasPrice = await provider.getGasPrice();
       console.log('Current gas price:', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei');
-      
+
+      // Créer le contrat factory avec un gas limit fixe et raisonnable
       const factory = new ethers.ContractFactory(
         ESCROW_ABI,
         ESCROW_BYTECODE,
         signer
       );
 
-      // Estimer le gas limit pour le déploiement
-      const estimatedGas = await factory.signer.estimateGas({
-        data: factory.bytecode,
-        value: amountInWei
-      });
-      
-      const gasLimit = estimatedGas.mul(120).div(100); // Ajouter 20% de marge
-      console.log('Estimated gas limit:', gasLimit.toString());
-
+      // Utiliser un gas limit fixe et raisonnable pour le déploiement
+      const gasLimit = ethers.BigNumber.from("3000000"); // 3M gas units
       const estimatedGasCost = gasLimit.mul(gasPrice);
+      console.log('Gas limit:', gasLimit.toString());
       console.log('Estimated gas cost:', ethers.utils.formatEther(estimatedGasCost), 'MATIC');
 
       // Vérifier si le solde est suffisant pour couvrir le montant + les frais de gas
