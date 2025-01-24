@@ -4,7 +4,10 @@ pragma solidity ^0.8.0;
 contract CryptoEscrow {
     address public buyer;
     address public seller;
+    address public platform;
+    address public paymentToken;
     uint256 public amount;
+    uint256 public platformFee;
     bool public buyerConfirmed;
     bool public sellerConfirmed;
     bool public fundsReleased;
@@ -23,14 +26,24 @@ contract CryptoEscrow {
         _;
     }
 
-    constructor(address _seller) payable {
+    constructor(
+        address _seller,
+        address _platform,
+        address _paymentToken,
+        uint256 _platformFee
+    ) payable {
         require(_seller != address(0), "Invalid seller address");
+        require(_platform != address(0), "Invalid platform address");
         require(_seller != msg.sender, "Seller cannot be buyer");
         require(msg.value > 0, "Amount must be greater than 0");
+        require(_platformFee <= 100, "Invalid platform fee");
         
         buyer = msg.sender;
         seller = _seller;
+        platform = _platform;
+        paymentToken = _paymentToken;
         amount = msg.value;
+        platformFee = _platformFee;
         
         emit FundsDeposited(buyer, seller, amount);
     }
@@ -48,8 +61,12 @@ contract CryptoEscrow {
 
         if (buyerConfirmed && sellerConfirmed) {
             fundsReleased = true;
-            payable(seller).transfer(amount);
-            emit FundsReleased(seller, amount);
+            uint256 fee = (amount * platformFee) / 100;
+            uint256 sellerAmount = amount - fee;
+            
+            payable(platform).transfer(fee);
+            payable(seller).transfer(sellerAmount);
+            emit FundsReleased(seller, sellerAmount);
         }
     }
 

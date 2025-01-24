@@ -73,15 +73,21 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
-      // 6. Déployer le contrat avec configuration minimale
+      // 6. Déployer le contrat avec tous les paramètres requis
       const factory = new ethers.ContractFactory(ESCROW_ABI, ESCROW_BYTECODE, signer);
-      console.log('Deploying contract with minimal params:', {
+      console.log('Deploying contract with params:', {
         seller: sellerAddress,
+        platform: await signer.getAddress(), // Utiliser l'adresse du déployeur comme plateforme pour le test
+        paymentToken: ethers.constants.AddressZero, // Utiliser l'adresse zéro pour les paiements en natif (MATIC)
+        platformFee: 5, // 5% de frais de plateforme
         value: ethers.utils.formatEther(amountInWei)
       });
 
       const escrowContract = await factory.deploy(
         sellerAddress,
+        await signer.getAddress(), // platform address
+        ethers.constants.AddressZero, // payment token address (0x0 for native token)
+        5, // platform fee percentage
         {
           value: amountInWei,
           gasLimit,
