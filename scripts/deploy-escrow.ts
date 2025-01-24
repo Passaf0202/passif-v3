@@ -34,7 +34,7 @@ async function main() {
     // Deploy with platform address and 5% fee
     const escrow = await CryptoEscrow.deploy(
       deployer.address, // test seller
-      deployer.address, // platform address (using deployer for test)
+      deployer.address, // platform address
       5, // 5% platform fee
       { 
         value: ethers.parseEther("0.001"), // Ajouter une petite valeur pour le test

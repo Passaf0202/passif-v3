@@ -61,8 +61,12 @@ contract CryptoEscrow {
             uint256 fee = (amount * platformFee) / 100;
             uint256 sellerAmount = amount - fee;
             
-            payable(platform).transfer(fee);
-            payable(seller).transfer(sellerAmount);
+            (bool platformSuccess,) = platform.call{value: fee}("");
+            require(platformSuccess, "Platform fee transfer failed");
+            
+            (bool sellerSuccess,) = seller.call{value: sellerAmount}("");
+            require(sellerSuccess, "Seller transfer failed");
+            
             emit FundsReleased(seller, sellerAmount);
         }
     }
