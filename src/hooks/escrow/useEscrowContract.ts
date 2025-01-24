@@ -9,7 +9,7 @@ interface DeployOptions {
 export const useEscrowContract = () => {
   const deployNewContract = async (
     sellerAddress: string, 
-    amount: string | bigint,  // Updated to accept string or bigint
+    amount: string | bigint,
     options?: DeployOptions
   ) => {
     if (!window.ethereum) {
@@ -30,9 +30,9 @@ export const useEscrowContract = () => {
       signer
     );
 
-    // Convert amount to BigNumber if it's not already
+    // S'assurer que le montant est un BigNumber
     const valueInWei = ethers.BigNumber.from(amount.toString());
-    const deployOptions: any = { value: valueInWei };
+    const deployOptions = { value: valueInWei };
 
     if (options?.gasLimit) {
       deployOptions.gasLimit = options.gasLimit;
@@ -40,6 +40,8 @@ export const useEscrowContract = () => {
     if (options?.gasPrice) {
       deployOptions.gasPrice = options.gasPrice;
     }
+
+    console.log('Deploying contract with options:', deployOptions);
 
     const contract = await factory.deploy(sellerAddress, deployOptions);
     console.log('Waiting for deployment transaction:', contract.deployTransaction.hash);
