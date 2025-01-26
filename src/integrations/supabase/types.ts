@@ -170,6 +170,7 @@ export type Database = {
           type: string | null
           updated_at: string | null
           user_id: string
+          wallet_address: string | null
           year: number | null
         }
         Insert: {
@@ -199,6 +200,7 @@ export type Database = {
           type?: string | null
           updated_at?: string | null
           user_id: string
+          wallet_address?: string | null
           year?: number | null
         }
         Update: {
@@ -228,6 +230,7 @@ export type Database = {
           type?: string | null
           updated_at?: string | null
           user_id?: string
+          wallet_address?: string | null
           year?: number | null
         }
         Relationships: [

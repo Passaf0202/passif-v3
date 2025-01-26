@@ -25,6 +25,7 @@ export function ListingsSection() {
             shipping_method,
             crypto_amount,
             crypto_currency,
+            wallet_address,
             user:profiles!listings_user_id_fkey (
               wallet_address
             )
@@ -85,7 +86,7 @@ export function ListingsSection() {
               created_at={listing.created_at}
               crypto_amount={listing.crypto_amount}
               crypto_currency={listing.crypto_currency}
-              walletAddress={listing.user?.wallet_address}
+              walletAddress={listing.wallet_address}
             />
           ))}
         </div>

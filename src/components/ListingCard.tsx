@@ -19,26 +19,27 @@ interface ListingCardProps {
   image: string;
   images?: string[];
   sellerId: string;
-  shipping_method?: string | null;
+  shipping_method?: string;
   created_at?: string;
   crypto_amount?: number;
   crypto_currency?: string;
-  walletAddress?: string;
+  walletAddress?: string | null;
 }
 
-export const ListingCard = ({ 
-  id, 
-  title, 
-  price, 
-  location, 
+export function ListingCard({
+  id,
+  title,
+  price,
+  location,
   image,
-  images = [],
+  images,
+  sellerId,
   shipping_method,
   created_at,
   crypto_amount,
   crypto_currency,
-  walletAddress,
-}: ListingCardProps) => {
+  walletAddress
+}: ListingCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -105,4 +106,4 @@ export const ListingCard = ({
       </Card>
     </>
   );
-};
+}
