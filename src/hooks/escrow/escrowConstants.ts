@@ -1,4 +1,3 @@
-// ABI for the Escrow smart contract
 export const ESCROW_ABI = [
   {
     "inputs": [
@@ -6,21 +5,6 @@ export const ESCROW_ABI = [
         "internalType": "address",
         "name": "_seller",
         "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_platform",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_paymentToken",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_platformFee",
-        "type": "uint256"
       }
     ],
     "stateMutability": "payable",
@@ -48,20 +32,14 @@ export const ESCROW_ABI = [
         "type": "uint256"
       }
     ],
-    "name": "EscrowComplete",
+    "name": "FundsDeposited",
     "type": "event"
   },
   {
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "buyer",
-        "type": "address"
-      },
-      {
-        "indexed": true,
+        "indexed": false,
         "internalType": "address",
         "name": "seller",
         "type": "address"
@@ -73,8 +51,34 @@ export const ESCROW_ABI = [
         "type": "uint256"
       }
     ],
-    "name": "EscrowCreated",
+    "name": "FundsReleased",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "confirmer",
+        "type": "address"
+      }
+    ],
+    "name": "TransactionConfirmed",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "amount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [],
@@ -91,19 +95,68 @@ export const ESCROW_ABI = [
   },
   {
     "inputs": [],
-    "name": "completeEscrow",
+    "name": "buyerConfirmed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "confirmTransaction",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "platform",
-    "outputs": [
+    "inputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "_seller",
         "type": "address"
+      }
+    ],
+    "name": "deposit",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fundsReleased",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getStatus",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "_buyerConfirmed",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "_sellerConfirmed",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "_fundsReleased",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -121,8 +174,18 @@ export const ESCROW_ABI = [
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "sellerConfirmed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
-
-// Bytecode of the compiled smart contract
-export const ESCROW_BYTECODE = "0x608060405260405161091838038061091883398181016040528101906100259190610124565b336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555083600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555082600260006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555081600360006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055508060048190555050505050610181565b600081519050610118816100fd565b92915050565b60008060408385031215610137578182fd5b6000610145858286016100fd565b9250506020610156858286016100fd565b9150509250929050565b600061016c8261017f565b9050919050565b6000610180826100fd565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b61078a806101906000396000f3fe608060405234801561001057600080fd5b506004361061004c5760003560e01c80632492c8b81461005157806338af3eed1461005b5780637150d8ae14610079578063c4c4a1a314610097575b600080fd5b6100596100b5565b005b61006361036c565b60405161007091906106c7565b60405180910390f35b610081610392565b60405161008e91906106c7565b60405180910390f35b61009f6103b8565b6040516100ac91906106c7565b60405180910390f35b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461010d57600080fd5b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166340c10f1960008054906101000a900473ffffffffffffffffffffffffffffffffffffffff16600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663dd62ed3b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040518363ffffffff1660e01b81526004016101f8929190610682565b60206040518083038186803b15801561021057600080fd5b505afa158015610224573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102489190610458565b6040518363ffffffff1660e01b815260040161026592919061064e565b600060405180830381600087803b15801561027f57600080fd5b505af1158015610293573d6000803e3d6000fd5b50505050600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663a9059cbb600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663dd62ed3b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040518363ffffffff1660e01b81526004016103929291906106ab565b60206040518083038186803b1580156103aa57600080fd5b505afa1580156103be573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103e29190610458565b6040518363ffffffff1660e01b81526004016103ff92919061064e565b602060405180830381600087803b15801561041957600080fd5b505af115801561042d573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104519190610458565b5050565b60008151905061046281610742565b92915050565b60008135905061047781610742565b92915050565b60006020828403121561048f578081fd5b600061049d84828501610453565b91505092915050565b6000602082840312156104b8578081fd5b60006104c684828501610468565b91505092915050565b6104d8816106e2565b82525050565b6104e7816106e2565b82525050565b6104f6816106f4565b82525050565b61050581610706565b82525050565b61051481610718565b82525050565b600061052782610000565b915061053283610000565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0382111561056757610566610713565b5b828201905092915050565b600061057d82610000565b915061058883610000565b9250828210156105a0576105a0610713565b5b828203905092915050565b60006105b682610000565b91506105c183610000565b9250817fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff04831182151516156105fa576105f9610713565b5b828202905092915050565b600061061082610000565b915061061b83610000565b92508282101561063257610631610713565b5b828203905092915050565b61064881610000565b82525050565b60006040820190506106636000830185610000565b61067060208301846104cf565b9392505050565b600060408201905061068c6000830185610000565b6106996020830184610000565b9392505050565b60006040820190506106b56000830185610000565b6106c26020830184610000565b9392505050565b60006020820190506106de60008301846104de565b92915050565b60006106ed826106fa565b9050919050565b6000819050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b61074b81610000565b811461075657600080fd5b5056fea2646970667358221220c8d8d8f8c8d8d8f8c8d8d8f8c8d8d8f8c8d8d8f8c8d8d8f8c8d8d8f8c8d8d8f864736f6c63430008000033";

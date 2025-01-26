@@ -4,7 +4,7 @@ import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { ethers } from 'ethers';
-import { ESCROW_ABI, ESCROW_BYTECODE } from "@/hooks/escrow/escrowConstants";
+import { ESCROW_ABI } from "@/hooks/escrow/escrowConstants";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -52,54 +52,44 @@ export function PaymentButton({
       // 2. Initialiser le provider et le signer
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
+      const buyerAddress = await signer.getAddress();
+
+      // 3. Vérifier que l'acheteur est différent du vendeur
+      if (buyerAddress.toLowerCase() === sellerAddress.toLowerCase()) {
+        throw new Error("L'acheteur et le vendeur doivent être différents");
+      }
+
+      // 4. Préparer le montant
+      const amountInWei = ethers.utils.parseEther(cryptoAmount.toString());
       
-      // 3. Préparer le montant avec une valeur minimale pour tester
-      const testAmount = "0.001";
-      const amountInWei = ethers.utils.parseEther(testAmount);
-      
-      // 4. Vérifier le solde
-      const balance = await provider.getBalance(await signer.getAddress());
+      // 5. Vérifier le solde
+      const balance = await provider.getBalance(buyerAddress);
       if (balance.lt(amountInWei)) {
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // 5. Configurer le gas de manière conservative
-      const gasPrice = await provider.getGasPrice();
-      const gasLimit = ethers.BigNumber.from("300000");
-      const estimatedGasCost = gasLimit.mul(gasPrice);
-      const totalCost = amountInWei.add(estimatedGasCost);
+      // 6. Configurer le contract
+      const contractAddress = "0x9d0e51B31426A734162364Cde425e2A44D944A01";
+      const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
-      if (balance.lt(totalCost)) {
-        throw new Error("Solde insuffisant pour couvrir les frais de transaction");
-      }
-
-      // 6. Déployer le contrat avec tous les paramètres requis
-      const factory = new ethers.ContractFactory(ESCROW_ABI, ESCROW_BYTECODE, signer);
-      console.log('Deploying contract with params:', {
-        seller: sellerAddress,
-        platform: await signer.getAddress(), // Utiliser l'adresse du déployeur comme plateforme pour le test
-        paymentToken: ethers.constants.AddressZero, // Utiliser l'adresse zéro pour les paiements en natif (MATIC)
-        platformFee: 5, // 5% de frais de plateforme
-        value: ethers.utils.formatEther(amountInWei)
+      console.log('Creating escrow transaction:', {
+        sellerAddress,
+        amount: ethers.utils.formatEther(amountInWei),
+        buyerAddress
       });
 
-      const escrowContract = await factory.deploy(
-        sellerAddress,
-        await signer.getAddress(), // platform address
-        ethers.constants.AddressZero, // payment token address (0x0 for native token)
-        5, // platform fee percentage
-        {
-          value: amountInWei,
-          gasLimit,
-          gasPrice
-        }
-      );
+      // 7. Créer la transaction
+      const tx = await contract.createTransaction(sellerAddress, {
+        value: amountInWei,
+        gasLimit: ethers.BigNumber.from("300000")
+      });
 
-      console.log('Waiting for deployment...', escrowContract.deployTransaction.hash);
-      const receipt = await escrowContract.deployTransaction.wait();
+      console.log('Transaction sent:', tx.hash);
       
+      const receipt = await tx.wait();
+      console.log('Transaction confirmed:', receipt);
+
       if (receipt.status === 1) {
-        console.log('Contract deployed successfully at:', escrowContract.address);
         toast({
           title: "Transaction réussie",
           description: "Les fonds ont été bloqués dans le contrat d'escrow",

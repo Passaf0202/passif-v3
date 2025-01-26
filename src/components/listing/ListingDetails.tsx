@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ListingDetailsProps {
   listing: {
@@ -26,6 +28,7 @@ interface ListingDetailsProps {
     user_id: string;
     crypto_amount?: number;
     crypto_currency?: string;
+    wallet_address?: string;
     brand?: string;
     model?: string;
     year?: number;
@@ -48,6 +51,26 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
 
+  // Fetch the listing's original wallet address
+  const { data: listingData } = useQuery({
+    queryKey: ['listing-wallet', listing.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('listings')
+        .select('wallet_address')
+        .eq('id', listing.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching listing wallet:', error);
+        throw error;
+      }
+
+      console.log('Fetched listing wallet:', data);
+      return data;
+    },
+  });
+
   const handleBuyClick = () => {
     if (!user) {
       toast({
@@ -63,7 +86,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         listing: {
           ...listing,
           crypto_amount: cryptoDetails?.amount,
-          crypto_currency: cryptoDetails?.currency
+          crypto_currency: cryptoDetails?.currency,
+          wallet_address: listingData?.wallet_address || listing.wallet_address
         },
         returnUrl: `/listings/${listing.id}`
       } 
@@ -78,6 +102,9 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       </div>
     );
   }
+
+  // Use the listing's stored wallet_address instead of the user's current wallet
+  const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -94,7 +121,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <SellerInfo 
           seller={listing.user} 
           location={listing.location} 
-          walletAddress={listing.user.wallet_address}
+          walletAddress={sellerWalletAddress}
         />
 
         <div className="p-4 bg-blue-50 rounded-lg flex items-start space-x-3">
@@ -110,7 +137,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <ListingActions
           listingId={listing.id}
           sellerId={listing.user_id}
-          sellerAddress={listing.user.wallet_address || ''}
+          sellerAddress={sellerWalletAddress || ''}
           title={listing.title}
           price={listing.price}
           cryptoAmount={cryptoDetails?.amount}
