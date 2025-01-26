@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListingForm } from "@/components/create-listing/ListingForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAccount } from 'wagmi';
 
 export default function CreateListing() {
   const { user } = useAuth();
+  const { address } = useAccount();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,10 +67,20 @@ export default function CreateListing() {
       return;
     }
 
+    if (!address) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez connecter votre wallet pour créer une annonce",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       console.log("Starting listing creation with values:", values);
       console.log("Current user:", user);
+      console.log("Current wallet address:", address);
 
       let imageUrls: string[] = [];
       if (values.images?.length > 0) {
@@ -97,7 +109,8 @@ export default function CreateListing() {
           shipping_method: values.shipping_method,
           shipping_weight: values.shipping_weight,
           crypto_currency: values.crypto_currency,
-          crypto_amount: values.crypto_amount
+          crypto_amount: values.crypto_amount,
+          wallet_address: address // Stockage permanent de l'adresse du wallet au moment de la création
         })
         .select('*')
         .single();
