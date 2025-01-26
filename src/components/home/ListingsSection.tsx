@@ -25,10 +25,7 @@ export function ListingsSection() {
             shipping_method,
             crypto_amount,
             crypto_currency,
-            wallet_address,
-            user:profiles!listings_user_id_fkey (
-              wallet_address
-            )
+            wallet_address
           `)
           .eq('status', 'active')
           .order('created_at', { ascending: false });

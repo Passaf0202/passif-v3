@@ -24,7 +24,19 @@ export const SearchResults = () => {
 
       let queryBuilder = supabase
         .from("listings")
-        .select("*")
+        .select(`
+          id,
+          title,
+          price,
+          location,
+          images,
+          user_id,
+          created_at,
+          shipping_method,
+          crypto_amount,
+          crypto_currency,
+          wallet_address
+        `)
         .eq("status", "active");
 
       if (titleOnly) {
@@ -109,8 +121,13 @@ export const SearchResults = () => {
                 price={listing.price}
                 location={listing.location}
                 image={listing.images?.[0] || "/placeholder.svg"}
+                images={listing.images}
                 sellerId={listing.user_id}
                 shipping_method={listing.shipping_method}
+                created_at={listing.created_at}
+                crypto_amount={listing.crypto_amount}
+                crypto_currency={listing.crypto_currency}
+                walletAddress={listing.wallet_address}
               />
             ))}
           </div>
