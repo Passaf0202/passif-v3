@@ -59,8 +59,12 @@ export function PaymentButton({
         throw new Error("L'acheteur et le vendeur doivent être différents");
       }
 
-      // 4. Préparer le montant
-      const amountInWei = ethers.utils.parseEther(cryptoAmount.toString());
+      // 4. Préparer le montant avec une précision fixe de 18 décimales
+      console.log('Converting amount to Wei:', cryptoAmount);
+      const formattedAmount = cryptoAmount.toFixed(18); // Fix decimal precision
+      console.log('Formatted amount:', formattedAmount);
+      const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
+      console.log('Amount in Wei:', amountInWei.toString());
       
       // 5. Vérifier le solde
       const balance = await provider.getBalance(buyerAddress);
