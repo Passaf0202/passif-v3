@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { ESCROW_ABI, ESCROW_BYTECODE } from "./escrowConstants";
+import { ESCROW_ABI, ESCROW_BYTECODE } from "./contractConstants";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DeployOptions {
