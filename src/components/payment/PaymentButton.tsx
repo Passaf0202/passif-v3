@@ -72,7 +72,7 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // 6. Configurer le contract
+      // 6. Configurer le contrat existant
       const contractAddress = "0x9d0e51B31426A734162364Cde425e2A44D944A01";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
@@ -82,11 +82,18 @@ export function PaymentButton({
         buyerAddress
       });
 
-      // 7. Déployer un nouveau contrat d'escrow
-      const platformAddress = "0x6441a3C16A73d5B3eF727FaCB4b4fC5Edb8CCe18"; // Adresse de la plateforme
+      // 7. Appeler le constructeur du contrat avec les paramètres requis
+      const platformAddress = "0x6441a3C16A73d5B3eF727FaCB4b4fC5Edb8CCe18";
       const platformFee = 5; // 5% de frais de plateforme
 
-      const tx = await contract.deploy(sellerAddress, platformAddress, platformFee, {
+      console.log('Calling contract constructor with params:', {
+        seller: sellerAddress,
+        platform: platformAddress,
+        platformFee: platformFee,
+        value: amountInWei.toString()
+      });
+
+      const tx = await contract.constructor(sellerAddress, platformAddress, platformFee, {
         value: amountInWei,
         gasLimit: ethers.BigNumber.from("300000")
       });
