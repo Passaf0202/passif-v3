@@ -96,9 +96,21 @@ export function PaymentButton({
         signer
       );
 
-      const tx = await factory.deploy(sellerAddress, platformAddress, platformFee, {
-        value: amountInWei,
-        gasLimit: ethers.BigNumber.from("300000")
+      const deployTransaction = await factory.getDeployTransaction(
+        sellerAddress, 
+        platformAddress, 
+        platformFee, 
+        { value: amountInWei }
+      );
+
+      // Estimer le gas nécessaire
+      const gasEstimate = await provider.estimateGas(deployTransaction);
+      const gasLimit = gasEstimate.mul(120).div(100); // Ajouter 20% de marge
+
+      // Envoyer la transaction avec les paramètres de gas optimisés
+      const tx = await signer.sendTransaction({
+        ...deployTransaction,
+        gasLimit: gasLimit,
       });
 
       console.log('Transaction sent:', tx.hash);
