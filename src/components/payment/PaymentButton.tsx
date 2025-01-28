@@ -4,7 +4,7 @@ import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { ethers } from 'ethers';
-import { ESCROW_ABI } from "@/hooks/escrow/escrowConstants";
+import { ESCROW_ABI, ESCROW_BYTECODE } from "@/hooks/escrow/contractConstants";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -73,9 +73,6 @@ export function PaymentButton({
       }
 
       // 6. Configurer le contrat
-      const contractAddress = "0x9d0e51B31426A734162364Cde425e2A44D944A01";
-      const factory = new ethers.ContractFactory(ESCROW_ABI, ESCROW_ABI, signer);
-
       console.log('Creating escrow transaction:', {
         sellerAddress,
         amount: ethers.utils.formatEther(amountInWei),
@@ -92,6 +89,12 @@ export function PaymentButton({
         platformFee: platformFee,
         value: amountInWei.toString()
       });
+
+      const factory = new ethers.ContractFactory(
+        ESCROW_ABI,
+        ESCROW_BYTECODE,
+        signer
+      );
 
       const tx = await factory.deploy(sellerAddress, platformAddress, platformFee, {
         value: amountInWei,
