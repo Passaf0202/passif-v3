@@ -61,9 +61,9 @@ export function PaymentButton({
 
       // 4. Préparer le montant avec une précision fixe de 18 décimales
       console.log('Converting amount to Wei:', cryptoAmount);
-      const formattedAmount = cryptoAmount.toFixed(18); // Fix decimal precision
+      const formattedAmount = cryptoAmount.toFixed(18);
       console.log('Formatted amount:', formattedAmount);
-      const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
+      const amountInWei = ethers.utils.parseEther(formattedAmount);
       console.log('Amount in Wei:', amountInWei.toString());
       
       // 5. Vérifier le solde
@@ -82,8 +82,11 @@ export function PaymentButton({
         buyerAddress
       });
 
-      // 7. Créer la transaction
-      const tx = await contract.createTransaction(sellerAddress, {
+      // 7. Déployer un nouveau contrat d'escrow
+      const platformAddress = "0x6441a3C16A73d5B3eF727FaCB4b4fC5Edb8CCe18"; // Adresse de la plateforme
+      const platformFee = 5; // 5% de frais de plateforme
+
+      const tx = await contract.deploy(sellerAddress, platformAddress, platformFee, {
         value: amountInWei,
         gasLimit: ethers.BigNumber.from("300000")
       });
