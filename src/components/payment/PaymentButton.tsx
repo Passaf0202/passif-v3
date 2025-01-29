@@ -74,19 +74,15 @@ export function PaymentButton({
 
       // 6. Configurer le contrat
       console.log('Creating escrow transaction:', {
-        sellerAddress,
         amount: ethers.utils.formatEther(amountInWei),
         buyerAddress
       });
 
       // 7. Déployer une nouvelle instance du contrat avec les paramètres requis
-      const platformAddress = "0x6441a3C16A73d5B3eF727FaCB4b4fC5Edb8CCe18";
-      const platformFee = 5; // 5% de frais de plateforme
+      const commissionPercentage = 5; // 5% de frais de plateforme
 
       console.log('Deploying contract with params:', {
-        seller: sellerAddress,
-        platform: platformAddress,
-        platformFee: platformFee,
+        commissionPercentage: commissionPercentage,
         value: amountInWei.toString()
       });
 
@@ -97,9 +93,7 @@ export function PaymentButton({
       );
 
       const deployTransaction = await factory.getDeployTransaction(
-        sellerAddress, 
-        platformAddress, 
-        platformFee, 
+        commissionPercentage,
         { value: amountInWei }
       );
 
