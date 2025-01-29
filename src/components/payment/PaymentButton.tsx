@@ -4,7 +4,7 @@ import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { ethers } from 'ethers';
-import { ESCROW_ABI, ESCROW_BYTECODE } from "@/hooks/escrow/contractConstants";
+import { ESCROW_ABI } from "@/hooks/escrow/contractConstants";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -72,39 +72,19 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // 6. Configurer le contrat
-      console.log('Creating escrow transaction:', {
+      // 6. Initialiser le contrat existant
+      const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c"; // Adresse du contrat déployé
+      const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
+
+      console.log('Creating transaction with params:', {
+        seller: sellerAddress,
         amount: ethers.utils.formatEther(amountInWei),
-        buyerAddress
       });
 
-      // 7. Déployer une nouvelle instance du contrat avec les paramètres requis
-      const commissionPercentage = 5; // 5% de frais de plateforme
-
-      console.log('Deploying contract with params:', {
-        commissionPercentage: commissionPercentage,
-        value: amountInWei.toString()
-      });
-
-      const factory = new ethers.ContractFactory(
-        ESCROW_ABI,
-        ESCROW_BYTECODE,
-        signer
-      );
-
-      const deployTransaction = await factory.getDeployTransaction(
-        commissionPercentage,
-        { value: amountInWei }
-      );
-
-      // Estimer le gas nécessaire
-      const gasEstimate = await provider.estimateGas(deployTransaction);
-      const gasLimit = gasEstimate.mul(120).div(100); // Ajouter 20% de marge
-
-      // Envoyer la transaction avec les paramètres de gas optimisés
-      const tx = await signer.sendTransaction({
-        ...deployTransaction,
-        gasLimit: gasLimit,
+      // 7. Appeler createTransaction sur le contrat existant
+      const tx = await contract.createTransaction(sellerAddress, {
+        value: amountInWei,
+        gasLimit: 300000
       });
 
       console.log('Transaction sent:', tx.hash);
