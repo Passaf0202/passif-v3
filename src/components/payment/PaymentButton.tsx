@@ -4,7 +4,6 @@ import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { ethers } from 'ethers';
-import { ESCROW_ABI } from "@/hooks/escrow/contractConstants";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -15,6 +14,12 @@ interface PaymentButtonProps {
   disabled?: boolean;
   sellerAddress?: string;
 }
+
+const ESCROW_ABI = [
+  "function createTransaction(address seller) payable",
+  "function confirmTransaction()",
+  "function getStatus() view returns (bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
+];
 
 export function PaymentButton({ 
   isProcessing, 
@@ -72,8 +77,8 @@ export function PaymentButton({
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // 6. Initialiser le contrat existant
-      const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c"; // Adresse du contrat déployé
+      // 6. Initialiser le contrat
+      const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
       console.log('Creating transaction with params:', {
@@ -81,7 +86,7 @@ export function PaymentButton({
         amount: ethers.utils.formatEther(amountInWei),
       });
 
-      // 7. Appeler createTransaction sur le contrat existant
+      // 7. Appeler createTransaction avec les bons paramètres
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
         gasLimit: 300000
