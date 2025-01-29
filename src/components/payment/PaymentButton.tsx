@@ -16,16 +16,16 @@ interface PaymentButtonProps {
 }
 
 const ESCROW_ABI = [
-  "function createTransaction(address seller) payable",
-  "function confirmTransaction()",
-  "function getStatus() view returns (bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
+  "function createTransaction(address seller) payable returns (uint256)",
+  "function confirmTransaction(uint256 txnId)",
+  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
 ];
 
 export function PaymentButton({ 
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency = 'MATIC',
+  cryptoCurrency = 'BNB',
   onClick,
   disabled = false,
   sellerAddress
@@ -45,7 +45,6 @@ export function PaymentButton({
     }
 
     try {
-      // 1. Vérifier et changer le réseau si nécessaire
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -54,30 +53,25 @@ export function PaymentButton({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // 2. Initialiser le provider et le signer
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const buyerAddress = await signer.getAddress();
 
-      // 3. Vérifier que l'acheteur est différent du vendeur
       if (buyerAddress.toLowerCase() === sellerAddress.toLowerCase()) {
         throw new Error("L'acheteur et le vendeur doivent être différents");
       }
 
-      // 4. Préparer le montant avec une précision fixe de 18 décimales
       console.log('Converting amount to Wei:', cryptoAmount);
       const formattedAmount = cryptoAmount.toFixed(18);
       console.log('Formatted amount:', formattedAmount);
       const amountInWei = ethers.utils.parseEther(formattedAmount);
       console.log('Amount in Wei:', amountInWei.toString());
       
-      // 5. Vérifier le solde
       const balance = await provider.getBalance(buyerAddress);
       if (balance.lt(amountInWei)) {
         throw new Error("Solde insuffisant pour le paiement");
       }
 
-      // 6. Initialiser le contrat
       const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
@@ -86,7 +80,6 @@ export function PaymentButton({
         amount: ethers.utils.formatEther(amountInWei),
       });
 
-      // 7. Appeler createTransaction avec les bons paramètres
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
         gasLimit: 300000
@@ -95,9 +88,15 @@ export function PaymentButton({
       console.log('Transaction sent:', tx.hash);
       
       const receipt = await tx.wait();
-      console.log('Transaction confirmed:', receipt);
+      console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
+        // Récupérer l'ID de la transaction depuis les logs
+        const event = receipt.events?.find(e => e.event === 'TransactionCreated');
+        const txnId = event?.args?.txnId;
+        
+        console.log('Transaction ID:', txnId?.toString());
+        
         toast({
           title: "Transaction réussie",
           description: "Les fonds ont été bloqués dans le contrat d'escrow",

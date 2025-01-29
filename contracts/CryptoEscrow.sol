@@ -2,94 +2,101 @@
 pragma solidity ^0.8.0;
 
 contract CryptoEscrow {
-    address public buyer;
-    address public seller;
-    address public platform;
-    uint256 public amount;
-    uint256 public platformFee;
-    bool public buyerConfirmed;
-    bool public sellerConfirmed;
-    bool public fundsReleased;
+    struct Transaction {
+        address buyer;
+        address seller;
+        uint256 amount;
+        bool buyerConfirmed;
+        bool sellerConfirmed;
+        bool fundsReleased;
+    }
 
-    event FundsDeposited(address buyer, address seller, uint256 amount);
-    event TransactionConfirmed(address confirmer);
-    event FundsReleased(address seller, uint256 amount);
+    mapping(uint256 => Transaction) public transactions;
+    uint256 public nextTransactionId;
+    address public platform;
+    uint256 public platformFee;
+
+    event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount);
+    event TransactionConfirmed(uint256 indexed txnId, address confirmer);
+    event FundsReleased(uint256 indexed txnId, address seller, uint256 amount);
     event Debug(string message, uint256 value);
     event DebugAddress(string message, address addr);
 
-    modifier onlyBuyerOrSeller() {
-        require(msg.sender == buyer || msg.sender == seller, "Not authorized");
-        _;
-    }
-
-    modifier fundsNotReleased() {
-        require(!fundsReleased, "Funds already released");
-        _;
-    }
-
-    constructor(
-        address _seller,
-        address _platform,
-        uint256 _platformFee
-    ) payable {
-        require(_seller != address(0), "Invalid seller address");
+    constructor(address _platform, uint256 _platformFee) {
         require(_platform != address(0), "Invalid platform address");
+        require(_platformFee <= 100, "Invalid platform fee");
+        platform = _platform;
+        platformFee = _platformFee;
+    }
+
+    function createTransaction(address _seller) external payable returns (uint256) {
+        require(_seller != address(0), "Invalid seller address");
         require(_seller != msg.sender, "Seller cannot be buyer");
         require(msg.value > 0, "Amount must be greater than 0");
-        require(_platformFee <= 100, "Invalid platform fee");
+
+        uint256 txnId = nextTransactionId++;
         
-        emit Debug("Constructor called with value", msg.value);
-        emit Debug("Gas left", gasleft());
-        emit DebugAddress("Seller address", _seller);
-        emit DebugAddress("Platform address", _platform);
-        
-        buyer = msg.sender;
-        seller = _seller;
-        platform = _platform;
-        amount = msg.value;
-        platformFee = _platformFee;
-        
-        emit FundsDeposited(buyer, seller, amount);
+        transactions[txnId] = Transaction({
+            buyer: msg.sender,
+            seller: _seller,
+            amount: msg.value,
+            buyerConfirmed: false,
+            sellerConfirmed: false,
+            fundsReleased: false
+        });
+
+        emit TransactionCreated(txnId, msg.sender, _seller, msg.value);
+        return txnId;
     }
 
-    function confirmTransaction() public onlyBuyerOrSeller fundsNotReleased {
-        if (msg.sender == buyer) {
-            require(!buyerConfirmed, "Buyer already confirmed");
-            buyerConfirmed = true;
+    function confirmTransaction(uint256 _txnId) external {
+        Transaction storage txn = transactions[_txnId];
+        require(txn.amount > 0, "Transaction does not exist");
+        require(!txn.fundsReleased, "Funds already released");
+        require(msg.sender == txn.buyer || msg.sender == txn.seller, "Not authorized");
+
+        if (msg.sender == txn.buyer) {
+            require(!txn.buyerConfirmed, "Buyer already confirmed");
+            txn.buyerConfirmed = true;
         } else {
-            require(!sellerConfirmed, "Seller already confirmed");
-            sellerConfirmed = true;
+            require(!txn.sellerConfirmed, "Seller already confirmed");
+            txn.sellerConfirmed = true;
         }
 
-        emit TransactionConfirmed(msg.sender);
+        emit TransactionConfirmed(_txnId, msg.sender);
 
-        if (buyerConfirmed && sellerConfirmed) {
-            fundsReleased = true;
-            uint256 fee = (amount * platformFee) / 100;
-            uint256 sellerAmount = amount - fee;
+        if (txn.buyerConfirmed && txn.sellerConfirmed) {
+            txn.fundsReleased = true;
+            uint256 fee = (txn.amount * platformFee) / 100;
+            uint256 sellerAmount = txn.amount - fee;
             
-            emit Debug("Attempting to send platform fee", fee);
-            emit DebugAddress("Platform address for fee", platform);
-            
-            (bool platformSuccess,) = platform.call{value: fee, gas: 30000}("");
+            (bool platformSuccess,) = platform.call{value: fee}("");
             require(platformSuccess, "Platform fee transfer failed");
             
-            emit Debug("Attempting to send seller amount", sellerAmount);
-            emit DebugAddress("Seller address for payment", seller);
-            
-            (bool sellerSuccess,) = seller.call{value: sellerAmount, gas: 30000}("");
+            (bool sellerSuccess,) = txn.seller.call{value: sellerAmount}("");
             require(sellerSuccess, "Seller transfer failed");
             
-            emit FundsReleased(seller, sellerAmount);
+            emit FundsReleased(_txnId, txn.seller, sellerAmount);
         }
     }
 
-    function getStatus() public view returns (
-        bool _buyerConfirmed,
-        bool _sellerConfirmed,
-        bool _fundsReleased
+    function getTransaction(uint256 _txnId) external view returns (
+        address buyer,
+        address seller,
+        uint256 amount,
+        bool buyerConfirmed,
+        bool sellerConfirmed,
+        bool fundsReleased
     ) {
-        return (buyerConfirmed, sellerConfirmed, fundsReleased);
+        Transaction storage txn = transactions[_txnId];
+        return (
+            txn.buyer,
+            txn.seller,
+            txn.amount,
+            txn.buyerConfirmed,
+            txn.sellerConfirmed,
+            txn.fundsReleased
+        );
     }
 
     receive() external payable {
