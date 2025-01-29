@@ -23,7 +23,7 @@ export function useEscrowPayment({
   const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
   
   const { toast } = useToast();
-  const { deployNewContract } = useEscrowContract();
+  const { getContract, getActiveContract } = useEscrowContract();
   const { createTransaction, updateTransactionStatus } = useTransactionUpdater();
 
   const handlePayment = async () => {
@@ -82,36 +82,44 @@ export function useEscrowPayment({
         throw new Error("Fonds insuffisants dans votre portefeuille");
       }
 
-      // Estimer le gas nécessaire
+      // Get the active contract
+      const activeContract = await getActiveContract();
+      console.log('Active contract found:', activeContract);
+
+      // Get contract instance
+      const contract = await getContract(activeContract.address);
+      console.log('Contract instance initialized');
+
+      // Estimate gas for the transaction
       const gasPrice = await provider.getGasPrice();
-      const gasLimit = ethers.BigNumber.from("300000"); // Augmenter la limite de gas pour le déploiement
+      const gasLimit = ethers.BigNumber.from("300000");
       const totalCost = amountInWei.add(gasPrice.mul(gasLimit));
       
       if (balance.lt(totalCost)) {
         throw new Error("Fonds insuffisants pour couvrir les frais de transaction");
       }
 
-      console.log('Deploying escrow contract with params:', {
+      console.log('Creating transaction with params:', {
         sellerAddress: listing.user.wallet_address,
         amount: ethers.utils.formatEther(amountInWei),
         gasLimit: gasLimit.toString(),
         gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
       });
 
-      // Déployer le contrat d'escrow avec des paramètres de gas explicites
-      const { contract, receipt } = await deployNewContract(
-        listing.user.wallet_address,
-        amountInWei,
-        {
-          gasLimit,
-          gasPrice
-        }
-      );
-
-      console.log('Escrow contract deployed:', {
-        address: contract.address,
-        transactionHash: receipt.transactionHash
+      // Create the transaction
+      const tx = await contract.createTransaction(listing.user.wallet_address, {
+        value: amountInWei,
+        gasLimit,
+        gasPrice
       });
+
+      console.log('Transaction sent:', tx.hash);
+      if (onTransactionHash) {
+        onTransactionHash(tx.hash);
+      }
+
+      const receipt = await tx.wait();
+      console.log('Transaction receipt:', receipt);
 
       // Create transaction record with correct user IDs and contract address
       const transaction = await createTransaction(
@@ -120,13 +128,13 @@ export function useEscrowPayment({
         listing.user.id,
         listing.crypto_amount,
         listing.crypto_amount * 0.05, // 5% commission
-        contract.address,
-        80002 // Polygon Amoy chain ID
+        activeContract.address,
+        activeContract.chain_id
       );
 
       if (receipt.status === 1) {
-        // Mettre à jour le statut avec funds_secured = true
-        await updateTransactionStatus(transaction.id, 'processing', receipt.transactionHash);
+        // Update transaction status with funds_secured = true
+        await updateTransactionStatus(transaction.id, 'processing', tx.hash);
         
         const { error: updateError } = await supabase
           .from('transactions')
