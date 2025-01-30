@@ -15,7 +15,8 @@ interface EscrowStatusProps {
 
 const ESCROW_ABI = [
   "function confirmTransaction(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
+  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
 ];
 
 export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }: EscrowStatusProps) {
@@ -44,17 +45,28 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
 
       console.log("Transaction data:", data);
       setStatus(data.escrow_status);
-      setHasConfirmed(
-        isUserBuyer ? data.buyer_confirmation : data.seller_confirmation
-      );
+      setHasConfirmed(isUserBuyer ? data.buyer_confirmation : data.seller_confirmation);
       setFundsSecured(data.funds_secured);
+
       if (data.transaction_hash) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const receipt = await provider.getTransactionReceipt(data.transaction_hash);
+        
         if (receipt) {
-          const event = receipt.logs.find(log => log.topics[0] === ethers.utils.id("TransactionCreated(uint256,address,address,uint256)"));
+          // Rechercher l'événement TransactionCreated dans les logs
+          const contractInterface = new ethers.utils.Interface(ESCROW_ABI);
+          const event = receipt.logs
+            .map(log => {
+              try {
+                return contractInterface.parseLog(log);
+              } catch (e) {
+                return null;
+              }
+            })
+            .find(event => event && event.name === 'TransactionCreated');
+
           if (event) {
-            const txId = ethers.BigNumber.from(event.topics[1]).toString();
+            const txId = event.args.txnId.toString();
             console.log("Found blockchain transaction ID:", txId);
             setBlockchainTxId(txId);
           }
@@ -107,7 +119,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c"; // Adresse du contrat déployé
+      const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
       console.log("Calling confirmTransaction with ID:", blockchainTxId);
@@ -164,7 +176,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
         <Shield className="h-4 w-4" />
         <AlertDescription>
           Cette transaction est sécurisée par notre système d'escrow. Les fonds
-          seront libérés une fois que l'acheteur et le vendeur auront confirmé la
+          seront libérés une fois que l'acheteur aura confirmé la
           transaction.
         </AlertDescription>
       </Alert>
@@ -178,7 +190,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
         </Alert>
       )}
 
-      {status === "pending" && !hasConfirmed && (
+      {status === "pending" && !hasConfirmed && isUserBuyer && (
         <Button
           onClick={handleConfirmation}
           disabled={isLoading || (!isUserBuyer && !fundsSecured)}
@@ -190,7 +202,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
               Confirmation en cours...
             </>
           ) : (
-            `Confirmer la ${isUserBuyer ? "réception" : "livraison"}`
+            "Confirmer la réception"
           )}
         </Button>
       )}
