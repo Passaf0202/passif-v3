@@ -49,27 +49,36 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
       setFundsSecured(data.funds_secured);
 
       if (data.transaction_hash) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const receipt = await provider.getTransactionReceipt(data.transaction_hash);
-        
-        if (receipt) {
-          // Rechercher l'événement TransactionCreated dans les logs
-          const contractInterface = new ethers.utils.Interface(ESCROW_ABI);
-          const event = receipt.logs
-            .map(log => {
+        try {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const receipt = await provider.getTransactionReceipt(data.transaction_hash);
+          
+          if (receipt) {
+            console.log("Transaction receipt:", receipt);
+            
+            // Créer une interface pour le contrat
+            const contractInterface = new ethers.utils.Interface(ESCROW_ABI);
+            
+            // Parcourir tous les logs de la transaction
+            for (const log of receipt.logs) {
               try {
-                return contractInterface.parseLog(log);
+                const parsedLog = contractInterface.parseLog(log);
+                console.log("Parsed log:", parsedLog);
+                
+                if (parsedLog && parsedLog.name === 'TransactionCreated') {
+                  const txId = parsedLog.args.txnId.toString();
+                  console.log("Found blockchain transaction ID:", txId);
+                  setBlockchainTxId(txId);
+                  break;
+                }
               } catch (e) {
-                return null;
+                console.log("Error parsing log:", e);
+                continue;
               }
-            })
-            .find(event => event && event.name === 'TransactionCreated');
-
-          if (event) {
-            const txId = event.args.txnId.toString();
-            console.log("Found blockchain transaction ID:", txId);
-            setBlockchainTxId(txId);
+            }
           }
+        } catch (error) {
+          console.error("Error processing transaction receipt:", error);
         }
       }
     };
