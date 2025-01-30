@@ -24,7 +24,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
   const [isLoading, setIsLoading] = useState(false);
   const [hasConfirmed, setHasConfirmed] = useState(false);
   const [fundsSecured, setFundsSecured] = useState(false);
-  const [blockchainTxId, setBlockchainTxId] = useState<string>("");
+  const [blockchainTxId, setBlockchainTxId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const isUserBuyer = currentUserId === buyerId;
@@ -66,11 +66,13 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
                 
                 if (parsedLog && parsedLog.name === 'TransactionCreated') {
                   console.log("Found TransactionCreated event");
-                  console.log("Event args:", parsedLog.args);
                   const txId = parsedLog.args.txnId;
-                  console.log("Raw txId:", txId);
-                  console.log("txId as string:", txId.toString());
-                  setBlockchainTxId(txId.toString());
+                  console.log("Transaction ID (BigNumber):", txId);
+                  console.log("Transaction ID (string):", txId.toString());
+                  console.log("Transaction ID (number):", txId.toNumber());
+                  
+                  // Store the numeric value of txId
+                  setBlockchainTxId(txId.toNumber().toString());
                   break;
                 }
               } catch (e) {
@@ -136,8 +138,11 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
       const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
-      console.log("Calling confirmTransaction with ID:", blockchainTxId);
-      const tx = await contract.confirmTransaction(blockchainTxId);
+      // Convert blockchainTxId to a number before sending to the contract
+      const txIdNumber = parseInt(blockchainTxId);
+      console.log("Calling confirmTransaction with numeric ID:", txIdNumber);
+      
+      const tx = await contract.confirmTransaction(txIdNumber);
       console.log("Confirmation transaction sent:", tx.hash);
 
       const receipt = await tx.wait();
