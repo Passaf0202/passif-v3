@@ -24,7 +24,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
   const [isLoading, setIsLoading] = useState(false);
   const [hasConfirmed, setHasConfirmed] = useState(false);
   const [fundsSecured, setFundsSecured] = useState(false);
-  const [blockchainTxId, setBlockchainTxId] = useState<string | null>(null);
+  const [blockchainTxId, setBlockchainTxId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const isUserBuyer = currentUserId === buyerId;
@@ -60,25 +60,15 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
             
             for (const log of receipt.logs) {
               try {
-                console.log("Processing log:", log);
                 const parsedLog = contractInterface.parseLog(log);
-                console.log("Parsed log:", parsedLog);
-                
                 if (parsedLog && parsedLog.name === 'TransactionCreated') {
-                  console.log("Found TransactionCreated event");
-                  const txId = parsedLog.args.txnId;
-                  console.log("Transaction ID (BigNumber):", txId);
-                  console.log("Transaction ID (string):", txId.toString());
-                  console.log("Transaction ID (number):", txId.toNumber());
-                  
-                  // Store the numeric value of txId
-                  setBlockchainTxId(txId.toNumber().toString());
+                  const txId = parsedLog.args.txnId.toNumber();
+                  console.log("Found TransactionCreated event with txId:", txId);
+                  setBlockchainTxId(txId);
                   break;
                 }
               } catch (e) {
                 console.log("Error parsing log:", e);
-                console.log("Log data:", log.data);
-                console.log("Log topics:", log.topics);
                 continue;
               }
             }
@@ -122,27 +112,21 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
   const handleConfirmation = async () => {
     try {
       setIsLoading(true);
-      console.log("Starting confirmation with data:", {
-        transactionId,
-        blockchainTxId,
-        isUserBuyer
-      });
 
-      if (!blockchainTxId) {
+      if (blockchainTxId === null) {
         console.error("No blockchain transaction ID found");
         throw new Error("ID de transaction blockchain non trouvé");
       }
+
+      console.log("Starting confirmation with txId:", blockchainTxId);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
-      // Convert blockchainTxId to a number before sending to the contract
-      const txIdNumber = parseInt(blockchainTxId);
-      console.log("Calling confirmTransaction with numeric ID:", txIdNumber);
-      
-      const tx = await contract.confirmTransaction(txIdNumber);
+      console.log("Calling confirmTransaction with numeric ID:", blockchainTxId);
+      const tx = await contract.confirmTransaction(blockchainTxId);
       console.log("Confirmation transaction sent:", tx.hash);
 
       const receipt = await tx.wait();
