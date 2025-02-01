@@ -41,17 +41,17 @@ export const useEscrowTransaction = (transactionId: string) => {
       // Méthode 1: Utiliser transactionCount
       const txnCount = await contract.transactionCount();
       console.log("Transaction count:", txnCount.toString());
-      const txnId = txnCount.sub(1).toNumber();
-      console.log("Calculated txnId from count:", txnId);
+      const txnId = txnCount.sub(1);
+      console.log("Calculated txnId from count:", txnId.toString());
       
       // Vérifier que la transaction existe
       const txData = await contract.getTransaction(txnId);
       console.log("Transaction data:", txData);
       
       if (txData.amount.gt(0)) {
-        console.log("Valid transaction found with txId:", txnId);
-        storeTxnId(txnId);
-        return txnId;
+        console.log("Valid transaction found with txId:", txnId.toNumber());
+        storeTxnId(txnId.toNumber());
+        return txnId.toNumber();
       }
 
       // Méthode 2: Chercher dans les logs si méthode 1 échoue
