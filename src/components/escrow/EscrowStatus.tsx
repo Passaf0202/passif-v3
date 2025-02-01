@@ -24,14 +24,31 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
   const [isLoading, setIsLoading] = useState(false);
   const [hasConfirmed, setHasConfirmed] = useState(false);
   const [fundsSecured, setFundsSecured] = useState(false);
-  const [blockchainTxId, setBlockchainTxId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const isUserBuyer = currentUserId === buyerId;
   const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
 
+  const getStoredTxnId = () => {
+    const storedId = localStorage.getItem(`txnId_${transactionId}`);
+    console.log("Retrieved stored txnId:", storedId);
+    return storedId ? parseInt(storedId) : null;
+  };
+
+  const storeTxnId = (txnId: number) => {
+    console.log("Storing txnId:", txnId);
+    localStorage.setItem(`txnId_${transactionId}`, txnId.toString());
+  };
+
   const getLastTransactionId = async (provider: ethers.providers.Web3Provider, transactionHash: string) => {
     try {
+      // First try to get from localStorage
+      const storedId = getStoredTxnId();
+      if (storedId !== null) {
+        console.log("Using stored txnId:", storedId);
+        return storedId;
+      }
+
       console.log("Getting transaction receipt for hash:", transactionHash);
       const receipt = await provider.getTransactionReceipt(transactionHash);
       
@@ -43,12 +60,14 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
       console.log("Transaction receipt:", receipt);
       const contractInterface = new ethers.utils.Interface(ESCROW_ABI);
       
+      // Try to get from transaction logs
       for (const log of receipt.logs) {
         try {
           const parsedLog = contractInterface.parseLog(log);
           if (parsedLog && parsedLog.name === 'TransactionCreated') {
             const txId = parsedLog.args.txnId.toNumber();
             console.log("Found TransactionCreated event with txId:", txId);
+            storeTxnId(txId);
             return txId;
           }
         } catch (e) {
@@ -57,7 +76,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
         }
       }
 
-      // Si on n'a pas trouvé l'événement, essayons de récupérer via le filtre
+      // Try to get from events
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, provider);
       const filter = contract.filters.TransactionCreated();
       const events = await contract.queryFilter(filter, receipt.blockNumber - 1, receipt.blockNumber);
@@ -65,6 +84,7 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
       if (events.length > 0) {
         const txId = events[0].args.txnId.toNumber();
         console.log("Found TransactionCreated event via filter with txId:", txId);
+        storeTxnId(txId);
         return txId;
       }
 
@@ -100,8 +120,8 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
           const txId = await getLastTransactionId(provider, data.transaction_hash);
           
           if (txId !== null) {
-            console.log("Setting blockchain txId:", txId);
-            setBlockchainTxId(txId);
+            console.log("Valid txId found:", txId);
+            storeTxnId(txId);
           }
         } catch (error) {
           console.error("Error processing transaction receipt:", error);
@@ -143,19 +163,19 @@ export function EscrowStatus({ transactionId, buyerId, sellerId, currentUserId }
     try {
       setIsLoading(true);
 
-      if (blockchainTxId === null) {
-        console.error("No blockchain transaction ID found");
+      const txnId = getStoredTxnId();
+      if (txnId === null) {
         throw new Error("ID de transaction blockchain non trouvé");
       }
 
-      console.log("Starting confirmation with txId:", blockchainTxId);
+      console.log("Starting confirmation with txId:", txnId);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
-      console.log("Calling confirmTransaction with numeric ID:", blockchainTxId);
-      const tx = await contract.confirmTransaction(blockchainTxId);
+      console.log("Calling confirmTransaction with numeric ID:", txnId);
+      const tx = await contract.confirmTransaction(txnId);
       console.log("Confirmation transaction sent:", tx.hash);
 
       const receipt = await tx.wait();
