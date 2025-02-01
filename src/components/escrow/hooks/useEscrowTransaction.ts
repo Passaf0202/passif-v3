@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 const ESCROW_ABI = [
   "function confirmTransaction(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "function transactionCount() view returns (uint256)",
   "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
 ];
 
@@ -35,6 +36,25 @@ export const useEscrowTransaction = (transactionId: string) => {
         return storedId;
       }
 
+      const contract = new ethers.Contract(contractAddress, ESCROW_ABI, provider);
+      
+      // Méthode 1: Utiliser transactionCount
+      const txnCount = await contract.transactionCount();
+      console.log("Transaction count:", txnCount.toString());
+      const txnId = txnCount.sub(1).toNumber();
+      console.log("Calculated txnId from count:", txnId);
+      
+      // Vérifier que la transaction existe
+      const txData = await contract.getTransaction(txnId);
+      console.log("Transaction data:", txData);
+      
+      if (txData.amount.gt(0)) {
+        console.log("Valid transaction found with txId:", txnId);
+        storeTxnId(txnId);
+        return txnId;
+      }
+
+      // Méthode 2: Chercher dans les logs si méthode 1 échoue
       console.log("Getting transaction receipt for hash:", transactionHash);
       const receipt = await provider.getTransactionReceipt(transactionHash);
       
@@ -50,26 +70,15 @@ export const useEscrowTransaction = (transactionId: string) => {
         try {
           const parsedLog = contractInterface.parseLog(log);
           if (parsedLog && parsedLog.name === 'TransactionCreated') {
-            const txId = parsedLog.args.txnId.toNumber();
-            console.log("Found TransactionCreated event with txId:", txId);
-            storeTxnId(txId);
-            return txId;
+            const foundTxId = parsedLog.args.txnId.toNumber();
+            console.log("Found TransactionCreated event with txId:", foundTxId);
+            storeTxnId(foundTxId);
+            return foundTxId;
           }
         } catch (e) {
           console.log("Error parsing log:", e);
           continue;
         }
-      }
-
-      const contract = new ethers.Contract(contractAddress, ESCROW_ABI, provider);
-      const filter = contract.filters.TransactionCreated();
-      const events = await contract.queryFilter(filter, receipt.blockNumber - 1, receipt.blockNumber);
-      
-      if (events.length > 0) {
-        const txId = events[0].args.txnId.toNumber();
-        console.log("Found TransactionCreated event via filter with txId:", txId);
-        storeTxnId(txId);
-        return txId;
       }
 
       return null;
