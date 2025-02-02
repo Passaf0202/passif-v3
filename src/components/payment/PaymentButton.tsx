@@ -21,6 +21,7 @@ const ESCROW_ABI = [
   "function createTransaction(address seller) payable returns (uint256)",
   "function confirmTransaction(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "function transactionCount() view returns (uint256)",
   "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
 ];
 
@@ -95,14 +96,22 @@ export function PaymentButton({
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Récupérer l'ID de la transaction depuis les logs
-        const event = receipt.events?.find(e => e.event === 'TransactionCreated');
-        const txnId = event?.args?.txnId;
-        
-        console.log('Transaction ID:', txnId?.toString());
+        // Récupérer le txnId en utilisant transactionCount
+        const txnCount = await contract.transactionCount();
+        console.log("Transaction count:", txnCount.toString());
+        const txnId = txnCount.sub(1);
+        console.log("Transaction ID:", txnId.toString());
 
+        // Vérifier que la transaction existe
+        const txData = await contract.getTransaction(txnId);
+        console.log("Transaction data:", txData);
+
+        // Stocker le txnId dans le localStorage
         if (transactionId) {
-          // Stocker le blockchain_txn_id dans Supabase
+          localStorage.setItem(`txnId_${transactionId}`, txnId.toString());
+          console.log("Stored txnId in localStorage:", txnId.toString());
+
+          // Mettre à jour la transaction dans Supabase
           const { error: updateError } = await supabase
             .from('transactions')
             .update({ 
