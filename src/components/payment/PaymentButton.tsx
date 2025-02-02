@@ -6,6 +6,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { ethers } from 'ethers';
 import { supabase } from "@/integrations/supabase/client";
 
+const ESCROW_ABI = [
+  "function createTransaction(address seller) payable returns (uint256)",
+  "function confirmTransaction(uint256 txnId)",
+  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "function transactionCount() view returns (uint256)",
+  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
+];
+
 interface PaymentButtonProps {
   isProcessing: boolean;
   isConnected: boolean;
@@ -16,14 +24,6 @@ interface PaymentButtonProps {
   sellerAddress?: string;
   transactionId?: string;
 }
-
-const ESCROW_ABI = [
-  "function createTransaction(address seller) payable returns (uint256)",
-  "function confirmTransaction(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
-  "function transactionCount() view returns (uint256)",
-  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
-];
 
 export function PaymentButton({ 
   isProcessing, 
@@ -85,6 +85,10 @@ export function PaymentButton({
         amount: ethers.utils.formatEther(amountInWei),
       });
 
+      // Récupérer le nombre de transactions avant la création
+      const txCountBefore = await contract.transactionCount();
+      console.log('Transaction count before:', txCountBefore.toString());
+
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
         gasLimit: 300000
@@ -96,22 +100,24 @@ export function PaymentButton({
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Récupérer le txnId en utilisant transactionCount
-        const txnCount = await contract.transactionCount();
-        console.log("Transaction count:", txnCount.toString());
-        const txnId = txnCount.sub(1);
-        console.log("Transaction ID:", txnId.toString());
+        // Récupérer le nouveau nombre de transactions
+        const txCountAfter = await contract.transactionCount();
+        console.log('Transaction count after:', txCountAfter.toString());
+        
+        // Le txnId est le dernier index
+        const txnId = txCountAfter.sub(1);
+        console.log('Calculated txnId:', txnId.toString());
 
         // Vérifier que la transaction existe
         const txData = await contract.getTransaction(txnId);
         console.log("Transaction data:", txData);
 
-        // Stocker le txnId dans le localStorage
         if (transactionId) {
+          // Stocker dans localStorage
           localStorage.setItem(`txnId_${transactionId}`, txnId.toString());
           console.log("Stored txnId in localStorage:", txnId.toString());
 
-          // Mettre à jour la transaction dans Supabase
+          // Mettre à jour Supabase
           const { error: updateError } = await supabase
             .from('transactions')
             .update({ 
