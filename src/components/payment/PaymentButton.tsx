@@ -39,7 +39,7 @@ export function PaymentButton({
   const { toast } = useToast();
 
   const handleClick = async () => {
-    if (!isConnected || !sellerAddress || !cryptoAmount || !transactionId) {
+    if (!isConnected || !sellerAddress || !cryptoAmount) {
       toast({
         title: "Erreur",
         description: "Veuillez connecter votre wallet et vérifier les informations de paiement",
@@ -101,20 +101,22 @@ export function PaymentButton({
         
         console.log('Transaction ID:', txnId?.toString());
 
-        // Stocker le blockchain_txn_id dans Supabase
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({ 
-            blockchain_txn_id: txnId.toString(),
-            transaction_hash: tx.hash,
-            funds_secured: true,
-            funds_secured_at: new Date().toISOString()
-          })
-          .eq('id', transactionId);
+        if (transactionId) {
+          // Stocker le blockchain_txn_id dans Supabase
+          const { error: updateError } = await supabase
+            .from('transactions')
+            .update({ 
+              blockchain_txn_id: txnId.toString(),
+              transaction_hash: tx.hash,
+              funds_secured: true,
+              funds_secured_at: new Date().toISOString()
+            })
+            .eq('id', transactionId);
 
-        if (updateError) {
-          console.error('Error updating transaction:', updateError);
-          throw new Error("Erreur lors de la mise à jour de la transaction");
+          if (updateError) {
+            console.error('Error updating transaction:', updateError);
+            throw new Error("Erreur lors de la mise à jour de la transaction");
+          }
         }
         
         toast({
@@ -137,7 +139,7 @@ export function PaymentButton({
   };
 
   const wrongNetwork = chain?.id !== amoy.id;
-  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled;
+  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress;
 
   return (
     <div className="w-full space-y-2">
@@ -155,6 +157,10 @@ export function PaymentButton({
           "Transaction en attente de confirmation..."
         ) : wrongNetwork ? (
           "Changer vers Polygon Amoy"
+        ) : !isConnected ? (
+          "Connecter votre wallet"
+        ) : !sellerAddress ? (
+          "Adresse du vendeur manquante"
         ) : (
           `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}

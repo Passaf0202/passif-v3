@@ -1,20 +1,22 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { ethers } from "ethers";
 import { useToast } from "@/components/ui/use-toast";
+import { ethers } from "ethers";
+import { useNetwork, useSwitchNetwork } from "wagmi";
+import { amoy } from "@/config/chains";
 import { supabase } from "@/integrations/supabase/client";
 
 const ESCROW_ABI = [
+  "function createTransaction(address seller) payable returns (uint256)",
   "function confirmTransaction(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
+  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
 ];
 
-interface EscrowConfirmButtonProps {
+export interface EscrowConfirmButtonProps {
   transactionId: string;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  getStoredTxnId: () => number | null;
+  getStoredTxnId: () => Promise<string | null>;
   onConfirmation: () => void;
 }
 
@@ -26,59 +28,66 @@ export function EscrowConfirmButton({
   onConfirmation
 }: EscrowConfirmButtonProps) {
   const { toast } = useToast();
-  const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
 
-  const handleConfirmation = async () => {
+  const handleConfirm = async () => {
     try {
       setIsLoading(true);
 
-      // Récupérer le blockchain_txn_id depuis Supabase
-      const { data: transaction, error: fetchError } = await supabase
-        .from('transactions')
-        .select('blockchain_txn_id')
-        .eq('id', transactionId)
-        .single();
-
-      if (fetchError || !transaction?.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain non trouvé");
+      if (chain?.id !== amoy.id) {
+        if (!switchNetwork) {
+          throw new Error("Impossible de changer de réseau automatiquement");
+        }
+        await switchNetwork(amoy.id);
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
-
-      const txnId = transaction.blockchain_txn_id;
-      console.log("Using blockchain transaction ID:", txnId);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
+      
+      const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
-      console.log("Calling confirmTransaction with ID:", txnId);
-      const tx = await contract.confirmTransaction(txnId);
-      console.log("Confirmation transaction sent:", tx.hash);
+      const storedTxnId = await getStoredTxnId();
+      if (!storedTxnId) {
+        throw new Error("ID de transaction blockchain non trouvé");
+      }
+
+      console.log('Confirming transaction:', storedTxnId);
+      const tx = await contract.confirmTransaction(storedTxnId);
+      console.log('Confirmation sent:', tx.hash);
 
       const receipt = await tx.wait();
-      console.log("Confirmation transaction receipt:", receipt);
+      console.log('Confirmation receipt:', receipt);
 
       if (receipt.status === 1) {
-        const { error } = await supabase.functions.invoke('release-escrow', {
-          body: {
-            transactionId,
-            action: "confirm",
-          },
-        });
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            buyer_confirmation: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', transactionId);
 
-        if (error) throw error;
+        if (updateError) {
+          throw updateError;
+        }
 
         toast({
-          title: "Confirmation envoyée",
-          description: "Votre confirmation a été enregistrée avec succès",
+          title: "Confirmation réussie",
+          description: "Votre confirmation a été enregistrée",
         });
-
+        
         onConfirmation();
+      } else {
+        throw new Error("La confirmation a échoué");
       }
-    } catch (error) {
-      console.error("Error confirming transaction:", error);
+    } catch (error: any) {
+      console.error('Confirmation error:', error);
       toast({
         title: "Erreur",
-        description: error instanceof Error ? error.message : "Impossible de confirmer la transaction",
+        description: error.message || "Une erreur est survenue lors de la confirmation",
         variant: "destructive",
       });
     } finally {
@@ -88,7 +97,7 @@ export function EscrowConfirmButton({
 
   return (
     <Button
-      onClick={handleConfirmation}
+      onClick={handleConfirm}
       disabled={isLoading}
       className="w-full"
     >
