@@ -31,6 +31,7 @@ export function CryptoPaymentForm({
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState(initialCryptoCurrency);
   const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
+  const [transactionId, setTransactionId] = useState<string | null>(null);
   
   const convertedAmount = useCryptoConversion(price, listingId, selectedCurrency);
   
@@ -42,6 +43,7 @@ export function CryptoPaymentForm({
   } = useEscrowPayment({
     listingId,
     address: user?.id,
+    onTransactionCreated: (id: string) => setTransactionId(id),
     onPaymentComplete,
   });
 
@@ -108,20 +110,15 @@ export function CryptoPaymentForm({
               Comment fonctionne le paiement sécurisé ?
             </Button>
 
-            <Button
+            <PaymentButton
               onClick={handlePayment}
+              isProcessing={isProcessing}
+              isConnected={!!user}
+              cryptoAmount={finalCryptoAmount}
+              cryptoCurrency={finalCryptoCurrency}
               disabled={isProcessing || !finalCryptoAmount}
-              className="w-full"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Transaction en cours...
-                </>
-              ) : (
-                `Payer ${finalCryptoAmount?.toFixed(6)} ${finalCryptoCurrency}`
-              )}
-            </Button>
+              transactionId={transactionId}
+            />
 
             {error && (
               <p className="text-red-500 text-sm mt-2">

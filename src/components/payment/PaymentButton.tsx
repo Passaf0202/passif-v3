@@ -4,6 +4,7 @@ import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
 import { ethers } from 'ethers';
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -13,12 +14,14 @@ interface PaymentButtonProps {
   onClick: () => void;
   disabled?: boolean;
   sellerAddress?: string;
+  transactionId?: string;
 }
 
 const ESCROW_ABI = [
   "function createTransaction(address seller) payable returns (uint256)",
   "function confirmTransaction(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
+  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
 ];
 
 export function PaymentButton({ 
@@ -28,14 +31,15 @@ export function PaymentButton({
   cryptoCurrency = 'BNB',
   onClick,
   disabled = false,
-  sellerAddress
+  sellerAddress,
+  transactionId
 }: PaymentButtonProps) {
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   const { toast } = useToast();
 
   const handleClick = async () => {
-    if (!isConnected || !sellerAddress || !cryptoAmount) {
+    if (!isConnected || !sellerAddress || !cryptoAmount || !transactionId) {
       toast({
         title: "Erreur",
         description: "Veuillez connecter votre wallet et vérifier les informations de paiement",
@@ -96,6 +100,22 @@ export function PaymentButton({
         const txnId = event?.args?.txnId;
         
         console.log('Transaction ID:', txnId?.toString());
+
+        // Stocker le blockchain_txn_id dans Supabase
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({ 
+            blockchain_txn_id: txnId.toString(),
+            transaction_hash: tx.hash,
+            funds_secured: true,
+            funds_secured_at: new Date().toISOString()
+          })
+          .eq('id', transactionId);
+
+        if (updateError) {
+          console.error('Error updating transaction:', updateError);
+          throw new Error("Erreur lors de la mise à jour de la transaction");
+        }
         
         toast({
           title: "Transaction réussie",

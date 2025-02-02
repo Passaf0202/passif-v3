@@ -14,7 +14,6 @@ interface EscrowConfirmButtonProps {
   transactionId: string;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  getStoredTxnId: () => number | null;
   onConfirmation: () => void;
 }
 
@@ -22,7 +21,6 @@ export function EscrowConfirmButton({
   transactionId,
   isLoading,
   setIsLoading,
-  getStoredTxnId,
   onConfirmation
 }: EscrowConfirmButtonProps) {
   const { toast } = useToast();
@@ -32,18 +30,25 @@ export function EscrowConfirmButton({
     try {
       setIsLoading(true);
 
-      const txnId = getStoredTxnId();
-      if (txnId === null) {
+      // Récupérer le blockchain_txn_id depuis Supabase
+      const { data: transaction, error: fetchError } = await supabase
+        .from('transactions')
+        .select('blockchain_txn_id')
+        .eq('id', transactionId)
+        .single();
+
+      if (fetchError || !transaction?.blockchain_txn_id) {
         throw new Error("ID de transaction blockchain non trouvé");
       }
 
-      console.log("Starting confirmation with txId:", txnId);
+      const txnId = transaction.blockchain_txn_id;
+      console.log("Using blockchain transaction ID:", txnId);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
-      console.log("Calling confirmTransaction with numeric ID:", txnId);
+      console.log("Calling confirmTransaction with ID:", txnId);
       const tx = await contract.confirmTransaction(txnId);
       console.log("Confirmation transaction sent:", tx.hash);
 
