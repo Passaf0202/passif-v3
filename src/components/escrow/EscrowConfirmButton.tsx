@@ -14,6 +14,7 @@ interface EscrowConfirmButtonProps {
   transactionId: string;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  getStoredTxnId: () => number | null;
   onConfirmation: () => void;
 }
 
@@ -21,6 +22,7 @@ export function EscrowConfirmButton({
   transactionId,
   isLoading,
   setIsLoading,
+  getStoredTxnId,
   onConfirmation
 }: EscrowConfirmButtonProps) {
   const { toast } = useToast();

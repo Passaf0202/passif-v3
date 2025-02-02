@@ -6,6 +6,7 @@ interface UseEscrowPaymentProps {
   listingId: string;
   address?: string;
   onTransactionHash?: (hash: string) => void;
+  onTransactionCreated?: (id: string) => void;
   onPaymentComplete: () => void;
 }
 
@@ -13,6 +14,7 @@ export function useEscrowPayment({
   listingId, 
   address,
   onTransactionHash,
+  onTransactionCreated,
   onPaymentComplete 
 }: UseEscrowPaymentProps) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -87,6 +89,10 @@ export function useEscrowPayment({
       if (transactionError) {
         console.error('Error creating transaction:', transactionError);
         throw new Error("Erreur lors de la création de la transaction");
+      }
+
+      if (onTransactionCreated && transaction) {
+        onTransactionCreated(transaction.id);
       }
 
       setTransactionStatus('confirmed');

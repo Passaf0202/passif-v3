@@ -9,6 +9,7 @@ import { TransactionDetails } from "./TransactionDetails";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCryptoRates } from "@/hooks/useCryptoRates";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
+import { PaymentButton } from "./PaymentButton";
 
 interface CryptoPaymentFormProps {
   listingId: string;
