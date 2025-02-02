@@ -18,76 +18,60 @@ export const useEscrowTransaction = (transactionId: string) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const getStoredTxnId = async (): Promise<string> => {
-    const storedId = localStorage.getItem(`txnId_${transactionId}`);
-    console.log("Retrieved stored txnId:", storedId);
-    if (!storedId) {
-      throw new Error("No stored transaction ID found");
-    }
-    return storedId;
-  };
-
-  const storeTxnId = (txnId: number) => {
-    console.log("Storing txnId:", txnId);
-    localStorage.setItem(`txnId_${transactionId}`, txnId.toString());
-  };
-
-  const getLastTransactionId = async (provider: ethers.providers.Web3Provider, transactionHash: string) => {
     try {
-      const storedId = await getStoredTxnId();
-      if (storedId !== null) {
-        console.log("Using stored txnId:", storedId);
-        return parseInt(storedId);
+      // D'abord, essayer de récupérer depuis Supabase
+      const { data: transaction, error } = await supabase
+        .from('transactions')
+        .select('blockchain_txn_id')
+        .eq('id', transactionId)
+        .single();
+
+      if (error) throw error;
+      
+      if (transaction?.blockchain_txn_id) {
+        console.log("Retrieved blockchain_txn_id from Supabase:", transaction.blockchain_txn_id);
+        return transaction.blockchain_txn_id.toString();
       }
 
+      // Si pas dans Supabase, essayer localStorage
+      const storedId = localStorage.getItem(`txnId_${transactionId}`);
+      console.log("Retrieved stored txnId from localStorage:", storedId);
+      
+      if (storedId) {
+        return storedId;
+      }
+
+      // Si toujours pas trouvé, essayer de le récupérer depuis la blockchain
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, provider);
       
-      // Méthode 1: Utiliser transactionCount
       const txnCount = await contract.transactionCount();
-      console.log("Transaction count:", txnCount.toString());
-      const txnId = txnCount.sub(1);
-      console.log("Calculated txnId from count:", txnId.toString());
+      console.log("Current transaction count:", txnCount.toString());
       
-      // Vérifier que la transaction existe
-      const txData = await contract.getTransaction(txnId);
-      console.log("Transaction data:", txData);
-      
-      if (txData.amount.gt(0)) {
-        console.log("Valid transaction found with txId:", txnId.toNumber());
-        storeTxnId(txnId.toNumber());
-        return txnId.toNumber();
-      }
-
-      // Méthode 2: Chercher dans les logs si méthode 1 échoue
-      console.log("Getting transaction receipt for hash:", transactionHash);
-      const receipt = await provider.getTransactionReceipt(transactionHash);
-      
-      if (!receipt) {
-        console.error("No receipt found for transaction");
-        return null;
-      }
-
-      console.log("Transaction receipt:", receipt);
-      const contractInterface = new ethers.utils.Interface(ESCROW_ABI);
-      
-      for (const log of receipt.logs) {
-        try {
-          const parsedLog = contractInterface.parseLog(log);
-          if (parsedLog && parsedLog.name === 'TransactionCreated') {
-            const foundTxId = parsedLog.args.txnId.toNumber();
-            console.log("Found TransactionCreated event with txId:", foundTxId);
-            storeTxnId(foundTxId);
-            return foundTxId;
-          }
-        } catch (e) {
-          console.log("Error parsing log:", e);
-          continue;
+      // Parcourir les dernières transactions pour trouver la bonne
+      for (let i = txnCount.sub(1); i.gte(0); i = i.sub(1)) {
+        const txData = await contract.getTransaction(i);
+        console.log(`Checking transaction ${i}:`, txData);
+        
+        if (txData.amount.gt(0)) {
+          // Stocker l'ID trouvé
+          localStorage.setItem(`txnId_${transactionId}`, i.toString());
+          
+          // Mettre à jour Supabase
+          await supabase
+            .from('transactions')
+            .update({ blockchain_txn_id: i.toString() })
+            .eq('id', transactionId);
+            
+          console.log("Found and stored valid txnId:", i.toString());
+          return i.toString();
         }
       }
 
-      return null;
+      throw new Error("Impossible de trouver l'ID de transaction");
     } catch (error) {
-      console.error("Error getting last transaction ID:", error);
-      return null;
+      console.error("Error getting transaction ID:", error);
+      throw new Error("ID de transaction non trouvé");
     }
   };
 
@@ -107,20 +91,6 @@ export const useEscrowTransaction = (transactionId: string) => {
       console.log("Transaction data:", data);
       setStatus(data.escrow_status);
       setFundsSecured(data.funds_secured);
-
-      if (data.transaction_hash) {
-        try {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const txId = await getLastTransactionId(provider, data.transaction_hash);
-          
-          if (txId !== null) {
-            console.log("Valid txId found:", txId);
-            storeTxnId(txId);
-          }
-        } catch (error) {
-          console.error("Error processing transaction receipt:", error);
-        }
-      }
     };
 
     fetchTransactionStatus();
