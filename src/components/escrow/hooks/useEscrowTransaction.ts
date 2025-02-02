@@ -17,10 +17,13 @@ export const useEscrowTransaction = (transactionId: string) => {
   const [fundsSecured, setFundsSecured] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const getStoredTxnId = () => {
+  const getStoredTxnId = async (): Promise<string> => {
     const storedId = localStorage.getItem(`txnId_${transactionId}`);
     console.log("Retrieved stored txnId:", storedId);
-    return storedId ? parseInt(storedId) : null;
+    if (!storedId) {
+      throw new Error("No stored transaction ID found");
+    }
+    return storedId;
   };
 
   const storeTxnId = (txnId: number) => {
@@ -30,10 +33,10 @@ export const useEscrowTransaction = (transactionId: string) => {
 
   const getLastTransactionId = async (provider: ethers.providers.Web3Provider, transactionHash: string) => {
     try {
-      const storedId = getStoredTxnId();
+      const storedId = await getStoredTxnId();
       if (storedId !== null) {
         console.log("Using stored txnId:", storedId);
-        return storedId;
+        return parseInt(storedId);
       }
 
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, provider);
