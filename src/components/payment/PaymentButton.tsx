@@ -21,6 +21,7 @@ const ESCROW_ABI = [
   "function createTransaction(address seller) payable returns (uint256)",
   "function confirmTransaction(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "function transactionCount() view returns (uint256)",
   "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
 ];
 
@@ -86,7 +87,7 @@ export function PaymentButton({
 
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
-        gasLimit: 500000
+        gasLimit: 300000
       });
 
       console.log('Transaction sent:', tx.hash);
@@ -95,25 +96,26 @@ export function PaymentButton({
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Récupérer le txnId depuis les événements
-        const event = receipt.events?.find(e => e.event === 'TransactionCreated');
-        const txnId = event?.args?.[0]?.toString();
-        console.log("Transaction ID from event:", txnId);
+        // Récupérer le txnId en utilisant transactionCount
+        const txnCount = await contract.transactionCount();
+        console.log("Transaction count:", txnCount.toString());
+        const txnId = txnCount.sub(1);
+        console.log("Transaction ID:", txnId.toString());
 
-        if (!txnId) {
-          throw new Error("Impossible de récupérer l'ID de la transaction");
-        }
+        // Vérifier que la transaction existe
+        const txData = await contract.getTransaction(txnId);
+        console.log("Transaction data:", txData);
 
         // Stocker le txnId dans le localStorage
         if (transactionId) {
-          localStorage.setItem(`txnId_${transactionId}`, txnId);
-          console.log("Stored txnId in localStorage:", txnId);
+          localStorage.setItem(`txnId_${transactionId}`, txnId.toString());
+          console.log("Stored txnId in localStorage:", txnId.toString());
 
           // Mettre à jour la transaction dans Supabase
           const { error: updateError } = await supabase
             .from('transactions')
             .update({ 
-              blockchain_txn_id: txnId,
+              blockchain_txn_id: txnId.toString(),
               transaction_hash: tx.hash,
               funds_secured: true,
               funds_secured_at: new Date().toISOString()
@@ -124,28 +126,12 @@ export function PaymentButton({
             console.error('Error updating transaction:', updateError);
             throw new Error("Erreur lors de la mise à jour de la transaction");
           }
-
-          // Attendre un peu pour s'assurer que la mise à jour est bien prise en compte
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          // Vérifier que la mise à jour a bien été effectuée
-          const { data: updatedTransaction, error: checkError } = await supabase
-            .from('transactions')
-            .select('*')
-            .eq('id', transactionId)
-            .single();
-
-          if (checkError || !updatedTransaction.funds_secured) {
-            console.error('Transaction update verification failed:', checkError);
-            throw new Error("La mise à jour de la transaction n'a pas pu être vérifiée");
-          }
         }
         
         toast({
           title: "Transaction réussie",
           description: "Les fonds ont été bloqués dans le contrat d'escrow",
         });
-
         onClick();
       } else {
         throw new Error("La transaction a échoué");
