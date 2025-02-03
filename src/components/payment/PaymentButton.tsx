@@ -136,12 +136,17 @@ export function PaymentButton({
             console.error('Error updating transaction:', updateError);
             throw new Error("Erreur lors de la mise à jour de la transaction");
           }
+
+          console.log("Successfully updated transaction in Supabase");
         }
         
         toast({
           title: "Transaction réussie",
           description: "Les fonds ont été bloqués dans le contrat d'escrow",
         });
+
+        // Attendre un peu avant de rediriger pour s'assurer que les mises à jour sont terminées
+        await new Promise(resolve => setTimeout(resolve, 2000));
         onClick();
       } else {
         throw new Error("La transaction a échoué");
