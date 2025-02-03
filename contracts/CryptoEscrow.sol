@@ -22,6 +22,13 @@ contract CryptoEscrow {
     event Debug(string message, uint256 value);
     event DebugAddress(string message, address addr);
 
+    error InvalidSeller();
+    error InvalidAmount();
+    error TransactionNotFound();
+    error NotAuthorized();
+    error AlreadyConfirmed();
+    error TransferFailed();
+
     constructor(address _platform, uint256 _platformFee) {
         require(_platform != address(0), "Invalid platform address");
         require(_platformFee <= 100, "Invalid platform fee");
@@ -30,9 +37,9 @@ contract CryptoEscrow {
     }
 
     function createTransaction(address _seller) external payable returns (uint256) {
-        require(_seller != address(0), "Invalid seller address");
-        require(_seller != msg.sender, "Seller cannot be buyer");
-        require(msg.value > 0, "Amount must be greater than 0");
+        if (_seller == address(0)) revert InvalidSeller();
+        if (_seller == msg.sender) revert InvalidSeller();
+        if (msg.value == 0) revert InvalidAmount();
 
         uint256 txnId = nextTransactionId++;
         
@@ -46,24 +53,31 @@ contract CryptoEscrow {
         });
 
         emit TransactionCreated(txnId, msg.sender, _seller, msg.value);
+        emit Debug("Transaction created with ID", txnId);
+        emit DebugAddress("Seller address", _seller);
+        emit Debug("Amount", msg.value);
+        
         return txnId;
     }
 
     function confirmTransaction(uint256 _txnId) external {
         Transaction storage txn = transactions[_txnId];
-        require(txn.amount > 0, "Transaction does not exist");
-        require(!txn.fundsReleased, "Funds already released");
-        require(msg.sender == txn.buyer || msg.sender == txn.seller, "Not authorized");
+        
+        if (txn.amount == 0) revert TransactionNotFound();
+        if (txn.fundsReleased) revert("Funds already released");
+        if (msg.sender != txn.buyer && msg.sender != txn.seller) revert NotAuthorized();
 
         if (msg.sender == txn.buyer) {
-            require(!txn.buyerConfirmed, "Buyer already confirmed");
+            if (txn.buyerConfirmed) revert AlreadyConfirmed();
             txn.buyerConfirmed = true;
         } else {
-            require(!txn.sellerConfirmed, "Seller already confirmed");
+            if (txn.sellerConfirmed) revert AlreadyConfirmed();
             txn.sellerConfirmed = true;
         }
 
         emit TransactionConfirmed(_txnId, msg.sender);
+        emit Debug("Confirmation received for transaction", _txnId);
+        emit DebugAddress("Confirmed by", msg.sender);
 
         if (txn.buyerConfirmed && txn.sellerConfirmed) {
             txn.fundsReleased = true;
@@ -71,12 +85,15 @@ contract CryptoEscrow {
             uint256 sellerAmount = txn.amount - fee;
             
             (bool platformSuccess,) = platform.call{value: fee}("");
-            require(platformSuccess, "Platform fee transfer failed");
+            if (!platformSuccess) revert TransferFailed();
             
             (bool sellerSuccess,) = txn.seller.call{value: sellerAmount}("");
-            require(sellerSuccess, "Seller transfer failed");
+            if (!sellerSuccess) revert TransferFailed();
             
             emit FundsReleased(_txnId, txn.seller, sellerAmount);
+            emit Debug("Funds released for transaction", _txnId);
+            emit Debug("Amount sent to seller", sellerAmount);
+            emit Debug("Fee sent to platform", fee);
         }
     }
 

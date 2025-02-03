@@ -11,7 +11,9 @@ const ESCROW_ABI = [
   "function confirmTransaction(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
   "function transactionCount() view returns (uint256)",
-  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
+  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)",
+  "event Debug(string message, uint256 value)",
+  "event DebugAddress(string message, address addr)"
 ];
 
 interface PaymentButtonProps {
@@ -80,22 +82,24 @@ export function PaymentButton({
       const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
+      // Récupérer le nombre de transactions avant
+      const txCountBefore = await contract.transactionCount();
+      console.log('Transaction count before:', txCountBefore.toString());
+
       console.log('Creating transaction with params:', {
         seller: sellerAddress,
         amount: ethers.utils.formatEther(amountInWei),
       });
 
-      // Récupérer le nombre de transactions avant la création
-      const txCountBefore = await contract.transactionCount();
-      console.log('Transaction count before:', txCountBefore.toString());
-
+      // Créer la transaction avec plus de gas
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
-        gasLimit: 300000
+        gasLimit: 500000
       });
 
       console.log('Transaction sent:', tx.hash);
       
+      // Attendre la confirmation
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
