@@ -82,7 +82,6 @@ export function PaymentButton({
       const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
-      // Récupérer le nombre de transactions avant
       const txCountBefore = await contract.transactionCount();
       console.log('Transaction count before:', txCountBefore.toString());
 
@@ -91,7 +90,6 @@ export function PaymentButton({
         amount: ethers.utils.formatEther(amountInWei),
       });
 
-      // Créer la transaction avec plus de gas
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
         gasLimit: 500000
@@ -99,29 +97,23 @@ export function PaymentButton({
 
       console.log('Transaction sent:', tx.hash);
       
-      // Attendre la confirmation
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Récupérer le nouveau nombre de transactions
         const txCountAfter = await contract.transactionCount();
         console.log('Transaction count after:', txCountAfter.toString());
         
-        // Le txnId est le dernier index
         const txnId = txCountAfter.sub(1);
         console.log('Calculated txnId:', txnId.toString());
 
-        // Vérifier que la transaction existe
         const txData = await contract.getTransaction(txnId);
         console.log("Transaction data:", txData);
 
         if (transactionId) {
-          // Stocker dans localStorage
           localStorage.setItem(`txnId_${transactionId}`, txnId.toString());
           console.log("Stored txnId in localStorage:", txnId.toString());
 
-          // Mettre à jour Supabase
           const { error: updateError } = await supabase
             .from('transactions')
             .update({ 
@@ -145,9 +137,23 @@ export function PaymentButton({
           description: "Les fonds ont été bloqués dans le contrat d'escrow",
         });
 
-        // Attendre un peu avant de rediriger pour s'assurer que les mises à jour sont terminées
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        onClick();
+        // Attendre que la mise à jour soit bien enregistrée dans Supabase
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Vérifier que la mise à jour a bien été effectuée avant de rediriger
+        const { data: updatedTransaction } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('id', transactionId)
+          .single();
+          
+        console.log("Verified transaction update:", updatedTransaction);
+        
+        if (updatedTransaction?.funds_secured) {
+          onClick();
+        } else {
+          throw new Error("La mise à jour de la transaction n'a pas été confirmée");
+        }
       } else {
         throw new Error("La transaction a échoué");
       }
