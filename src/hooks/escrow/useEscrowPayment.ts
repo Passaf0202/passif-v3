@@ -35,16 +35,16 @@ export function useEscrowPayment({
     try {
       setIsProcessing(true);
       setError(null);
-      console.log('Starting escrow payment process for listing:', listingId);
+      console.log('🔹 Starting escrow payment process for listing:', listingId);
 
-      // Get the authenticated user first
+      // Get the authenticated user
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
       if (authError || !authUser) {
-        console.error('Auth error:', authError);
+        console.error('🚨 Auth error:', authError);
         throw new Error("Vous devez être connecté pour effectuer un paiement");
       }
 
-      // Récupérer les détails de l'annonce et du vendeur
+      // Récupérer les détails de l'annonce
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .select(`
@@ -57,101 +57,95 @@ export function useEscrowPayment({
         .eq('id', listingId)
         .single();
 
-      if (listingError || !listing) {
-        console.error('Error fetching listing:', listingError);
+      if (listingError || !listing || !listing.user?.wallet_address || !listing.crypto_amount) {
+        console.error('🚨 Error fetching listing:', listingError);
         throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
-      if (!listing.user?.wallet_address) {
-        console.error('No wallet address found for seller');
-        throw new Error("Le vendeur n'a pas connecté son portefeuille");
+      console.log("🟢 Listing details:", listing);
+
+      if (listing.user.wallet_address.toLowerCase() === address.toLowerCase()) {
+        throw new Error("Vous ne pouvez pas acheter votre propre annonce");
       }
 
-      if (!listing.crypto_amount) {
-        console.error('No crypto amount found for listing');
-        throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
-      }
-
-      // Vérifier le solde avant la transaction
+      // Vérifier le solde
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const balance = await provider.getBalance(address);
       const amountInWei = ethers.utils.parseEther(listing.crypto_amount.toString());
-      
+
       if (balance.lt(amountInWei)) {
         throw new Error("Fonds insuffisants dans votre portefeuille");
       }
 
-      // Get the active contract
+      // Récupérer le smart contract
       const activeContract = await getActiveContract();
-      console.log('Active contract found:', activeContract);
+      if (!activeContract?.address) {
+        throw new Error("Aucun contrat actif trouvé");
+      }
+      console.log("🔹 Active contract:", activeContract);
 
-      // Get contract instance
       const contract = await getContract(activeContract.address);
-      console.log('Contract instance initialized');
+      console.log("🟢 Contract instance initialized:", contract);
 
-      // Estimate gas for the transaction
+      // Estimation des frais de gas
       const gasPrice = await provider.getGasPrice();
-      const gasLimit = ethers.BigNumber.from("300000");
-      const totalCost = amountInWei.add(gasPrice.mul(gasLimit));
-      
+      const estimatedGasLimit = await contract.estimateGas.createTransaction(listing.user.wallet_address, {
+        value: amountInWei
+      });
+
+      const totalCost = amountInWei.add(gasPrice.mul(estimatedGasLimit));
       if (balance.lt(totalCost)) {
         throw new Error("Fonds insuffisants pour couvrir les frais de transaction");
       }
 
-      console.log('Creating transaction with params:', {
-        sellerAddress: listing.user.wallet_address,
+      console.log("🔹 Transaction parameters:", {
+        seller: listing.user.wallet_address,
         amount: ethers.utils.formatEther(amountInWei),
-        gasLimit: gasLimit.toString(),
+        gasLimit: estimatedGasLimit.toString(),
         gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
       });
 
-      // Create the transaction
+      // Exécuter la transaction
       const tx = await contract.createTransaction(listing.user.wallet_address, {
         value: amountInWei,
-        gasLimit,
+        gasLimit: estimatedGasLimit,
         gasPrice
       });
 
-      console.log('Transaction sent:', tx.hash);
+      console.log("🟢 Transaction sent:", tx.hash);
       if (onTransactionHash) {
         onTransactionHash(tx.hash);
       }
 
       const receipt = await tx.wait();
-      console.log('Transaction receipt:', receipt);
+      console.log("🟢 Transaction confirmed:", receipt);
 
-      // Create transaction record with correct user IDs and contract address
+      // Créer l'entrée transaction en base de données
       const transaction = await createTransaction(
         listingId,
         authUser.id,
         listing.user.id,
         listing.crypto_amount,
-        listing.crypto_amount * 0.05, // 5% commission
+        listing.crypto_amount * 0.05,
         activeContract.address,
         activeContract.chain_id
       );
 
       if (receipt.status === 1) {
-        // Update transaction status with funds_secured = true
         await updateTransactionStatus(transaction.id, 'processing', tx.hash);
-        
-        const { error: updateError } = await supabase
-          .from('transactions')
+
+        await supabase.from('transactions')
           .update({
             funds_secured: true,
             funds_secured_at: new Date().toISOString()
           })
           .eq('id', transaction.id);
 
-        if (updateError) {
-          console.error('Error updating transaction funds_secured status:', updateError);
-        }
-
         setTransactionStatus('confirmed');
         toast({
-          title: "Transaction initiée",
-          description: "Les fonds ont été bloqués dans le contrat d'escrow. Ils seront libérés après confirmation des deux parties.",
+          title: "Transaction réussie",
+          description: "Les fonds sont bloqués dans l'escrow.",
         });
         onPaymentComplete();
       } else {
@@ -159,12 +153,12 @@ export function useEscrowPayment({
       }
 
     } catch (error: any) {
-      console.error('Payment error:', error);
+      console.error('🚨 Payment error:', error);
       setError(error.message || "Une erreur est survenue lors du paiement");
       setTransactionStatus('failed');
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors du paiement",
+        description: error.message || "Une erreur est survenue",
         variant: "destructive",
       });
     } finally {
