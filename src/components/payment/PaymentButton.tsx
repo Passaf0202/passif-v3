@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork } from 'wagmi';
@@ -21,8 +22,6 @@ const ESCROW_ABI = [
   "function createTransaction(address seller) payable returns (uint256)",
   "function confirmTransaction(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
-  "function transactionCount() view returns (uint256)",
-  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
 ];
 
 export function PaymentButton({ 
@@ -58,76 +57,51 @@ export function PaymentButton({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
+      console.log('Starting transaction with params:', {
+        sellerAddress,
+        amount: cryptoAmount
+      });
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const buyerAddress = await signer.getAddress();
-
-      if (buyerAddress.toLowerCase() === sellerAddress.toLowerCase()) {
-        throw new Error("L'acheteur et le vendeur doivent être différents");
-      }
-
-      console.log('Converting amount to Wei:', cryptoAmount);
-      const formattedAmount = cryptoAmount.toFixed(18);
-      console.log('Formatted amount:', formattedAmount);
-      const amountInWei = ethers.utils.parseEther(formattedAmount);
-      console.log('Amount in Wei:', amountInWei.toString());
       
-      const balance = await provider.getBalance(buyerAddress);
-      if (balance.lt(amountInWei)) {
-        throw new Error("Solde insuffisant pour le paiement");
-      }
-
       const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
-      console.log('Creating transaction with params:', {
-        seller: sellerAddress,
-        amount: ethers.utils.formatEther(amountInWei),
-      });
+      const amountInWei = ethers.utils.parseEther(cryptoAmount.toString());
+      console.log('Amount in Wei:', amountInWei.toString());
 
+      // Estimer le gas avec une marge de sécurité
+      const estimatedGas = await contract.estimateGas.createTransaction(sellerAddress, {
+        value: amountInWei
+      });
+      const gasLimit = estimatedGas.mul(120).div(100); // +20% de marge
+
+      console.log('Creating transaction with gasLimit:', gasLimit.toString());
+      
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
-        gasLimit: 300000
+        gasLimit: gasLimit
       });
 
       console.log('Transaction sent:', tx.hash);
-      
+
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Récupérer le txnId en utilisant transactionCount
-        const txnCount = await contract.transactionCount();
-        console.log("Transaction count:", txnCount.toString());
-        const txnId = txnCount.sub(1);
-        console.log("Transaction ID:", txnId.toString());
-
-        // Vérifier que la transaction existe
-        const txData = await contract.getTransaction(txnId);
-        console.log("Transaction data:", txData);
-
-        // Stocker le txnId dans le localStorage
-        if (transactionId) {
-          localStorage.setItem(`txnId_${transactionId}`, txnId.toString());
-          console.log("Stored txnId in localStorage:", txnId.toString());
-
-          // Mettre à jour la transaction dans Supabase
-          const { error: updateError } = await supabase
-            .from('transactions')
-            .update({ 
-              blockchain_txn_id: txnId.toString(),
-              transaction_hash: tx.hash,
-              funds_secured: true,
-              funds_secured_at: new Date().toISOString()
-            })
-            .eq('id', transactionId);
-
-          if (updateError) {
-            console.error('Error updating transaction:', updateError);
-            throw new Error("Erreur lors de la mise à jour de la transaction");
+        // Trouver l'ID de transaction dans les logs
+        const event = receipt.events?.find(e => e.event === 'TransactionCreated');
+        if (event && event.args) {
+          const txnId = event.args.txnId.toString();
+          console.log('Transaction ID from event:', txnId);
+          
+          // Stocker le txnId dans le localStorage pour une utilisation ultérieure
+          if (transactionId) {
+            localStorage.setItem(`txnId_${transactionId}`, txnId);
           }
         }
-        
+
         toast({
           title: "Transaction réussie",
           description: "Les fonds ont été bloqués dans le contrat d'escrow",
