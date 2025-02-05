@@ -38,6 +38,11 @@ export function PaymentButton({
   const { switchNetwork } = useSwitchNetwork();
   const { toast } = useToast();
 
+  const formatAmount = (amount: number): string => {
+    // Limiter à 18 décimales (maximum supporté par Ethereum)
+    return amount.toFixed(18).replace(/\.?0+$/, '');
+  };
+
   const handleClick = async () => {
     if (!isConnected || !sellerAddress || !cryptoAmount) {
       toast({
@@ -59,7 +64,7 @@ export function PaymentButton({
 
       console.log('Starting transaction with params:', {
         sellerAddress,
-        amount: cryptoAmount
+        amount: formatAmount(cryptoAmount)
       });
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -68,14 +73,15 @@ export function PaymentButton({
       const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
 
-      const amountInWei = ethers.utils.parseEther(cryptoAmount.toString());
+      const formattedAmount = formatAmount(cryptoAmount);
+      const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
       console.log('Amount in Wei:', amountInWei.toString());
 
       // Estimer le gas avec une marge de sécurité
       const estimatedGas = await contract.estimateGas.createTransaction(sellerAddress, {
         value: amountInWei
       });
-      const gasLimit = estimatedGas.mul(120).div(100); // +20% de marge
+      const gasLimit = estimatedGas.mul(150).div(100); // +50% de marge
 
       console.log('Creating transaction with gasLimit:', gasLimit.toString());
       
