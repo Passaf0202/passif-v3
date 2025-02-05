@@ -34,7 +34,8 @@ contract CryptoEscrow {
         require(_seller != msg.sender, "Seller cannot be buyer");
         require(msg.value > 0, "Amount must be greater than 0");
 
-        uint256 txnId = nextTransactionId++;
+        uint256 txnId = nextTransactionId;
+        nextTransactionId += 1;
         
         transactions[txnId] = Transaction({
             buyer: msg.sender,
