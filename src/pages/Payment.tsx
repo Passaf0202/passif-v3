@@ -30,6 +30,11 @@ export default function Payment() {
         return initialListing;
       }
       
+      if (!id || id === 'USDC') {
+        console.error('Invalid listing ID:', id);
+        throw new Error('Invalid listing ID');
+      }
+      
       console.log('Fetching listing with ID:', id);
       const { data, error } = await supabase
         .from('listings')
@@ -56,7 +61,7 @@ export default function Payment() {
       console.log('Fetched listing:', data);
       return data;
     },
-    enabled: !initialListing && !!id,
+    enabled: !initialListing && !!id && id !== 'USDC',
     retry: false
   });
 
@@ -84,7 +89,7 @@ export default function Payment() {
   const { data: transaction } = useQuery({
     queryKey: ['transaction', id, user?.id],
     queryFn: async () => {
-      if (!user?.id || !id) return null;
+      if (!user?.id || !id || id === 'USDC') return null;
       
       const { data, error } = await supabase
         .from('transactions')
@@ -102,7 +107,7 @@ export default function Payment() {
       console.log('Latest transaction:', data);
       return data;
     },
-    enabled: !!id && !!user?.id
+    enabled: !!id && !!user?.id && id !== 'USDC'
   });
 
   const currentListing = initialListing || fetchedListing;
