@@ -47,35 +47,59 @@ contract CryptoEscrow {
         });
 
         emit TransactionCreated(txnId, msg.sender, _seller, msg.value);
+        emit Debug("Transaction created with ID", txnId);
+        emit DebugAddress("Buyer address", msg.sender);
+        emit DebugAddress("Seller address", _seller);
+        
         return txnId;
     }
 
     function confirmTransaction(uint256 _txnId) external {
+        emit Debug("Confirming transaction", _txnId);
+        emit DebugAddress("Confirmer address", msg.sender);
+        
         Transaction storage txn = transactions[_txnId];
+        
+        // Vérifier que la transaction existe
         require(txn.amount > 0, "Transaction does not exist");
+        emit Debug("Transaction amount", txn.amount);
+        
+        // Vérifier que les fonds ne sont pas déjà libérés
         require(!txn.fundsReleased, "Funds already released");
+        
+        // Vérifier que l'appelant est soit l'acheteur soit le vendeur
         require(msg.sender == txn.buyer || msg.sender == txn.seller, "Not authorized");
-
+        
+        // Mettre à jour la confirmation
         if (msg.sender == txn.buyer) {
             require(!txn.buyerConfirmed, "Buyer already confirmed");
             txn.buyerConfirmed = true;
+            emit Debug("Buyer confirmed", _txnId);
         } else {
             require(!txn.sellerConfirmed, "Seller already confirmed");
             txn.sellerConfirmed = true;
+            emit Debug("Seller confirmed", _txnId);
         }
 
         emit TransactionConfirmed(_txnId, msg.sender);
 
+        // Si les deux parties ont confirmé, libérer les fonds
         if (txn.buyerConfirmed && txn.sellerConfirmed) {
+            emit Debug("Both parties confirmed, releasing funds", _txnId);
+            
             txn.fundsReleased = true;
             uint256 fee = (txn.amount * platformFee) / 100;
             uint256 sellerAmount = txn.amount - fee;
             
+            // Transférer les frais à la plateforme
             (bool platformSuccess,) = platform.call{value: fee}("");
             require(platformSuccess, "Platform fee transfer failed");
+            emit Debug("Platform fee transferred", fee);
             
+            // Transférer le montant au vendeur
             (bool sellerSuccess,) = txn.seller.call{value: sellerAmount}("");
             require(sellerSuccess, "Seller transfer failed");
+            emit Debug("Seller amount transferred", sellerAmount);
             
             emit FundsReleased(_txnId, txn.seller, sellerAmount);
         }
