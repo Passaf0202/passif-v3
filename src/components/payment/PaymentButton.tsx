@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork } from 'wagmi';
@@ -21,7 +22,8 @@ const ESCROW_ABI = [
   "function createTransaction(address seller) payable returns (uint256)",
   "function confirmTransaction(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
-  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
+  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)",
+  "event FundsDeposited(uint256 txnId, address buyer, address seller, uint256 amount)"
 ];
 
 export function PaymentButton({ 
@@ -93,12 +95,12 @@ export function PaymentButton({
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
-      const event = receipt.events?.find(e => e.event === 'TransactionCreated');
-      if (!event || !event.args) {
+      const fundsDepositedEvent = receipt.events?.find(e => e.event === 'FundsDeposited');
+      if (!fundsDepositedEvent || !fundsDepositedEvent.args) {
         throw new Error("Impossible de récupérer l'ID de transaction");
       }
 
-      const txnId = event.args.txnId.toString();
+      const txnId = fundsDepositedEvent.args.txnId.toString();
       console.log('Transaction ID from event:', txnId);
 
       if (transactionId) {

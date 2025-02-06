@@ -7,7 +7,8 @@ const ESCROW_ABI = [
   "function confirmTransaction(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
   "function transactionCount() view returns (uint256)",
-  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
+  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)",
+  "event FundsDeposited(uint256 txnId, address buyer, address seller, uint256 amount)"
 ];
 
 const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
@@ -39,34 +40,39 @@ export const useEscrowTransaction = (transactionId: string) => {
         return transaction.blockchain_txn_id.toString();
       }
 
-      // If not in Supabase, check blockchain directly
-      console.log("Checking blockchain for transaction...");
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = new ethers.Contract(contractAddress, ESCROW_ABI, provider);
-      
-      const txnCount = await contract.transactionCount();
-      console.log("Current transaction count:", txnCount.toString());
-      
-      // Look through recent transactions
-      for (let i = txnCount.sub(1); i.gte(0) && i.gte(txnCount.sub(10)); i = i.sub(1)) {
-        const txData = await contract.getTransaction(i);
-        console.log(`Checking transaction ${i}:`, txData);
+      // If not in Supabase, try to get from transaction hash
+      if (transaction?.transaction_hash) {
+        console.log("Found transaction hash, fetching receipt:", transaction.transaction_hash);
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const receipt = await provider.getTransactionReceipt(transaction.transaction_hash);
         
-        if (txData.amount.gt(0)) {
-          // Store found ID
-          const foundId = i.toString();
-          console.log("Found valid transaction ID:", foundId);
-          
-          await supabase
-            .from('transactions')
-            .update({ 
-              blockchain_txn_id: Number(foundId),
-              funds_secured: true,
-              funds_secured_at: new Date().toISOString()
+        if (receipt) {
+          const contract = new ethers.Contract(contractAddress, ESCROW_ABI, provider);
+          const fundsDepositedEvent = receipt.logs
+            .map(log => {
+              try {
+                return contract.interface.parseLog(log);
+              } catch (e) {
+                return null;
+              }
             })
-            .eq('id', transactionId);
-            
-          return foundId;
+            .find(event => event && event.name === 'FundsDeposited');
+
+          if (fundsDepositedEvent) {
+            const txnId = fundsDepositedEvent.args.txnId.toString();
+            console.log("Found txnId from FundsDeposited event:", txnId);
+
+            await supabase
+              .from('transactions')
+              .update({ 
+                blockchain_txn_id: Number(txnId),
+                funds_secured: true,
+                funds_secured_at: new Date().toISOString()
+              })
+              .eq('id', transactionId);
+
+            return txnId;
+          }
         }
       }
 
