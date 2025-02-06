@@ -25,7 +25,7 @@ export const useEscrowTransaction = (transactionId: string) => {
       // Try to get from Supabase first
       const { data: transaction, error } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, transaction_hash')
+        .select('blockchain_txn_id, transaction_hash, funds_secured')
         .eq('id', transactionId)
         .single();
 
@@ -39,26 +39,8 @@ export const useEscrowTransaction = (transactionId: string) => {
         return transaction.blockchain_txn_id.toString();
       }
 
-      // If not in Supabase, try localStorage
-      const storedId = localStorage.getItem(`txnId_${transactionId}`);
-      console.log("Checking localStorage:", storedId);
-      
-      if (storedId) {
-        // Sync with Supabase if found in localStorage
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({ blockchain_txn_id: Number(storedId) })
-          .eq('id', transactionId);
-
-        if (updateError) {
-          console.error("Error updating Supabase:", updateError);
-        }
-        
-        return storedId;
-      }
-
-      // If still not found, try to fetch from blockchain
-      console.log("Attempting to fetch from blockchain...");
+      // If not in Supabase, check blockchain directly
+      console.log("Checking blockchain for transaction...");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const contract = new ethers.Contract(contractAddress, ESCROW_ABI, provider);
       
@@ -77,10 +59,13 @@ export const useEscrowTransaction = (transactionId: string) => {
           
           await supabase
             .from('transactions')
-            .update({ blockchain_txn_id: Number(foundId) })
+            .update({ 
+              blockchain_txn_id: Number(foundId),
+              funds_secured: true,
+              funds_secured_at: new Date().toISOString()
+            })
             .eq('id', transactionId);
             
-          localStorage.setItem(`txnId_${transactionId}`, foundId);
           return foundId;
         }
       }
@@ -88,7 +73,7 @@ export const useEscrowTransaction = (transactionId: string) => {
       throw new Error("ID de transaction non trouvé");
     } catch (error) {
       console.error("Error in getStoredTxnId:", error);
-      throw new Error("ID de transaction non trouvé");
+      throw error;
     }
   };
 
@@ -97,7 +82,7 @@ export const useEscrowTransaction = (transactionId: string) => {
       try {
         const { data, error } = await supabase
           .from("transactions")
-          .select("escrow_status, buyer_confirmation, seller_confirmation, funds_secured, transaction_hash")
+          .select("escrow_status, buyer_confirmation, seller_confirmation, funds_secured")
           .eq("id", transactionId)
           .single();
 

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork } from 'wagmi';
@@ -77,11 +76,10 @@ export function PaymentButton({
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
       console.log('Amount in Wei:', amountInWei.toString());
 
-      // Estimer le gas avec une marge de sécurité
       const estimatedGas = await contract.estimateGas.createTransaction(sellerAddress, {
         value: amountInWei
       });
-      const gasLimit = estimatedGas.mul(150).div(100); // +50% de marge
+      const gasLimit = estimatedGas.mul(150).div(100); // +50% margin
 
       console.log('Creating transaction with gasLimit:', gasLimit.toString());
       
@@ -95,7 +93,6 @@ export function PaymentButton({
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
-      // Trouver l'ID de transaction dans les logs
       const event = receipt.events?.find(e => e.event === 'TransactionCreated');
       if (!event || !event.args) {
         throw new Error("Impossible de récupérer l'ID de transaction");
@@ -104,14 +101,12 @@ export function PaymentButton({
       const txnId = event.args.txnId.toString();
       console.log('Transaction ID from event:', txnId);
 
-      // Stocker le txnId à la fois dans Supabase et localStorage
       if (transactionId) {
         console.log('Storing transaction data:', {
           blockchain_txn_id: txnId,
           transaction_hash: tx.hash
         });
 
-        // Mettre à jour Supabase
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
@@ -126,9 +121,6 @@ export function PaymentButton({
           console.error('Error updating transaction:', updateError);
           throw updateError;
         }
-
-        // Stocker aussi dans localStorage comme backup
-        localStorage.setItem(`txnId_${transactionId}`, txnId);
       }
 
       toast({
