@@ -42,7 +42,7 @@ export const useEscrowTransaction = (transactionId: string) => {
         // Synchroniser avec Supabase si trouvé dans localStorage
         await supabase
           .from('transactions')
-          .update({ blockchain_txn_id: BigInt(storedId) })
+          .update({ blockchain_txn_id: Number(storedId) })
           .eq('id', transactionId);
           
         return storedId;
