@@ -31,7 +31,7 @@ export const useEscrowTransaction = (transactionId: string) => {
       
       if (transaction?.blockchain_txn_id) {
         console.log("Retrieved blockchain_txn_id from Supabase:", transaction.blockchain_txn_id);
-        return transaction.blockchain_txn_id;
+        return transaction.blockchain_txn_id.toString();
       }
 
       // Si pas dans Supabase, essayer localStorage
@@ -42,7 +42,7 @@ export const useEscrowTransaction = (transactionId: string) => {
         // Synchroniser avec Supabase si trouvé dans localStorage
         await supabase
           .from('transactions')
-          .update({ blockchain_txn_id: storedId })
+          .update({ blockchain_txn_id: BigInt(storedId) })
           .eq('id', transactionId);
           
         return storedId;
