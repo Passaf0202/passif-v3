@@ -22,6 +22,7 @@ const ESCROW_ABI = [
   "function createTransaction(address seller) payable returns (uint256)",
   "function confirmTransaction(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
 ];
 
 export function PaymentButton({ 
@@ -95,27 +96,39 @@ export function PaymentButton({
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
-      if (receipt.status === 1) {
-        // Trouver l'ID de transaction dans les logs
-        const event = receipt.events?.find(e => e.event === 'TransactionCreated');
-        if (event && event.args) {
-          const txnId = event.args.txnId.toString();
-          console.log('Transaction ID from event:', txnId);
-          
-          // Stocker le txnId dans le localStorage pour une utilisation ultérieure
-          if (transactionId) {
-            localStorage.setItem(`txnId_${transactionId}`, txnId);
-          }
+      // Trouver l'ID de transaction dans les logs
+      const event = receipt.events?.find(e => e.event === 'TransactionCreated');
+      if (!event || !event.args) {
+        throw new Error("Impossible de récupérer l'ID de transaction");
+      }
+
+      const txnId = event.args.txnId.toString();
+      console.log('Transaction ID from event:', txnId);
+
+      // Stocker le txnId à la fois dans Supabase et localStorage
+      if (transactionId) {
+        // Mettre à jour Supabase
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            blockchain_txn_id: txnId,
+            transaction_hash: tx.hash
+          })
+          .eq('id', transactionId);
+
+        if (updateError) {
+          console.error('Error updating transaction:', updateError);
         }
 
-        toast({
-          title: "Transaction réussie",
-          description: "Les fonds ont été bloqués dans le contrat d'escrow",
-        });
-        onClick();
-      } else {
-        throw new Error("La transaction a échoué");
+        // Stocker aussi dans localStorage comme backup
+        localStorage.setItem(`txnId_${transactionId}`, txnId);
       }
+
+      toast({
+        title: "Transaction réussie",
+        description: "Les fonds ont été bloqués dans le contrat d'escrow",
+      });
+      onClick();
 
     } catch (error: any) {
       console.error('Transaction error:', error);
@@ -169,3 +182,4 @@ export function PaymentButton({
     </div>
   );
 }
+
