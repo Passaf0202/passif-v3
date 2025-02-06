@@ -106,17 +106,25 @@ export function PaymentButton({
 
       // Stocker le txnId à la fois dans Supabase et localStorage
       if (transactionId) {
+        console.log('Storing transaction data:', {
+          blockchain_txn_id: txnId,
+          transaction_hash: tx.hash
+        });
+
         // Mettre à jour Supabase
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
-            blockchain_txn_id: txnId,
-            transaction_hash: tx.hash
+            blockchain_txn_id: Number(txnId),
+            transaction_hash: tx.hash,
+            funds_secured: true,
+            funds_secured_at: new Date().toISOString()
           })
           .eq('id', transactionId);
 
         if (updateError) {
           console.error('Error updating transaction:', updateError);
+          throw updateError;
         }
 
         // Stocker aussi dans localStorage comme backup
