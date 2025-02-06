@@ -40,7 +40,6 @@ export function PaymentButton({
   const { toast } = useToast();
 
   const formatAmount = (amount: number): string => {
-    // Limiter à 18 décimales (maximum supporté par Ethereum)
     return amount.toFixed(18).replace(/\.?0+$/, '');
   };
 
@@ -182,4 +181,3 @@ export function PaymentButton({
     </div>
   );
 }
-
