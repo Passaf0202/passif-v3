@@ -1,11 +1,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork } from 'wagmi';
-import { amoy } from '@/config/chains';
 import { useToast } from "@/components/ui/use-toast";
-import { ethers } from 'ethers';
-import { supabase } from "@/integrations/supabase/client";
+import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
+import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -18,14 +16,6 @@ interface PaymentButtonProps {
   transactionId?: string;
 }
 
-const ESCROW_ABI = [
-  "function createTransaction(address seller) payable returns (uint256)",
-  "function confirmTransaction(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
-  "event TransactionCreated(uint256 indexed txnId, address indexed buyer, address indexed seller, uint256 amount)",
-  "event FundsDeposited(uint256 indexed txnId, address indexed buyer, address indexed seller, uint256 amount)"
-];
-
 export function PaymentButton({ 
   isProcessing, 
   isConnected, 
@@ -36,13 +26,9 @@ export function PaymentButton({
   sellerAddress,
   transactionId
 }: PaymentButtonProps) {
-  const { chain } = useNetwork();
-  const { switchNetwork } = useSwitchNetwork();
   const { toast } = useToast();
-
-  const formatAmount = (amount: number): string => {
-    return amount.toFixed(18).replace(/\.?0+$/, '');
-  };
+  const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
+  const { createTransaction } = usePaymentTransaction();
 
   const handleClick = async () => {
     if (!isConnected || !sellerAddress || !cryptoAmount) {
@@ -55,97 +41,9 @@ export function PaymentButton({
     }
 
     try {
-      if (chain?.id !== amoy.id) {
-        if (!switchNetwork) {
-          throw new Error("Impossible de changer de réseau automatiquement");
-        }
-        await switchNetwork(amoy.id);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      await ensureCorrectNetwork();
 
-      console.log('Starting transaction with params:', {
-        sellerAddress,
-        amount: formatAmount(cryptoAmount)
-      });
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      
-      const contractAddress = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
-      const contract = new ethers.Contract(contractAddress, ESCROW_ABI, signer);
-
-      const formattedAmount = formatAmount(cryptoAmount);
-      const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
-      console.log('Amount in Wei:', amountInWei.toString());
-
-      console.log('Creating transaction...');
-      const tx = await contract.createTransaction(sellerAddress, {
-        value: amountInWei,
-      });
-
-      console.log('Transaction sent:', tx.hash);
-      const receipt = await tx.wait();
-      console.log('Transaction receipt:', receipt);
-
-      let txnId: number | null = null;
-      const iface = new ethers.utils.Interface(ESCROW_ABI);
-      
-      console.log('Processing transaction logs...');
-      console.log('Number of logs:', receipt.logs.length);
-
-      for (const log of receipt.logs) {
-        console.log('Processing log:', {
-          address: log.address,
-          topics: log.topics,
-          data: log.data
-        });
-
-        if (log.address.toLowerCase() === contractAddress.toLowerCase()) {
-          try {
-            const parsed = iface.parseLog(log);
-            console.log('Successfully parsed log:', {
-              name: parsed.name,
-              args: parsed.args
-            });
-
-            if (parsed.name === 'TransactionCreated') {
-              txnId = parsed.args.txnId.toNumber();
-              console.log('Found TransactionCreated event with txnId:', txnId);
-              break;
-            }
-          } catch (e) {
-            console.log('Error parsing log:', e);
-            continue;
-          }
-        }
-      }
-
-      if (!txnId) {
-        console.error('Could not find transaction ID in any logs');
-        throw new Error("Impossible de récupérer l'ID de transaction dans les logs");
-      }
-
-      if (transactionId) {
-        console.log('Storing transaction data:', {
-          blockchain_txn_id: txnId,
-          transaction_hash: tx.hash
-        });
-
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            blockchain_txn_id: txnId,
-            transaction_hash: tx.hash,
-            funds_secured: true,
-            funds_secured_at: new Date().toISOString()
-          })
-          .eq('id', transactionId);
-
-        if (updateError) {
-          console.error('Error updating transaction:', updateError);
-          throw updateError;
-        }
-      }
+      await createTransaction(sellerAddress, cryptoAmount, transactionId);
 
       toast({
         title: "Transaction réussie",
@@ -163,7 +61,6 @@ export function PaymentButton({
     }
   };
 
-  const wrongNetwork = chain?.id !== amoy.id;
   const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress;
 
   return (
@@ -180,7 +77,7 @@ export function PaymentButton({
           </>
         ) : disabled ? (
           "Transaction en attente de confirmation..."
-        ) : wrongNetwork ? (
+        ) : isWrongNetwork ? (
           "Changer vers Polygon Amoy"
         ) : !isConnected ? (
           "Connecter votre wallet"
@@ -197,7 +94,7 @@ export function PaymentButton({
         </p>
       )}
 
-      {wrongNetwork && isConnected && (
+      {isWrongNetwork && isConnected && (
         <p className="text-sm text-red-500 text-center">
           Veuillez vous connecter au réseau Polygon Amoy
         </p>
