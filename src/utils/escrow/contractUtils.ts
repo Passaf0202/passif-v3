@@ -23,10 +23,12 @@ export const getEscrowContract = (provider: ethers.providers.Web3Provider) => {
 export const parseTransactionId = async (receipt: ethers.ContractReceipt): Promise<number> => {
   const iface = new ethers.utils.Interface(ESCROW_ABI);
   
-  console.log('Processing transaction logs...');
+  console.log('Processing transaction logs...', receipt);
   console.log('Number of logs:', receipt.logs.length);
 
-  for (const log of receipt.logs) {
+  // Parcourir tous les logs en commençant par le dernier (le plus récent)
+  for (let i = receipt.logs.length - 1; i >= 0; i--) {
+    const log = receipt.logs[i];
     console.log('Processing log:', {
       address: log.address,
       topics: log.topics,
@@ -41,9 +43,17 @@ export const parseTransactionId = async (receipt: ethers.ContractReceipt): Promi
           args: parsed.args
         });
 
+        // D'abord chercher TransactionCreated
         if (parsed.name === 'TransactionCreated') {
           const txnId = parsed.args.txnId.toNumber();
           console.log('Found TransactionCreated event with txnId:', txnId);
+          return txnId;
+        }
+        
+        // Si on ne trouve pas TransactionCreated, chercher FundsDeposited
+        if (parsed.name === 'FundsDeposited') {
+          const txnId = parsed.args.txnId.toNumber();
+          console.log('Found FundsDeposited event with txnId:', txnId);
           return txnId;
         }
       } catch (e) {

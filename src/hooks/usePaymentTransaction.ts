@@ -9,47 +9,59 @@ export const usePaymentTransaction = () => {
     cryptoAmount: number,
     transactionId?: string
   ) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const contract = getEscrowContract(provider);
-    
-    const formattedAmount = formatAmount(cryptoAmount);
-    const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
-    console.log('Amount in Wei:', amountInWei.toString());
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = getEscrowContract(provider);
+      
+      const formattedAmount = formatAmount(cryptoAmount);
+      const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
+      console.log('Amount in Wei:', amountInWei.toString());
 
-    console.log('Creating transaction...');
-    const tx = await contract.createTransaction(sellerAddress, {
-      value: amountInWei,
-    });
-
-    console.log('Transaction sent:', tx.hash);
-    const receipt = await tx.wait();
-    console.log('Transaction receipt:', receipt);
-
-    const txnId = await parseTransactionId(receipt);
-
-    if (transactionId) {
-      console.log('Storing transaction data:', {
-        blockchain_txn_id: txnId,
-        transaction_hash: tx.hash
+      console.log('Creating transaction with params:', {
+        sellerAddress,
+        cryptoAmount,
+        transactionId,
+        amountInWei: amountInWei.toString()
       });
 
-      const { error: updateError } = await supabase
-        .from('transactions')
-        .update({
+      const tx = await contract.createTransaction(sellerAddress, {
+        value: amountInWei,
+      });
+
+      console.log('Transaction sent:', tx.hash);
+      const receipt = await tx.wait();
+      console.log('Transaction receipt:', receipt);
+
+      const txnId = await parseTransactionId(receipt);
+      console.log('Parsed transaction ID:', txnId);
+
+      if (transactionId) {
+        console.log('Storing transaction data:', {
           blockchain_txn_id: txnId,
-          transaction_hash: tx.hash,
-          funds_secured: true,
-          funds_secured_at: new Date().toISOString()
-        })
-        .eq('id', transactionId);
+          transaction_hash: tx.hash
+        });
 
-      if (updateError) {
-        console.error('Error updating transaction:', updateError);
-        throw updateError;
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            blockchain_txn_id: txnId,
+            transaction_hash: tx.hash,
+            funds_secured: true,
+            funds_secured_at: new Date().toISOString()
+          })
+          .eq('id', transactionId);
+
+        if (updateError) {
+          console.error('Error updating transaction:', updateError);
+          throw updateError;
+        }
       }
-    }
 
-    return txnId;
+      return txnId;
+    } catch (error) {
+      console.error('Error in createTransaction:', error);
+      throw error;
+    }
   };
 
   return { createTransaction };
