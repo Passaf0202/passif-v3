@@ -23,7 +23,6 @@ export const useEscrowTransaction = (transactionId: string) => {
     try {
       console.log("Getting stored transaction ID for:", transactionId);
       
-      // Try to get from Supabase first
       const { data: transaction, error } = await supabase
         .from('transactions')
         .select('blockchain_txn_id, transaction_hash, funds_secured')
@@ -34,13 +33,14 @@ export const useEscrowTransaction = (transactionId: string) => {
         console.error("Error fetching from Supabase:", error);
         throw error;
       }
-      
+
+      // Si l'ID de blockchain est déjà stocké, le retourner
       if (transaction?.blockchain_txn_id) {
         console.log("Found blockchain_txn_id in Supabase:", transaction.blockchain_txn_id);
         return transaction.blockchain_txn_id.toString();
       }
 
-      // If not in Supabase, try to get from transaction hash
+      // Si nous avons un hash de transaction, récupérer l'ID depuis les logs
       if (transaction?.transaction_hash) {
         console.log("Found transaction hash, fetching receipt:", transaction.transaction_hash);
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -48,30 +48,31 @@ export const useEscrowTransaction = (transactionId: string) => {
         
         if (receipt) {
           const contract = new ethers.Contract(contractAddress, ESCROW_ABI, provider);
-          const fundsDepositedEvent = receipt.logs
-            .map(log => {
-              try {
-                return contract.interface.parseLog(log);
-              } catch (e) {
-                return null;
+          
+          // Parcourir tous les logs pour trouver l'événement FundsDeposited
+          for (const log of receipt.logs) {
+            try {
+              const parsedLog = contract.interface.parseLog(log);
+              if (parsedLog.name === 'FundsDeposited') {
+                const txnId = parsedLog.args.txnId.toString();
+                console.log("Found txnId from FundsDeposited event:", txnId);
+
+                // Mettre à jour la transaction dans Supabase
+                await supabase
+                  .from('transactions')
+                  .update({
+                    blockchain_txn_id: txnId,
+                    funds_secured: true,
+                    funds_secured_at: new Date().toISOString()
+                  })
+                  .eq('id', transactionId);
+
+                return txnId;
               }
-            })
-            .find(event => event && event.name === 'FundsDeposited');
-
-          if (fundsDepositedEvent) {
-            const txnId = fundsDepositedEvent.args.txnId.toString();
-            console.log("Found txnId from FundsDeposited event:", txnId);
-
-            await supabase
-              .from('transactions')
-              .update({ 
-                blockchain_txn_id: Number(txnId),
-                funds_secured: true,
-                funds_secured_at: new Date().toISOString()
-              })
-              .eq('id', transactionId);
-
-            return txnId;
+            } catch (e) {
+              console.error("Error parsing log:", e);
+              continue;
+            }
           }
         }
       }

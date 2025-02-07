@@ -78,16 +78,8 @@ export function PaymentButton({
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
       console.log('Amount in Wei:', amountInWei.toString());
 
-      const estimatedGas = await contract.estimateGas.createTransaction(sellerAddress, {
-        value: amountInWei
-      });
-      const gasLimit = estimatedGas.mul(150).div(100); // +50% margin
-
-      console.log('Creating transaction with gasLimit:', gasLimit.toString());
-      
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
-        gasLimit: gasLimit
       });
 
       console.log('Transaction sent:', tx.hash);
@@ -95,13 +87,24 @@ export function PaymentButton({
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
-      const fundsDepositedEvent = receipt.events?.find(e => e.event === 'FundsDeposited');
-      if (!fundsDepositedEvent || !fundsDepositedEvent.args) {
-        throw new Error("Impossible de récupérer l'ID de transaction");
+      // Chercher l'événement FundsDeposited dans les logs
+      let txnId: string | null = null;
+      for (const log of receipt.logs) {
+        try {
+          const parsedLog = contract.interface.parseLog(log);
+          if (parsedLog.name === 'FundsDeposited') {
+            txnId = parsedLog.args.txnId.toString();
+            console.log('Found txnId from FundsDeposited event:', txnId);
+            break;
+          }
+        } catch (e) {
+          continue;
+        }
       }
 
-      const txnId = fundsDepositedEvent.args.txnId.toString();
-      console.log('Transaction ID from event:', txnId);
+      if (!txnId) {
+        throw new Error("Impossible de récupérer l'ID de transaction");
+      }
 
       if (transactionId) {
         console.log('Storing transaction data:', {
@@ -112,7 +115,7 @@ export function PaymentButton({
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
-            blockchain_txn_id: Number(txnId),
+            blockchain_txn_id: txnId,
             transaction_hash: tx.hash,
             funds_secured: true,
             funds_secured_at: new Date().toISOString()
