@@ -88,12 +88,12 @@ export function PaymentButton({
       console.log('Transaction receipt:', receipt);
 
       // Chercher l'événement FundsDeposited dans les logs
-      let txnId: string | null = null;
+      let txnId: number | null = null;
       for (const log of receipt.logs) {
         try {
           const parsedLog = contract.interface.parseLog(log);
           if (parsedLog.name === 'FundsDeposited') {
-            txnId = parsedLog.args.txnId.toString();
+            txnId = parsedLog.args.txnId.toNumber(); // Convertir en number
             console.log('Found txnId from FundsDeposited event:', txnId);
             break;
           }
