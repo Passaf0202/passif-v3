@@ -23,7 +23,7 @@ const ESCROW_ABI = [
   "function confirmTransaction(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
   "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)",
-  "event FundsDeposited(uint256 txnId, address buyer, address seller, uint256 amount)"
+  "event FundsDeposited(uint256 indexed txnId, address buyer, address seller, uint256 amount)"
 ];
 
 export function PaymentButton({ 
@@ -78,32 +78,61 @@ export function PaymentButton({
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
       console.log('Amount in Wei:', amountInWei.toString());
 
+      // Créer la transaction
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
       });
 
       console.log('Transaction sent:', tx.hash);
 
+      // Attendre la confirmation de la transaction
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
-      // Chercher l'événement FundsDeposited dans les logs
+      // Parcourir les logs pour trouver l'événement FundsDeposited
       let txnId: number | null = null;
+      const iface = new ethers.utils.Interface(ESCROW_ABI);
+      
       for (const log of receipt.logs) {
         try {
-          const parsedLog = contract.interface.parseLog(log);
-          if (parsedLog.name === 'FundsDeposited') {
-            txnId = parsedLog.args.txnId.toNumber(); // Convertir en number
-            console.log('Found txnId from FundsDeposited event:', txnId);
-            break;
+          // Vérifier si le log vient de notre contrat
+          if (log.address.toLowerCase() === contractAddress.toLowerCase()) {
+            const parsed = iface.parseLog(log);
+            console.log('Parsed log:', parsed);
+            
+            if (parsed.name === 'FundsDeposited') {
+              txnId = parsed.args.txnId.toNumber();
+              console.log('Found FundsDeposited event with txnId:', txnId);
+              break;
+            }
           }
         } catch (e) {
+          console.log('Error parsing log:', e);
           continue;
         }
       }
 
       if (!txnId) {
-        throw new Error("Impossible de récupérer l'ID de transaction");
+        // Essayer de trouver l'événement TransactionCreated si FundsDeposited n'est pas trouvé
+        for (const log of receipt.logs) {
+          try {
+            if (log.address.toLowerCase() === contractAddress.toLowerCase()) {
+              const parsed = iface.parseLog(log);
+              if (parsed.name === 'TransactionCreated') {
+                txnId = parsed.args.txnId.toNumber();
+                console.log('Found TransactionCreated event with txnId:', txnId);
+                break;
+              }
+            }
+          } catch (e) {
+            console.log('Error parsing log:', e);
+            continue;
+          }
+        }
+      }
+
+      if (!txnId) {
+        throw new Error("Impossible de récupérer l'ID de transaction dans les logs");
       }
 
       if (transactionId) {
