@@ -49,7 +49,7 @@ export function EscrowStatus({
 
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, buyer_confirmation, funds_secured')
+        .select('blockchain_txn_id, buyer_confirmation, funds_secured, funds_secured_at')
         .eq('id', transactionId)
         .single();
 
@@ -58,7 +58,7 @@ export function EscrowStatus({
         throw new Error("Transaction non trouvée");
       }
 
-      if (!transaction.funds_secured) {
+      if (!transaction.funds_secured || !transaction.funds_secured_at) {
         throw new Error("Les fonds n'ont pas encore été sécurisés pour cette transaction");
       }
 
@@ -66,8 +66,8 @@ export function EscrowStatus({
         throw new Error("Vous avez déjà confirmé cette transaction");
       }
 
-      if (!transaction.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain manquant");
+      if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === "0") {
+        throw new Error("ID de transaction blockchain invalide ou manquant");
       }
 
       const txnId = Number(transaction.blockchain_txn_id);
