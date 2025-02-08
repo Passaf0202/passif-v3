@@ -48,7 +48,7 @@ export function EscrowStatus({
       // Récupérer les détails de la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('*')
+        .select('blockchain_txn_id')
         .eq('id', transactionId)
         .single();
 
@@ -57,61 +57,29 @@ export function EscrowStatus({
         throw new Error("Transaction non trouvée");
       }
 
-      const blockchainTxnId = transaction.blockchain_txn_id;
-      if (!blockchainTxnId || isNaN(Number(blockchainTxnId))) {
-        console.error('Invalid blockchain transaction ID:', blockchainTxnId);
+      // S'assurer que l'ID est un nombre simple
+      const txnId = Number(transaction.blockchain_txn_id);
+      if (isNaN(txnId)) {
         throw new Error("ID de transaction blockchain invalide");
       }
 
+      console.log('Using blockchain transaction ID:', txnId);
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const signerAddress = await signer.getAddress();
-      console.log('Signer address:', signerAddress);
-
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
         ESCROW_ABI,
         signer
       );
 
-      // Vérifier l'état de la transaction sur la blockchain
-      try {
-        const txnState = await contract.getTransaction(Number(blockchainTxnId));
-        console.log('Transaction state on blockchain:', txnState);
-
-        if (txnState.fundsReleased) {
-          throw new Error("Les fonds ont déjà été libérés pour cette transaction");
-        }
-
-        // Vérifier que le signataire est bien l'acheteur
-        if (txnState.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-          console.error('Signer is not the buyer:', {
-            signer: signerAddress,
-            buyer: txnState.buyer
-          });
-          throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
-        }
-
-      } catch (error: any) {
-        console.error('Error checking transaction state:', error);
-        if (error.message.includes("invalid BigNumber")) {
-          throw new Error("Transaction introuvable sur la blockchain");
-        }
-        throw error;
-      }
-
-      // Appeler confirmTransaction avec le bon ID
-      console.log('Calling confirmTransaction with ID:', blockchainTxnId);
-      const tx = await contract.confirmTransaction(Number(blockchainTxnId), {
-        gasLimit: ethers.utils.hexlify(500000)
-      });
-
+      const tx = await contract.confirmTransaction(txnId);
       console.log('Transaction sent:', tx.hash);
+      
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Mettre à jour le statut dans Supabase
         const { error } = await supabase
           .from('transactions')
           .update({
