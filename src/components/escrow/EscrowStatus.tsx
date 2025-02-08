@@ -49,7 +49,7 @@ export function EscrowStatus({
       // Récupérer la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, funds_secured')
+        .select('blockchain_txn_id, funds_secured, status')
         .eq('id', transactionId)
         .single();
 
@@ -60,7 +60,11 @@ export function EscrowStatus({
 
       console.log('Transaction data:', transaction);
 
-      // Vérifier que la transaction existe et que les fonds sont sécurisés
+      // Vérifier le statut et les fonds de la transaction
+      if (transaction.status === 'completed') {
+        throw new Error("Cette transaction a déjà été complétée");
+      }
+
       if (!transaction.funds_secured) {
         throw new Error("Les fonds n'ont pas encore été sécurisés dans le contrat");
       }
@@ -81,6 +85,12 @@ export function EscrowStatus({
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
+
+      // Vérifier que l'utilisateur est bien l'acheteur
+      if (isUserBuyer === false) {
+        throw new Error("Seul l'acheteur peut libérer les fonds");
+      }
       
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
@@ -95,6 +105,15 @@ export function EscrowStatus({
         
         if (!txData.amount.gt(0)) {
           throw new Error("Transaction non trouvée dans le contrat");
+        }
+
+        // Vérifier que l'utilisateur est bien l'acheteur de la transaction
+        if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+          throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
+        }
+
+        if (txData.fundsReleased) {
+          throw new Error("Les fonds ont déjà été libérés");
         }
       } catch (error) {
         console.error('Error checking transaction:', error);
