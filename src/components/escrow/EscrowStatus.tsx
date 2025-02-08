@@ -35,16 +35,16 @@ export function EscrowStatus({
   const { switchNetwork } = useSwitchNetwork();
 
   const generateBlockchainTxnId = (uuid: string): string => {
-    // Convertir l'UUID en un petit nombre entier pour le smart contract
-    const numericId = parseInt(uuid.replace(/-/g, '').substring(0, 6), 16);
-    return numericId.toString();
+    // Convertir l'UUID en un nombre plus petit et valide pour le smart contract
+    const numStr = uuid.replace(/-/g, '').substring(0, 8);
+    const num = parseInt(numStr, 16) % 1000000; // S'assurer que le nombre reste raisonnable
+    return num.toString();
   };
 
   const handleConfirm = async () => {
     try {
       setIsLoading(true);
 
-      // S'assurer qu'on est sur le bon réseau
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -52,7 +52,6 @@ export function EscrowStatus({
         await switchNetwork(amoy.id);
       }
 
-      // Récupérer les détails de la transaction
       const { data: transaction } = await supabase
         .from('transactions')
         .select('*')
@@ -65,7 +64,6 @@ export function EscrowStatus({
 
       console.log('Transaction details:', transaction);
 
-      // Connecter au smart contract
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
@@ -74,11 +72,11 @@ export function EscrowStatus({
         signer
       );
 
-      // Générer ou utiliser l'ID de transaction blockchain
-      const blockchainTxnId = transaction.blockchain_txn_id || generateBlockchainTxnId(transaction.id);
-      console.log('Using blockchain transaction ID:', blockchainTxnId);
-
-      if (!transaction.blockchain_txn_id) {
+      // Récupérer ou générer l'ID de transaction blockchain
+      let blockchainTxnId = transaction.blockchain_txn_id;
+      if (!blockchainTxnId) {
+        blockchainTxnId = generateBlockchainTxnId(transaction.id);
+        
         // Mettre à jour la transaction avec l'ID blockchain
         const { error: updateError } = await supabase
           .from('transactions')
@@ -90,20 +88,33 @@ export function EscrowStatus({
 
         if (updateError) {
           console.error('Error updating transaction:', updateError);
+          throw new Error("Erreur lors de la mise à jour de la transaction");
         }
       }
 
+      console.log('Using blockchain transaction ID:', blockchainTxnId);
+
       // Vérifier l'état de la transaction avant confirmation
-      const txnState = await contract.getTransaction(blockchainTxnId);
-      console.log('Transaction state:', txnState);
+      try {
+        const txnState = await contract.getTransaction(blockchainTxnId);
+        console.log('Transaction state:', txnState);
 
-      // Confirmer la transaction sur la blockchain avec un gas limit explicite
-      console.log('Confirming blockchain transaction:', blockchainTxnId);
+        if (txnState.fundsReleased) {
+          throw new Error("Les fonds ont déjà été libérés pour cette transaction");
+        }
+      } catch (error: any) {
+        if (error.message.includes("invalid BigNumber")) {
+          throw new Error("ID de transaction invalide");
+        }
+        throw error;
+      }
+
+      // Confirmer la transaction avec un gas limit explicite
       const tx = await contract.confirmTransaction(blockchainTxnId, {
-        gasLimit: ethers.utils.hexlify(500000) // Gas limit plus élevé
+        gasLimit: ethers.utils.hexlify(500000)
       });
-      console.log('Confirmation transaction sent:', tx.hash);
 
+      console.log('Confirmation transaction sent:', tx.hash);
       const receipt = await tx.wait();
       console.log('Confirmation receipt:', receipt);
 
@@ -132,7 +143,9 @@ export function EscrowStatus({
       if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
         errorMessage = "Erreur d'estimation du gas. Essayez d'augmenter la limite.";
       } else if (error.message.includes('execution reverted')) {
-        errorMessage = "La transaction a été rejetée par le contrat. Vérifiez les paramètres.";
+        errorMessage = "La transaction a été rejetée par le contrat. Essayez de rafraîchir la page et réessayer.";
+      } else {
+        errorMessage = error.message || errorMessage;
       }
 
       toast({
