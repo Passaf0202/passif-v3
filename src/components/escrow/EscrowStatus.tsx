@@ -44,17 +44,23 @@ export function EscrowStatus({
           throw new Error("Impossible de changer de réseau automatiquement");
         }
         await switchNetwork(amoy.id);
+        // Ajouter un délai pour s'assurer que le réseau est bien changé
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id')
+        .select('blockchain_txn_id, buyer_confirmation')
         .eq('id', transactionId)
         .single();
 
       if (txError || !transaction) {
         console.error('Error fetching transaction:', txError);
         throw new Error("Transaction non trouvée");
+      }
+
+      if (transaction.buyer_confirmation) {
+        throw new Error("Vous avez déjà confirmé cette transaction");
       }
 
       const txnId = Number(transaction.blockchain_txn_id);
@@ -95,9 +101,16 @@ export function EscrowStatus({
         throw new Error("Vous avez déjà confirmé cette transaction");
       }
 
-      // Appeler confirmTransaction avec un gas limit approprié
+      // Estimer le gas avant la transaction
+      const gasEstimate = await contract.estimateGas.confirmTransaction(txnId);
+      console.log('Estimated gas:', gasEstimate.toString());
+
+      // Ajouter une marge de sécurité de 20% au gas estimé
+      const gasLimit = gasEstimate.mul(120).div(100);
+      console.log('Gas limit with 20% margin:', gasLimit.toString());
+
       const tx = await contract.confirmTransaction(txnId, {
-        gasLimit: 1000000
+        gasLimit: gasLimit
       });
       console.log('Transaction sent:', tx.hash);
       
@@ -127,9 +140,11 @@ export function EscrowStatus({
       let errorMessage = "Une erreur est survenue lors de la confirmation";
       
       if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
-        errorMessage = "Erreur d'estimation du gas. Essayez d'augmenter la limite.";
+        errorMessage = "Erreur d'estimation du gas. La transaction n'est peut-être pas valide.";
       } else if (error.message.includes('execution reverted')) {
-        errorMessage = "Transaction rejetée : vérifiez que vous êtes bien l'acheteur et que la transaction existe sur la blockchain.";
+        errorMessage = "Transaction rejetée : vérifiez que vous êtes bien l'acheteur et que la transaction existe.";
+      } else if (error.message.includes('insufficient funds')) {
+        errorMessage = "Fonds insuffisants pour payer les frais de transaction.";
       } else {
         errorMessage = error.message || errorMessage;
       }
