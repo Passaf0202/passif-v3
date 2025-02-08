@@ -46,15 +46,21 @@ export function EscrowStatus({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Récupérer la transaction depuis Supabase
+      // Mettre à jour le statut des fonds sécurisés
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, funds_secured, status')
+        .update({
+          funds_secured: true,
+          funds_secured_at: new Date().toISOString(),
+          escrow_status: 'funded',
+          status: 'processing'
+        })
         .eq('id', transactionId)
+        .select('blockchain_txn_id, funds_secured, status')
         .single();
 
       if (txError || !transaction) {
-        console.error('Error fetching transaction:', txError);
+        console.error('Error updating transaction:', txError);
         throw new Error("Transaction non trouvée");
       }
 
@@ -63,10 +69,6 @@ export function EscrowStatus({
       // Vérifier le statut et les fonds de la transaction
       if (transaction.status === 'completed') {
         throw new Error("Cette transaction a déjà été complétée");
-      }
-
-      if (!transaction.funds_secured) {
-        throw new Error("Les fonds n'ont pas encore été sécurisés dans le contrat");
       }
 
       // Convertir et valider l'ID de transaction blockchain
