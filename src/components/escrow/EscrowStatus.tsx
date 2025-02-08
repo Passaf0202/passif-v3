@@ -2,7 +2,7 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
@@ -30,10 +30,53 @@ export function EscrowStatus({
   currentUserId,
 }: EscrowStatusProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isFundsSecured, setIsFundsSecured] = useState(false);
   const { toast } = useToast();
   const isUserBuyer = currentUserId === buyerId;
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
+
+  useEffect(() => {
+    const checkTransactionStatus = async () => {
+      const { data: transaction, error } = await supabase
+        .from('transactions')
+        .select('funds_secured, blockchain_txn_id, transaction_hash')
+        .eq('id', transactionId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching transaction:', error);
+        return;
+      }
+
+      console.log('Transaction status:', transaction);
+      setIsFundsSecured(transaction.funds_secured);
+    };
+
+    checkTransactionStatus();
+
+    // Subscribe to transaction updates
+    const subscription = supabase
+      .channel(`transaction-${transactionId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "transactions",
+          filter: `id=eq.${transactionId}`,
+        },
+        (payload) => {
+          console.log('Transaction updated:', payload);
+          setIsFundsSecured(payload.new.funds_secured);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [transactionId]);
 
   const handleConfirm = async () => {
     try {
@@ -76,12 +119,12 @@ export function EscrowStatus({
 
       // Vérifier si les fonds ont été sécurisés
       if (!transaction.funds_secured) {
-        throw new Error("Les fonds n'ont pas encore été sécurisés");
+        throw new Error("Les fonds n'ont pas encore été sécurisés. Veuillez patienter que la transaction blockchain soit confirmée.");
       }
 
       // Vérifier le blockchain_txn_id
       if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === "0") {
-        throw new Error("La transaction n'a pas encore été enregistrée sur la blockchain");
+        throw new Error("La transaction n'a pas encore été enregistrée sur la blockchain. Veuillez patienter.");
       }
 
       console.log('Blockchain transaction ID:', transaction.blockchain_txn_id);
@@ -168,8 +211,8 @@ export function EscrowStatus({
       
       let errorMessage = "Une erreur est survenue lors de la libération des fonds";
       
-      if (error.message.includes("n'a pas encore été enregistrée")) {
-        errorMessage = "La transaction n'a pas encore été enregistrée sur la blockchain";
+      if (error.message.includes("encore été sécurisés")) {
+        errorMessage = "Les fonds n'ont pas encore été sécurisés sur la blockchain. Veuillez patienter quelques minutes et réessayer.";
       } else if (error.message.includes("user rejected")) {
         errorMessage = "Vous avez rejeté la transaction";
       } else if (error.message.includes("insufficient funds")) {
@@ -192,18 +235,24 @@ export function EscrowStatus({
 
   return (
     <div className="space-y-4">
-      <Alert>
+      <Alert variant={isFundsSecured ? "default" : "destructive"}>
         <AlertDescription>
-          {isUserBuyer
-            ? "En tant qu'acheteur, vous pouvez confirmer la réception de l'article pour libérer les fonds."
-            : "En tant que vendeur, vous recevrez les fonds une fois que l'acheteur aura confirmé la réception."}
+          {isUserBuyer ? (
+            isFundsSecured ? (
+              "En tant qu'acheteur, vous pouvez confirmer la réception de l'article pour libérer les fonds."
+            ) : (
+              "Veuillez patienter que les fonds soient sécurisés sur la blockchain avant de pouvoir les libérer."
+            )
+          ) : (
+            "En tant que vendeur, vous recevrez les fonds une fois que l'acheteur aura confirmé la réception."
+          )}
         </AlertDescription>
       </Alert>
 
       {isUserBuyer && (
         <Button
           onClick={handleConfirm}
-          disabled={isLoading}
+          disabled={isLoading || !isFundsSecured}
           className="w-full bg-purple-500 hover:bg-purple-600"
         >
           {isLoading ? "Libération des fonds en cours..." : "Confirmer la réception"}
