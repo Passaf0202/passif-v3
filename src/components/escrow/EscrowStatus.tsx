@@ -86,16 +86,12 @@ export function EscrowStatus({
         signer
       );
 
-      // Récupérer le nombre total de transactions
-      const transactionCount = await contract.transactionCount();
-      console.log('Transaction count:', transactionCount.toString());
-
-      // Si l'ID est 0, utiliser la dernière transaction créée
-      const finalTxnId = txnId === 0 ? transactionCount : txnId;
-      console.log('Using transaction ID:', finalTxnId.toString());
+      // Important: Ne pas utiliser transactionCount comme ID
+      // Au lieu de cela, utiliser directement l'ID stocké
+      console.log('Using transaction ID:', txnId.toString());
 
       // Vérifier que la transaction existe dans le contrat
-      const txData = await contract.transactions(finalTxnId);
+      const txData = await contract.transactions(txnId);
       console.log('Transaction data from contract:', txData);
       
       if (!txData.amount.gt(0)) {
@@ -117,13 +113,13 @@ export function EscrowStatus({
         throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
       }
 
-      // Estimer le gas
-      const gasEstimate = await contract.estimateGas.releaseFunds(finalTxnId);
+      // Estimer le gas avec une marge plus importante
+      const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
       console.log('Estimated gas:', gasEstimate.toString());
-      const gasLimit = gasEstimate.mul(120).div(100); // +20% de marge
+      const gasLimit = gasEstimate.mul(150).div(100); // +50% de marge
 
       // Envoyer la transaction
-      const tx = await contract.releaseFunds(finalTxnId, {
+      const tx = await contract.releaseFunds(txnId, {
         gasLimit: gasLimit
       });
       console.log('Transaction sent:', tx.hash);
