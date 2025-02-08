@@ -49,7 +49,7 @@ export function EscrowStatus({
 
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, status')
+        .select('blockchain_txn_id, status, transaction_hash')
         .eq('id', transactionId)
         .single();
 
@@ -58,8 +58,10 @@ export function EscrowStatus({
         throw new Error("Transaction non trouvée");
       }
 
-      if (!transaction.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain manquant");
+      // Vérifier que l'ID blockchain existe
+      if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === "0") {
+        console.error('Missing or invalid blockchain transaction ID');
+        throw new Error("ID de transaction blockchain invalide ou manquant");
       }
 
       // Convertir et valider l'ID de transaction blockchain
@@ -68,6 +70,8 @@ export function EscrowStatus({
         console.error('Invalid blockchain transaction ID:', transaction.blockchain_txn_id);
         throw new Error("ID de transaction blockchain invalide");
       }
+
+      console.log('Using transaction ID:', txnId.toString());
 
       // Se connecter au wallet et au contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -86,41 +90,35 @@ export function EscrowStatus({
         signer
       );
 
-      // Important: Ne pas utiliser transactionCount comme ID
-      // Au lieu de cela, utiliser directement l'ID stocké
-      console.log('Using transaction ID:', txnId.toString());
-
       // Vérifier que la transaction existe dans le contrat
       const txData = await contract.transactions(txnId);
       console.log('Transaction data from contract:', txData);
       
-      if (!txData.amount.gt(0)) {
-        throw new Error("Transaction non trouvée dans le contrat");
+      if (!txData.isFunded) {
+        throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
       }
 
-      // Vérifier que l'utilisateur est bien l'acheteur de la transaction
-      if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-        throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
-      }
-
-      // Vérifier que la transaction n'est pas déjà complétée
       if (txData.isCompleted) {
         throw new Error("Les fonds ont déjà été libérés");
       }
 
-      // Vérifier que les fonds sont bien déposés
-      if (!txData.isFunded) {
-        throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
+      if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+        throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
       }
 
       // Estimer le gas avec une marge plus importante
       const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
       console.log('Estimated gas:', gasEstimate.toString());
-      const gasLimit = gasEstimate.mul(150).div(100); // +50% de marge
-
-      // Envoyer la transaction
+      
+      const gasPrice = await provider.getGasPrice();
+      console.log('Gas price:', gasPrice.toString());
+      
+      const adjustedGasLimit = gasEstimate.mul(150).div(100); // +50% de marge
+      
+      // Envoyer la transaction avec le gas limit ajusté
       const tx = await contract.releaseFunds(txnId, {
-        gasLimit: gasLimit
+        gasLimit: adjustedGasLimit,
+        gasPrice: gasPrice.mul(120).div(100) // +20% sur le gas price
       });
       console.log('Transaction sent:', tx.hash);
       
