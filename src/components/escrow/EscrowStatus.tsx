@@ -47,53 +47,55 @@ export function EscrowStatus({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
+      // Récupérer les détails de la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, status, transaction_hash')
+        .select('*')
         .eq('id', transactionId)
-        .single();
+        .maybeSingle();
 
       if (txError || !transaction) {
         console.error('Error fetching transaction:', txError);
         throw new Error("Transaction non trouvée");
       }
 
-      // Vérifier que l'ID blockchain existe
-      if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === "0") {
-        console.error('Missing or invalid blockchain transaction ID');
-        throw new Error("ID de transaction blockchain invalide ou manquant");
+      console.log('Transaction data from database:', transaction);
+
+      // Vérification plus stricte de l'ID blockchain
+      if (!transaction.blockchain_txn_id || 
+          transaction.blockchain_txn_id === "0" || 
+          transaction.blockchain_txn_id === "") {
+        throw new Error("La transaction n'a pas encore été enregistrée sur la blockchain");
       }
 
-      // Convertir et valider l'ID de transaction blockchain
+      // Convertir l'ID en nombre et vérifier sa validité
       const txnId = Number(transaction.blockchain_txn_id);
-      if (isNaN(txnId)) {
-        console.error('Invalid blockchain transaction ID:', transaction.blockchain_txn_id);
+      if (isNaN(txnId) || txnId <= 0) {
         throw new Error("ID de transaction blockchain invalide");
       }
 
-      console.log('Using transaction ID:', txnId.toString());
-
-      // Se connecter au wallet et au contrat
+      // Se connecter au wallet
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
 
-      // Vérifier que l'utilisateur est bien l'acheteur
+      // Vérifier que l'utilisateur est l'acheteur
       if (!isUserBuyer) {
         throw new Error("Seul l'acheteur peut libérer les fonds");
       }
-      
+
+      // Initialiser le contrat
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
         ESCROW_ABI,
         signer
       );
 
-      // Vérifier que la transaction existe dans le contrat
+      // Vérifier l'état de la transaction sur la blockchain
       const txData = await contract.transactions(txnId);
-      console.log('Transaction data from contract:', txData);
-      
+      console.log('Blockchain transaction data:', txData);
+
       if (!txData.isFunded) {
         throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
       }
@@ -106,28 +108,33 @@ export function EscrowStatus({
         throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
       }
 
-      // Estimer le gas avec une marge plus importante
+      // Estimer le gas avec une marge de sécurité importante
       const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
-      console.log('Estimated gas:', gasEstimate.toString());
-      
+      const gasLimit = gasEstimate.mul(150).div(100); // +50% marge
       const gasPrice = await provider.getGasPrice();
-      console.log('Gas price:', gasPrice.toString());
-      
-      const adjustedGasLimit = gasEstimate.mul(150).div(100); // +50% de marge
-      
-      // Envoyer la transaction avec le gas limit ajusté
-      const tx = await contract.releaseFunds(txnId, {
-        gasLimit: adjustedGasLimit,
-        gasPrice: gasPrice.mul(120).div(100) // +20% sur le gas price
+      const adjustedGasPrice = gasPrice.mul(120).div(100); // +20% sur le prix du gas
+
+      console.log('Gas settings:', {
+        estimatedGas: gasEstimate.toString(),
+        adjustedGasLimit: gasLimit.toString(),
+        gasPrice: gasPrice.toString(),
+        adjustedGasPrice: adjustedGasPrice.toString()
       });
-      console.log('Transaction sent:', tx.hash);
-      
+
+      // Envoyer la transaction
+      const tx = await contract.releaseFunds(txnId, {
+        gasLimit,
+        gasPrice: adjustedGasPrice
+      });
+      console.log('Release funds transaction sent:', tx.hash);
+
+      // Attendre la confirmation
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Mettre à jour Supabase
-        const { error } = await supabase
+        // Mettre à jour la base de données
+        const { error: updateError } = await supabase
           .from('transactions')
           .update({
             buyer_confirmation: true,
@@ -137,10 +144,10 @@ export function EscrowStatus({
           })
           .eq('id', transactionId);
 
-        if (error) throw error;
+        if (updateError) throw updateError;
 
         toast({
-          title: "Confirmation réussie",
+          title: "Succès",
           description: "Les fonds ont été libérés au vendeur.",
         });
       } else {
@@ -148,16 +155,15 @@ export function EscrowStatus({
       }
     } catch (error: any) {
       console.error("Error releasing funds:", error);
-      let errorMessage = "Une erreur est survenue lors de la libération des fonds";
+      let errorMessage = error.message || "Une erreur est survenue lors de la libération des fonds";
       
+      // Messages d'erreur plus spécifiques
       if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
         errorMessage = "Erreur d'estimation du gas. La transaction n'est peut-être pas valide.";
-      } else if (error.message.includes('execution reverted')) {
-        errorMessage = "Transaction rejetée : vérifiez que vous êtes bien l'acheteur et que la transaction existe.";
+      } else if (error.message.includes('user rejected')) {
+        errorMessage = "Transaction rejetée par l'utilisateur";
       } else if (error.message.includes('insufficient funds')) {
-        errorMessage = "Fonds insuffisants pour payer les frais de transaction.";
-      } else {
-        errorMessage = error.message || errorMessage;
+        errorMessage = "Fonds insuffisants pour payer les frais de transaction";
       }
 
       toast({
