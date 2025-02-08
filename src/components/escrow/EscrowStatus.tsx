@@ -34,6 +34,12 @@ export function EscrowStatus({
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
 
+  const generateBlockchainTxnId = (uuid: string): string => {
+    // Prendre seulement les 6 premiers caractères et les convertir en nombre
+    const numericId = parseInt(uuid.replace(/-/g, '').substring(0, 6), 16);
+    return numericId.toString();
+  };
+
   const handleConfirm = async () => {
     try {
       setIsLoading(true);
@@ -59,7 +65,7 @@ export function EscrowStatus({
 
       console.log('Transaction details:', transaction);
 
-      // Si l'ID de transaction blockchain n'existe pas, on le crée
+      // Connecter au smart contract
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
@@ -68,9 +74,9 @@ export function EscrowStatus({
         signer
       );
 
-      // Utiliser l'ID de la transaction Supabase comme ID blockchain si nécessaire
-      const blockchainTxnId = transaction.blockchain_txn_id || 
-        ethers.BigNumber.from(transaction.id.replace(/-/g, '')).mod(1000000).toString();
+      // Générer ou utiliser l'ID de transaction blockchain
+      const blockchainTxnId = transaction.blockchain_txn_id || generateBlockchainTxnId(transaction.id);
+      console.log('Using blockchain transaction ID:', blockchainTxnId);
 
       if (!transaction.blockchain_txn_id) {
         // Mettre à jour la transaction avec l'ID blockchain
@@ -87,6 +93,7 @@ export function EscrowStatus({
         }
       }
 
+      // Confirmer la transaction sur la blockchain
       console.log('Confirming blockchain transaction:', blockchainTxnId);
       const tx = await contract.confirmTransaction(blockchainTxnId);
       console.log('Confirmation transaction sent:', tx.hash);
