@@ -73,7 +73,12 @@ export function EscrowStatus({
         signer
       );
 
-      const tx = await contract.confirmTransaction(txnId);
+      const gasLimit = ethers.utils.hexlify(500000);
+      console.log('Using gas limit:', gasLimit);
+
+      const tx = await contract.confirmTransaction(txnId, {
+        gasLimit: gasLimit
+      });
       console.log('Transaction sent:', tx.hash);
       
       const receipt = await tx.wait();
