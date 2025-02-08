@@ -46,9 +46,10 @@ export function EscrowStatus({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
+      // Récupérer la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id')
+        .select('blockchain_txn_id, funds_secured')
         .eq('id', transactionId)
         .single();
 
@@ -57,17 +58,28 @@ export function EscrowStatus({
         throw new Error("Transaction non trouvée");
       }
 
-      const txnId = Number(transaction.blockchain_txn_id);
-      if (isNaN(txnId) || txnId === 0) {
+      console.log('Transaction data:', transaction);
+
+      // Vérifier que la transaction existe et que les fonds sont sécurisés
+      if (!transaction.funds_secured) {
+        throw new Error("Les fonds n'ont pas encore été sécurisés dans le contrat");
+      }
+
+      // Convertir et valider l'ID de transaction blockchain
+      const txnId = transaction.blockchain_txn_id === '0' ? 
+        null : 
+        Number(transaction.blockchain_txn_id);
+
+      if (!txnId || isNaN(txnId)) {
         console.error('Invalid blockchain transaction ID:', transaction.blockchain_txn_id);
         throw new Error("ID de transaction blockchain invalide");
       }
 
       console.log('Using blockchain transaction ID:', txnId);
 
+      // Se connecter au wallet et au contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
-      
       const signer = provider.getSigner();
       
       const contract = new ethers.Contract(
@@ -76,12 +88,26 @@ export function EscrowStatus({
         signer
       );
 
+      // Vérifier que la transaction existe dans le contrat
+      try {
+        const txData = await contract.getTransaction(txnId);
+        console.log('Transaction data from contract:', txData);
+        
+        if (!txData.amount.gt(0)) {
+          throw new Error("Transaction non trouvée dans le contrat");
+        }
+      } catch (error) {
+        console.error('Error checking transaction:', error);
+        throw new Error("Impossible de vérifier la transaction dans le contrat");
+      }
+
+      // Estimer le gas avec une marge de sécurité
       const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
       console.log('Estimated gas:', gasEstimate.toString());
-
-      const gasLimit = gasEstimate.mul(120).div(100);
+      const gasLimit = gasEstimate.mul(120).div(100); // +20% de marge
       console.log('Gas limit with 20% margin:', gasLimit.toString());
 
+      // Envoyer la transaction
       const tx = await contract.releaseFunds(txnId, {
         gasLimit: gasLimit
       });
@@ -91,12 +117,13 @@ export function EscrowStatus({
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
+        // Mettre à jour Supabase
         const { error } = await supabase
           .from('transactions')
           .update({
             buyer_confirmation: true,
-            funds_secured: true,
-            funds_secured_at: new Date().toISOString(),
+            status: 'completed',
+            escrow_status: 'completed',
             updated_at: new Date().toISOString()
           })
           .eq('id', transactionId);
