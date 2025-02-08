@@ -10,7 +10,7 @@ import { amoy } from "@/config/chains";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
+  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)"
 ];
 
 const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
@@ -46,27 +46,21 @@ export function EscrowStatus({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Mettre à jour le statut des fonds sécurisés
+      // Récupérer la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .update({
-          funds_secured: true,
-          funds_secured_at: new Date().toISOString(),
-          escrow_status: 'funded',
-          status: 'processing'
-        })
+        .select('blockchain_txn_id, status')
         .eq('id', transactionId)
-        .select('blockchain_txn_id, funds_secured, status')
         .single();
 
       if (txError || !transaction) {
-        console.error('Error updating transaction:', txError);
+        console.error('Error fetching transaction:', txError);
         throw new Error("Transaction non trouvée");
       }
 
       console.log('Transaction data:', transaction);
 
-      // Vérifier le statut et les fonds de la transaction
+      // Vérifier le statut de la transaction
       if (transaction.status === 'completed') {
         throw new Error("Cette transaction a déjà été complétée");
       }
@@ -102,7 +96,7 @@ export function EscrowStatus({
 
       // Vérifier que la transaction existe dans le contrat
       try {
-        const txData = await contract.getTransaction(txnId);
+        const txData = await contract.transactions(txnId);
         console.log('Transaction data from contract:', txData);
         
         if (!txData.amount.gt(0)) {
@@ -114,8 +108,14 @@ export function EscrowStatus({
           throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
         }
 
-        if (txData.fundsReleased) {
+        // Vérifier que la transaction n'est pas déjà complétée
+        if (txData.isCompleted) {
           throw new Error("Les fonds ont déjà été libérés");
+        }
+
+        // Vérifier que les fonds sont bien déposés
+        if (!txData.isFunded) {
+          throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
         }
       } catch (error) {
         console.error('Error checking transaction:', error);
