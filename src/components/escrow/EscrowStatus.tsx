@@ -35,9 +35,10 @@ export function EscrowStatus({
   const { switchNetwork } = useSwitchNetwork();
 
   const generateBlockchainTxnId = (uuid: string): string => {
-    // Convertir l'UUID en un nombre plus petit et valide pour le smart contract
-    const numStr = uuid.replace(/-/g, '').substring(0, 8);
-    const num = parseInt(numStr, 16) % 1000000; // S'assurer que le nombre reste raisonnable
+    // Générer un petit nombre basé sur les derniers caractères de l'UUID
+    const lastPart = uuid.split('-').pop() || '';
+    const num = parseInt(lastPart.substring(0, 4), 16);
+    console.log('Generated blockchain txn ID from UUID:', num);
     return num.toString();
   };
 
@@ -77,7 +78,6 @@ export function EscrowStatus({
       if (!blockchainTxnId) {
         blockchainTxnId = generateBlockchainTxnId(transaction.id);
         
-        // Mettre à jour la transaction avec l'ID blockchain
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
@@ -94,22 +94,37 @@ export function EscrowStatus({
 
       console.log('Using blockchain transaction ID:', blockchainTxnId);
 
+      // Récupérer l'adresse du signataire
+      const signerAddress = await signer.getAddress();
+      console.log('Signer address:', signerAddress);
+
       // Vérifier l'état de la transaction avant confirmation
       try {
         const txnState = await contract.getTransaction(blockchainTxnId);
-        console.log('Transaction state:', txnState);
+        console.log('Transaction state on blockchain:', txnState);
 
         if (txnState.fundsReleased) {
           throw new Error("Les fonds ont déjà été libérés pour cette transaction");
         }
+
+        // Vérifier que le signataire est bien l'acheteur
+        if (txnState.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+          console.error('Signer is not the buyer:', { 
+            signer: signerAddress, 
+            buyer: txnState.buyer 
+          });
+          throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
+        }
+
       } catch (error: any) {
         if (error.message.includes("invalid BigNumber")) {
-          throw new Error("ID de transaction invalide");
+          console.error('Invalid transaction ID error:', blockchainTxnId);
+          throw new Error("ID de transaction invalide ou transaction non trouvée sur la blockchain");
         }
         throw error;
       }
 
-      // Confirmer la transaction avec un gas limit explicite
+      console.log('Calling confirmTransaction with ID:', blockchainTxnId);
       const tx = await contract.confirmTransaction(blockchainTxnId, {
         gasLimit: ethers.utils.hexlify(500000)
       });
@@ -143,7 +158,7 @@ export function EscrowStatus({
       if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
         errorMessage = "Erreur d'estimation du gas. Essayez d'augmenter la limite.";
       } else if (error.message.includes('execution reverted')) {
-        errorMessage = "La transaction a été rejetée par le contrat. Essayez de rafraîchir la page et réessayer.";
+        errorMessage = "Transaction rejetée : vérifiez que vous êtes bien l'acheteur et que la transaction existe sur la blockchain.";
       } else {
         errorMessage = error.message || errorMessage;
       }
