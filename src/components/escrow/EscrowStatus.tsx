@@ -9,7 +9,7 @@ import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
 
 const ESCROW_ABI = [
-  "function confirmTransaction(uint256 txnId)",
+  "function releaseFunds(uint256 txnId)",
   "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
 ];
 
@@ -98,7 +98,7 @@ export function EscrowStatus({
       const signerAddress = await signer.getAddress();
       console.log('Signer address:', signerAddress);
 
-      // Vérifier l'état de la transaction avant confirmation
+      // Vérifier l'état de la transaction avant libération des fonds
       try {
         const txnState = await contract.getTransaction(blockchainTxnId);
         console.log('Transaction state on blockchain:', txnState);
@@ -124,14 +124,14 @@ export function EscrowStatus({
         throw error;
       }
 
-      console.log('Calling confirmTransaction with ID:', blockchainTxnId);
-      const tx = await contract.confirmTransaction(blockchainTxnId, {
+      console.log('Calling releaseFunds with ID:', blockchainTxnId);
+      const tx = await contract.releaseFunds(blockchainTxnId, {
         gasLimit: ethers.utils.hexlify(500000)
       });
 
-      console.log('Confirmation transaction sent:', tx.hash);
+      console.log('Release funds transaction sent:', tx.hash);
       const receipt = await tx.wait();
-      console.log('Confirmation receipt:', receipt);
+      console.log('Release funds receipt:', receipt);
 
       if (receipt.status === 1) {
         const { error } = await supabase
@@ -145,15 +145,15 @@ export function EscrowStatus({
         if (error) throw error;
 
         toast({
-          title: "Transaction confirmée",
-          description: "La transaction a été confirmée avec succès.",
+          title: "Fonds libérés",
+          description: "Les fonds ont été libérés avec succès au vendeur.",
         });
       } else {
-        throw new Error("La confirmation sur la blockchain a échoué");
+        throw new Error("La libération des fonds sur la blockchain a échoué");
       }
     } catch (error: any) {
-      console.error("Error confirming transaction:", error);
-      let errorMessage = "Une erreur est survenue lors de la confirmation";
+      console.error("Error releasing funds:", error);
+      let errorMessage = "Une erreur est survenue lors de la libération des fonds";
       
       if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
         errorMessage = "Erreur d'estimation du gas. Essayez d'augmenter la limite.";
@@ -195,3 +195,4 @@ export function EscrowStatus({
     </div>
   );
 }
+
