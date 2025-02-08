@@ -32,7 +32,6 @@ export function EscrowStatus({
 }: EscrowStatusProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isFundsSecured, setIsFundsSecured] = useState(false);
-  const [isTransactionComplete, setIsTransactionComplete] = useState(false);
   const { toast } = useToast();
   const isUserBuyer = currentUserId === buyerId;
   const { chain } = useNetwork();
@@ -44,7 +43,7 @@ export function EscrowStatus({
       
       const { data: transaction, error } = await supabase
         .from('transactions')
-        .select('funds_secured, blockchain_txn_id, transaction_hash, status')
+        .select('funds_secured, blockchain_txn_id, transaction_hash')
         .eq('id', transactionId)
         .single();
 
@@ -55,12 +54,10 @@ export function EscrowStatus({
 
       console.log('Transaction status:', transaction);
       setIsFundsSecured(transaction.funds_secured);
-      setIsTransactionComplete(transaction.status === 'completed');
     };
 
     checkTransactionStatus();
 
-    // Subscribe to transaction updates
     const subscription = supabase
       .channel(`transaction-${transactionId}`)
       .on(
@@ -74,7 +71,6 @@ export function EscrowStatus({
         (payload) => {
           console.log('Transaction updated:', payload);
           setIsFundsSecured(payload.new.funds_secured);
-          setIsTransactionComplete(payload.new.status === 'completed');
         }
       )
       .subscribe();
@@ -227,16 +223,6 @@ export function EscrowStatus({
       setIsLoading(false);
     }
   };
-
-  if (isTransactionComplete) {
-    return (
-      <Alert>
-        <AlertDescription>
-          La transaction a été complétée avec succès. Les fonds ont été libérés au vendeur.
-        </AlertDescription>
-      </Alert>
-    );
-  }
 
   return (
     <div className="space-y-4">
