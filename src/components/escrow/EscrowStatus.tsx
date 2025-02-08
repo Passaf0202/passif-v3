@@ -10,7 +10,8 @@ import { amoy } from "@/config/chains";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
-  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)"
+  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)",
+  "function transactionCount() view returns (uint256)"
 ];
 
 const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
@@ -46,7 +47,6 @@ export function EscrowStatus({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Récupérer la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
         .select('blockchain_txn_id, status')
@@ -69,8 +69,6 @@ export function EscrowStatus({
         throw new Error("ID de transaction blockchain invalide");
       }
 
-      console.log('Using blockchain transaction ID:', txnId);
-
       // Se connecter au wallet et au contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
@@ -88,8 +86,16 @@ export function EscrowStatus({
         signer
       );
 
+      // Récupérer le nombre total de transactions
+      const transactionCount = await contract.transactionCount();
+      console.log('Transaction count:', transactionCount.toString());
+
+      // Si l'ID est 0, utiliser la dernière transaction créée
+      const finalTxnId = txnId === 0 ? transactionCount : txnId;
+      console.log('Using transaction ID:', finalTxnId.toString());
+
       // Vérifier que la transaction existe dans le contrat
-      const txData = await contract.transactions(txnId);
+      const txData = await contract.transactions(finalTxnId);
       console.log('Transaction data from contract:', txData);
       
       if (!txData.amount.gt(0)) {
@@ -112,13 +118,12 @@ export function EscrowStatus({
       }
 
       // Estimer le gas
-      const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
+      const gasEstimate = await contract.estimateGas.releaseFunds(finalTxnId);
       console.log('Estimated gas:', gasEstimate.toString());
       const gasLimit = gasEstimate.mul(120).div(100); // +20% de marge
-      console.log('Gas limit with 20% margin:', gasLimit.toString());
 
       // Envoyer la transaction
-      const tx = await contract.releaseFunds(txnId, {
+      const tx = await contract.releaseFunds(finalTxnId, {
         gasLimit: gasLimit
       });
       console.log('Transaction sent:', tx.hash);
@@ -185,7 +190,7 @@ export function EscrowStatus({
         <Button
           onClick={handleConfirm}
           disabled={isLoading}
-          className="w-full"
+          className="w-full bg-purple-500 hover:bg-purple-600"
         >
           {isLoading ? "Libération des fonds en cours..." : "Confirmer la réception"}
         </Button>
