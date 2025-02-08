@@ -10,7 +10,8 @@ import { amoy } from "@/config/chains";
 
 const ESCROW_ABI = [
   "function confirmTransaction(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
+  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "function owner() view returns (address)"
 ];
 
 const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
@@ -64,30 +65,39 @@ export function EscrowStatus({
       console.log('Using blockchain transaction ID:', txnId);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      
       const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
+      console.log('Signer address:', signerAddress);
+      
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
         ESCROW_ABI,
         signer
       );
 
-      // Vérifier d'abord si la transaction existe et si l'utilisateur est bien l'acheteur
-      try {
-        const txData = await contract.getTransaction(txnId);
-        console.log('Transaction data:', txData);
-        
-        const signerAddress = await signer.getAddress();
-        if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-          throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
-        }
-      } catch (error) {
-        console.error('Error checking transaction:', error);
-        throw new Error("Impossible de vérifier la transaction sur la blockchain");
+      // Récupérer les données de la transaction avant la confirmation
+      const txData = await contract.getTransaction(txnId);
+      console.log('Transaction data:', txData);
+
+      if (!txData) {
+        throw new Error("Transaction non trouvée sur la blockchain");
       }
 
-      // Appeler confirmTransaction avec un gas limit plus élevé
+      // Vérifier que l'utilisateur actuel est bien l'acheteur
+      if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+        throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
+      }
+
+      // Si la transaction est déjà confirmée par l'acheteur
+      if (txData.buyerConfirmed) {
+        throw new Error("Vous avez déjà confirmé cette transaction");
+      }
+
+      // Appeler confirmTransaction avec un gas limit approprié
       const tx = await contract.confirmTransaction(txnId, {
-        gasLimit: 1000000 // Augmenté à 1M
+        gasLimit: 1000000
       });
       console.log('Transaction sent:', tx.hash);
       
