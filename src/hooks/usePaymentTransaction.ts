@@ -40,20 +40,26 @@ export const usePaymentTransaction = () => {
         throw new Error("Solde insuffisant pour effectuer la transaction");
       }
 
-      // Estimer le gas avant la transaction
-      try {
-        const gasEstimate = await contract.estimateGas.createTransaction(sellerAddress, {
-          value: amountInWei,
-        });
-        console.log('Estimated gas:', gasEstimate.toString());
-      } catch (gasError: any) {
-        console.error('Gas estimation failed:', gasError);
-        throw new Error("Impossible d'estimer les frais de gas. Vérifiez votre solde et les paramètres de la transaction.");
+      // Estimer le gas avec une marge de sécurité plus importante
+      const gasEstimate = await contract.estimateGas.createTransaction(sellerAddress, {
+        value: amountInWei,
+      });
+      console.log('Estimated gas:', gasEstimate.toString());
+      const gasPrice = await provider.getGasPrice();
+      const adjustedGasLimit = gasEstimate.mul(150).div(100); // +50% de marge
+
+      // Vérifier que le solde peut couvrir le montant + les frais de gas
+      const gasCost = adjustedGasLimit.mul(gasPrice);
+      const totalCost = amountInWei.add(gasCost);
+      if (balance.lt(totalCost)) {
+        throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
+      // Envoyer la transaction avec le gas limit ajusté
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
-        gasLimit: ethers.utils.hexlify(300000), // Gas limit explicite
+        gasLimit: adjustedGasLimit,
+        gasPrice: gasPrice.mul(120).div(100) // +20% sur le gas price pour augmenter les chances de succès
       });
 
       console.log('Transaction sent:', tx.hash);
@@ -100,7 +106,7 @@ export const usePaymentTransaction = () => {
       } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
         throw new Error("Impossible d'estimer les frais de gas. Vérifiez votre solde.");
       } else if (error.code === -32603) {
-        throw new Error("Erreur RPC interne. Vérifiez que vous êtes bien connecté au bon réseau et que vous avez suffisamment de fonds.");
+        throw new Error("Erreur RPC interne. Vérifiez votre connexion au réseau.");
       } else if (error.message.includes('user rejected')) {
         throw new Error("Transaction rejetée par l'utilisateur");
       }
