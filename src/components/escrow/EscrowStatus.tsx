@@ -9,9 +9,8 @@ import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
 
 const ESCROW_ABI = [
-  "function confirmTransaction(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
-  "function owner() view returns (address)"
+  "function releaseFunds(uint256 txnId)",
+  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
 ];
 
 const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
@@ -49,25 +48,13 @@ export function EscrowStatus({
 
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, buyer_confirmation, funds_secured, funds_secured_at')
+        .select('blockchain_txn_id')
         .eq('id', transactionId)
         .single();
 
       if (txError || !transaction) {
         console.error('Error fetching transaction:', txError);
         throw new Error("Transaction non trouvée");
-      }
-
-      if (!transaction.funds_secured || !transaction.funds_secured_at) {
-        throw new Error("Les fonds n'ont pas encore été sécurisés pour cette transaction");
-      }
-
-      if (transaction.buyer_confirmation) {
-        throw new Error("Vous avez déjà confirmé cette transaction");
-      }
-
-      if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === "0") {
-        throw new Error("ID de transaction blockchain invalide ou manquant");
       }
 
       const txnId = Number(transaction.blockchain_txn_id);
@@ -82,8 +69,6 @@ export function EscrowStatus({
       await provider.send("eth_requestAccounts", []);
       
       const signer = provider.getSigner();
-      const signerAddress = await signer.getAddress();
-      console.log('Signer address:', signerAddress);
       
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
@@ -91,28 +76,13 @@ export function EscrowStatus({
         signer
       );
 
-      const txData = await contract.getTransaction(txnId);
-      console.log('Transaction data:', txData);
-
-      if (!txData) {
-        throw new Error("Transaction non trouvée sur la blockchain");
-      }
-
-      if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-        throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
-      }
-
-      if (txData.buyerConfirmed) {
-        throw new Error("Vous avez déjà confirmé cette transaction");
-      }
-
-      const gasEstimate = await contract.estimateGas.confirmTransaction(txnId);
+      const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
       console.log('Estimated gas:', gasEstimate.toString());
 
       const gasLimit = gasEstimate.mul(120).div(100);
       console.log('Gas limit with 20% margin:', gasLimit.toString());
 
-      const tx = await contract.confirmTransaction(txnId, {
+      const tx = await contract.releaseFunds(txnId, {
         gasLimit: gasLimit
       });
       console.log('Transaction sent:', tx.hash);
@@ -125,6 +95,8 @@ export function EscrowStatus({
           .from('transactions')
           .update({
             buyer_confirmation: true,
+            funds_secured: true,
+            funds_secured_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
           .eq('id', transactionId);
@@ -133,14 +105,14 @@ export function EscrowStatus({
 
         toast({
           title: "Confirmation réussie",
-          description: "Les fonds seront libérés une fois que le vendeur aura également confirmé.",
+          description: "Les fonds ont été libérés au vendeur.",
         });
       } else {
-        throw new Error("La confirmation sur la blockchain a échoué");
+        throw new Error("La libération des fonds a échoué");
       }
     } catch (error: any) {
-      console.error("Error confirming transaction:", error);
-      let errorMessage = "Une erreur est survenue lors de la confirmation";
+      console.error("Error releasing funds:", error);
+      let errorMessage = "Une erreur est survenue lors de la libération des fonds";
       
       if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
         errorMessage = "Erreur d'estimation du gas. La transaction n'est peut-être pas valide.";
@@ -178,7 +150,7 @@ export function EscrowStatus({
           disabled={isLoading}
           className="w-full"
         >
-          {isLoading ? "Confirmation en cours..." : "Confirmer la réception"}
+          {isLoading ? "Libération des fonds en cours..." : "Confirmer la réception"}
         </Button>
       )}
     </div>
