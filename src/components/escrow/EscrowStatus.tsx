@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
+import { Loader2 } from "lucide-react";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
@@ -31,6 +32,7 @@ export function EscrowStatus({
 }: EscrowStatusProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isFundsSecured, setIsFundsSecured] = useState(false);
+  const [isTransactionComplete, setIsTransactionComplete] = useState(false);
   const { toast } = useToast();
   const isUserBuyer = currentUserId === buyerId;
   const { chain } = useNetwork();
@@ -38,9 +40,11 @@ export function EscrowStatus({
 
   useEffect(() => {
     const checkTransactionStatus = async () => {
+      console.log('Checking transaction status for ID:', transactionId);
+      
       const { data: transaction, error } = await supabase
         .from('transactions')
-        .select('funds_secured, blockchain_txn_id, transaction_hash')
+        .select('funds_secured, blockchain_txn_id, transaction_hash, status')
         .eq('id', transactionId)
         .single();
 
@@ -51,6 +55,7 @@ export function EscrowStatus({
 
       console.log('Transaction status:', transaction);
       setIsFundsSecured(transaction.funds_secured);
+      setIsTransactionComplete(transaction.status === 'completed');
     };
 
     checkTransactionStatus();
@@ -69,6 +74,7 @@ export function EscrowStatus({
         (payload) => {
           console.log('Transaction updated:', payload);
           setIsFundsSecured(payload.new.funds_secured);
+          setIsTransactionComplete(payload.new.status === 'completed');
         }
       )
       .subscribe();
@@ -81,6 +87,7 @@ export function EscrowStatus({
   const handleConfirm = async () => {
     try {
       setIsLoading(true);
+      console.log('Starting confirmation process...');
 
       // Vérifier que l'utilisateur est sur le bon réseau
       if (chain?.id !== amoy.id) {
@@ -117,18 +124,6 @@ export function EscrowStatus({
 
       console.log('Transaction from database:', transaction);
 
-      // Vérifier si les fonds ont été sécurisés
-      if (!transaction.funds_secured) {
-        throw new Error("Les fonds n'ont pas encore été sécurisés. Veuillez patienter que la transaction blockchain soit confirmée.");
-      }
-
-      // Vérifier le blockchain_txn_id
-      if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === "0") {
-        throw new Error("La transaction n'a pas encore été enregistrée sur la blockchain. Veuillez patienter.");
-      }
-
-      console.log('Blockchain transaction ID:', transaction.blockchain_txn_id);
-
       // Vérifier que l'utilisateur est l'acheteur
       if (!isUserBuyer) {
         throw new Error("Seul l'acheteur peut libérer les fonds");
@@ -153,7 +148,7 @@ export function EscrowStatus({
         throw new Error("Les fonds ont déjà été libérés");
       }
 
-      // Estimer le gas avec une marge de sécurité
+      // Estimer le gas
       const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
       const gasLimit = gasEstimate.mul(150).div(100); // +50% marge
       const gasPrice = await provider.getGasPrice();
@@ -233,6 +228,16 @@ export function EscrowStatus({
     }
   };
 
+  if (isTransactionComplete) {
+    return (
+      <Alert>
+        <AlertDescription>
+          La transaction a été complétée avec succès. Les fonds ont été libérés au vendeur.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <Alert variant={isFundsSecured ? "default" : "destructive"}>
@@ -255,7 +260,14 @@ export function EscrowStatus({
           disabled={isLoading || !isFundsSecured}
           className="w-full bg-purple-500 hover:bg-purple-600"
         >
-          {isLoading ? "Libération des fonds en cours..." : "Confirmer la réception"}
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Libération des fonds en cours...
+            </>
+          ) : (
+            "Confirmer la réception"
+          )}
         </Button>
       )}
     </div>
