@@ -44,13 +44,12 @@ export function EscrowStatus({
           throw new Error("Impossible de changer de réseau automatiquement");
         }
         await switchNetwork(amoy.id);
-        // Ajouter un délai pour s'assurer que le réseau est bien changé
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, buyer_confirmation')
+        .select('blockchain_txn_id, buyer_confirmation, funds_secured')
         .eq('id', transactionId)
         .single();
 
@@ -59,12 +58,21 @@ export function EscrowStatus({
         throw new Error("Transaction non trouvée");
       }
 
+      if (!transaction.funds_secured) {
+        throw new Error("Les fonds n'ont pas encore été sécurisés pour cette transaction");
+      }
+
       if (transaction.buyer_confirmation) {
         throw new Error("Vous avez déjà confirmé cette transaction");
       }
 
+      if (!transaction.blockchain_txn_id) {
+        throw new Error("ID de transaction blockchain manquant");
+      }
+
       const txnId = Number(transaction.blockchain_txn_id);
-      if (isNaN(txnId)) {
+      if (isNaN(txnId) || txnId === 0) {
+        console.error('Invalid blockchain transaction ID:', transaction.blockchain_txn_id);
         throw new Error("ID de transaction blockchain invalide");
       }
 
@@ -83,7 +91,6 @@ export function EscrowStatus({
         signer
       );
 
-      // Récupérer les données de la transaction avant la confirmation
       const txData = await contract.getTransaction(txnId);
       console.log('Transaction data:', txData);
 
@@ -91,21 +98,17 @@ export function EscrowStatus({
         throw new Error("Transaction non trouvée sur la blockchain");
       }
 
-      // Vérifier que l'utilisateur actuel est bien l'acheteur
       if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
         throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
       }
 
-      // Si la transaction est déjà confirmée par l'acheteur
       if (txData.buyerConfirmed) {
         throw new Error("Vous avez déjà confirmé cette transaction");
       }
 
-      // Estimer le gas avant la transaction
       const gasEstimate = await contract.estimateGas.confirmTransaction(txnId);
       console.log('Estimated gas:', gasEstimate.toString());
 
-      // Ajouter une marge de sécurité de 20% au gas estimé
       const gasLimit = gasEstimate.mul(120).div(100);
       console.log('Gas limit with 20% margin:', gasLimit.toString());
 
