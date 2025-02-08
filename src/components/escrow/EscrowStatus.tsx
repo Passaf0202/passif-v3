@@ -45,7 +45,6 @@ export function EscrowStatus({
         await switchNetwork(amoy.id);
       }
 
-      // Récupérer les détails de la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
         .select('blockchain_txn_id')
@@ -57,7 +56,6 @@ export function EscrowStatus({
         throw new Error("Transaction non trouvée");
       }
 
-      // S'assurer que l'ID est un nombre simple
       const txnId = Number(transaction.blockchain_txn_id);
       if (isNaN(txnId)) {
         throw new Error("ID de transaction blockchain invalide");
@@ -73,11 +71,23 @@ export function EscrowStatus({
         signer
       );
 
-      const gasLimit = ethers.utils.hexlify(500000);
-      console.log('Using gas limit:', gasLimit);
+      // Vérifier d'abord si la transaction existe et si l'utilisateur est bien l'acheteur
+      try {
+        const txData = await contract.getTransaction(txnId);
+        console.log('Transaction data:', txData);
+        
+        const signerAddress = await signer.getAddress();
+        if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+          throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
+        }
+      } catch (error) {
+        console.error('Error checking transaction:', error);
+        throw new Error("Impossible de vérifier la transaction sur la blockchain");
+      }
 
+      // Appeler confirmTransaction avec un gas limit plus élevé
       const tx = await contract.confirmTransaction(txnId, {
-        gasLimit: gasLimit
+        gasLimit: 1000000 // Augmenté à 1M
       });
       console.log('Transaction sent:', tx.hash);
       
@@ -140,7 +150,7 @@ export function EscrowStatus({
           disabled={isLoading}
           className="w-full"
         >
-          Confirmer la réception
+          {isLoading ? "Confirmation en cours..." : "Confirmer la réception"}
         </Button>
       )}
     </div>
