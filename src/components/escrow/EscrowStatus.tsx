@@ -57,13 +57,13 @@ export function EscrowStatus({
         throw new Error("Transaction non trouvée");
       }
 
-      if (!transaction.blockchain_txn_id) {
-        console.error('No blockchain transaction ID found');
-        throw new Error("ID de transaction blockchain manquant");
-      }
-
+      // Important : Le blockchain_txn_id doit être un nombre simple (ex: 0, 1, 2...)
+      // correspondant à l'ordre de création dans le smart contract
       const blockchainTxnId = transaction.blockchain_txn_id;
-      console.log('Using blockchain transaction ID:', blockchainTxnId);
+      if (!blockchainTxnId || isNaN(Number(blockchainTxnId))) {
+        console.error('Invalid blockchain transaction ID:', blockchainTxnId);
+        throw new Error("ID de transaction blockchain invalide");
+      }
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -78,7 +78,7 @@ export function EscrowStatus({
 
       // Vérifier l'état de la transaction sur la blockchain
       try {
-        const txnState = await contract.getTransaction(blockchainTxnId);
+        const txnState = await contract.getTransaction(Number(blockchainTxnId));
         console.log('Transaction state on blockchain:', txnState);
 
         if (txnState.fundsReleased) {
@@ -104,7 +104,7 @@ export function EscrowStatus({
 
       // Appeler releaseFunds avec le bon ID
       console.log('Calling releaseFunds with ID:', blockchainTxnId);
-      const tx = await contract.releaseFunds(blockchainTxnId, {
+      const tx = await contract.releaseFunds(Number(blockchainTxnId), {
         gasLimit: ethers.utils.hexlify(500000)
       });
 
@@ -175,4 +175,3 @@ export function EscrowStatus({
     </div>
   );
 }
-
