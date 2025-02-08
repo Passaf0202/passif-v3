@@ -34,14 +34,6 @@ export function EscrowStatus({
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
 
-  const generateBlockchainTxnId = (uuid: string): string => {
-    // Générer un petit nombre basé sur les derniers caractères de l'UUID
-    const lastPart = uuid.split('-').pop() || '';
-    const num = parseInt(lastPart.substring(0, 4), 16);
-    console.log('Generated blockchain txn ID from UUID:', num);
-    return num.toString();
-  };
-
   const handleConfirm = async () => {
     try {
       setIsLoading(true);
@@ -53,52 +45,38 @@ export function EscrowStatus({
         await switchNetwork(amoy.id);
       }
 
-      const { data: transaction } = await supabase
+      // Récupérer les détails de la transaction depuis Supabase
+      const { data: transaction, error: txError } = await supabase
         .from('transactions')
         .select('*')
         .eq('id', transactionId)
         .single();
 
-      if (!transaction) {
+      if (txError || !transaction) {
+        console.error('Error fetching transaction:', txError);
         throw new Error("Transaction non trouvée");
       }
 
-      console.log('Transaction details:', transaction);
+      if (!transaction.blockchain_txn_id) {
+        console.error('No blockchain transaction ID found');
+        throw new Error("ID de transaction blockchain manquant");
+      }
+
+      const blockchainTxnId = transaction.blockchain_txn_id;
+      console.log('Using blockchain transaction ID:', blockchainTxnId);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
+      console.log('Signer address:', signerAddress);
+
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
         ESCROW_ABI,
         signer
       );
 
-      // Récupérer ou générer l'ID de transaction blockchain
-      let blockchainTxnId = transaction.blockchain_txn_id;
-      if (!blockchainTxnId) {
-        blockchainTxnId = generateBlockchainTxnId(transaction.id);
-        
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            blockchain_txn_id: blockchainTxnId,
-            smart_contract_address: ESCROW_CONTRACT_ADDRESS
-          })
-          .eq('id', transactionId);
-
-        if (updateError) {
-          console.error('Error updating transaction:', updateError);
-          throw new Error("Erreur lors de la mise à jour de la transaction");
-        }
-      }
-
-      console.log('Using blockchain transaction ID:', blockchainTxnId);
-
-      // Récupérer l'adresse du signataire
-      const signerAddress = await signer.getAddress();
-      console.log('Signer address:', signerAddress);
-
-      // Vérifier l'état de la transaction avant libération des fonds
+      // Vérifier l'état de la transaction sur la blockchain
       try {
         const txnState = await contract.getTransaction(blockchainTxnId);
         console.log('Transaction state on blockchain:', txnState);
@@ -109,21 +87,22 @@ export function EscrowStatus({
 
         // Vérifier que le signataire est bien l'acheteur
         if (txnState.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-          console.error('Signer is not the buyer:', { 
-            signer: signerAddress, 
-            buyer: txnState.buyer 
+          console.error('Signer is not the buyer:', {
+            signer: signerAddress,
+            buyer: txnState.buyer
           });
           throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
         }
 
       } catch (error: any) {
+        console.error('Error checking transaction state:', error);
         if (error.message.includes("invalid BigNumber")) {
-          console.error('Invalid transaction ID error:', blockchainTxnId);
-          throw new Error("ID de transaction invalide ou transaction non trouvée sur la blockchain");
+          throw new Error("Transaction introuvable sur la blockchain");
         }
         throw error;
       }
 
+      // Appeler releaseFunds avec le bon ID
       console.log('Calling releaseFunds with ID:', blockchainTxnId);
       const tx = await contract.releaseFunds(blockchainTxnId, {
         gasLimit: ethers.utils.hexlify(500000)
@@ -134,6 +113,7 @@ export function EscrowStatus({
       console.log('Release funds receipt:', receipt);
 
       if (receipt.status === 1) {
+        // Mettre à jour le statut dans Supabase
         const { error } = await supabase
           .from('transactions')
           .update({
