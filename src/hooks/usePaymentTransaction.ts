@@ -65,19 +65,19 @@ export const usePaymentTransaction = () => {
         throw new Error("La transaction a échoué sur la blockchain");
       }
 
-      const txnId = await parseTransactionId(receipt);
-      console.log('Parsed transaction ID:', txnId);
+      const blockchainTxnId = await parseTransactionId(receipt);
+      console.log('Parsed transaction ID:', blockchainTxnId);
 
       if (transactionId) {
         console.log('Storing transaction data:', {
-          blockchain_txn_id: txnId,
+          blockchain_txn_id: blockchainTxnId,
           transaction_hash: tx.hash
         });
 
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
-            blockchain_txn_id: txnId,
+            blockchain_txn_id: blockchainTxnId,
             transaction_hash: tx.hash,
             funds_secured: true,
             funds_secured_at: new Date().toISOString()
@@ -90,7 +90,7 @@ export const usePaymentTransaction = () => {
         }
       }
 
-      return txnId;
+      return blockchainTxnId;
     } catch (error: any) {
       console.error('Error in createTransaction:', error);
       
