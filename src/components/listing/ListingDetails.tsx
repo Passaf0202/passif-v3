@@ -49,9 +49,9 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Fetch the listing's original wallet address
+  // Fetch the listing's original wallet address and crypto details
   const { data: listingData } = useQuery({
-    queryKey: ['listing-wallet', listing.id],
+    queryKey: ['listing-details', listing.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('listings')
@@ -60,7 +60,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching listing wallet:', error);
+        console.error('Error fetching listing details:', error);
         throw error;
       }
 
@@ -77,7 +77,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     );
   }
 
-  // Use the listing's stored wallet_address instead of the user's current wallet
   const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
   const cryptoAmount = listingData?.crypto_amount || listing.crypto_amount;
   const cryptoCurrency = listingData?.crypto_currency || listing.crypto_currency || 'POL';
