@@ -29,9 +29,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         .from("transactions")
         .select(`
           *,
-          seller:profiles!transactions_seller_id_fkey (
-            wallet_address
-          ),
           listing:listings!transactions_listing_id_fkey (
             title,
             price
@@ -98,7 +95,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
 
-      if (!transaction.seller?.wallet_address) {
+      if (!transaction.seller_wallet_address) {
         console.error("Transaction data:", transaction);
         throw new Error("L'adresse du vendeur n'a pas été trouvée");
       }

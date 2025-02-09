@@ -414,6 +414,7 @@ export type Database = {
           released_at: string | null
           seller_confirmation: boolean | null
           seller_id: string | null
+          seller_wallet_address: string | null
           smart_contract_address: string | null
           status: string | null
           token_symbol: string | null
@@ -446,6 +447,7 @@ export type Database = {
           released_at?: string | null
           seller_confirmation?: boolean | null
           seller_id?: string | null
+          seller_wallet_address?: string | null
           smart_contract_address?: string | null
           status?: string | null
           token_symbol?: string | null
@@ -478,6 +480,7 @@ export type Database = {
           released_at?: string | null
           seller_confirmation?: boolean | null
           seller_id?: string | null
+          seller_wallet_address?: string | null
           smart_contract_address?: string | null
           status?: string | null
           token_symbol?: string | null
