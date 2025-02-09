@@ -21,7 +21,7 @@ export function PaymentButton({
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency = 'BNB',
+  cryptoCurrency = 'POL',
   onClick,
   disabled = false,
   sellerAddress,
