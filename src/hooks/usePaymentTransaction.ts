@@ -14,6 +14,9 @@ export const usePaymentTransaction = () => {
         throw new Error("MetaMask n'est pas installé");
       }
 
+      console.log('Starting transaction with seller:', sellerAddress);
+      console.log('Amount:', cryptoAmount);
+
       // Forcer la connexion au réseau Polygon Amoy
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
@@ -41,6 +44,7 @@ export const usePaymentTransaction = () => {
 
       // Initialiser le provider et le signer
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []); // Demander la connexion explicitement
       const signer = provider.getSigner();
       console.log('Signer initialized');
 
@@ -53,7 +57,7 @@ export const usePaymentTransaction = () => {
       console.log('Contract initialized:', contract.address);
 
       const formattedAmount = formatAmount(cryptoAmount);
-      const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
+      const amountInWei = ethers.utils.parseEther(formattedAmount);
       console.log('Amount in Wei:', amountInWei.toString());
 
       // Vérifier le solde

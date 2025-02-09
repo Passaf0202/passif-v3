@@ -83,8 +83,6 @@ export const parseTransactionId = async (receipt: ethers.ContractReceipt): Promi
   if (!receipt.logs || receipt.logs.length === 0) {
     throw new Error("Aucun log trouvé dans la transaction");
   }
-
-  // Dans ce cas, nous allons utiliser l'index de la transaction comme ID
   const txIndex = receipt.logs[0].logIndex;
   return txIndex.toString();
 };
