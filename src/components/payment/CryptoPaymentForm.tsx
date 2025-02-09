@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useEscrowPayment } from "@/hooks/escrow/useEscrowPayment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +18,6 @@ interface CryptoPaymentFormProps {
   title: string;
   price: number;
   cryptoAmount?: number;
-  cryptoCurrency?: string;
   sellerAddress?: string;
   onPaymentComplete: () => void;
 }
@@ -29,7 +27,6 @@ export function CryptoPaymentForm({
   title,
   price,
   cryptoAmount: initialCryptoAmount,
-  cryptoCurrency = "BNB",
   sellerAddress,
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
@@ -39,7 +36,7 @@ export function CryptoPaymentForm({
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   
-  const { data: cryptoDetails, isLoading: isCryptoLoading } = useCryptoConversion(price, listingId, cryptoCurrency);
+  const { amount: cryptoDetails, isLoading: isCryptoLoading } = useCryptoConversion(price, listingId);
   
   // Fetch listing details to ensure we have the most up-to-date information
   const { data: listing, isLoading: isListingLoading, error: listingError } = useQuery({
@@ -146,7 +143,7 @@ export function CryptoPaymentForm({
             title={title}
             price={price}
             cryptoAmount={cryptoDetails.amount}
-            cryptoCurrency={cryptoDetails.currency}
+            cryptoCurrency="POL"
           />
 
           <div className="mt-4 space-y-4">
@@ -164,7 +161,7 @@ export function CryptoPaymentForm({
               isProcessing={isProcessing}
               isConnected={!!user}
               cryptoAmount={cryptoDetails.amount}
-              cryptoCurrency={cryptoDetails.currency}
+              cryptoCurrency="POL"
               disabled={isProcessing || !cryptoDetails.amount}
               sellerAddress={currentSellerAddress}
               mode="pay"

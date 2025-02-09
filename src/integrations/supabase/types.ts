@@ -73,39 +73,6 @@ export type Database = {
           },
         ]
       }
-      crypto_rates: {
-        Row: {
-          id: string
-          is_active: boolean | null
-          last_updated: string | null
-          name: string
-          rate_eur: number
-          rate_gbp: number
-          rate_usd: number
-          symbol: string
-        }
-        Insert: {
-          id?: string
-          is_active?: boolean | null
-          last_updated?: string | null
-          name: string
-          rate_eur: number
-          rate_gbp: number
-          rate_usd: number
-          symbol: string
-        }
-        Update: {
-          id?: string
-          is_active?: boolean | null
-          last_updated?: string | null
-          name?: string
-          rate_eur?: number
-          rate_gbp?: number
-          rate_usd?: number
-          symbol?: string
-        }
-        Relationships: []
-      }
       favorites: {
         Row: {
           created_at: string | null

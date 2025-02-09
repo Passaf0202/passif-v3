@@ -8,87 +8,68 @@ interface CryptoAmount {
   currency: string;
 }
 
-export const useCryptoConversion = (price: number, listingId?: string, cryptoCurrency: string = 'BNB'): { data: CryptoAmount | null, isLoading: boolean } => {
-  const { selectedCurrency } = useCurrencyStore();
+const POL_RATES = {
+  EUR: 0.92,
+  USD: 1.00,
+  GBP: 0.79
+};
 
-  const { data: rateData, isLoading } = useQuery({
-    queryKey: ['crypto-rate', cryptoCurrency, selectedCurrency],
+export const useCryptoConversion = (price: number, listingId?: string): { amount: CryptoAmount | null, isLoading: boolean } => {
+  const { selectedCurrency } = useCurrencyStore();
+  const { isLoading } = useQuery({
+    queryKey: ['crypto-rate', selectedCurrency],
     queryFn: async () => {
       try {
-        console.log(`Fetching rate for ${cryptoCurrency} in ${selectedCurrency}`);
+        const rate = POL_RATES[selectedCurrency as keyof typeof POL_RATES];
         
-        const { data, error } = await supabase
-          .from('crypto_rates')
-          .select('*')
-          .eq('symbol', cryptoCurrency)
-          .eq('is_active', true)
-          .maybeSingle();
-        
-        if (error) {
-          console.error('Error fetching rate:', error);
-          return getFallbackRate(cryptoCurrency);
+        if (!rate) {
+          console.error('Invalid currency:', selectedCurrency);
+          return null;
         }
 
-        const rate = selectedCurrency === 'EUR' 
-          ? data?.rate_eur 
-          : selectedCurrency === 'GBP' 
-            ? data?.rate_gbp 
-            : data?.rate_usd;
+        const cryptoAmount = price / rate;
         
-        if (!rate || typeof rate !== 'number' || rate <= 0) {
-          console.error('Invalid rate received:', rate);
-          return getFallbackRate(cryptoCurrency);
-        }
-        
-        console.log('Rate response:', { rate, currency: cryptoCurrency });
-
-        if (listingId && price && rate) {
-          const cryptoAmount = price / rate;
-          await updateListingCryptoAmount(listingId, cryptoAmount, cryptoCurrency);
+        if (listingId && price) {
+          await updateListingCryptoAmount(listingId, cryptoAmount);
         }
 
         return rate;
       } catch (error) {
         console.error('Error in rate query:', error);
-        return getFallbackRate(cryptoCurrency);
+        return null;
       }
     },
-    staleTime: 30000, // Consider data fresh for 30 seconds
+    staleTime: 30000,
     retry: 2,
   });
 
   const calculateCryptoAmount = (): CryptoAmount | null => {
-    if (!price || typeof price !== 'number' || !rateData || typeof rateData !== 'number') {
-      console.log('Invalid price or rate:', { price, rateData });
+    const rate = POL_RATES[selectedCurrency as keyof typeof POL_RATES];
+    
+    if (!price || typeof price !== 'number' || !rate) {
       return null;
     }
 
-    const cryptoAmount = price / rateData;
+    const cryptoAmount = price / rate;
 
     if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
       console.error('Invalid crypto amount calculated:', cryptoAmount);
       return null;
     }
 
-    console.log(`Calculated ${cryptoCurrency} amount:`, {
-      price,
-      rate: rateData,
-      amount: cryptoAmount
-    });
-    
     return {
       amount: cryptoAmount,
-      currency: cryptoCurrency
+      currency: 'POL'
     };
   };
 
   return {
-    data: isLoading ? null : calculateCryptoAmount(),
+    amount: calculateCryptoAmount(),
     isLoading
   };
 };
 
-async function updateListingCryptoAmount(listingId: string, amount: number, currency: string) {
+async function updateListingCryptoAmount(listingId: string, amount: number) {
   try {
     if (!listingId || typeof listingId !== 'string' || listingId.length !== 36) {
       console.error('Invalid listing ID:', listingId);
@@ -99,7 +80,7 @@ async function updateListingCryptoAmount(listingId: string, amount: number, curr
       .from('listings')
       .update({
         crypto_amount: amount,
-        crypto_currency: currency
+        crypto_currency: 'POL'
       })
       .eq('id', listingId);
 
@@ -109,13 +90,4 @@ async function updateListingCryptoAmount(listingId: string, amount: number, curr
   } catch (error) {
     console.error('Error in updateListingCryptoAmount:', error);
   }
-}
-
-function getFallbackRate(currency: string): number {
-  const fallbackRates: Record<string, number> = {
-    'BNB': 275,
-    'USDT': 0.92,
-    'USDC': 0.92,
-  };
-  return fallbackRates[currency] || 1;
 }
