@@ -9,6 +9,7 @@ import { EscrowAlert } from "./EscrowAlert";
 import { TransactionDetails } from "./TransactionDetails";
 import { useCryptoRates } from "@/hooks/useCryptoRates";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
+import { useFundsRelease } from "@/hooks/escrow/useFundsRelease";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -46,6 +47,8 @@ export function CryptoPaymentForm({
     onPaymentComplete,
   });
 
+  const { isLoading: isReleasingFunds, handleReleaseFunds } = useFundsRelease(transactionId || '');
+
   if (!convertedAmount && !initialCryptoAmount) {
     return (
       <div className="flex items-center justify-center p-4">
@@ -81,22 +84,39 @@ export function CryptoPaymentForm({
               Comment fonctionne le paiement sécurisé ?
             </Button>
 
-            <Button
-              onClick={handlePayment}
-              disabled={isProcessing || !finalCryptoAmount || !user}
-              className="w-full bg-primary hover:bg-primary/90"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Transaction en cours...
-                </>
-              ) : !user ? (
-                "Connectez votre wallet"
-              ) : (
-                "Libérer les fonds"
-              )}
-            </Button>
+            {transactionId ? (
+              <Button
+                onClick={handleReleaseFunds}
+                disabled={isReleasingFunds}
+                className="w-full bg-purple-500 hover:bg-purple-600"
+              >
+                {isReleasingFunds ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Libération des fonds en cours...
+                  </>
+                ) : (
+                  "Libérer les fonds"
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={handlePayment}
+                disabled={isProcessing || !finalCryptoAmount || !user}
+                className="w-full bg-primary hover:bg-primary/90"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Transaction en cours...
+                  </>
+                ) : !user ? (
+                  "Connectez votre wallet"
+                ) : (
+                  "Payer"
+                )}
+              </Button>
+            )}
 
             {error && (
               <p className="text-red-500 text-sm mt-2">
