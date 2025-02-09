@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ethers } from "ethers";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,6 +10,7 @@ interface UseEscrowPaymentProps {
   listingId: string;
   address?: string;
   onTransactionHash?: (hash: string) => void;
+  onTransactionCreated?: (id: string) => void;
   onPaymentComplete: () => void;
 }
 
@@ -16,6 +18,7 @@ export function useEscrowPayment({
   listingId, 
   address,
   onTransactionHash,
+  onTransactionCreated,
   onPaymentComplete 
 }: UseEscrowPaymentProps) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -141,6 +144,10 @@ export function useEscrowPayment({
             funds_secured_at: new Date().toISOString()
           })
           .eq('id', transaction.id);
+
+        if (onTransactionCreated) {
+          onTransactionCreated(transaction.id);
+        }
 
         setTransactionStatus('confirmed');
         toast({
