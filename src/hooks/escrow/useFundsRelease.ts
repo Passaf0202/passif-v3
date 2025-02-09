@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
-import { useNetworkSwitch } from "../useNetworkSwitch";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
@@ -20,100 +19,58 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
-  const { ensureCorrectNetwork } = useNetworkSwitch();
 
   const handleReleaseFunds = async () => {
     try {
       setIsLoading(true);
-      console.log('Starting funds release process for transaction:', transactionId);
 
-      // S'assurer d'être sur le bon réseau
-      await ensureCorrectNetwork();
+      // Vérifier et changer de réseau si nécessaire
+      if (chain?.id !== amoy.id) {
+        if (!switchNetwork) {
+          throw new Error("Impossible de changer de réseau automatiquement");
+        }
+        await switchNetwork(amoy.id);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
+      // Initialiser le provider et le signer
       if (!window.ethereum) {
         throw new Error("MetaMask n'est pas installé");
       }
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
-      const signerAddress = await signer.getAddress();
 
-      // Récupérer les détails de la transaction depuis Supabase
+      // Récupérer les détails de la transaction
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('*, listings(*)')
+        .select('*')
         .eq('id', transactionId)
         .single();
 
       if (txError || !transaction) {
-        console.error('Error fetching transaction:', txError);
         throw new Error("Transaction non trouvée");
       }
 
-      console.log('Transaction from database:', transaction);
-
-      if (!transaction.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain manquant");
-      }
-
+      // Créer l'instance du contrat
       const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
-      console.log('Contract instance created');
-
       const txnId = Number(transaction.blockchain_txn_id);
-      const txData = await contract.transactions(txnId);
 
-      console.log('Transaction data from blockchain:', txData);
-
-      if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-        throw new Error("Seul l'acheteur peut libérer les fonds");
-      }
-
-      if (!txData.isFunded) {
-        throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
-      }
-
-      if (txData.isCompleted) {
-        throw new Error("Les fonds ont déjà été libérés");
-      }
-
-      const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
-      const gasLimit = gasEstimate.mul(150).div(100); // +50% de marge
-      const gasPrice = await provider.getGasPrice();
-      const adjustedGasPrice = gasPrice.mul(120).div(100); // +20% sur le gas price
-
-      console.log('Gas estimation:', {
-        estimate: gasEstimate.toString(),
-        limit: gasLimit.toString(),
-        price: gasPrice.toString(),
-        adjustedPrice: adjustedGasPrice.toString()
-      });
-
-      const balance = await provider.getBalance(signerAddress);
-      const gasCost = gasLimit.mul(adjustedGasPrice);
-      if (balance.lt(gasCost)) {
-        throw new Error("Solde insuffisant pour couvrir les frais de transaction");
-      }
-
-      console.log('Sending release funds transaction...');
-      const tx = await contract.releaseFunds(txnId, {
-        gasLimit,
-        gasPrice: adjustedGasPrice
-      });
-
-      console.log('Release funds transaction sent:', tx.hash);
+      // Envoyer la transaction de libération des fonds
+      const tx = await contract.releaseFunds(txnId);
+      console.log('Transaction envoyée:', tx.hash);
 
       const receipt = await tx.wait();
-      console.log('Transaction receipt:', receipt);
+      console.log('Transaction confirmée:', receipt);
 
       if (receipt.status === 1) {
+        // Mettre à jour le statut dans la base de données
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
             status: 'completed',
             escrow_status: 'completed',
-            released_at: new Date().toISOString(),
-            transaction_confirmed_at: new Date().toISOString()
+            released_at: new Date().toISOString()
           })
           .eq('id', transactionId);
 
@@ -128,26 +85,13 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
           onSuccess();
         }
       } else {
-        throw new Error("La libération des fonds a échoué");
+        throw new Error("La transaction a échoué");
       }
     } catch (error: any) {
       console.error('Error releasing funds:', error);
-      
-      let errorMessage = "Une erreur est survenue lors de la libération des fonds";
-      
-      if (error.message.includes("user rejected")) {
-        errorMessage = "Vous avez rejeté la transaction";
-      } else if (error.message.includes("insufficient funds")) {
-        errorMessage = "Solde insuffisant pour payer les frais de transaction";
-      } else if (error.code === "UNPREDICTABLE_GAS_LIMIT") {
-        errorMessage = "Erreur d'estimation du gas. La transaction n'est peut-être pas valide.";
-      } else {
-        errorMessage = error.message;
-      }
-
       toast({
         title: "Erreur",
-        description: errorMessage,
+        description: error.message || "Une erreur est survenue",
         variant: "destructive",
       });
     } finally {
