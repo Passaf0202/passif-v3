@@ -24,6 +24,8 @@ export default function PaymentPage() {
           throw new Error("ID de transaction manquant");
         }
 
+        console.log("Fetching transaction details for ID:", id);
+
         const { data: transaction, error: transactionError } = await supabase
           .from('transactions')
           .select(`
@@ -40,6 +42,9 @@ export default function PaymentPage() {
           `)
           .eq('id', id)
           .maybeSingle();
+
+        console.log("Transaction data:", transaction);
+        console.log("Transaction error:", transactionError);
 
         if (transactionError) {
           console.error("Erreur Supabase:", transactionError);
@@ -72,6 +77,8 @@ export default function PaymentPage() {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Vous devez être connecté");
+
+      console.log("Releasing funds for transaction:", id);
 
       const { error: updateError } = await supabase
         .from('transactions')
