@@ -1,4 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
+import type { CryptoRate } from "@/hooks/useCryptoRates";
 
 export const validateAndUpdateCryptoAmount = async (listing: any) => {
   console.log('Validating crypto amount for listing:', listing);
@@ -22,17 +24,19 @@ export const validateAndUpdateCryptoAmount = async (listing: any) => {
     throw new Error("Impossible de récupérer le taux de conversion BNB");
   }
 
-  if (!cryptoRate.rate_eur || cryptoRate.rate_eur <= 0) {
-    console.error('Invalid BNB rate:', cryptoRate.rate_eur);
+  const rate = cryptoRate as CryptoRate;
+
+  if (!rate.rate_eur || rate.rate_eur <= 0) {
+    console.error('Invalid BNB rate:', rate.rate_eur);
     throw new Error("Taux de conversion BNB invalide");
   }
 
-  const cryptoAmount = Number(listing.price) / cryptoRate.rate_eur;
+  const cryptoAmount = Number(listing.price) / rate.rate_eur;
   
   if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
     console.error('Invalid crypto amount calculated:', {
       price: listing.price,
-      rate: cryptoRate.rate_eur,
+      rate: rate.rate_eur,
       result: cryptoAmount
     });
     throw new Error("Erreur lors du calcul du montant en crypto");
