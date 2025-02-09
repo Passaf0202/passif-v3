@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
+import { useNetworkSwitch } from "../useNetworkSwitch";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
@@ -19,19 +20,15 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
+  const { ensureCorrectNetwork } = useNetworkSwitch();
 
   const handleReleaseFunds = async () => {
     try {
       setIsLoading(true);
       console.log('Starting funds release process for transaction:', transactionId);
 
-      if (chain?.id !== amoy.id) {
-        if (!switchNetwork) {
-          throw new Error("Impossible de changer de réseau automatiquement");
-        }
-        await switchNetwork(amoy.id);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      // S'assurer d'être sur le bon réseau
+      await ensureCorrectNetwork();
 
       if (!window.ethereum) {
         throw new Error("MetaMask n'est pas installé");
@@ -42,29 +39,31 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
 
+      // Récupérer les détails de la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('*')
+        .select('*, listings(*)')
         .eq('id', transactionId)
-        .maybeSingle();
+        .single();
 
       if (txError || !transaction) {
         console.error('Error fetching transaction:', txError);
         throw new Error("Transaction non trouvée");
       }
 
+      console.log('Transaction from database:', transaction);
+
       if (!transaction.blockchain_txn_id) {
         throw new Error("ID de transaction blockchain manquant");
       }
 
-      console.log('Transaction details:', transaction);
-
       const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
-      
-      const blockchainTxnId = Number(transaction.blockchain_txn_id);
-      const txData = await contract.transactions(blockchainTxnId);
+      console.log('Contract instance created');
 
-      console.log('Blockchain transaction data:', txData);
+      const txnId = Number(transaction.blockchain_txn_id);
+      const txData = await contract.transactions(txnId);
+
+      console.log('Transaction data from blockchain:', txData);
 
       if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
         throw new Error("Seul l'acheteur peut libérer les fonds");
@@ -78,10 +77,10 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
         throw new Error("Les fonds ont déjà été libérés");
       }
 
-      const gasEstimate = await contract.estimateGas.releaseFunds(blockchainTxnId);
-      const gasLimit = gasEstimate.mul(150).div(100);
+      const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
+      const gasLimit = gasEstimate.mul(150).div(100); // +50% de marge
       const gasPrice = await provider.getGasPrice();
-      const adjustedGasPrice = gasPrice.mul(120).div(100);
+      const adjustedGasPrice = gasPrice.mul(120).div(100); // +20% sur le gas price
 
       console.log('Gas estimation:', {
         estimate: gasEstimate.toString(),
@@ -96,7 +95,8 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
-      const tx = await contract.releaseFunds(blockchainTxnId, {
+      console.log('Sending release funds transaction...');
+      const tx = await contract.releaseFunds(txnId, {
         gasLimit,
         gasPrice: adjustedGasPrice
       });
@@ -112,7 +112,8 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
           .update({
             status: 'completed',
             escrow_status: 'completed',
-            released_at: new Date().toISOString()
+            released_at: new Date().toISOString(),
+            transaction_confirmed_at: new Date().toISOString()
           })
           .eq('id', transactionId);
 
