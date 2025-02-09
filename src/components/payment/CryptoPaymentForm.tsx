@@ -44,6 +44,10 @@ export function CryptoPaymentForm({
     listingId,
     address: user?.id,
     onTransactionCreated: (id: string) => setTransactionId(id),
+    onPaymentComplete: () => {
+      // Appeler onPaymentComplete quand le paiement initial est complété
+      onPaymentComplete();
+    }
   });
 
   const { isLoading: isReleasingFunds, handleReleaseFunds } = useFundsRelease(transactionId || '', () => {
