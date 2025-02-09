@@ -26,7 +26,13 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     const fetchTransaction = async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select(`*, listing:listings!transactions_listing_id_fkey (title)`)
+        .select(`
+          *,
+          listing:listings!transactions_listing_id_fkey (
+            title,
+            wallet_address
+          )
+        `)
         .eq("id", transactionId)
         .single();
 
@@ -87,6 +93,11 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
+
+      // Vérification de l'adresse du vendeur
+      if (!transaction.listing?.wallet_address) {
+        throw new Error("L'adresse du vendeur n'est pas disponible");
+      }
 
       const contractAddress = transaction.smart_contract_address;
       const abi = ["function releaseFunds(uint256 txnId)"];
