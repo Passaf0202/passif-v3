@@ -15,15 +15,20 @@ export const useSellerAddress = (transactionId: string) => {
           .select(`
             seller_wallet_address,
             listing:listings (
-              user:profiles (
+              user:profiles!listings_user_id_fkey (
                 wallet_address
               )
             )
           `)
           .eq('id', transactionId)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+
+        if (!data) {
+          console.error('No transaction found');
+          return;
+        }
 
         // Try to get seller address from the transaction first
         let address = data.seller_wallet_address;
@@ -54,7 +59,9 @@ export const useSellerAddress = (transactionId: string) => {
       }
     };
 
-    fetchSellerAddress();
+    if (transactionId) {
+      fetchSellerAddress();
+    }
   }, [transactionId, toast]);
 
   return sellerAddress;
