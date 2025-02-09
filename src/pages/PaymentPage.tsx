@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { ethers } from "ethers";
 
 export default function PaymentPage() {
   const { id } = useParams();
@@ -28,25 +29,6 @@ export default function PaymentPage() {
         console.log("Tentative de récupération de la transaction avec ID:", id);
 
         // Vérifions d'abord si l'ID existe dans la table transactions
-        const { data: transactionExists, error: existsError } = await supabase
-          .from('transactions')
-          .select('id')
-          .eq('id', id)
-          .maybeSingle();
-
-        console.log("Vérification initiale de l'existence:", { transactionExists, existsError });
-
-        if (existsError) {
-          console.error("Erreur lors de la vérification initiale:", existsError);
-          throw existsError;
-        }
-
-        if (!transactionExists) {
-          console.error("Aucune transaction trouvée avec l'ID:", id);
-          throw new Error("Transaction non trouvée dans la base de données");
-        }
-
-        // Si la transaction existe, récupérons tous les détails
         const { data: transaction, error: transactionError } = await supabase
           .from('transactions')
           .select(`
@@ -64,7 +46,7 @@ export default function PaymentPage() {
           .eq('id', id)
           .maybeSingle();
 
-        console.log("Détails complets de la transaction:", transaction);
+        console.log("Détails de la transaction:", transaction);
         console.log("Erreur éventuelle:", transactionError);
 
         if (transactionError) {
@@ -77,8 +59,8 @@ export default function PaymentPage() {
         }
 
         if (!transaction) {
-          console.error("Détails de la transaction non trouvés");
-          throw new Error("Impossible de récupérer les détails de la transaction");
+          console.error("Transaction non trouvée");
+          throw new Error("Transaction non trouvée dans la base de données");
         }
 
         if (transaction.released_at) {
@@ -105,8 +87,19 @@ export default function PaymentPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Vous devez être connecté");
 
-      console.log("Tentative de libération des fonds pour la transaction:", id);
+      if (!transactionDetails?.blockchain_txn_id) {
+        throw new Error("ID de transaction blockchain manquant");
+      }
 
+      // Se connecter au contrat
+      if (!window.ethereum) {
+        throw new Error("MetaMask n'est pas installé");
+      }
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      
+      // Mettre à jour la transaction dans Supabase
       const { error: updateError } = await supabase
         .from('transactions')
         .update({
