@@ -16,9 +16,8 @@ export const formatAmount = (amount: number): string => {
   return amount.toFixed(18).replace(/\.?0+$/, '');
 };
 
-export const getEscrowContract = (provider: ethers.providers.Web3Provider) => {
-  const signer = provider.getSigner();
-  return new ethers.Contract(CONTRACT_ADDRESS, ESCROW_ABI, signer);
+export const getEscrowContract = (provider: ethers.providers.Provider) => {
+  return new ethers.Contract(CONTRACT_ADDRESS, ESCROW_ABI, provider);
 };
 
 export const parseTransactionId = async (receipt: ethers.ContractReceipt): Promise<string> => {
@@ -60,3 +59,4 @@ export const parseTransactionId = async (receipt: ethers.ContractReceipt): Promi
 
   throw new Error("Impossible de récupérer l'ID de transaction dans les logs");
 };
+
