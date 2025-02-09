@@ -14,7 +14,7 @@ import { Loader2 } from "lucide-react";
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export default function TransactionStatus() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const [transaction, setTransaction] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +24,7 @@ export default function TransactionStatus() {
     const fetchTransaction = async () => {
       try {
         setLoading(true);
+        setError(null);
         
         // Validate UUID format
         if (!id || !UUID_REGEX.test(id)) {
@@ -48,6 +49,11 @@ export default function TransactionStatus() {
         if (error) {
           console.error("Error fetching transaction:", error);
           setError("Erreur lors de la récupération de la transaction");
+          return;
+        }
+
+        if (!data) {
+          setError("Transaction non trouvée");
           return;
         }
 
