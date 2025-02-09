@@ -88,7 +88,11 @@ export default function ReleaseFunds() {
       const contract = new ethers.Contract(transaction.smart_contract_address, abi, signer);
 
       console.log("Transaction ID for release:", transaction.blockchain_txn_id);
-      const tx = await contract.releaseFunds(transaction.blockchain_txn_id);
+      
+      // Convert blockchain_txn_id to BigNumber if it's a string
+      const txnId = ethers.BigNumber.from(transaction.blockchain_txn_id);
+      const tx = await contract.releaseFunds(txnId);
+      
       console.log("Release funds transaction sent:", tx.hash);
 
       const receipt = await tx.wait();
