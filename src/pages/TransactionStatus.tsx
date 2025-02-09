@@ -2,16 +2,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EscrowStatus } from "@/components/escrow/EscrowStatus";
 import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import { ethers } from "ethers";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { TransactionDetailsCard } from "@/components/transaction/TransactionDetailsCard";
+import { TransactionStatusCard } from "@/components/transaction/TransactionStatusCard";
 
 const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
 const ESCROW_ABI = [
@@ -52,16 +49,13 @@ export default function TransactionStatus() {
         signer
       );
 
-      // Appeler la fonction cancelTransaction du smart contract
       const tx = await contract.cancelTransaction(transaction.blockchain_txn_id);
       console.log("Transaction d'annulation envoyée:", tx.hash);
 
-      // Attendre la confirmation
       const receipt = await tx.wait();
       console.log("Transaction d'annulation confirmée:", receipt);
 
       if (receipt.status === 1) {
-        // Mettre à jour le statut dans Supabase
         const { error: updateError } = await supabase
           .from("transactions")
           .update({
@@ -142,14 +136,12 @@ export default function TransactionStatus() {
             provider
           );
 
-          // Essayer de récupérer directement la transaction si l'ID est un nombre
           try {
             const txNumber = parseInt(cleanId);
             if (!isNaN(txNumber)) {
               const blockchainTx = await contract.getTransaction(txNumber);
               console.log("Transaction trouvée dans la blockchain:", blockchainTx);
 
-              // Chercher maintenant dans Supabase avec l'adresse du buyer/seller
               const { data: dbTx, error: dbError } = await supabase
                 .from("transactions")
                 .select(`
@@ -173,7 +165,6 @@ export default function TransactionStatus() {
           }
         }
 
-        // Si on arrive ici, c'est qu'on n'a pas trouvé la transaction
         setError("Transaction non trouvée ou accès non autorisé");
       } catch (err) {
         console.error("Erreur inattendue:", err);
@@ -252,108 +243,23 @@ export default function TransactionStatus() {
   }
 
   const isUserBuyer = user?.id === transaction.buyer_id;
-  const userRole = isUserBuyer ? "acheteur" : "vendeur";
   const otherParty = isUserBuyer ? transaction.seller : transaction.buyer;
-
-  const canBeCancelled = transaction.can_be_cancelled && !transaction.cancelled_at && 
-                        !transaction.released_at && !transaction.buyer_confirmation;
-
-  const getStatusColor = () => {
-    switch (transaction.escrow_status) {
-      case 'completed':
-        return 'bg-green-50';
-      case 'cancelled':
-        return 'bg-red-50';
-      default:
-        return 'bg-blue-50';
-    }
-  };
-
-  const getStatusMessage = () => {
-    if (transaction.escrow_status === 'cancelled') {
-      return "La transaction a été annulée.";
-    }
-    if (transaction.escrow_status === 'completed') {
-      return "La transaction a été complétée avec succès. Les fonds ont été libérés au vendeur.";
-    }
-    return transaction.funds_secured
-      ? "Les fonds sont sécurisés dans le contrat escrow."
-      : "En attente du dépôt des fonds par l'acheteur.";
-  };
 
   return (
     <div className="container max-w-2xl py-8 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Statut de la Transaction</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <h3 className="font-medium">Article</h3>
-            <p className="text-sm text-muted-foreground">
-              {transaction.listings?.title}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="font-medium">Montant</h3>
-            <p className="text-sm text-muted-foreground">
-              {transaction.amount} {transaction.token_symbol}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="font-medium">Participants</h3>
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>Vous ({userRole}): {user.email}</p>
-              <p>{isUserBuyer ? "Vendeur" : "Acheteur"}: {otherParty?.full_name}</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="font-medium">Dates</h3>
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>Création: {format(new Date(transaction.created_at), "PPP 'à' p", { locale: fr })}</p>
-              {transaction.funds_secured_at && (
-                <p>Fonds sécurisés: {format(new Date(transaction.funds_secured_at), "PPP 'à' p", { locale: fr })}</p>
-              )}
-              {transaction.released_at && (
-                <p>Fonds libérés: {format(new Date(transaction.released_at), "PPP 'à' p", { locale: fr })}</p>
-              )}
-              {transaction.cancelled_at && (
-                <p>Transaction annulée: {format(new Date(transaction.cancelled_at), "PPP 'à' p", { locale: fr })}</p>
-              )}
-            </div>
-          </div>
-
-          <Alert className={getStatusColor()}>
-            <AlertDescription>
-              {getStatusMessage()}
-            </AlertDescription>
-          </Alert>
-
-          {canBeCancelled && isUserBuyer && (
-            <Button 
-              variant="destructive" 
-              onClick={handleCancelTransaction}
-              disabled={isCancelling}
-              className="w-full"
-            >
-              {isCancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Annuler la transaction
-            </Button>
-          )}
-
-          {!transaction.buyer_confirmation && transaction.funds_secured && !transaction.cancelled_at && (
-            <EscrowStatus
-              transactionId={transaction.id}
-              buyerId={transaction.buyer_id}
-              sellerId={transaction.seller_id}
-              currentUserId={user.id}
-            />
-          )}
-        </CardContent>
-      </Card>
+      <TransactionDetailsCard
+        transaction={transaction}
+        isUserBuyer={isUserBuyer}
+        user={user}
+        otherParty={otherParty}
+      />
+      <TransactionStatusCard
+        transaction={transaction}
+        isUserBuyer={isUserBuyer}
+        user={user}
+        isCancelling={isCancelling}
+        onCancelTransaction={handleCancelTransaction}
+      />
     </div>
   );
 }
