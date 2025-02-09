@@ -21,11 +21,32 @@ export default function PaymentPage() {
     const fetchTransactionDetails = async () => {
       try {
         if (!id) {
+          console.error("ID manquant dans l'URL");
           throw new Error("ID de transaction manquant");
         }
 
-        console.log("Fetching transaction details for ID:", id);
+        console.log("Tentative de récupération de la transaction avec ID:", id);
 
+        // Vérifions d'abord si l'ID existe dans la table transactions
+        const { data: transactionExists, error: existsError } = await supabase
+          .from('transactions')
+          .select('id')
+          .eq('id', id)
+          .maybeSingle();
+
+        console.log("Vérification initiale de l'existence:", { transactionExists, existsError });
+
+        if (existsError) {
+          console.error("Erreur lors de la vérification initiale:", existsError);
+          throw existsError;
+        }
+
+        if (!transactionExists) {
+          console.error("Aucune transaction trouvée avec l'ID:", id);
+          throw new Error("Transaction non trouvée dans la base de données");
+        }
+
+        // Si la transaction existe, récupérons tous les détails
         const { data: transaction, error: transactionError } = await supabase
           .from('transactions')
           .select(`
@@ -43,26 +64,32 @@ export default function PaymentPage() {
           .eq('id', id)
           .maybeSingle();
 
-        console.log("Transaction data:", transaction);
-        console.log("Transaction error:", transactionError);
+        console.log("Détails complets de la transaction:", transaction);
+        console.log("Erreur éventuelle:", transactionError);
 
         if (transactionError) {
-          console.error("Erreur Supabase:", transactionError);
+          console.error("Erreur Supabase détaillée:", {
+            message: transactionError.message,
+            details: transactionError.details,
+            hint: transactionError.hint
+          });
           throw transactionError;
         }
 
         if (!transaction) {
-          throw new Error("Transaction non trouvée");
+          console.error("Détails de la transaction non trouvés");
+          throw new Error("Impossible de récupérer les détails de la transaction");
         }
 
         if (transaction.released_at) {
+          console.log("Les fonds ont déjà été libérés le:", transaction.released_at);
           throw new Error("Les fonds ont déjà été libérés");
         }
 
         setTransactionDetails(transaction);
         setIsLoading(false);
       } catch (error: any) {
-        console.error("Erreur:", error);
+        console.error("Erreur complète:", error);
         setError(error.message || "Une erreur est survenue");
         setIsLoading(false);
       }
@@ -78,7 +105,7 @@ export default function PaymentPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Vous devez être connecté");
 
-      console.log("Releasing funds for transaction:", id);
+      console.log("Tentative de libération des fonds pour la transaction:", id);
 
       const { error: updateError } = await supabase
         .from('transactions')
@@ -89,8 +116,13 @@ export default function PaymentPage() {
         })
         .eq('id', id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Erreur lors de la mise à jour:", updateError);
+        throw updateError;
+      }
 
+      console.log("Fonds libérés avec succès");
+      
       toast({
         title: "Succès",
         description: "Les fonds ont été libérés au vendeur",
