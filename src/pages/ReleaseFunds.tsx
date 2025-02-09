@@ -30,6 +30,8 @@ export default function ReleaseFunds() {
   } = useQuery({
     queryKey: ['transaction', id],
     queryFn: async () => {
+      if (!id) throw new Error("ID de transaction manquant");
+
       const { data, error } = await supabase
         .from('transactions')
         .select(`

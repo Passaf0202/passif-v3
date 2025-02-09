@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useEscrowPayment } from "@/hooks/useEscrowPayment";
+import { useEscrowPayment } from "@/hooks/escrow/useEscrowPayment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Shield } from "lucide-react";
@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { EscrowAlert } from "./EscrowAlert";
 import { TransactionDetails } from "./TransactionDetails";
 import { PaymentButton } from "./PaymentButton";
+import { useNavigate } from "react-router-dom";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -29,6 +30,7 @@ export function CryptoPaymentForm({
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   
@@ -40,8 +42,11 @@ export function CryptoPaymentForm({
   } = useEscrowPayment({
     listingId,
     address: user?.id,
-    onTransactionCreated: (id: string) => setTransactionId(id),
-    onPaymentComplete,
+    onTransactionCreated: (id: string) => {
+      setTransactionId(id);
+      navigate(`/release-funds/${id}`);
+    },
+    onPaymentComplete
   });
 
   if (!initialCryptoAmount) {
@@ -85,7 +90,7 @@ export function CryptoPaymentForm({
               cryptoCurrency={cryptoCurrency}
               disabled={isProcessing || !initialCryptoAmount}
               sellerAddress={sellerAddress}
-              transactionId={transactionId}
+              mode="pay"
             />
 
             {error && (

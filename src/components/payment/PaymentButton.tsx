@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
-import { ethers } from "ethers";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
