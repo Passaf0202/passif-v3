@@ -10,6 +10,7 @@ import { TransactionDetails } from "./TransactionDetails";
 import { useCryptoRates } from "@/hooks/useCryptoRates";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useFundsRelease } from "@/hooks/escrow/useFundsRelease";
+import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -32,6 +33,7 @@ export function CryptoPaymentForm({
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
   const [transactionId, setTransactionId] = useState<string | null>(null);
+  const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
   
   const convertedAmount = useCryptoConversion(price, listingId, initialCryptoCurrency);
   
@@ -50,16 +52,22 @@ export function CryptoPaymentForm({
       console.log("Transaction created with ID:", id);
       setTransactionId(id);
     },
-    onPaymentComplete: () => {
-      console.log("Payment completed, redirecting to EscrowDetails view");
-      onPaymentComplete(); // Ceci va rediriger vers la page de détails où l'utilisateur pourra libérer les fonds
-    }
+    onPaymentComplete
   });
 
   const { isLoading: isReleasingFunds, handleReleaseFunds } = useFundsRelease(transactionId || '', () => {
     console.log("Funds released successfully");
     onPaymentComplete();
   });
+
+  const handleInitiatePayment = async () => {
+    try {
+      await ensureCorrectNetwork();
+      await handlePayment();
+    } catch (error: any) {
+      console.error('Payment error:', error);
+    }
+  };
 
   if (!convertedAmount && !initialCryptoAmount) {
     return (
@@ -113,8 +121,8 @@ export function CryptoPaymentForm({
               </Button>
             ) : (
               <Button
-                onClick={handlePayment}
-                disabled={isProcessing || !finalCryptoAmount || !user}
+                onClick={handleInitiatePayment}
+                disabled={isProcessing || !finalCryptoAmount || !user || isWrongNetwork}
                 className="w-full bg-primary hover:bg-primary/90"
               >
                 {isProcessing ? (
@@ -124,6 +132,8 @@ export function CryptoPaymentForm({
                   </>
                 ) : !user ? (
                   "Connectez votre wallet"
+                ) : isWrongNetwork ? (
+                  "Changer de réseau"
                 ) : (
                   `Payer ${finalCryptoAmount.toFixed(6)} ${initialCryptoCurrency}`
                 )}
@@ -146,3 +156,4 @@ export function CryptoPaymentForm({
     </div>
   );
 }
+
