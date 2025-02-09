@@ -5,23 +5,29 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork } from "wagmi";
-import { ethers } from "ethers";
-import { amoy } from "@/config/chains";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useReleaseFunds } from "@/hooks/escrow/useReleaseFunds";
 
 export default function ReleaseFunds() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const [transactionDetails, setTransactionDetails] = useState<any>(null);
   const [sellerAddress, setSellerAddress] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchTransactionDetails = async () => {
       try {
-        if (!id) return;
+        if (!id) {
+          toast({
+            title: "Erreur",
+            description: "ID de transaction manquant",
+            variant: "destructive",
+          });
+          return;
+        }
 
         const { data: transaction, error } = await supabase
           .from('transactions')
@@ -38,17 +44,33 @@ export default function ReleaseFunds() {
           .eq('id', id)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Erreur lors de la récupération des détails:", error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de récupérer les détails de la transaction",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log("Transaction details:", transaction);
         setTransactionDetails(transaction);
         setSellerAddress(transaction.seller_wallet_address);
-
       } catch (error) {
         console.error("Erreur lors de la récupération des détails:", error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la récupération des détails",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchTransactionDetails();
-  }, [id]);
+  }, [id, toast]);
 
   const { isReleasing, handleReleaseFunds } = useReleaseFunds(
     id || '',
@@ -56,12 +78,27 @@ export default function ReleaseFunds() {
     sellerAddress
   );
 
+  if (isLoading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
   if (!transactionDetails) {
     return (
       <div>
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <Alert variant="destructive">
+            <AlertDescription>
+              Transaction introuvable ou inaccessible
+            </AlertDescription>
+          </Alert>
         </div>
       </div>
     );
