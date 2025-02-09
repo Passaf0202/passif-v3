@@ -16,11 +16,16 @@ export const useEscrowContract = () => {
       .select('*')
       .eq('is_active', true)
       .eq('network', 'polygon_amoy')
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching active contract:', error);
       throw new Error("Impossible de récupérer le contrat actif");
+    }
+
+    if (!contract) {
+      console.error('No active contract found');
+      throw new Error("Aucun contrat actif trouvé pour le réseau Polygon Amoy");
     }
 
     console.log('Active contract found:', contract);
