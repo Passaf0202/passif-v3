@@ -33,6 +33,7 @@ export default function ReleaseFunds() {
 
         console.log("Fetching transaction details for ID:", id);
         
+        // Instead of using .eq() with id, we'll use .match() to ensure proper parameter binding
         const { data: transaction, error } = await supabase
           .from('transactions')
           .select(`
@@ -45,8 +46,8 @@ export default function ReleaseFunds() {
             blockchain_txn_id,
             seller_wallet_address
           `)
-          .eq('id', id)
-          .single();
+          .match({ id: id })
+          .maybeSingle();
 
         if (error) {
           console.error("Error fetching transaction details:", error);
@@ -55,6 +56,7 @@ export default function ReleaseFunds() {
             description: "Impossible de récupérer les détails de la transaction",
             variant: "destructive",
           });
+          setIsLoading(false);
           return;
         }
 
@@ -65,6 +67,7 @@ export default function ReleaseFunds() {
             description: "Transaction introuvable",
             variant: "destructive",
           });
+          setIsLoading(false);
           return;
         }
 
