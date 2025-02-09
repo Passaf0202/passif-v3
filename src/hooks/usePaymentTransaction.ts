@@ -20,8 +20,8 @@ export const usePaymentTransaction = () => {
       const network = await provider.getNetwork();
       console.log('Connected to network:', network);
 
-      if (network.chainId !== 80002) {
-        throw new Error("Veuillez vous connecter au réseau Polygon Mumbai");
+      if (network.chainId !== 80001) {
+        throw new Error("Veuillez vous connecter au réseau Polygon Testnet");
       }
 
       const contract = getEscrowContract(provider);
@@ -43,7 +43,7 @@ export const usePaymentTransaction = () => {
       const balance = await provider.getBalance(signerAddress);
       
       if (balance.lt(amountInWei)) {
-        throw new Error("Solde MATIC insuffisant pour effectuer la transaction");
+        throw new Error("Solde POL insuffisant pour effectuer la transaction");
       }
 
       // Estimer le gas avant la transaction
@@ -90,7 +90,7 @@ export const usePaymentTransaction = () => {
       } catch (gasError: any) {
         console.error('Gas estimation failed:', gasError);
         if (gasError.code === 'UNPREDICTABLE_GAS_LIMIT') {
-          throw new Error("Impossible d'estimer les frais de gas. Vérifiez votre solde MATIC.");
+          throw new Error("Impossible d'estimer les frais de gas. Vérifiez votre solde POL.");
         }
         throw gasError;
       }
@@ -100,11 +100,11 @@ export const usePaymentTransaction = () => {
       
       // Améliorer les messages d'erreur
       if (error.code === 'INSUFFICIENT_FUNDS') {
-        throw new Error("Solde MATIC insuffisant pour payer les frais de transaction");
+        throw new Error("Solde POL insuffisant pour payer les frais de transaction");
       } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
-        throw new Error("Impossible d'estimer les frais de gas. Vérifiez votre solde MATIC.");
+        throw new Error("Impossible d'estimer les frais de gas. Vérifiez votre solde POL.");
       } else if (error.code === -32603) {
-        throw new Error("Erreur de transaction. Vérifiez votre solde MATIC et réessayez.");
+        throw new Error("Erreur de transaction. Vérifiez votre solde POL et réessayez.");
       } else if (error.message.includes('user rejected')) {
         throw new Error("Transaction rejetée par l'utilisateur");
       }

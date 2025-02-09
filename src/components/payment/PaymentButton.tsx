@@ -20,7 +20,7 @@ export function PaymentButton({
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency = 'MATIC',
+  cryptoCurrency = 'POL',
   onClick,
   disabled = false,
   sellerAddress,
@@ -80,7 +80,7 @@ export function PaymentButton({
         ) : disabled ? (
           "Transaction en attente de confirmation..."
         ) : isWrongNetwork ? (
-          "Changer vers Polygon Mumbai"
+          "Changer vers Polygon Testnet"
         ) : !isConnected ? (
           "Connecter votre wallet"
         ) : !sellerAddress ? (
@@ -98,7 +98,7 @@ export function PaymentButton({
 
       {isWrongNetwork && isConnected && (
         <p className="text-sm text-red-500 text-center">
-          Veuillez vous connecter au réseau Polygon Mumbai
+          Veuillez vous connecter au réseau Polygon Testnet
         </p>
       )}
     </div>
