@@ -100,6 +100,8 @@ export default function Payment() {
     enabled: !!id && !!user?.id && id !== 'USDC'
   });
 
+  const listing = initialListing || fetchedListing;
+
   const handleBackToHome = () => {
     navigate('/');
   };
@@ -116,7 +118,7 @@ export default function Payment() {
     );
   }
 
-  if (listingError || !currentListing) {
+  if (listingError || !listing) {
     return (
       <div>
         <Navbar />
@@ -160,12 +162,12 @@ export default function Payment() {
           <EscrowDetails transactionId={transaction.id} />
         ) : (
           <CryptoPaymentForm
-            listingId={currentListing.id}
-            title={currentListing.title}
-            price={currentListing.price}
-            cryptoAmount={currentListing.crypto_amount}
+            listingId={listing.id}
+            title={listing.title}
+            price={listing.price}
+            cryptoAmount={listing.crypto_amount}
             cryptoCurrency="BNB"
-            onPaymentComplete={() => navigate(returnUrl || `/listings/${currentListing.id}`)}
+            onPaymentComplete={() => navigate(returnUrl || `/listings/${listing.id}`)}
           />
         )}
       </div>
