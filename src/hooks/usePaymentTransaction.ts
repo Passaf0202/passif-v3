@@ -15,6 +15,7 @@ export const usePaymentTransaction = () => {
       }
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []); // Demander explicitement la connexion
       
       const network = await provider.getNetwork();
       console.log('Connected to network:', network);
@@ -24,7 +25,9 @@ export const usePaymentTransaction = () => {
       }
 
       const signer = provider.getSigner();
+      console.log('Got signer, fetching contract...');
       const contract = getEscrowContract(provider);
+      console.log('Contract instance created');
       
       const formattedAmount = formatAmount(cryptoAmount);
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
@@ -43,11 +46,19 @@ export const usePaymentTransaction = () => {
         throw new Error("Solde POL insuffisant pour effectuer la transaction");
       }
 
-      // Simplifier l'appel au contrat en utilisant une marge de gas fixe
+      // Ajouter un délai avant la transaction pour s'assurer que la connexion est stable
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Créer la transaction avec un gas limit fixe et un prix du gas légèrement plus élevé
       try {
+        const gasPrice = await provider.getGasPrice();
+        const adjustedGasPrice = gasPrice.mul(120).div(100); // +20% pour assurer la transaction
+        console.log('Using gas price:', ethers.utils.formatUnits(adjustedGasPrice, 'gwei'), 'gwei');
+
         const tx = await contract.createTransaction(sellerAddress, {
           value: amountInWei,
-          gasLimit: 300000 // Gas limit fixe suffisant pour ce type de transaction
+          gasLimit: 300000,
+          gasPrice: adjustedGasPrice
         });
 
         console.log('Transaction sent:', tx.hash);
@@ -78,21 +89,26 @@ export const usePaymentTransaction = () => {
 
       } catch (txError: any) {
         console.error('Transaction failed:', txError);
-        if (txError.code === 'UNPREDICTABLE_GAS_LIMIT') {
-          throw new Error("Erreur lors de la transaction. Veuillez réessayer.");
+        
+        // Améliorer la détection des erreurs spécifiques
+        if (txError.code === 'INSUFFICIENT_FUNDS') {
+          throw new Error("Solde POL insuffisant pour payer les frais de transaction");
+        } else if (txError.code === 'UNPREDICTABLE_GAS_LIMIT') {
+          throw new Error("Erreur lors de l'estimation des frais. Veuillez réessayer.");
+        } else if (txError.code === 'NETWORK_ERROR') {
+          throw new Error("Erreur de connexion au réseau. Veuillez vérifier votre connexion et réessayer.");
+        } else if (txError.message?.includes('execution reverted')) {
+          throw new Error("Le contrat a rejeté la transaction. Veuillez vérifier les paramètres.");
         }
-        throw txError;
+        
+        throw new Error("Une erreur est survenue lors de la transaction. Veuillez réessayer.");
       }
 
     } catch (error: any) {
       console.error('Error in createTransaction:', error);
       
-      if (error.code === 'INSUFFICIENT_FUNDS') {
-        throw new Error("Solde POL insuffisant pour payer les frais de transaction");
-      } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
-        throw new Error("Erreur lors de la transaction. Veuillez réessayer.");
-      } else if (error.code === -32603) {
-        throw new Error("Erreur de connexion au réseau. Veuillez réessayer.");
+      if (error.code === -32603) {
+        throw new Error("Erreur de connexion au réseau. Veuillez rafraîchir la page et réessayer.");
       } else if (error.message.includes('user rejected')) {
         throw new Error("Transaction rejetée par l'utilisateur");
       }
@@ -103,4 +119,3 @@ export const usePaymentTransaction = () => {
 
   return { createTransaction };
 };
-
