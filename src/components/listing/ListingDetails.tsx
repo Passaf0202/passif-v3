@@ -1,4 +1,3 @@
-
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -50,7 +49,9 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const { amount: cryptoDetails } = useCryptoConversion(listing.price, listing.id);
+  // Utiliser directement le montant crypto stocké si disponible
+  const cryptoAmount = listing.crypto_amount;
+  const cryptoCurrency = listing.crypto_currency || 'POL';
 
   // Fetch the listing's original wallet address
   const { data: listingData } = useQuery({
@@ -91,8 +92,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <ListingHeader 
           title={listing.title} 
           price={listing.price} 
-          cryptoAmount={cryptoDetails?.amount}
-          cryptoCurrency={cryptoDetails?.currency}
+          cryptoAmount={cryptoAmount}
+          cryptoCurrency={cryptoCurrency}
         />
         
         <SellerInfo 
@@ -117,8 +118,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           sellerAddress={sellerWalletAddress || ''}
           title={listing.title}
           price={listing.price}
-          cryptoAmount={cryptoDetails?.amount}
-          cryptoCurrency={cryptoDetails?.currency}
+          cryptoAmount={cryptoAmount}
+          cryptoCurrency={cryptoCurrency}
         />
 
         <div className="space-y-4">

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -80,7 +79,7 @@ export function PaymentButton({
     if (mode === 'release') {
       return "Confirmer la réception";
     }
-    return `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`;
+    return cryptoAmount ? `Payer ${cryptoAmount.toFixed(6)} ${cryptoCurrency}` : "Montant non disponible";
   };
 
   if (!sellerAddress && mode === 'pay') {

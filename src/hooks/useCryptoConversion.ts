@@ -7,25 +7,36 @@ interface CryptoAmount {
   currency: string;
 }
 
-const POL_RATE = 1.00; // Fixed rate for POL/USD
-
 export const useCryptoConversion = (price: number, listingId?: string): { amount: CryptoAmount | null, isLoading: boolean } => {
   const { selectedCurrency } = useCurrencyStore();
 
-  const calculateCryptoAmount = (): CryptoAmount | null => {
+  const calculateCryptoAmount = async (): Promise<CryptoAmount | null> => {
     if (!price || typeof price !== 'number') {
       return null;
     }
 
-    const cryptoAmount = price / POL_RATE;
+    // Si nous avons un listingId, essayons d'abord de récupérer le montant crypto stocké
+    if (listingId) {
+      const { data: listing, error } = await supabase
+        .from('listings')
+        .select('crypto_amount, crypto_currency')
+        .eq('id', listingId)
+        .single();
+
+      if (!error && listing?.crypto_amount) {
+        return {
+          amount: listing.crypto_amount,
+          currency: listing.crypto_currency || 'POL'
+        };
+      }
+    }
+
+    // Sinon, calculons le montant en POL (à adapter selon vos besoins)
+    const cryptoAmount = price;
 
     if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
       console.error('Invalid crypto amount calculated:', cryptoAmount);
       return null;
-    }
-
-    if (listingId && price) {
-      updateListingCryptoAmount(listingId, cryptoAmount).catch(console.error);
     }
 
     return {
@@ -34,31 +45,13 @@ export const useCryptoConversion = (price: number, listingId?: string): { amount
     };
   };
 
+  const result = calculateCryptoAmount();
+
   return {
-    amount: calculateCryptoAmount(),
+    amount: result ? {
+      amount: Number(result.amount),
+      currency: result.currency
+    } : null,
     isLoading: false
   };
 };
-
-async function updateListingCryptoAmount(listingId: string, amount: number) {
-  try {
-    if (!listingId || typeof listingId !== 'string' || listingId.length !== 36) {
-      console.error('Invalid listing ID:', listingId);
-      return;
-    }
-
-    const { error } = await supabase
-      .from('listings')
-      .update({
-        crypto_amount: amount,
-        crypto_currency: 'POL'
-      })
-      .eq('id', listingId);
-
-    if (error) {
-      console.error('Error updating listing crypto amount:', error);
-    }
-  } catch (error) {
-    console.error('Error in updateListingCryptoAmount:', error);
-  }
-}
