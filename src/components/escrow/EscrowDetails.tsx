@@ -18,7 +18,12 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     const fetchTransaction = async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select("*, listings(*), buyer_confirmation")
+        .select(`
+          *,
+          listings(*),
+          buyer_confirmation,
+          seller_wallet_address
+        `)
         .eq("id", transactionId)
         .single();
 
@@ -27,6 +32,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         return;
       }
 
+      console.log("Transaction data:", data);
       setTransaction(data);
       setIsAlreadyConfirmed(data.buyer_confirmation);
     };
@@ -76,6 +82,13 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           <h3 className="font-medium">Montant</h3>
           <p className="text-sm text-muted-foreground">
             {transaction.amount} {transaction.token_symbol}
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="font-medium">Adresse du vendeur</h3>
+          <p className="text-sm text-muted-foreground">
+            {transaction.seller_wallet_address || "Adresse non disponible"}
           </p>
         </div>
 
