@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
-import { Loader2 } from "lucide-react";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
@@ -39,8 +38,6 @@ export function EscrowStatus({
 
   useEffect(() => {
     const checkTransactionStatus = async () => {
-      console.log('Checking transaction status for ID:', transactionId);
-      
       const { data: transaction, error } = await supabase
         .from('transactions')
         .select('funds_secured, blockchain_txn_id, transaction_hash')
@@ -58,6 +55,7 @@ export function EscrowStatus({
 
     checkTransactionStatus();
 
+    // Subscribe to transaction updates
     const subscription = supabase
       .channel(`transaction-${transactionId}`)
       .on(
@@ -83,7 +81,6 @@ export function EscrowStatus({
   const handleConfirm = async () => {
     try {
       setIsLoading(true);
-      console.log('Starting confirmation process...');
 
       // Vérifier que l'utilisateur est sur le bon réseau
       if (chain?.id !== amoy.id) {
@@ -120,6 +117,18 @@ export function EscrowStatus({
 
       console.log('Transaction from database:', transaction);
 
+      // Vérifier si les fonds ont été sécurisés
+      if (!transaction.funds_secured) {
+        throw new Error("Les fonds n'ont pas encore été sécurisés. Veuillez patienter que la transaction blockchain soit confirmée.");
+      }
+
+      // Vérifier le blockchain_txn_id
+      if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === "0") {
+        throw new Error("La transaction n'a pas encore été enregistrée sur la blockchain. Veuillez patienter.");
+      }
+
+      console.log('Blockchain transaction ID:', transaction.blockchain_txn_id);
+
       // Vérifier que l'utilisateur est l'acheteur
       if (!isUserBuyer) {
         throw new Error("Seul l'acheteur peut libérer les fonds");
@@ -144,7 +153,7 @@ export function EscrowStatus({
         throw new Error("Les fonds ont déjà été libérés");
       }
 
-      // Estimer le gas
+      // Estimer le gas avec une marge de sécurité
       const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
       const gasLimit = gasEstimate.mul(150).div(100); // +50% marge
       const gasPrice = await provider.getGasPrice();
@@ -246,14 +255,7 @@ export function EscrowStatus({
           disabled={isLoading || !isFundsSecured}
           className="w-full bg-purple-500 hover:bg-purple-600"
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Libération des fonds en cours...
-            </>
-          ) : (
-            "Confirmer la réception"
-          )}
+          {isLoading ? "Libération des fonds en cours..." : "Confirmer la réception"}
         </Button>
       )}
     </div>
