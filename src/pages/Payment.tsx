@@ -85,6 +85,7 @@ export default function Payment() {
             price,
             user:profiles!listings_user_id_fkey (
               id,
+              full_name,
               wallet_address
             )
           )
@@ -99,8 +100,13 @@ export default function Payment() {
         return null;
       }
       
-      console.log('Latest transaction:', data);
-      return data;
+      const enrichedTransaction = {
+        ...data,
+        seller_wallet_address: data?.seller?.wallet_address || data?.listing?.user?.wallet_address
+      };
+      
+      console.log('Latest transaction with seller wallet:', enrichedTransaction);
+      return enrichedTransaction;
     },
     enabled: !!id && !!user?.id && id !== 'USDC'
   });

@@ -25,7 +25,15 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     const fetchTransaction = async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select(`*, listing:listings!transactions_listing_id_fkey (title)`)
+        .select(`
+          *,
+          listing:listings!transactions_listing_id_fkey (
+            title,
+            user:profiles!listings_user_id_fkey (
+              wallet_address
+            )
+          )
+        `)
         .eq("id", transactionId)
         .single();
 
@@ -40,7 +48,15 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       }
 
       console.log("Transaction data:", data);
-      setTransaction(data);
+      
+      // Utiliser l'adresse du wallet depuis la relation listing.user si elle existe
+      const enrichedTransaction = {
+        ...data,
+        seller_wallet_address: data.seller_wallet_address || data.listing?.user?.wallet_address
+      };
+      
+      console.log("Enriched transaction data:", enrichedTransaction);
+      setTransaction(enrichedTransaction);
     };
 
     fetchTransaction();
@@ -69,6 +85,10 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   const handleReleaseFunds = async () => {
     try {
+      if (!transaction?.seller_wallet_address) {
+        throw new Error("L'adresse du vendeur est manquante");
+      }
+
       setIsLoading(true);
 
       if (chain?.id !== amoy.id) {
