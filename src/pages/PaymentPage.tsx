@@ -39,6 +39,8 @@ export default function PaymentPage() {
           throw new Error("ID de transaction manquant");
         }
 
+        console.log("Fetching transaction details for ID:", id);
+
         // Récupérer d'abord les détails de la transaction depuis Supabase
         const { data: transaction, error: supabaseError } = await supabase
           .from('transactions')
@@ -51,11 +53,21 @@ export default function PaymentPage() {
             )
           `)
           .eq('id', id)
-          .maybeSingle();
+          .single();
 
-        if (supabaseError) throw supabaseError;
-        if (!transaction) throw new Error("Transaction non trouvée");
+        console.log("Supabase response:", { transaction, supabaseError });
 
+        if (supabaseError) {
+          console.error("Supabase error:", supabaseError);
+          throw supabaseError;
+        }
+        
+        if (!transaction) {
+          console.error("No transaction found for ID:", id);
+          throw new Error("Transaction non trouvée");
+        }
+
+        console.log("Transaction found:", transaction);
         setTransactionDetails(transaction);
         
         // Connecter au contrat sur la blockchain
@@ -68,15 +80,19 @@ export default function PaymentPage() {
         
         // Utiliser le blockchain_sequence_number stocké dans Supabase
         if (transaction.blockchain_sequence_number !== null) {
+          console.log("Fetching blockchain data for sequence number:", transaction.blockchain_sequence_number);
           const txnData = await contract.transactions(transaction.blockchain_sequence_number);
-          console.log("Données blockchain:", txnData);
+          console.log("Blockchain transaction data:", txnData);
           setSellerAddress(txnData.seller);
           setBlockchainTxId(transaction.blockchain_sequence_number);
+        } else {
+          console.error("No blockchain_sequence_number found for transaction");
+          throw new Error("Données blockchain manquantes");
         }
 
         setIsLoading(false);
       } catch (error: any) {
-        console.error("Erreur lors de la récupération des détails:", error);
+        console.error("Error in fetchTransactionDetails:", error);
         setError(error.message || "Une erreur est survenue lors de la récupération des détails");
         setIsLoading(false);
       }
