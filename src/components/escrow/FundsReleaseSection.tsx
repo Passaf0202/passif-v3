@@ -7,7 +7,7 @@ import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
@@ -29,15 +29,66 @@ export function FundsReleaseSection({
   isConfirmed,
 }: FundsReleaseSectionProps) {
   const [isReleasing, setIsReleasing] = useState(false);
+  const [sellerAddress, setSellerAddress] = useState<string | null>(null);
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
 
+  useEffect(() => {
+    const fetchSellerAddress = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('transactions')
+          .select(`
+            seller_wallet_address,
+            listing:listings (
+              user:profiles (
+                wallet_address
+              )
+            )
+          `)
+          .eq('id', transactionId)
+          .single();
+
+        if (error) throw error;
+
+        // Try to get seller address from the transaction first
+        let address = data.seller_wallet_address;
+        
+        // If not found, try to get it from the listing's user profile
+        if (!address && data.listing?.user?.wallet_address) {
+          address = data.listing.user.wallet_address;
+        }
+
+        if (address) {
+          console.log('Setting seller address:', address);
+          setSellerAddress(address);
+        } else {
+          console.error('No seller address found');
+          toast({
+            title: "Erreur",
+            description: "Adresse du vendeur introuvable",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching seller address:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer l'adresse du vendeur",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchSellerAddress();
+  }, [transactionId, toast]);
+
   const handleReleaseFunds = async () => {
-    if (!blockchainTxnId) {
+    if (!blockchainTxnId || !sellerAddress) {
       toast({
         title: "Erreur",
-        description: "ID de transaction blockchain manquant",
+        description: "ID de transaction blockchain ou adresse du vendeur manquante",
         variant: "destructive",
       });
       return;
@@ -106,6 +157,16 @@ export function FundsReleaseSection({
       setIsReleasing(false);
     }
   };
+
+  if (!sellerAddress) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          L'adresse du vendeur est manquante. Cette information est nécessaire pour libérer les fonds.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   if (isConfirmed) {
     return (
