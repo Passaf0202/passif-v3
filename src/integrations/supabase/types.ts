@@ -520,7 +520,71 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      transaction_details: {
+        Row: {
+          amount: number | null
+          blockchain_sequence_number: number | null
+          blockchain_txn_id: string | null
+          buyer_confirmation: boolean | null
+          buyer_id: string | null
+          buyer_name: string | null
+          can_be_cancelled: boolean | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          chain_id: number | null
+          commission_amount: number | null
+          created_at: string | null
+          crypto_amount: number | null
+          crypto_currency: string | null
+          dispute_reason: string | null
+          dispute_resolution: string | null
+          dispute_status: string | null
+          escrow_release_time: string | null
+          escrow_status: string | null
+          funds_secured: boolean | null
+          funds_secured_at: string | null
+          id: string | null
+          listing_id: string | null
+          listing_title: string | null
+          network: string | null
+          released_at: string | null
+          released_by: string | null
+          seller_confirmation: boolean | null
+          seller_id: string | null
+          seller_name: string | null
+          seller_wallet_address: string | null
+          smart_contract_address: string | null
+          status: string | null
+          token_symbol: string | null
+          transaction_confirmed_at: string | null
+          transaction_hash: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_listings: {

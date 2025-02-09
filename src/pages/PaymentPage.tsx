@@ -29,19 +29,8 @@ export default function PaymentPage() {
         console.log("Tentative de récupération de la transaction avec ID:", id);
 
         const { data: transaction, error: transactionError } = await supabase
-          .from('transactions')
-          .select(`
-            *,
-            listings (
-              title,
-              crypto_amount,
-              crypto_currency
-            ),
-            seller:profiles!transactions_seller_id_fkey (
-              full_name,
-              wallet_address
-            )
-          `)
+          .from('transaction_details')
+          .select('*')
           .eq('id', id)
           .maybeSingle();
 
@@ -86,18 +75,6 @@ export default function PaymentPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Vous devez être connecté");
 
-      if (!transactionDetails?.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain manquant");
-      }
-
-      // Se connecter au contrat
-      if (!window.ethereum) {
-        throw new Error("MetaMask n'est pas installé");
-      }
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      
       // Mettre à jour la transaction dans Supabase
       const { error: updateError } = await supabase
         .from('transactions')
@@ -176,11 +153,11 @@ export default function PaymentPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
-              {transactionDetails?.listings?.title && (
+              {transactionDetails?.listing_title && (
                 <div>
                   <h3 className="font-medium">Article</h3>
                   <p className="text-sm text-muted-foreground">
-                    {transactionDetails.listings.title}
+                    {transactionDetails.listing_title}
                   </p>
                 </div>
               )}
@@ -192,11 +169,11 @@ export default function PaymentPage() {
                 </p>
               </div>
 
-              {transactionDetails?.seller?.full_name && (
+              {transactionDetails?.seller_name && (
                 <div>
                   <h3 className="font-medium">Vendeur</h3>
                   <p className="text-sm text-muted-foreground">
-                    {transactionDetails.seller.full_name}
+                    {transactionDetails.seller_name}
                   </p>
                 </div>
               )}
