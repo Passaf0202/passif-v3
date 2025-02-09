@@ -46,9 +46,9 @@ export function useEscrowPayment({
       await ensureCorrectNetwork();
 
       // Get the authenticated user
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      if (authError || !authUser) {
-        console.error('🚨 Auth error:', authError);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        console.error('🚨 Auth error: No user found');
         throw new Error("Vous devez être connecté pour effectuer un paiement");
       }
 
