@@ -69,7 +69,7 @@ export const ESCROW_ABI = [
   }
 ];
 
-export const CONTRACT_ADDRESS = "0x6441a3C16A73d5B3eF727FaCB4b4fC5Edb8CCe18";
+export const CONTRACT_ADDRESS = "0xE35A0ceBf608Bff98bcF99093B02469EEa2cb38c";
 
 export const formatAmount = (amount: number): string => {
   return amount.toFixed(18).replace(/\.?0+$/, '');

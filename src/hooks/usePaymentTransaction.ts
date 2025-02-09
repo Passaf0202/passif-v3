@@ -54,7 +54,12 @@ export const usePaymentTransaction = () => {
 
       // Créer une instance du contrat
       const contract = getEscrowContract(signer);
-      console.log('Contract initialized:', contract.address);
+      console.log('Contract initialized at address:', contract.address);
+
+      // Vérifier que l'adresse du vendeur est valide
+      if (!ethers.utils.isAddress(sellerAddress)) {
+        throw new Error("L'adresse du vendeur n'est pas valide");
+      }
 
       const formattedAmount = formatAmount(cryptoAmount);
       const amountInWei = ethers.utils.parseEther(formattedAmount);
