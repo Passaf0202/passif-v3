@@ -413,6 +413,7 @@ export type Database = {
           listing_id: string | null
           network: string | null
           released_at: string | null
+          released_by: string | null
           seller_confirmation: boolean | null
           seller_id: string | null
           seller_wallet_address: string | null
@@ -447,6 +448,7 @@ export type Database = {
           listing_id?: string | null
           network?: string | null
           released_at?: string | null
+          released_by?: string | null
           seller_confirmation?: boolean | null
           seller_id?: string | null
           seller_wallet_address?: string | null
@@ -481,6 +483,7 @@ export type Database = {
           listing_id?: string | null
           network?: string | null
           released_at?: string | null
+          released_by?: string | null
           seller_confirmation?: boolean | null
           seller_id?: string | null
           seller_wallet_address?: string | null
