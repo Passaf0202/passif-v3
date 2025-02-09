@@ -16,9 +16,15 @@ export const usePaymentTransaction = () => {
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       
-      // Vérifier que le provider est connecté
-      const network = await provider.getNetwork();
-      console.log('Connected to network:', network);
+      // Configuration spécifique pour Polygon Amoy
+      const network = {
+        name: 'Polygon Amoy',
+        chainId: 80001,
+        ensAddress: null // Important : on désactive ENS car non supporté sur Amoy
+      };
+      
+      await provider.ready;
+      console.log('Provider network:', await provider.getNetwork());
 
       const contract = getEscrowContract(provider);
       
