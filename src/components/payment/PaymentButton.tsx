@@ -20,7 +20,7 @@ export function PaymentButton({
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency = 'BNB',
+  cryptoCurrency = 'MATIC',
   onClick,
   disabled = false,
   sellerAddress,
@@ -43,12 +43,14 @@ export function PaymentButton({
     try {
       await ensureCorrectNetwork();
 
-      await createTransaction(sellerAddress, cryptoAmount, transactionId);
+      const txHash = await createTransaction(sellerAddress, cryptoAmount, transactionId);
+      console.log('Transaction successful:', txHash);
 
       toast({
         title: "Transaction réussie",
         description: "Les fonds ont été bloqués dans le contrat d'escrow",
       });
+      
       onClick();
 
     } catch (error: any) {
@@ -78,7 +80,7 @@ export function PaymentButton({
         ) : disabled ? (
           "Transaction en attente de confirmation..."
         ) : isWrongNetwork ? (
-          "Changer vers Polygon Amoy"
+          "Changer vers Polygon Mumbai"
         ) : !isConnected ? (
           "Connecter votre wallet"
         ) : !sellerAddress ? (
@@ -96,7 +98,7 @@ export function PaymentButton({
 
       {isWrongNetwork && isConnected && (
         <p className="text-sm text-red-500 text-center">
-          Veuillez vous connecter au réseau Polygon Amoy
+          Veuillez vous connecter au réseau Polygon Mumbai
         </p>
       )}
     </div>
