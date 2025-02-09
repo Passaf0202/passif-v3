@@ -73,6 +73,39 @@ export type Database = {
           },
         ]
       }
+      crypto_rates: {
+        Row: {
+          id: string
+          is_active: boolean | null
+          last_updated: string | null
+          name: string
+          rate_eur: number
+          rate_gbp: number
+          rate_usd: number
+          symbol: string
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          name: string
+          rate_eur: number
+          rate_gbp: number
+          rate_usd: number
+          symbol: string
+        }
+        Update: {
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          name?: string
+          rate_eur?: number
+          rate_gbp?: number
+          rate_usd?: number
+          symbol?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string | null
@@ -361,10 +394,6 @@ export type Database = {
           blockchain_txn_id: string
           buyer_confirmation: boolean | null
           buyer_id: string | null
-          can_be_cancelled: boolean | null
-          cancellation_reason: string | null
-          cancelled_at: string | null
-          cancelled_by: string | null
           chain_id: number | null
           commission_amount: number
           created_at: string | null
@@ -378,14 +407,11 @@ export type Database = {
           id: string
           listing_id: string | null
           network: string | null
-          released_at: string | null
           seller_confirmation: boolean | null
           seller_id: string | null
-          seller_wallet_address: string | null
           smart_contract_address: string | null
           status: string | null
           token_symbol: string | null
-          transaction_confirmed_at: string | null
           transaction_hash: string | null
           updated_at: string | null
         }
@@ -394,10 +420,6 @@ export type Database = {
           blockchain_txn_id?: string
           buyer_confirmation?: boolean | null
           buyer_id?: string | null
-          can_be_cancelled?: boolean | null
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          cancelled_by?: string | null
           chain_id?: number | null
           commission_amount: number
           created_at?: string | null
@@ -411,14 +433,11 @@ export type Database = {
           id?: string
           listing_id?: string | null
           network?: string | null
-          released_at?: string | null
           seller_confirmation?: boolean | null
           seller_id?: string | null
-          seller_wallet_address?: string | null
           smart_contract_address?: string | null
           status?: string | null
           token_symbol?: string | null
-          transaction_confirmed_at?: string | null
           transaction_hash?: string | null
           updated_at?: string | null
         }
@@ -427,10 +446,6 @@ export type Database = {
           blockchain_txn_id?: string
           buyer_confirmation?: boolean | null
           buyer_id?: string | null
-          can_be_cancelled?: boolean | null
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          cancelled_by?: string | null
           chain_id?: number | null
           commission_amount?: number
           created_at?: string | null
@@ -444,14 +459,11 @@ export type Database = {
           id?: string
           listing_id?: string | null
           network?: string | null
-          released_at?: string | null
           seller_confirmation?: boolean | null
           seller_id?: string | null
-          seller_wallet_address?: string | null
           smart_contract_address?: string | null
           status?: string | null
           token_symbol?: string | null
-          transaction_confirmed_at?: string | null
           transaction_hash?: string | null
           updated_at?: string | null
         }

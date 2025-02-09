@@ -1,7 +1,7 @@
 
 import { ethers } from 'ethers';
 import { supabase } from "@/integrations/supabase/client";
-import { formatAmount, getEscrowContract } from '@/utils/escrow/contractUtils';
+import { formatAmount, getEscrowContract, parseTransactionId } from '@/utils/escrow/contractUtils';
 
 export const usePaymentTransaction = () => {
   const createTransaction = async (
@@ -14,73 +14,46 @@ export const usePaymentTransaction = () => {
         throw new Error("MetaMask n'est pas installé");
       }
 
-      console.log('Starting transaction with seller:', sellerAddress);
-      console.log('Amount:', cryptoAmount);
-
-      // Forcer la connexion au réseau Polygon Amoy
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x13881" }], // 80001 en hexadécimal
-      }).catch(async (switchError: any) => {
-        if (switchError.code === 4902) {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [{
-              chainId: "0x13881",
-              chainName: "Polygon Amoy",
-              nativeCurrency: {
-                name: "MATIC",
-                symbol: "MATIC",
-                decimals: 18
-              },
-              rpcUrls: ["https://rpc-amoy.polygon.technology"],
-              blockExplorerUrls: ["https://www.oklink.com/amoy"]
-            }]
-          });
-        } else {
-          throw switchError;
-        }
-      });
-
-      // Initialiser le provider et le signer
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []); // Demander la connexion explicitement
-      const signer = provider.getSigner();
-      console.log('Signer initialized');
+      
+      // Vérifier que le provider est connecté
+      const network = await provider.getNetwork();
+      console.log('Connected to network:', network);
 
-      // Obtenir l'adresse de l'utilisateur
-      const userAddress = await signer.getAddress();
-      console.log('User address:', userAddress);
-
-      // Créer une instance du contrat
-      const contract = getEscrowContract(signer);
-      console.log('Contract initialized at address:', contract.address);
-
-      // Vérifier que l'adresse du vendeur est valide
-      if (!ethers.utils.isAddress(sellerAddress)) {
-        throw new Error("L'adresse du vendeur n'est pas valide");
-      }
-
+      const contract = getEscrowContract(provider);
+      
       const formattedAmount = formatAmount(cryptoAmount);
-      const amountInWei = ethers.utils.parseEther(formattedAmount);
+      const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
       console.log('Amount in Wei:', amountInWei.toString());
 
-      // Vérifier le solde
-      const balance = await provider.getBalance(userAddress);
+      console.log('Creating transaction with params:', {
+        sellerAddress,
+        cryptoAmount,
+        transactionId,
+        amountInWei: amountInWei.toString()
+      });
+
+      // Vérifier le solde avant la transaction
+      const signer = provider.getSigner();
+      const balance = await provider.getBalance(await signer.getAddress());
       if (balance.lt(amountInWei)) {
         throw new Error("Solde insuffisant pour effectuer la transaction");
       }
 
-      // Estimer le gas
-      const gasEstimate = await contract.estimateGas.createTransaction(sellerAddress, {
-        value: amountInWei
-      });
-      console.log('Gas estimate:', gasEstimate.toString());
+      // Estimer le gas avant la transaction
+      try {
+        const gasEstimate = await contract.estimateGas.createTransaction(sellerAddress, {
+          value: amountInWei,
+        });
+        console.log('Estimated gas:', gasEstimate.toString());
+      } catch (gasError: any) {
+        console.error('Gas estimation failed:', gasError);
+        throw new Error("Impossible d'estimer les frais de gas. Vérifiez votre solde et les paramètres de la transaction.");
+      }
 
-      // Envoyer la transaction
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
-        gasLimit: gasEstimate.mul(120).div(100) // +20% de marge
+        gasLimit: ethers.utils.hexlify(300000), // Gas limit explicite
       });
 
       console.log('Transaction sent:', tx.hash);
@@ -92,14 +65,19 @@ export const usePaymentTransaction = () => {
         throw new Error("La transaction a échoué sur la blockchain");
       }
 
-      const txIndex = receipt.logs[0].logIndex;
-      console.log('Transaction index:', txIndex);
+      const blockchainTxnId = await parseTransactionId(receipt);
+      console.log('Parsed transaction ID:', blockchainTxnId);
 
       if (transactionId) {
+        console.log('Storing transaction data:', {
+          blockchain_txn_id: blockchainTxnId,
+          transaction_hash: tx.hash
+        });
+
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
-            blockchain_txn_id: txIndex.toString(),
+            blockchain_txn_id: blockchainTxnId,
             transaction_hash: tx.hash,
             funds_secured: true,
             funds_secured_at: new Date().toISOString()
@@ -112,13 +90,24 @@ export const usePaymentTransaction = () => {
         }
       }
 
-      return txIndex.toString();
+      return blockchainTxnId;
     } catch (error: any) {
       console.error('Error in createTransaction:', error);
-      throw error;
+      
+      // Amélioration des messages d'erreur
+      if (error.code === 'INSUFFICIENT_FUNDS') {
+        throw new Error("Solde insuffisant pour effectuer la transaction");
+      } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
+        throw new Error("Impossible d'estimer les frais de gas. Vérifiez votre solde.");
+      } else if (error.code === -32603) {
+        throw new Error("Erreur RPC interne. Vérifiez que vous êtes bien connecté au bon réseau et que vous avez suffisamment de fonds.");
+      } else if (error.message.includes('user rejected')) {
+        throw new Error("Transaction rejetée par l'utilisateur");
+      }
+      
+      throw new Error(error.message || "Une erreur est survenue lors de la transaction");
     }
   };
 
   return { createTransaction };
 };
-

@@ -1,55 +1,78 @@
-
+import { useEffect, useState } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
+import { useCryptoRates } from "@/hooks/useCryptoRates";
 import { useCurrencyStore } from "@/stores/currencyStore";
-import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 interface DescriptionSectionProps {
   form: UseFormReturn<any>;
 }
 
-const POL_RATES = {
-  EUR: 0.92,
-  USD: 1.00,
-  GBP: 0.79
-};
-
 export function DescriptionSection({ form }: DescriptionSectionProps) {
+  const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
   const { selectedCurrency } = useCurrencyStore();
   const [price, setPrice] = useState<string>("");
+  const [selectedCrypto, setSelectedCrypto] = useState<string>("");
   const [cryptoAmount, setCryptoAmount] = useState<number | null>(null);
-
-  const updateCryptoAmount = (priceValue: number) => {
-    const rate = POL_RATES[selectedCurrency as keyof typeof POL_RATES];
-    if (!rate) return;
-
-    const amount = priceValue / rate;
-    setCryptoAmount(amount);
-    form.setValue('crypto_amount', amount);
-    form.setValue('crypto_currency', 'POL');
-  };
 
   const handlePriceChange = (value: string) => {
     setPrice(value);
     form.setValue('price', value);
     
-    const numericPrice = parseFloat(value);
-    if (!isNaN(numericPrice)) {
-      updateCryptoAmount(numericPrice);
+    if (selectedCrypto && cryptoRates) {
+      updateCryptoAmount(parseFloat(value) || 0, selectedCrypto);
+    }
+  };
+
+  const updateCryptoAmount = (priceValue: number, cryptoSymbol: string) => {
+    if (cryptoRates && Array.isArray(cryptoRates)) {
+      console.log("Updating crypto amount with:", { priceValue, cryptoSymbol, cryptoRates });
+      const selectedRate = cryptoRates.find(rate => rate.symbol === cryptoSymbol);
+      if (selectedRate) {
+        console.log("Found rate:", selectedRate);
+        let cryptoAmount;
+        switch (selectedCurrency) {
+          case 'USD':
+            cryptoAmount = priceValue / selectedRate.rate_usd;
+            break;
+          case 'GBP':
+            cryptoAmount = priceValue / selectedRate.rate_gbp;
+            break;
+          default: // EUR
+            cryptoAmount = priceValue / selectedRate.rate_eur;
+            break;
+        }
+        
+        console.log("Calculated crypto amount:", cryptoAmount);
+        setCryptoAmount(cryptoAmount);
+        form.setValue('crypto_amount', cryptoAmount);
+        form.setValue('crypto_currency', cryptoSymbol);
+      } else {
+        console.log("Rate not found for symbol:", cryptoSymbol);
+      }
+    } else {
+      console.log("No crypto rates available or invalid format:", cryptoRates);
+    }
+  };
+
+  const handleCryptoChange = (value: string) => {
+    console.log("Selected crypto changed to:", value);
+    setSelectedCrypto(value);
+    if (price) {
+      updateCryptoAmount(parseFloat(price) || 0, value);
     }
   };
 
   useEffect(() => {
-    if (price) {
-      const numericPrice = parseFloat(price);
-      if (!isNaN(numericPrice)) {
-        updateCryptoAmount(numericPrice);
-      }
+    if (price && selectedCrypto && cryptoRates) {
+      updateCryptoAmount(parseFloat(price) || 0, selectedCrypto);
     }
-  }, [selectedCurrency]);
+  }, [selectedCurrency, cryptoRates]);
 
   return (
     <Card>
@@ -73,7 +96,7 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
             )}
           />
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="price"
@@ -93,11 +116,47 @@ export function DescriptionSection({ form }: DescriptionSectionProps) {
               )}
             />
 
-            {cryptoAmount && (
-              <div className="text-sm text-muted-foreground">
-                ≈ {cryptoAmount.toFixed(8)} POL
-              </div>
-            )}
+            <FormField
+              control={form.control}
+              name="crypto_currency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cryptomonnaie</FormLabel>
+                  <Select onValueChange={handleCryptoChange} value={selectedCrypto}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          isLoadingRates 
+                            ? "Chargement..." 
+                            : "Sélectionnez une crypto"
+                        } />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isLoadingRates ? (
+                        <div className="flex items-center justify-center p-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      ) : (
+                        Array.isArray(cryptoRates) ? cryptoRates.map((crypto) => (
+                          <SelectItem key={crypto.symbol} value={crypto.symbol}>
+                            {crypto.name} ({crypto.symbol})
+                          </SelectItem>
+                        )) : (
+                          <SelectItem value="">Aucune crypto disponible</SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {cryptoAmount && selectedCrypto && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      ≈ {cryptoAmount.toFixed(8)} {selectedCrypto}
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
       </CardContent>

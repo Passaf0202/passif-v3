@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
+import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -12,31 +13,28 @@ interface PaymentButtonProps {
   onClick: () => void;
   disabled?: boolean;
   sellerAddress?: string;
-  transactionId?: string | null;
-  contractAddress?: string;
-  mode?: 'pay' | 'release';
+  transactionId?: string;
 }
 
 export function PaymentButton({ 
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency = 'POL',
+  cryptoCurrency = 'BNB',
   onClick,
   disabled = false,
   sellerAddress,
-  transactionId,
-  contractAddress,
-  mode = 'pay'
+  transactionId
 }: PaymentButtonProps) {
   const { toast } = useToast();
   const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
+  const { createTransaction } = usePaymentTransaction();
 
   const handleClick = async () => {
-    if (!isConnected) {
+    if (!isConnected || !sellerAddress || !cryptoAmount) {
       toast({
         title: "Erreur",
-        description: "Veuillez connecter votre wallet",
+        description: "Veuillez connecter votre wallet et vérifier les informations de paiement",
         variant: "destructive",
       });
       return;
@@ -44,7 +42,15 @@ export function PaymentButton({
 
     try {
       await ensureCorrectNetwork();
+
+      await createTransaction(sellerAddress, cryptoAmount, transactionId);
+
+      toast({
+        title: "Transaction réussie",
+        description: "Les fonds ont été bloqués dans le contrat d'escrow",
+      });
       onClick();
+
     } catch (error: any) {
       console.error('Transaction error:', error);
       toast({
@@ -55,38 +61,13 @@ export function PaymentButton({
     }
   };
 
-  const getButtonText = () => {
-    if (isProcessing) {
-      return "Transaction en cours...";
-    }
-    if (disabled) {
-      return "Transaction en attente de confirmation...";
-    }
-    if (isWrongNetwork) {
-      return "Changer vers Polygon Amoy";
-    }
-    if (!isConnected) {
-      return "Connecter votre wallet";
-    }
-    if (mode === 'release') {
-      return "Confirmer la réception";
-    }
-    return cryptoAmount ? `Payer ${cryptoAmount.toFixed(6)} ${cryptoCurrency}` : "Montant non disponible";
-  };
-
-  if (!sellerAddress && mode === 'pay') {
-    return (
-      <Button disabled className="w-full">
-        Adresse du vendeur manquante
-      </Button>
-    );
-  }
+  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress;
 
   return (
     <div className="w-full space-y-2">
       <Button 
         onClick={handleClick} 
-        disabled={isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress}
+        disabled={buttonDisabled}
         className="w-full bg-primary hover:bg-primary/90"
       >
         {isProcessing ? (
@@ -94,8 +75,16 @@ export function PaymentButton({
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Transaction en cours...
           </>
+        ) : disabled ? (
+          "Transaction en attente de confirmation..."
+        ) : isWrongNetwork ? (
+          "Changer vers Polygon Amoy"
+        ) : !isConnected ? (
+          "Connecter votre wallet"
+        ) : !sellerAddress ? (
+          "Adresse du vendeur manquante"
         ) : (
-          getButtonText()
+          `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}
       </Button>
 

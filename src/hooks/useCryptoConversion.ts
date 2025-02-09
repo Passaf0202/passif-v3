@@ -1,54 +1,116 @@
-
+import { useQuery } from "@tanstack/react-query";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 
-interface CryptoAmount {
-  amount: number;
-  currency: string;
-}
-
-export const useCryptoConversion = (price: number, listingId?: string): { amount: CryptoAmount | null, isLoading: boolean } => {
+export const useCryptoConversion = (price: number, listingId?: string, cryptoCurrency: string = 'BNB') => {
   const { selectedCurrency } = useCurrencyStore();
 
-  const { data: cryptoAmount, isLoading } = useQuery({
-    queryKey: ['crypto-conversion', listingId],
-    enabled: !!listingId,
+  const { data: rateData } = useQuery({
+    queryKey: ['crypto-rate', cryptoCurrency, selectedCurrency],
     queryFn: async () => {
-      if (!listingId) {
-        throw new Error("ListingId est requis");
+      try {
+        console.log(`Fetching rate for ${cryptoCurrency} in ${selectedCurrency}`);
+        
+        // Fetch rate from our database instead of external API
+        const { data, error } = await supabase
+          .from('crypto_rates')
+          .select('*')
+          .eq('symbol', cryptoCurrency)
+          .eq('is_active', true)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error fetching rate:', error);
+          return getFallbackRate(cryptoCurrency);
+        }
+
+        // Get the appropriate rate based on selected currency
+        const rate = selectedCurrency === 'EUR' 
+          ? data.rate_eur 
+          : selectedCurrency === 'GBP' 
+            ? data.rate_gbp 
+            : data.rate_usd;
+        
+        if (!rate || typeof rate !== 'number' || rate <= 0) {
+          console.error('Invalid rate received:', rate);
+          return getFallbackRate(cryptoCurrency);
+        }
+        
+        console.log('Rate response:', { rate, currency: cryptoCurrency });
+
+        // Only update listing if we have a valid listing ID and price
+        if (listingId && price && rate) {
+          const cryptoAmount = price / rate;
+          await updateListingCryptoAmount(listingId, cryptoAmount, cryptoCurrency);
+        }
+
+        return rate;
+      } catch (error) {
+        console.error('Error in rate query:', error);
+        return getFallbackRate(cryptoCurrency);
       }
-
-      console.log('Fetching crypto amount for listing:', listingId);
-      
-      const { data: listing, error } = await supabase
-        .from('listings')
-        .select('crypto_amount, crypto_currency')
-        .eq('id', listingId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching listing:', error);
-        throw error;
-      }
-
-      if (!listing?.crypto_amount) {
-        console.log('No crypto amount found for listing:', listingId);
-        return null;
-      }
-
-      console.log('Found crypto amount:', listing.crypto_amount, listing.crypto_currency);
-      
-      return {
-        amount: Number(listing.crypto_amount),
-        currency: listing.crypto_currency || 'POL'
-      };
     },
-    retry: false
+    refetchInterval: 10000,
   });
 
-  return {
-    amount: cryptoAmount,
-    isLoading
+  const calculateCryptoAmount = () => {
+    if (!price || typeof price !== 'number' || !rateData || typeof rateData !== 'number') {
+      console.log('Invalid price or rate:', { price, rateData });
+      return null;
+    }
+
+    const cryptoAmount = price / rateData;
+
+    if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
+      console.error('Invalid crypto amount calculated:', cryptoAmount);
+      return null;
+    }
+
+    console.log(`Calculated ${cryptoCurrency} amount:`, {
+      price,
+      rate: rateData,
+      amount: cryptoAmount
+    });
+    
+    return {
+      amount: cryptoAmount,
+      currency: cryptoCurrency
+    };
   };
+
+  return calculateCryptoAmount();
 };
+
+async function updateListingCryptoAmount(listingId: string, amount: number, currency: string) {
+  try {
+    // Verify we have a valid listing ID before attempting update
+    if (!listingId || typeof listingId !== 'string' || listingId.length !== 36) {
+      console.error('Invalid listing ID:', listingId);
+      return;
+    }
+
+    // Update the listing with the crypto amount and currency
+    const { error } = await supabase
+      .from('listings')
+      .update({
+        crypto_amount: amount,
+        crypto_currency: currency
+      })
+      .eq('id', listingId); // Use listingId, not currency for the query
+
+    if (error) {
+      console.error('Error updating listing crypto amount:', error);
+    }
+  } catch (error) {
+    console.error('Error in updateListingCryptoAmount:', error);
+  }
+}
+
+function getFallbackRate(currency: string): number {
+  const fallbackRates: Record<string, number> = {
+    'BNB': 275, // EUR rate
+    'USDT': 0.92, // EUR rate
+    'USDC': 0.92, // EUR rate
+  };
+  return fallbackRates[currency] || 1;
+}

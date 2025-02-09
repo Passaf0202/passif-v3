@@ -1,4 +1,3 @@
-
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -8,6 +7,7 @@ import { ProductDetailsCard } from "./ProductDetailsCard";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
+import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -49,24 +49,50 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
+
+  // Fetch the listing's original wallet address
   const { data: listingData } = useQuery({
-    queryKey: ['listing-details', listing.id],
+    queryKey: ['listing-wallet', listing.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('listings')
-        .select('wallet_address, crypto_amount, crypto_currency')
+        .select('wallet_address')
         .eq('id', listing.id)
         .single();
 
       if (error) {
-        console.error('Error fetching listing details:', error);
+        console.error('Error fetching listing wallet:', error);
         throw error;
       }
 
-      console.log('Fetched listing data:', data);
+      console.log('Fetched listing wallet:', data);
       return data;
     },
   });
+
+  const handleBuyClick = () => {
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour acheter",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    navigate(`/payment/${listing.id}`, { 
+      state: { 
+        listing: {
+          ...listing,
+          crypto_amount: cryptoDetails?.amount,
+          crypto_currency: cryptoDetails?.currency,
+          wallet_address: listingData?.wallet_address || listing.wallet_address
+        },
+        returnUrl: `/listings/${listing.id}`
+      } 
+    });
+  };
 
   if (!listing.user) {
     console.error("User information is missing from the listing");
@@ -77,11 +103,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     );
   }
 
+  // Use the listing's stored wallet_address instead of the user's current wallet
   const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
-  const cryptoAmount = listingData?.crypto_amount ?? listing.crypto_amount;
-  const cryptoCurrency = listingData?.crypto_currency || listing.crypto_currency || 'POL';
-
-  console.log('Crypto details:', { cryptoAmount, cryptoCurrency, sellerWalletAddress });
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -91,8 +114,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <ListingHeader 
           title={listing.title} 
           price={listing.price} 
-          cryptoAmount={cryptoAmount}
-          cryptoCurrency={cryptoCurrency}
+          cryptoAmount={cryptoDetails?.amount}
+          cryptoCurrency={cryptoDetails?.currency}
         />
         
         <SellerInfo 
@@ -117,8 +140,9 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           sellerAddress={sellerWalletAddress || ''}
           title={listing.title}
           price={listing.price}
-          cryptoAmount={cryptoAmount}
-          cryptoCurrency={cryptoCurrency}
+          cryptoAmount={cryptoDetails?.amount}
+          cryptoCurrency={cryptoDetails?.currency}
+          handleBuyClick={handleBuyClick}
         />
 
         <div className="space-y-4">

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ContactModal } from "@/components/ContactModal";
@@ -6,7 +5,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from 'wagmi';
 import { PaymentButton } from "../payment/PaymentButton";
-import { useNavigate } from 'react-router-dom';
 
 interface ListingActionsProps {
   listingId: string;
@@ -16,6 +14,7 @@ interface ListingActionsProps {
   price: number;
   cryptoAmount?: number;
   cryptoCurrency?: string;
+  handleBuyClick?: () => void;
 }
 
 export const ListingActions = ({ 
@@ -26,12 +25,12 @@ export const ListingActions = ({
   price,
   cryptoAmount,
   cryptoCurrency,
+  handleBuyClick,
 }: ListingActionsProps) => {
   const { user } = useAuth();
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  const navigate = useNavigate();
 
   const handleCryptoPayment = async () => {
     if (!user) {
@@ -52,8 +51,11 @@ export const ListingActions = ({
       return;
     }
 
+    setIsProcessing(true);
     try {
-      navigate(`/payment/${listingId}`);
+      if (handleBuyClick) {
+        await handleBuyClick();
+      }
     } catch (error) {
       console.error('Payment error:', error);
       toast({
@@ -61,6 +63,8 @@ export const ListingActions = ({
         description: "Une erreur est survenue lors du paiement",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -74,7 +78,6 @@ export const ListingActions = ({
           cryptoCurrency={cryptoCurrency}
           onClick={handleCryptoPayment}
           sellerAddress={sellerAddress}
-          mode="pay"
         />
 
         <Button variant="outline" className="w-full" asChild>
@@ -87,4 +90,4 @@ export const ListingActions = ({
       </div>
     </div>
   );
-};
+}

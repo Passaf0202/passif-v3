@@ -1,24 +1,22 @@
 import { useState } from "react";
-import { useEscrowPayment } from "@/hooks/escrow/useEscrowPayment";
+import { useEscrowPayment } from "@/hooks/useEscrowPayment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { EscrowAlert } from "./EscrowAlert";
 import { TransactionDetails } from "./TransactionDetails";
-import { PaymentButton } from "./PaymentButton";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCryptoRates } from "@/hooks/useCryptoRates";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
-import { useToast } from "@/components/ui/use-toast";
+import { PaymentButton } from "./PaymentButton";
 
 interface CryptoPaymentFormProps {
   listingId: string;
   title: string;
   price: number;
   cryptoAmount?: number;
-  sellerAddress?: string;
+  cryptoCurrency?: string;
   onPaymentComplete: () => void;
 }
 
@@ -27,53 +25,16 @@ export function CryptoPaymentForm({
   title,
   price,
   cryptoAmount: initialCryptoAmount,
-  sellerAddress,
+  cryptoCurrency: initialCryptoCurrency = "BNB",
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState(initialCryptoCurrency);
+  const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
   const [transactionId, setTransactionId] = useState<string | null>(null);
   
-  const { amount: cryptoDetails, isLoading: isCryptoLoading } = useCryptoConversion(price, listingId);
-  
-  // Fetch listing details to ensure we have the most up-to-date information
-  const { data: listing, isLoading: isListingLoading, error: listingError } = useQuery({
-    queryKey: ['listing-payment', listingId],
-    queryFn: async () => {
-      if (!listingId) {
-        throw new Error("ID de l'annonce manquant");
-      }
-
-      console.log('Fetching listing with ID:', listingId);
-      
-      const { data, error } = await supabase
-        .from('listings')
-        .select(`
-          *,
-          user:profiles!listings_user_id_fkey (
-            id,
-            wallet_address
-          )
-        `)
-        .eq('id', listingId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching listing:', error);
-        throw new Error("Impossible de récupérer les détails de l'annonce");
-      }
-
-      if (!data) {
-        throw new Error("Annonce introuvable");
-      }
-
-      console.log('Fetched listing data:', data);
-      return data;
-    },
-    retry: 1,
-  });
+  const convertedAmount = useCryptoConversion(price, listingId, selectedCurrency);
   
   const {
     handlePayment,
@@ -83,54 +44,28 @@ export function CryptoPaymentForm({
   } = useEscrowPayment({
     listingId,
     address: user?.id,
-    onTransactionHash: (hash: string) => {
-      console.log('Transaction hash:', hash);
-    },
-    onTransactionCreated: (id: string) => {
-      setTransactionId(id);
-      navigate(`/release-funds/${id}`);
-    },
-    onPaymentComplete
+    onTransactionCreated: (id: string) => setTransactionId(id),
+    onPaymentComplete,
   });
 
-  const isLoading = isListingLoading || isCryptoLoading;
-
-  // Si l'annonce n'est pas trouvée ou une erreur survient
-  if (listingError) {
-    return (
-      <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-        <p className="text-red-600">
-          {listingError instanceof Error ? listingError.message : "Une erreur est survenue"}
-        </p>
-        <Button 
-          onClick={() => navigate('/')} 
-          variant="outline" 
-          className="mt-4"
-        >
-          Retour à l'accueil
-        </Button>
-      </div>
-    );
-  }
-
-  if (isLoading) {
+  if (!convertedAmount && !initialCryptoAmount) {
     return (
       <div className="flex items-center justify-center p-4">
         <Loader2 className="h-6 w-6 animate-spin" />
-        <span className="ml-2">Chargement en cours...</span>
+        <span className="ml-2">Calcul du montant en cours...</span>
       </div>
     );
   }
 
-  if (!cryptoDetails?.amount) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <span className="text-red-500">Erreur lors du calcul du montant. Veuillez réessayer.</span>
-      </div>
-    );
-  }
+  const finalCryptoAmount = convertedAmount?.amount || initialCryptoAmount;
+  const finalCryptoCurrency = convertedAmount?.currency || selectedCurrency;
 
-  const currentSellerAddress = listing?.wallet_address || sellerAddress;
+  // Available cryptocurrencies (hardcoded for now, could be fetched from backend)
+  const availableCurrencies = [
+    { symbol: "BNB", name: "Binance Coin" },
+    { symbol: "USDT", name: "Tether" },
+    { symbol: "USDC", name: "USD Coin" }
+  ];
 
   return (
     <div className="space-y-6">
@@ -142,11 +77,31 @@ export function CryptoPaymentForm({
           <TransactionDetails
             title={title}
             price={price}
-            cryptoAmount={cryptoDetails.amount}
-            cryptoCurrency="POL"
+            cryptoAmount={finalCryptoAmount}
+            cryptoCurrency={finalCryptoCurrency}
           />
 
           <div className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Sélectionnez une cryptomonnaie</label>
+              <Select
+                value={selectedCurrency}
+                onValueChange={setSelectedCurrency}
+                disabled={isProcessing}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une cryptomonnaie" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCurrencies.map((currency) => (
+                    <SelectItem key={currency.symbol} value={currency.symbol}>
+                      {currency.name} ({currency.symbol})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <Button
               onClick={() => setShowEscrowInfo(true)}
               variant="outline"
@@ -160,11 +115,10 @@ export function CryptoPaymentForm({
               onClick={handlePayment}
               isProcessing={isProcessing}
               isConnected={!!user}
-              cryptoAmount={cryptoDetails.amount}
-              cryptoCurrency="POL"
-              disabled={isProcessing || !cryptoDetails.amount}
-              sellerAddress={currentSellerAddress}
-              mode="pay"
+              cryptoAmount={finalCryptoAmount}
+              cryptoCurrency={finalCryptoCurrency}
+              disabled={isProcessing || !finalCryptoAmount}
+              transactionId={transactionId}
             />
 
             {error && (
