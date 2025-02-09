@@ -23,92 +23,91 @@ const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
 
 export default function PaymentPage() {
   const { id } = useParams();
-  const [sellerAddress, setSellerAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [transactionDetails, setTransactionDetails] = useState<any>(null);
   const [blockchainTxId, setBlockchainTxId] = useState<number | null>(null);
+  const [sellerAddress, setSellerAddress] = useState<string | null>(null);
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
 
   useEffect(() => {
-    const fetchTransactionDetails = async () => {
+    const fetchSellerAddress = async () => {
       try {
         if (!id) {
           throw new Error("ID de transaction manquant");
         }
 
-        console.log("Fetching transaction details for ID:", id);
-
         // Récupérer d'abord les détails de la transaction depuis Supabase
-        const { data: transaction, error: supabaseError } = await supabase
+        const { data: transaction, error: transactionError } = await supabase
           .from('transactions')
           .select(`
             *,
             listings (
               title,
               crypto_amount,
-              crypto_currency
+              crypto_currency,
+              wallet_address
             )
           `)
           .eq('id', id)
           .maybeSingle();
 
-        console.log("Supabase response:", { transaction, supabaseError });
-
-        if (supabaseError) {
-          console.error("Supabase error:", supabaseError);
-          throw supabaseError;
+        if (transactionError) {
+          console.error("Erreur Supabase:", transactionError);
+          throw transactionError;
         }
-        
+
         if (!transaction) {
-          console.error("No transaction found for ID:", id);
-          throw new Error("Transaction non trouvée dans la base de données");
+          throw new Error("Transaction non trouvée");
         }
 
-        console.log("Transaction found:", transaction);
         setTransactionDetails(transaction);
-        
-        // Connecter au contrat sur la blockchain
+
+        // Si l'adresse du vendeur est déjà dans la transaction, l'utiliser
+        if (transaction.seller_wallet_address) {
+          setSellerAddress(transaction.seller_wallet_address);
+          return;
+        }
+
+        // Sinon, la récupérer depuis le contrat blockchain
         if (!window.ethereum) {
           throw new Error("MetaMask n'est pas installé");
         }
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, provider);
-        
+
         // Utiliser le blockchain_sequence_number stocké dans Supabase
         if (transaction.blockchain_sequence_number !== null) {
-          console.log("Fetching blockchain data for sequence number:", transaction.blockchain_sequence_number);
-          try {
-            const txnData = await contract.transactions(transaction.blockchain_sequence_number);
-            console.log("Blockchain transaction data:", txnData);
-            
-            if (txnData && txnData.seller && txnData.seller !== ethers.constants.AddressZero) {
-              setSellerAddress(txnData.seller);
-              setBlockchainTxId(transaction.blockchain_sequence_number);
-            } else {
-              throw new Error("Données blockchain invalides");
-            }
-          } catch (contractError) {
-            console.error("Contract error:", contractError);
-            throw new Error("Erreur lors de la récupération des données blockchain");
+          const txnData = await contract.transactions(transaction.blockchain_sequence_number);
+          
+          if (txnData && txnData.seller && txnData.seller !== ethers.constants.AddressZero) {
+            setSellerAddress(txnData.seller);
+            setBlockchainTxId(transaction.blockchain_sequence_number);
+
+            // Mettre à jour l'adresse dans Supabase
+            await supabase
+              .from('transactions')
+              .update({ seller_wallet_address: txnData.seller })
+              .eq('id', id);
+          } else {
+            throw new Error("Données blockchain invalides");
           }
         } else {
-          console.error("No blockchain_sequence_number found for transaction");
           throw new Error("Numéro de séquence blockchain manquant");
         }
 
         setIsLoading(false);
       } catch (error: any) {
-        console.error("Error in fetchTransactionDetails:", error);
-        setError(error.message || "Une erreur est survenue lors de la récupération des détails");
+        console.error("Erreur lors de la récupération de l'adresse du vendeur:", error);
+        setError(error.message || "Une erreur est survenue");
         setIsLoading(false);
       }
     };
 
-    fetchTransactionDetails();
+    fetchSellerAddress();
   }, [id]);
 
   const handleReleaseFunds = async () => {
