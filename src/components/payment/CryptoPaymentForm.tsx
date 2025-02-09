@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -34,15 +35,22 @@ export function CryptoPaymentForm({
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   
   const { data: cryptoDetails, isLoading: isCryptoLoading } = useCryptoConversion(price, listingId, cryptoCurrency);
   
   // Fetch listing details to ensure we have the most up-to-date information
-  const { data: listing, isLoading: isListingLoading } = useQuery({
+  const { data: listing, isLoading: isListingLoading, error: listingError } = useQuery({
     queryKey: ['listing-payment', listingId],
     queryFn: async () => {
+      if (!listingId) {
+        throw new Error("ID de l'annonce manquant");
+      }
+
+      console.log('Fetching listing with ID:', listingId);
+      
       const { data, error } = await supabase
         .from('listings')
         .select(`
@@ -53,11 +61,21 @@ export function CryptoPaymentForm({
           )
         `)
         .eq('id', listingId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching listing:', error);
+        throw new Error("Impossible de récupérer les détails de l'annonce");
+      }
+
+      if (!data) {
+        throw new Error("Annonce introuvable");
+      }
+
+      console.log('Fetched listing data:', data);
       return data;
     },
+    retry: 1,
   });
   
   const {
@@ -80,16 +98,34 @@ export function CryptoPaymentForm({
 
   const isLoading = isListingLoading || isCryptoLoading;
 
-  if (isLoading) {
+  // Si l'annonce n'est pas trouvée ou une erreur survient
+  if (listingError) {
     return (
-      <div className="flex items-center justify-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin" />
-        <span className="ml-2">Calcul du montant en cours...</span>
+      <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+        <p className="text-red-600">
+          {listingError instanceof Error ? listingError.message : "Une erreur est survenue"}
+        </p>
+        <Button 
+          onClick={() => navigate('/')} 
+          variant="outline" 
+          className="mt-4"
+        >
+          Retour à l'accueil
+        </Button>
       </div>
     );
   }
 
-  if (!cryptoDetails?.amount) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <Loader2 className="h-6 w-6 animate-spin" />
+        <span className="ml-2">Chargement en cours...</span>
+      </div>
+    );
+  }
+
+  if (!cryptoDetails?.data?.amount) {
     return (
       <div className="flex items-center justify-center p-4">
         <span className="text-red-500">Erreur lors du calcul du montant. Veuillez réessayer.</span>
@@ -109,8 +145,8 @@ export function CryptoPaymentForm({
           <TransactionDetails
             title={title}
             price={price}
-            cryptoAmount={cryptoDetails.amount}
-            cryptoCurrency={cryptoDetails.currency}
+            cryptoAmount={cryptoDetails.data.amount}
+            cryptoCurrency={cryptoDetails.data.currency}
           />
 
           <div className="mt-4 space-y-4">
@@ -127,9 +163,9 @@ export function CryptoPaymentForm({
               onClick={handlePayment}
               isProcessing={isProcessing}
               isConnected={!!user}
-              cryptoAmount={cryptoDetails.amount}
-              cryptoCurrency={cryptoDetails.currency}
-              disabled={isProcessing || !cryptoDetails.amount}
+              cryptoAmount={cryptoDetails.data.amount}
+              cryptoCurrency={cryptoDetails.data.currency}
+              disabled={isProcessing || !cryptoDetails.data.amount}
               sellerAddress={currentSellerAddress}
               mode="pay"
             />
