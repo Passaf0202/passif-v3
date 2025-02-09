@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,89 +30,64 @@ export default function PaymentPage() {
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
-  const retryCountRef = useRef(0);
-  const MAX_RETRIES = 5;
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
-    const fetchTransactionDetails = async () => {
+    const fetchBlockchainData = async () => {
       try {
-        if (!id) {
-          setError("ID de transaction manquant");
-          return;
+        if (!window.ethereum) {
+          throw new Error("MetaMask n'est pas installé");
         }
 
-        console.log(`Fetching transaction details for ID: ${id} (Attempt ${retryCountRef.current + 1}/${MAX_RETRIES})`);
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, provider);
+        
+        const count = await contract.transactionCount();
+        const txnId = count.sub(1);
+        console.log("Dernier ID de transaction:", txnId.toString());
+        
+        const txnData = await contract.transactions(txnId);
+        console.log("Données de la transaction blockchain:", txnData);
+        
+        setSellerAddress(txnData.seller);
 
-        const { data: transaction, error: fetchError } = await supabase
-          .from('transactions')
-          .select(`
-            *,
-            listings (
-              title,
-              crypto_amount,
-              crypto_currency
-            )
-          `)
-          .eq('id', id)
-          .maybeSingle();
+        // Maintenant récupérer les détails de Supabase s'ils existent
+        if (id) {
+          const { data: transaction, error: fetchError } = await supabase
+            .from('transactions')
+            .select(`
+              *,
+              listings (
+                title,
+                crypto_amount,
+                crypto_currency
+              )
+            `)
+            .eq('id', id)
+            .maybeSingle();
 
-        if (fetchError) {
-          console.error("Error fetching transaction:", fetchError);
-          throw fetchError;
-        }
-
-        if (!transaction) {
-          if (retryCountRef.current < MAX_RETRIES) {
-            console.log("Transaction not found, retrying in 2 seconds...");
-            retryCountRef.current += 1;
-            timeoutId = setTimeout(fetchTransactionDetails, 2000);
-            return;
+          if (transaction) {
+            console.log("Données de la transaction Supabase:", transaction);
+            setTransactionDetails(transaction);
+          } else {
+            console.log("Pas de données Supabase, utilisation des données blockchain");
+            setTransactionDetails({
+              listings: {
+                crypto_amount: ethers.utils.formatEther(txnData.amount),
+                crypto_currency: 'POL'
+              }
+            });
           }
-          setError("Transaction introuvable après plusieurs tentatives");
-          return;
         }
 
-        console.log("Transaction details:", transaction);
-        setTransactionDetails(transaction);
-
-        if (window.ethereum) {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, provider);
-          
-          const count = await contract.transactionCount();
-          const txnId = count.sub(1);
-          console.log("Dernier ID de transaction:", txnId.toString());
-          
-          const txnData = await contract.transactions(txnId);
-          console.log("Données de la transaction:", txnData);
-          
-          setSellerAddress(txnData.seller);
-        }
+        setIsLoading(false);
       } catch (error: any) {
         console.error("Erreur lors de la récupération des détails:", error);
-        if (retryCountRef.current < MAX_RETRIES) {
-          console.log("Error occurred, retrying in 2 seconds...");
-          retryCountRef.current += 1;
-          timeoutId = setTimeout(fetchTransactionDetails, 2000);
-          return;
-        }
         setError(error.message || "Une erreur est survenue lors de la récupération des détails");
-      } finally {
-        if (retryCountRef.current >= MAX_RETRIES || transactionDetails) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
-    fetchTransactionDetails();
-
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
+    fetchBlockchainData();
   }, [id]);
 
   const handleReleaseFunds = async () => {
@@ -145,17 +120,19 @@ export default function PaymentPage() {
       console.log("Reçu de la transaction:", receipt);
 
       if (receipt.status === 1) {
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            status: 'completed',
-            escrow_status: 'completed',
-            released_at: new Date().toISOString(),
-            buyer_confirmation: true
-          })
-          .eq('id', id);
+        if (id) {
+          const { error: updateError } = await supabase
+            .from('transactions')
+            .update({
+              status: 'completed',
+              escrow_status: 'completed',
+              released_at: new Date().toISOString(),
+              buyer_confirmation: true
+            })
+            .eq('id', id);
 
-        if (updateError) throw updateError;
+          if (updateError) throw updateError;
+        }
 
         toast({
           title: "Succès",
@@ -182,7 +159,7 @@ export default function PaymentPage() {
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-sm text-muted-foreground">
-              Chargement de la transaction... (Tentative {retryCountRef.current + 1}/{MAX_RETRIES})
+              Chargement des données de la transaction...
             </p>
           </div>
         </div>
@@ -205,21 +182,6 @@ export default function PaymentPage() {
     );
   }
 
-  if (!transactionDetails) {
-    return (
-      <div>
-        <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <Alert>
-            <AlertDescription>
-              Aucune transaction trouvée avec cet identifiant.
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <Navbar />
@@ -230,17 +192,19 @@ export default function PaymentPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
-              <div>
-                <h3 className="font-medium">Article</h3>
-                <p className="text-sm text-muted-foreground">
-                  {transactionDetails.listings?.title}
-                </p>
-              </div>
+              {transactionDetails?.listings?.title && (
+                <div>
+                  <h3 className="font-medium">Article</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {transactionDetails.listings.title}
+                  </p>
+                </div>
+              )}
 
               <div>
                 <h3 className="font-medium">Montant</h3>
                 <p className="text-sm text-muted-foreground">
-                  {transactionDetails.listings?.crypto_amount} {transactionDetails.listings?.crypto_currency}
+                  {transactionDetails?.listings?.crypto_amount} {transactionDetails?.listings?.crypto_currency}
                 </p>
               </div>
 
