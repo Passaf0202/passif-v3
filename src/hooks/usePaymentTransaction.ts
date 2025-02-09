@@ -152,7 +152,7 @@ export const usePaymentTransaction = () => {
             description: "Les fonds ont été bloqués dans le contrat d'escrow",
           });
           
-          // Rediriger vers la page de libération des fonds
+          // Redirection mise à jour vers /release-funds/[ID] au lieu de /payment/[ID]
           navigate(`/release-funds/${transaction.id}`);
           return tx.hash;
         }
@@ -181,3 +181,4 @@ export const usePaymentTransaction = () => {
 
   return { handlePayment, isProcessing, error, transactionStatus };
 };
+
