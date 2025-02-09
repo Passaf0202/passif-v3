@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,42 +24,46 @@ export default function TransactionStatus() {
       try {
         setLoading(true);
         setError(null);
+
+        console.log("ID de transaction reçu:", id);
         
         // Validate UUID format
         if (!id || !UUID_REGEX.test(id)) {
+          console.error("ID de transaction invalide:", id);
           setError("ID de transaction invalide");
           setLoading(false);
           return;
         }
 
-        console.log("Fetching transaction with ID:", id);
-
-        const { data, error } = await supabase
+        const { data: userTransactions, error: userError } = await supabase
           .from("transactions")
           .select(`
             *,
-            listings (*),
-            buyer:buyer_id (username, full_name),
-            seller:seller_id (username, full_name)
+            listings (title),
+            buyer:profiles!buyer_id (username, full_name),
+            seller:profiles!seller_id (username, full_name)
           `)
           .eq("id", id)
-          .single();
+          .or(`buyer_id.eq.${user?.id},seller_id.eq.${user?.id}`);
 
-        if (error) {
-          console.error("Error fetching transaction:", error);
+        console.log("Résultat de la requête:", { data: userTransactions, error: userError });
+
+        if (userError) {
+          console.error("Erreur lors de la récupération de la transaction:", userError);
           setError("Erreur lors de la récupération de la transaction");
           return;
         }
 
-        if (!data) {
-          setError("Transaction non trouvée");
+        if (!userTransactions || userTransactions.length === 0) {
+          console.error("Transaction non trouvée ou accès non autorisé");
+          setError("Transaction non trouvée ou accès non autorisé");
           return;
         }
 
-        console.log("Transaction data:", data);
-        setTransaction(data);
+        console.log("Transaction trouvée:", userTransactions[0]);
+        setTransaction(userTransactions[0]);
       } catch (err) {
-        console.error("Error in fetchTransaction:", err);
+        console.error("Erreur inattendue:", err);
         setError("Une erreur inattendue s'est produite");
       } finally {
         setLoading(false);
@@ -83,7 +86,7 @@ export default function TransactionStatus() {
           filter: `id=eq.${id}`,
         },
         (payload) => {
-          console.log("Transaction updated:", payload);
+          console.log("Transaction mise à jour:", payload);
           setTransaction((prev: any) => ({ ...prev, ...payload.new }));
         }
       )
@@ -92,7 +95,7 @@ export default function TransactionStatus() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [id]);
+  }, [id, user?.id]);
 
   if (!user) {
     return (
@@ -135,7 +138,7 @@ export default function TransactionStatus() {
     );
   }
 
-  const isUserBuyer = user.id === transaction.buyer_id;
+  const isUserBuyer = user?.id === transaction.buyer_id;
   const userRole = isUserBuyer ? "acheteur" : "vendeur";
   const otherParty = isUserBuyer ? transaction.seller : transaction.buyer;
 
