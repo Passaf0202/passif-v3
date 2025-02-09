@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
+import { useNavigate } from "react-router-dom";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -27,6 +28,7 @@ export function PaymentButton({
   transactionId
 }: PaymentButtonProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
   const { handlePayment } = usePaymentTransaction();
 
@@ -46,11 +48,6 @@ export function PaymentButton({
       const txHash = await handlePayment(sellerAddress, cryptoAmount, transactionId);
       console.log('Transaction successful:', txHash);
 
-      toast({
-        title: "Transaction réussie",
-        description: "Les fonds ont été bloqués dans le contrat d'escrow",
-      });
-      
       onClick();
 
     } catch (error: any) {
