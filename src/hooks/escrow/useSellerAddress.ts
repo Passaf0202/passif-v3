@@ -10,24 +10,42 @@ export const useSellerAddress = (transactionId: string) => {
   useEffect(() => {
     const fetchSellerAddress = async () => {
       try {
-        const { data, error } = await supabase
+        // D'abord, essayer de récupérer l'adresse depuis la transaction
+        const { data: transaction, error: transactionError } = await supabase
           .from('transactions')
-          .select('seller_wallet_address')
+          .select(`
+            seller_wallet_address,
+            listing_id,
+            listings (
+              wallet_address,
+              user:profiles!listings_user_id_fkey (
+                wallet_address
+              )
+            )
+          `)
           .eq('id', transactionId)
           .single();
 
-        if (error) throw error;
+        if (transactionError) throw transactionError;
 
-        if (!data) {
+        if (!transaction) {
           console.error('No transaction found');
           return;
         }
 
-        if (data.seller_wallet_address) {
-          console.log('Setting seller address:', data.seller_wallet_address);
-          setSellerAddress(data.seller_wallet_address);
+        // Utiliser l'adresse de la transaction en priorité
+        let address = transaction.seller_wallet_address;
+
+        // Si pas d'adresse dans la transaction, essayer de la récupérer depuis l'annonce
+        if (!address && transaction.listings) {
+          address = transaction.listings.wallet_address || transaction.listings.user?.wallet_address;
+        }
+
+        if (address) {
+          console.log('Setting seller address:', address);
+          setSellerAddress(address);
         } else {
-          console.error('No seller address found');
+          console.error('No seller address found in any location');
           toast({
             title: "Erreur",
             description: "Adresse du vendeur introuvable",

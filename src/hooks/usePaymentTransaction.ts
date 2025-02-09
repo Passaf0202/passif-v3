@@ -51,7 +51,7 @@ export const usePaymentTransaction = () => {
         throw new Error("Solde POL insuffisant pour effectuer la transaction");
       }
 
-      // Récupérer les informations de l'annonce
+      // Récupérer les informations de l'annonce avec l'adresse du wallet
       if (listingId) {
         const { data: listing, error: listingError } = await supabase
           .from('listings')
@@ -83,6 +83,12 @@ export const usePaymentTransaction = () => {
           });
           throw new Error("L'adresse du vendeur ne correspond pas à celle de l'annonce");
         }
+
+        // Stocker l'adresse du vendeur de l'annonce pour une utilisation ultérieure
+        await supabase
+          .from('listings')
+          .update({ wallet_address: sellerAddress })
+          .eq('id', listingId);
       }
 
       // Créer la transaction blockchain
@@ -113,7 +119,7 @@ export const usePaymentTransaction = () => {
 
         const { data: listing } = await supabase
           .from('listings')
-          .select('user_id')
+          .select('user_id, wallet_address')
           .eq('id', listingId)
           .single();
 
@@ -134,7 +140,7 @@ export const usePaymentTransaction = () => {
             network: 'polygon_amoy',
             token_symbol: 'POL',
             transaction_hash: tx.hash,
-            seller_wallet_address: sellerAddress,
+            seller_wallet_address: listing.wallet_address || sellerAddress,
             funds_secured: true,
             funds_secured_at: new Date().toISOString(),
             blockchain_txn_id: receipt.events?.[0]?.args?.[0]?.toString() || '0'
@@ -176,3 +182,4 @@ export const usePaymentTransaction = () => {
 
   return { handlePayment, isProcessing, error, transactionStatus };
 };
+
