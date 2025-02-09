@@ -1,6 +1,12 @@
+
 import { ethers } from "ethers";
-import { ESCROW_ABI } from "./contractConstants";
 import { supabase } from "@/integrations/supabase/client";
+
+const ESCROW_ABI = [
+  "function confirmTransaction(uint256 txnId)",
+  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)",
+  "function getTransaction(uint256 _txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)"
+];
 
 export const useEscrowContract = () => {
   const getActiveContract = async () => {

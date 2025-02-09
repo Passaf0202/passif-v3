@@ -5,20 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
-
-const ESCROW_ABI = [
-  "function releaseFunds(uint256 txnId)",
-  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)",
-  "function transactionCount() view returns (uint256)"
-];
-
-const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
+import { useEscrowContract } from "./useEscrowContract";
 
 export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
+  const { getActiveContract, getContract } = useEscrowContract();
 
   const handleReleaseFunds = async () => {
     try {
@@ -33,14 +27,6 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Initialiser le provider et le signer
-      if (!window.ethereum) {
-        throw new Error("MetaMask n'est pas installé");
-      }
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-
       // Récupérer les détails de la transaction
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
@@ -52,16 +38,23 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
         throw new Error("Transaction non trouvée");
       }
 
-      // Créer l'instance du contrat
-      const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
-      const txnId = Number(transaction.blockchain_txn_id);
+      const activeContract = await getActiveContract();
+      console.log('Active contract:', activeContract);
+      
+      if (!activeContract?.address) {
+        throw new Error("Contrat intelligent non trouvé");
+      }
 
-      // Envoyer la transaction de libération des fonds
-      const tx = await contract.releaseFunds(txnId);
-      console.log('Transaction envoyée:', tx.hash);
+      const contract = await getContract(activeContract.address);
+      const txnId = Number(transaction.blockchain_txn_id);
+      console.log('Transaction ID:', txnId);
+
+      // Envoyer la transaction de confirmation
+      const tx = await contract.confirmTransaction(txnId);
+      console.log('Transaction sent:', tx.hash);
 
       const receipt = await tx.wait();
-      console.log('Transaction confirmée:', receipt);
+      console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
         // Mettre à jour le statut dans la base de données
@@ -70,7 +63,8 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
           .update({
             status: 'completed',
             escrow_status: 'completed',
-            released_at: new Date().toISOString()
+            released_at: new Date().toISOString(),
+            transaction_confirmed_at: new Date().toISOString()
           })
           .eq('id', transactionId);
 
@@ -91,7 +85,7 @@ export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
       console.error('Error releasing funds:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue",
+        description: error.message || "Une erreur est survenue lors de la libération des fonds",
         variant: "destructive",
       });
     } finally {
