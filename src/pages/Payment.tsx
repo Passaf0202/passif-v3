@@ -74,15 +74,11 @@ export default function Payment() {
         .from('transactions')
         .select(`
           *,
-          seller:profiles!transactions_seller_id_fkey (
-            id,
-            wallet_address,
-            full_name
-          ),
           listing:listings!transactions_listing_id_fkey (
             id,
             title,
             price,
+            wallet_address,
             user:profiles!listings_user_id_fkey (
               id,
               full_name,
@@ -102,7 +98,7 @@ export default function Payment() {
       
       const enrichedTransaction = {
         ...data,
-        seller_wallet_address: data?.seller?.wallet_address || data?.listing?.user?.wallet_address
+        seller_wallet_address: data?.listing?.wallet_address || data?.listing?.user?.wallet_address
       };
       
       console.log('Latest transaction with seller wallet:', enrichedTransaction);

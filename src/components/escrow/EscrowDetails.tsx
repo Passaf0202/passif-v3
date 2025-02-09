@@ -23,13 +23,17 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   useEffect(() => {
     const fetchTransaction = async () => {
+      console.log('Fetching transaction details for:', transactionId);
+      
       const { data, error } = await supabase
         .from("transactions")
         .select(`
           *,
           listing:listings!transactions_listing_id_fkey (
             title,
+            wallet_address,
             user:profiles!listings_user_id_fkey (
+              id,
               wallet_address
             )
           )
@@ -49,10 +53,13 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
       console.log("Transaction data:", data);
       
-      // Utiliser l'adresse du wallet depuis la relation listing.user si elle existe
+      // Utiliser en priorité l'adresse du wallet de l'annonce, sinon celle du profil utilisateur
+      const sellerWalletAddress = data.listing?.wallet_address || data.listing?.user?.wallet_address;
+      console.log("Seller wallet address:", sellerWalletAddress);
+      
       const enrichedTransaction = {
         ...data,
-        seller_wallet_address: data.seller_wallet_address || data.listing?.user?.wallet_address
+        seller_wallet_address: sellerWalletAddress
       };
       
       console.log("Enriched transaction data:", enrichedTransaction);
@@ -86,6 +93,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const handleReleaseFunds = async () => {
     try {
       if (!transaction?.seller_wallet_address) {
+        console.error("Missing seller wallet address:", transaction);
         throw new Error("L'adresse du vendeur est manquante");
       }
 
