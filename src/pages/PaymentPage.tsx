@@ -27,13 +27,38 @@ export default function PaymentPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [transactionDetails, setTransactionDetails] = useState<any>(null);
+  const [blockchainTxId, setBlockchainTxId] = useState<number | null>(null);
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
 
   useEffect(() => {
-    const fetchBlockchainData = async () => {
+    const fetchTransactionDetails = async () => {
       try {
+        if (!id) {
+          throw new Error("ID de transaction manquant");
+        }
+
+        // Récupérer d'abord les détails de la transaction depuis Supabase
+        const { data: transaction, error: supabaseError } = await supabase
+          .from('transactions')
+          .select(`
+            *,
+            listings (
+              title,
+              crypto_amount,
+              crypto_currency
+            )
+          `)
+          .eq('id', id)
+          .maybeSingle();
+
+        if (supabaseError) throw supabaseError;
+        if (!transaction) throw new Error("Transaction non trouvée");
+
+        setTransactionDetails(transaction);
+        
+        // Connecter au contrat sur la blockchain
         if (!window.ethereum) {
           throw new Error("MetaMask n'est pas installé");
         }
@@ -41,42 +66,12 @@ export default function PaymentPage() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, provider);
         
-        const count = await contract.transactionCount();
-        const txnId = count.sub(1);
-        console.log("Dernier ID de transaction:", txnId.toString());
-        
-        const txnData = await contract.transactions(txnId);
-        console.log("Données de la transaction blockchain:", txnData);
-        
-        setSellerAddress(txnData.seller);
-
-        // Maintenant récupérer les détails de Supabase s'ils existent
-        if (id) {
-          const { data: transaction, error: fetchError } = await supabase
-            .from('transactions')
-            .select(`
-              *,
-              listings (
-                title,
-                crypto_amount,
-                crypto_currency
-              )
-            `)
-            .eq('id', id)
-            .maybeSingle();
-
-          if (transaction) {
-            console.log("Données de la transaction Supabase:", transaction);
-            setTransactionDetails(transaction);
-          } else {
-            console.log("Pas de données Supabase, utilisation des données blockchain");
-            setTransactionDetails({
-              listings: {
-                crypto_amount: ethers.utils.formatEther(txnData.amount),
-                crypto_currency: 'POL'
-              }
-            });
-          }
+        // Utiliser le blockchain_sequence_number stocké dans Supabase
+        if (transaction.blockchain_sequence_number !== null) {
+          const txnData = await contract.transactions(transaction.blockchain_sequence_number);
+          console.log("Données blockchain:", txnData);
+          setSellerAddress(txnData.seller);
+          setBlockchainTxId(transaction.blockchain_sequence_number);
         }
 
         setIsLoading(false);
@@ -87,11 +82,18 @@ export default function PaymentPage() {
       }
     };
 
-    fetchBlockchainData();
+    fetchTransactionDetails();
   }, [id]);
 
   const handleReleaseFunds = async () => {
-    if (!window.ethereum || !sellerAddress) return;
+    if (!window.ethereum || !sellerAddress || blockchainTxId === null) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de libérer les fonds: données manquantes",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -109,11 +111,8 @@ export default function PaymentPage() {
       const signer = provider.getSigner();
       const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
 
-      const count = await contract.transactionCount();
-      const txnId = count.sub(1);
-      console.log("Libération des fonds pour la transaction:", txnId.toString());
-
-      const tx = await contract.releaseFunds(txnId);
+      console.log("Libération des fonds pour la transaction:", blockchainTxId);
+      const tx = await contract.releaseFunds(blockchainTxId);
       console.log("Transaction envoyée:", tx.hash);
 
       const receipt = await tx.wait();
@@ -225,7 +224,7 @@ export default function PaymentPage() {
 
               <Button
                 onClick={handleReleaseFunds}
-                disabled={isLoading || !sellerAddress}
+                disabled={isLoading || !sellerAddress || blockchainTxId === null}
                 className="w-full"
               >
                 {isLoading ? (
