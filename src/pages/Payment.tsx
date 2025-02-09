@@ -84,6 +84,7 @@ export default function Payment() {
             title,
             price,
             user:profiles!listings_user_id_fkey (
+              id,
               wallet_address
             )
           )
