@@ -1,3 +1,4 @@
+
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -62,6 +63,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         throw error;
       }
 
+      console.log('Fetched listing data:', data);
       return data;
     },
   });
@@ -76,8 +78,10 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   }
 
   const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
-  const cryptoAmount = listingData?.crypto_amount || listing.crypto_amount;
+  const cryptoAmount = listingData?.crypto_amount ?? listing.crypto_amount;
   const cryptoCurrency = listingData?.crypto_currency || listing.crypto_currency || 'POL';
+
+  console.log('Crypto details:', { cryptoAmount, cryptoCurrency, sellerWalletAddress });
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

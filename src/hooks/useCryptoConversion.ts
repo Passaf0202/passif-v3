@@ -12,8 +12,8 @@ export const useCryptoConversion = (price: number, listingId?: string): { amount
   const { selectedCurrency } = useCurrencyStore();
 
   const { data: cryptoAmount, isLoading } = useQuery({
-    queryKey: ['crypto-conversion', price, listingId],
-    enabled: !!listingId, // Only run the query if we have a listingId
+    queryKey: ['crypto-conversion', listingId],
+    enabled: !!listingId,
     queryFn: async () => {
       if (!listingId) {
         throw new Error("ListingId est requis");
@@ -25,7 +25,7 @@ export const useCryptoConversion = (price: number, listingId?: string): { amount
         .from('listings')
         .select('crypto_amount, crypto_currency')
         .eq('id', listingId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching listing:', error);
