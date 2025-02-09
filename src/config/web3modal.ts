@@ -1,4 +1,3 @@
-
 import { createConfig, configureChains } from 'wagmi';
 import { amoy } from './chains';
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';

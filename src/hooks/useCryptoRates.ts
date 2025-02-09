@@ -1,16 +1,12 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export interface CryptoRate {
-  id: string;
+interface CryptoRate {
   symbol: string;
   name: string;
   rate_usd: number;
   rate_eur: number;
   rate_gbp: number;
-  last_updated?: string;
-  is_active: boolean;
 }
 
 export function useCryptoRates() {

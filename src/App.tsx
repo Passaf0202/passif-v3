@@ -1,4 +1,3 @@
-
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
@@ -13,8 +12,7 @@ import Messages from "@/pages/Messages";
 import ListingDetails from "@/pages/ListingDetails";
 import Favorites from "@/pages/Favorites";
 import Checkout from "@/pages/Checkout";
-import ReleaseFunds from "@/pages/ReleaseFunds";
-import Transaction from "@/pages/Transaction";
+import Payment from "@/pages/Payment";
 import { UserProfile } from "@/components/UserProfile";
 import Search from "@/pages/Search";
 
@@ -41,9 +39,7 @@ function App() {
               <Route path="/listings/:id" element={<ListingDetails />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/checkout" element={<Checkout />} />
-              <Route path="/payment/:id" element={<ReleaseFunds />} /> {/* Ajout de la nouvelle route */}
-              <Route path="/release-funds/:id" element={<ReleaseFunds />} />
-              <Route path="/transaction/:id" element={<Transaction />} />
+              <Route path="/payment/:id" element={<Payment />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/search" element={<Search />} />
             </Routes>
@@ -57,4 +53,3 @@ function App() {
 }
 
 export default App;
-

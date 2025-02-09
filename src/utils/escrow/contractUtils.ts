@@ -16,16 +16,8 @@ export const formatAmount = (amount: number): string => {
 };
 
 export const getEscrowContract = (provider: ethers.providers.Web3Provider) => {
-  try {
-    console.log('Initializing contract with address:', CONTRACT_ADDRESS);
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ESCROW_ABI, signer);
-    console.log('Contract initialized successfully');
-    return contract;
-  } catch (error) {
-    console.error('Error initializing contract:', error);
-    throw new Error("Erreur lors de l'initialisation du contrat. Veuillez rafraîchir la page.");
-  }
+  const signer = provider.getSigner();
+  return new ethers.Contract(CONTRACT_ADDRESS, ESCROW_ABI, signer);
 };
 
 export const parseTransactionId = async (receipt: ethers.ContractReceipt): Promise<string> => {
@@ -44,23 +36,29 @@ export const parseTransactionId = async (receipt: ethers.ContractReceipt): Promi
     
     if (log.address.toLowerCase() === CONTRACT_ADDRESS.toLowerCase()) {
       try {
+        // Essayer de décoder le log
         const parsedLog = iface.parseLog(log);
         console.log('Successfully parsed log:', parsedLog);
 
+        // Vérifier si c'est l'événement TransactionCreated ou FundsDeposited
         if (parsedLog.name === 'TransactionCreated' || parsedLog.name === 'FundsDeposited') {
+          // L'ID de transaction est le premier élément dans args pour les deux événements
           const txnId = parsedLog.args.txnId.toString();
           console.log(`Found transaction ID from ${parsedLog.name} event:`, txnId);
           return txnId;
         }
       } catch (error) {
         console.log('Error parsing log:', error);
+        // Continuer avec le prochain log si celui-ci ne peut pas être parsé
         continue;
       }
     }
   }
 
+  // Si on n'a pas trouvé l'ID, essayer de récupérer les topics du dernier log
   const lastLog = receipt.logs[receipt.logs.length - 1];
   if (lastLog && lastLog.topics && lastLog.topics.length > 1) {
+    // Le deuxième topic (index 1) contient souvent l'ID de transaction
     const potentialTxnId = ethers.BigNumber.from(lastLog.topics[1]).toString();
     console.log('Found potential transaction ID from topics:', potentialTxnId);
     return potentialTxnId;

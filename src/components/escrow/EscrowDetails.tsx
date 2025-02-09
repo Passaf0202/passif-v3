@@ -1,10 +1,9 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EscrowStatus } from "./EscrowStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { TransactionDetailsCard } from "./TransactionDetailsCard";
-import { FundsReleaseSection } from "./FundsReleaseSection";
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -17,34 +16,19 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   useEffect(() => {
     const fetchTransaction = async () => {
-      if (!transactionId) {
-        console.error('Transaction ID is missing');
-        return;
-      }
-
-      console.log('Fetching transaction with ID:', transactionId);
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
-          *,
-          listings(*),
-          buyer_confirmation,
-          seller_wallet_address,
-          blockchain_txn_id
-        `)
+        .select("*, listings(*), buyer_confirmation")
         .eq("id", transactionId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Error fetching transaction:", error);
         return;
       }
 
-      console.log("Transaction data:", data);
-      if (data) {
-        setTransaction(data);
-        setIsAlreadyConfirmed(data.buyer_confirmation);
-      }
+      setTransaction(data);
+      setIsAlreadyConfirmed(data.buyer_confirmation);
     };
 
     fetchTransaction();
@@ -75,26 +59,32 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   if (!transaction || !user) return null;
 
-  const isBuyer = user.id === transaction.buyer_id;
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>Détails de la transaction</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <TransactionDetailsCard
-          title={transaction.listings?.title}
-          amount={transaction.amount}
-          tokenSymbol={transaction.token_symbol}
-          sellerAddress={transaction.seller_wallet_address}
-        />
+        <div className="space-y-2">
+          <h3 className="font-medium">Article</h3>
+          <p className="text-sm text-muted-foreground">
+            {transaction.listings.title}
+          </p>
+        </div>
 
-        {isBuyer && (
-          <FundsReleaseSection
-            transactionId={transactionId}
-            blockchainTxnId={transaction.blockchain_txn_id}
-            isConfirmed={isAlreadyConfirmed}
+        <div className="space-y-2">
+          <h3 className="font-medium">Montant</h3>
+          <p className="text-sm text-muted-foreground">
+            {transaction.amount} {transaction.token_symbol}
+          </p>
+        </div>
+
+        {!isAlreadyConfirmed && (
+          <EscrowStatus
+            transactionId={transaction.id}
+            buyerId={transaction.buyer_id}
+            sellerId={transaction.seller_id}
+            currentUserId={user.id}
           />
         )}
       </CardContent>
