@@ -92,8 +92,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <ListingHeader 
           title={listing.title} 
           price={listing.price} 
-          cryptoAmount={cryptoDetails?.amount}
-          cryptoCurrency={cryptoDetails?.currency}
+          cryptoAmount={cryptoDetails.data?.amount}
+          cryptoCurrency={cryptoDetails.data?.currency}
         />
         
         <SellerInfo 
@@ -118,8 +118,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           sellerAddress={sellerWalletAddress || ''}
           title={listing.title}
           price={listing.price}
-          cryptoAmount={cryptoDetails?.amount}
-          cryptoCurrency={cryptoDetails?.currency}
+          cryptoAmount={cryptoDetails.data?.amount}
+          cryptoCurrency={cryptoDetails.data?.currency}
         />
 
         <div className="space-y-4">
