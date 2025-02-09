@@ -10,7 +10,8 @@ import { ethers } from "ethers";
 import { amoy } from "@/config/chains";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 const ESCROW_ABI = [
   "function transactionCount() view returns (uint256)",
@@ -23,7 +24,8 @@ const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
 export default function PaymentPage() {
   const { id } = useParams();
   const [sellerAddress, setSellerAddress] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [transactionDetails, setTransactionDetails] = useState<any>(null);
   const { toast } = useToast();
   const { chain } = useNetwork();
@@ -32,9 +34,14 @@ export default function PaymentPage() {
   useEffect(() => {
     const fetchTransactionDetails = async () => {
       try {
-        if (!id) return;
+        if (!id) {
+          setError("ID de transaction manquant");
+          return;
+        }
 
-        const { data: transaction, error } = await supabase
+        console.log("Fetching transaction details for ID:", id);
+
+        const { data: transaction, error: fetchError } = await supabase
           .from('transactions')
           .select(`
             *,
@@ -45,9 +52,19 @@ export default function PaymentPage() {
             )
           `)
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
+        if (fetchError) {
+          console.error("Error fetching transaction:", fetchError);
+          throw fetchError;
+        }
+
+        if (!transaction) {
+          setError("Transaction introuvable");
+          return;
+        }
+
+        console.log("Transaction details:", transaction);
         setTransactionDetails(transaction);
 
         if (window.ethereum) {
@@ -63,13 +80,11 @@ export default function PaymentPage() {
           
           setSellerAddress(txnData.seller);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Erreur lors de la récupération des détails:", error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de récupérer les détails de la transaction",
-          variant: "destructive",
-        });
+        setError(error.message || "Une erreur est survenue lors de la récupération des détails");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -135,12 +150,42 @@ export default function PaymentPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Erreur</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
+
   if (!transactionDetails) {
     return (
       <div>
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <Alert>
+            <AlertDescription>
+              Aucune transaction trouvée avec cet identifiant.
+            </AlertDescription>
+          </Alert>
         </div>
       </div>
     );
