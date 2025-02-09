@@ -13,7 +13,7 @@ interface PaymentButtonProps {
   onClick: () => void;
   disabled?: boolean;
   sellerAddress?: string;
-  transactionId?: string;
+  transactionId?: string | null;
 }
 
 export function PaymentButton({ 
@@ -42,7 +42,8 @@ export function PaymentButton({
 
     try {
       await ensureCorrectNetwork();
-
+      console.log("Processing transaction with seller address:", sellerAddress);
+      
       await createTransaction(sellerAddress, cryptoAmount, transactionId);
 
       toast({
@@ -61,13 +62,19 @@ export function PaymentButton({
     }
   };
 
-  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress;
+  if (!sellerAddress) {
+    return (
+      <Button disabled className="w-full">
+        Adresse du vendeur manquante
+      </Button>
+    );
+  }
 
   return (
     <div className="w-full space-y-2">
       <Button 
         onClick={handleClick} 
-        disabled={buttonDisabled}
+        disabled={isProcessing || !isConnected || !cryptoAmount || disabled}
         className="w-full bg-primary hover:bg-primary/90"
       >
         {isProcessing ? (
@@ -81,8 +88,6 @@ export function PaymentButton({
           "Changer vers Polygon Amoy"
         ) : !isConnected ? (
           "Connecter votre wallet"
-        ) : !sellerAddress ? (
-          "Adresse du vendeur manquante"
         ) : (
           `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
         )}

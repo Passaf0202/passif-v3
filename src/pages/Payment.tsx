@@ -28,7 +28,7 @@ export default function Payment() {
         return initialListing;
       }
       
-      if (!id || id === 'USDC') {
+      if (!id) {
         console.error('Invalid listing ID:', id);
         throw new Error('Invalid listing ID');
       }
@@ -54,10 +54,11 @@ export default function Payment() {
       console.log('Fetched listing:', data);
       return data;
     },
-    enabled: !initialListing && !!id && id !== 'USDC'
+    enabled: !initialListing && !!id
   });
 
   const listing = initialListing || fetchedListing;
+  const sellerWalletAddress = listing?.wallet_address || listing?.user?.wallet_address;
 
   const handleBackToHome = () => {
     navigate('/');
@@ -111,6 +112,24 @@ export default function Payment() {
     );
   }
 
+  if (!sellerWalletAddress) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>
+              L'adresse du vendeur est manquante. La transaction ne peut pas être effectuée.
+            </AlertDescription>
+          </Alert>
+          <Button onClick={handleBackToHome} variant="outline">
+            Retour à l'accueil
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <Navbar />
@@ -121,6 +140,7 @@ export default function Payment() {
           price={listing.price}
           cryptoAmount={listing.crypto_amount}
           cryptoCurrency="BNB"
+          sellerAddress={sellerWalletAddress}
           onPaymentComplete={() => {
             if (listing.id) {
               navigate(`/release-funds/${listing.id}`);

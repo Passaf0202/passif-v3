@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useEscrowPayment } from "@/hooks/useEscrowPayment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,9 +7,6 @@ import { Loader2, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { EscrowAlert } from "./EscrowAlert";
 import { TransactionDetails } from "./TransactionDetails";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCryptoRates } from "@/hooks/useCryptoRates";
-import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { PaymentButton } from "./PaymentButton";
 
 interface CryptoPaymentFormProps {
@@ -17,6 +15,7 @@ interface CryptoPaymentFormProps {
   price: number;
   cryptoAmount?: number;
   cryptoCurrency?: string;
+  sellerAddress?: string;
   onPaymentComplete: () => void;
 }
 
@@ -25,16 +24,13 @@ export function CryptoPaymentForm({
   title,
   price,
   cryptoAmount: initialCryptoAmount,
-  cryptoCurrency: initialCryptoCurrency = "BNB",
+  cryptoCurrency = "BNB",
+  sellerAddress,
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState(initialCryptoCurrency);
-  const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
   const [transactionId, setTransactionId] = useState<string | null>(null);
-  
-  const convertedAmount = useCryptoConversion(price, listingId, selectedCurrency);
   
   const {
     handlePayment,
@@ -48,7 +44,7 @@ export function CryptoPaymentForm({
     onPaymentComplete,
   });
 
-  if (!convertedAmount && !initialCryptoAmount) {
+  if (!initialCryptoAmount) {
     return (
       <div className="flex items-center justify-center p-4">
         <Loader2 className="h-6 w-6 animate-spin" />
@@ -56,16 +52,6 @@ export function CryptoPaymentForm({
       </div>
     );
   }
-
-  const finalCryptoAmount = convertedAmount?.amount || initialCryptoAmount;
-  const finalCryptoCurrency = convertedAmount?.currency || selectedCurrency;
-
-  // Available cryptocurrencies (hardcoded for now, could be fetched from backend)
-  const availableCurrencies = [
-    { symbol: "BNB", name: "Binance Coin" },
-    { symbol: "USDT", name: "Tether" },
-    { symbol: "USDC", name: "USD Coin" }
-  ];
 
   return (
     <div className="space-y-6">
@@ -77,31 +63,11 @@ export function CryptoPaymentForm({
           <TransactionDetails
             title={title}
             price={price}
-            cryptoAmount={finalCryptoAmount}
-            cryptoCurrency={finalCryptoCurrency}
+            cryptoAmount={initialCryptoAmount}
+            cryptoCurrency={cryptoCurrency}
           />
 
           <div className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Sélectionnez une cryptomonnaie</label>
-              <Select
-                value={selectedCurrency}
-                onValueChange={setSelectedCurrency}
-                disabled={isProcessing}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir une cryptomonnaie" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCurrencies.map((currency) => (
-                    <SelectItem key={currency.symbol} value={currency.symbol}>
-                      {currency.name} ({currency.symbol})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <Button
               onClick={() => setShowEscrowInfo(true)}
               variant="outline"
@@ -115,9 +81,10 @@ export function CryptoPaymentForm({
               onClick={handlePayment}
               isProcessing={isProcessing}
               isConnected={!!user}
-              cryptoAmount={finalCryptoAmount}
-              cryptoCurrency={finalCryptoCurrency}
-              disabled={isProcessing || !finalCryptoAmount}
+              cryptoAmount={initialCryptoAmount}
+              cryptoCurrency={cryptoCurrency}
+              disabled={isProcessing || !initialCryptoAmount}
+              sellerAddress={sellerAddress}
               transactionId={transactionId}
             />
 
