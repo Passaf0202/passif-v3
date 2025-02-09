@@ -24,12 +24,15 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   useEffect(() => {
     const fetchTransaction = async () => {
+      console.log("Fetching transaction:", transactionId);
       const { data, error } = await supabase
         .from("transactions")
         .select(`
           *,
-          listings:listings!transactions_listing_id_fkey (
-            *,
+          listing:listings!transactions_listing_id_fkey (
+            title,
+            price,
+            user_id,
             user:profiles!listings_user_id_fkey (
               id,
               wallet_address
@@ -97,8 +100,8 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
 
-      const sellerWalletAddress = transaction.listings.user.wallet_address;
-      if (!sellerWalletAddress) {
+      if (!transaction.listing?.user?.wallet_address) {
+        console.error("Transaction data:", transaction);
         throw new Error("L'adresse du vendeur n'a pas été trouvée");
       }
 
@@ -157,7 +160,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         <div className="space-y-2">
           <h3 className="font-medium">Article</h3>
           <p className="text-sm text-muted-foreground">
-            {transaction.listings.title}
+            {transaction.listing?.title}
           </p>
         </div>
 
