@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -30,6 +29,8 @@ export default function PaymentPage() {
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 5;
 
   useEffect(() => {
     const fetchTransactionDetails = async () => {
@@ -39,7 +40,7 @@ export default function PaymentPage() {
           return;
         }
 
-        console.log("Fetching transaction details for ID:", id);
+        console.log(`Fetching transaction details for ID: ${id} (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
 
         const { data: transaction, error: fetchError } = await supabase
           .from('transactions')
@@ -60,7 +61,15 @@ export default function PaymentPage() {
         }
 
         if (!transaction) {
-          setError("Transaction introuvable");
+          if (retryCount < MAX_RETRIES) {
+            console.log("Transaction not found, retrying in 2 seconds...");
+            setRetryCount(prev => prev + 1);
+            setTimeout(() => {
+              fetchTransactionDetails();
+            }, 2000);
+            return;
+          }
+          setError("Transaction introuvable après plusieurs tentatives");
           return;
         }
 
@@ -82,14 +91,24 @@ export default function PaymentPage() {
         }
       } catch (error: any) {
         console.error("Erreur lors de la récupération des détails:", error);
+        if (retryCount < MAX_RETRIES) {
+          console.log("Error occurred, retrying in 2 seconds...");
+          setRetryCount(prev => prev + 1);
+          setTimeout(() => {
+            fetchTransactionDetails();
+          }, 2000);
+          return;
+        }
         setError(error.message || "Une erreur est survenue lors de la récupération des détails");
       } finally {
-        setIsLoading(false);
+        if (retryCount >= MAX_RETRIES || transactionDetails) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchTransactionDetails();
-  }, [id, toast]);
+  }, [id]);
 
   const handleReleaseFunds = async () => {
     if (!window.ethereum || !sellerAddress) return;
@@ -155,7 +174,12 @@ export default function PaymentPage() {
       <div>
         <Navbar />
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground">
+              Chargement de la transaction... (Tentative {retryCount + 1}/{MAX_RETRIES})
+            </p>
+          </div>
         </div>
       </div>
     );
