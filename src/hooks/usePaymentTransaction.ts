@@ -11,7 +11,6 @@ export const usePaymentTransaction = () => {
   const [error, setError] = useState<string | null>(null);
   const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
   const navigate = useNavigate();
-  
   const { toast } = useToast();
 
   const handlePayment = async (
@@ -83,12 +82,6 @@ export const usePaymentTransaction = () => {
           });
           throw new Error("L'adresse du vendeur ne correspond pas à celle de l'annonce");
         }
-
-        // Stocker l'adresse du vendeur de l'annonce pour une utilisation ultérieure
-        await supabase
-          .from('listings')
-          .update({ wallet_address: sellerAddress })
-          .eq('id', listingId);
       }
 
       // Créer la transaction blockchain
@@ -154,8 +147,14 @@ export const usePaymentTransaction = () => {
         }
 
         if (transaction) {
-          // Rediriger vers la nouvelle page de libération des fonds
+          toast({
+            title: "Transaction réussie",
+            description: "Les fonds ont été bloqués dans le contrat d'escrow",
+          });
+          
+          // Rediriger vers la page de libération des fonds
           navigate(`/release-funds/${transaction.id}`);
+          return tx.hash;
         }
       }
 
