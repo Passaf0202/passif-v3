@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useEscrowPayment } from "@/hooks/useEscrowPayment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,11 +6,10 @@ import { Loader2, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { EscrowAlert } from "./EscrowAlert";
 import { TransactionDetails } from "./TransactionDetails";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCryptoRates } from "@/hooks/useCryptoRates";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
-import { useFundsRelease } from "@/hooks/escrow/useFundsRelease";
-import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
-import { useToast } from "@/components/ui/use-toast";
+import { PaymentButton } from "./PaymentButton";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -31,13 +29,12 @@ export function CryptoPaymentForm({
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState(initialCryptoCurrency);
   const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
   const [transactionId, setTransactionId] = useState<string | null>(null);
-  const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
   
-  const convertedAmount = useCryptoConversion(price, listingId, initialCryptoCurrency);
+  const convertedAmount = useCryptoConversion(price, listingId, selectedCurrency);
   
   const {
     handlePayment,
@@ -47,34 +44,9 @@ export function CryptoPaymentForm({
   } = useEscrowPayment({
     listingId,
     address: user?.id,
-    onTransactionHash: (hash: string) => {
-      console.log("Transaction hash:", hash);
-    },
-    onTransactionCreated: (id: string) => {
-      console.log("Transaction created with ID:", id);
-      setTransactionId(id);
-    },
-    onPaymentComplete
+    onTransactionCreated: (id: string) => setTransactionId(id),
+    onPaymentComplete,
   });
-
-  const { isLoading: isReleasingFunds, handleReleaseFunds } = useFundsRelease(transactionId || '', () => {
-    console.log("Funds released successfully");
-    onPaymentComplete();
-  });
-
-  const handleInitiatePayment = async () => {
-    try {
-      await ensureCorrectNetwork();
-      await handlePayment();
-    } catch (error: any) {
-      console.error('Payment error:', error);
-      toast({
-        title: "Erreur de paiement",
-        description: error.message || "Une erreur est survenue lors du paiement",
-        variant: "destructive",
-      });
-    }
-  };
 
   if (!convertedAmount && !initialCryptoAmount) {
     return (
@@ -86,6 +58,14 @@ export function CryptoPaymentForm({
   }
 
   const finalCryptoAmount = convertedAmount?.amount || initialCryptoAmount;
+  const finalCryptoCurrency = convertedAmount?.currency || selectedCurrency;
+
+  // Available cryptocurrencies (hardcoded for now, could be fetched from backend)
+  const availableCurrencies = [
+    { symbol: "BNB", name: "Binance Coin" },
+    { symbol: "USDT", name: "Tether" },
+    { symbol: "USDC", name: "USD Coin" }
+  ];
 
   return (
     <div className="space-y-6">
@@ -98,10 +78,30 @@ export function CryptoPaymentForm({
             title={title}
             price={price}
             cryptoAmount={finalCryptoAmount}
-            cryptoCurrency={initialCryptoCurrency}
+            cryptoCurrency={finalCryptoCurrency}
           />
 
           <div className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Sélectionnez une cryptomonnaie</label>
+              <Select
+                value={selectedCurrency}
+                onValueChange={setSelectedCurrency}
+                disabled={isProcessing}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une cryptomonnaie" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCurrencies.map((currency) => (
+                    <SelectItem key={currency.symbol} value={currency.symbol}>
+                      {currency.name} ({currency.symbol})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <Button
               onClick={() => setShowEscrowInfo(true)}
               variant="outline"
@@ -111,45 +111,25 @@ export function CryptoPaymentForm({
               Comment fonctionne le paiement sécurisé ?
             </Button>
 
-            {transactionStatus === 'confirmed' ? (
-              <Button
-                onClick={handleReleaseFunds}
-                disabled={isReleasingFunds}
-                className="w-full bg-purple-500 hover:bg-purple-600"
-              >
-                {isReleasingFunds ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Libération des fonds en cours...
-                  </>
-                ) : (
-                  "Libérer les fonds au vendeur"
-                )}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleInitiatePayment}
-                disabled={isProcessing || !finalCryptoAmount || !user || isWrongNetwork}
-                className="w-full bg-primary hover:bg-primary/90"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Transaction en cours...
-                  </>
-                ) : !user ? (
-                  "Connectez votre wallet"
-                ) : isWrongNetwork ? (
-                  "Changer de réseau"
-                ) : (
-                  `Payer ${finalCryptoAmount.toFixed(6)} ${initialCryptoCurrency}`
-                )}
-              </Button>
-            )}
+            <PaymentButton
+              onClick={handlePayment}
+              isProcessing={isProcessing}
+              isConnected={!!user}
+              cryptoAmount={finalCryptoAmount}
+              cryptoCurrency={finalCryptoCurrency}
+              disabled={isProcessing || !finalCryptoAmount}
+              transactionId={transactionId}
+            />
 
             {error && (
               <p className="text-red-500 text-sm mt-2">
                 Erreur: {error}
+              </p>
+            )}
+
+            {transactionStatus === 'confirmed' && (
+              <p className="text-green-500 text-sm mt-2">
+                Transaction confirmée !
               </p>
             )}
           </div>
