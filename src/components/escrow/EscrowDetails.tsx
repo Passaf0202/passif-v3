@@ -1,6 +1,5 @@
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -134,36 +133,33 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const isUserBuyer = user.id === transaction.buyer_id;
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-3xl mx-auto space-y-8">
       <h1 className="text-2xl font-bold">Paiement sécurisé</h1>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Détails de la transaction</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-medium mb-1">Article</h3>
-              <p className="text-gray-600">{transaction.listing?.title}</p>
-            </div>
+      <div className="bg-white rounded-lg shadow p-8">
+        <h2 className="text-2xl font-bold mb-8">Détails de la transaction</h2>
+        
+        <div className="space-y-8">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Article</h3>
+            <p className="text-gray-600">{transaction.listing?.title}</p>
+          </div>
 
-            <div>
-              <h3 className="text-lg font-medium mb-1">Prix</h3>
-              <p className="text-gray-600">
-                {transaction.amount} €
-              </p>
-              <p className="text-blue-600">
-                ≈ {transaction.crypto_amount} {transaction.token_symbol}
-              </p>
-            </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Prix</h3>
+            <p className="text-gray-600">
+              {transaction.amount} €
+            </p>
+            <p className="text-blue-600">
+              ≈ {transaction.crypto_amount} {transaction.token_symbol}
+            </p>
           </div>
 
           {isUserBuyer && transaction.funds_secured && !transaction.buyer_confirmation && (
             <Button
               onClick={handleReleaseFunds}
               disabled={isLoading}
-              className="w-full mt-4"
+              className="w-full mt-4 bg-primary hover:bg-primary/90"
             >
               {isLoading ? (
                 <>
@@ -181,8 +177,8 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
               Les fonds ont été libérés au vendeur
             </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
