@@ -1,9 +1,22 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EscrowStatus } from "./EscrowStatus";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ethers } from "ethers";
+import { useNetwork, useSwitchNetwork } from "wagmi";
+import { amoy } from "@/config/chains";
+
+const ESCROW_ABI = [
+  "function releaseFunds(uint256 txnId)",
+  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)",
+  "function transactionCount() view returns (uint256)"
+];
+
+const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -12,7 +25,11 @@ interface EscrowDetailsProps {
 export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const [transaction, setTransaction] = useState<any>(null);
   const [isAlreadyConfirmed, setIsAlreadyConfirmed] = useState(false);
+  const [isReleasing, setIsReleasing] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
 
   useEffect(() => {
     const fetchTransaction = async () => {
@@ -22,7 +39,8 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           *,
           listings(*),
           buyer_confirmation,
-          seller_wallet_address
+          seller_wallet_address,
+          blockchain_txn_id
         `)
         .eq("id", transactionId)
         .single();
@@ -63,7 +81,68 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     };
   }, [transactionId]);
 
+  const handleReleaseFunds = async () => {
+    try {
+      setIsReleasing(true);
+
+      if (chain?.id !== amoy.id) {
+        if (!switchNetwork) {
+          throw new Error("Impossible de changer de réseau automatiquement");
+        }
+        await switchNetwork(amoy.id);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      
+      const contract = new ethers.Contract(
+        ESCROW_CONTRACT_ADDRESS,
+        ESCROW_ABI,
+        signer
+      );
+
+      console.log('Releasing funds for blockchain transaction:', transaction.blockchain_txn_id);
+      const tx = await contract.releaseFunds(transaction.blockchain_txn_id);
+      console.log('Release funds transaction sent:', tx.hash);
+
+      const receipt = await tx.wait();
+      console.log('Release funds receipt:', receipt);
+
+      if (receipt.status === 1) {
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            status: 'completed',
+            escrow_status: 'completed',
+            released_at: new Date().toISOString()
+          })
+          .eq('id', transactionId);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Fonds libérés avec succès",
+          description: "Les fonds ont été envoyés au vendeur.",
+        });
+      } else {
+        throw new Error("La transaction a échoué sur la blockchain");
+      }
+    } catch (error: any) {
+      console.error('Error releasing funds:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de la libération des fonds",
+        variant: "destructive",
+      });
+    } finally {
+      setIsReleasing(false);
+    }
+  };
+
   if (!transaction || !user) return null;
+
+  const isBuyer = user.id === transaction.buyer_id;
 
   return (
     <Card>
@@ -92,13 +171,21 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           </p>
         </div>
 
-        {!isAlreadyConfirmed && (
-          <EscrowStatus
-            transactionId={transaction.id}
-            buyerId={transaction.buyer_id}
-            sellerId={transaction.seller_id}
-            currentUserId={user.id}
-          />
+        {isBuyer && !isAlreadyConfirmed && (
+          <Button
+            onClick={handleReleaseFunds}
+            disabled={isReleasing}
+            className="w-full"
+          >
+            {isReleasing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Libération des fonds en cours...
+              </>
+            ) : (
+              "Confirmer la réception et libérer les fonds"
+            )}
+          </Button>
         )}
       </CardContent>
     </Card>
