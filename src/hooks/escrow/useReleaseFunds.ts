@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
-  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)",
+  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
   "function transactionCount() view returns (uint256)"
 ];
 
@@ -21,10 +21,10 @@ export const useReleaseFunds = (transactionId: string, blockchainTxnId: string |
   const { switchNetwork } = useSwitchNetwork();
 
   const handleReleaseFunds = async () => {
-    if (!blockchainTxnId || !sellerAddress) {
+    if (!sellerAddress) {
       toast({
         title: "Erreur",
-        description: "ID de transaction blockchain ou adresse du vendeur manquante",
+        description: "Adresse du vendeur manquante",
         variant: "destructive",
       });
       return;
@@ -41,21 +41,37 @@ export const useReleaseFunds = (transactionId: string, blockchainTxnId: string |
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      
-      const contract = new ethers.Contract(
-        ESCROW_CONTRACT_ADDRESS,
-        ESCROW_ABI,
-        signer
-      );
-
-      const txnId = Number(blockchainTxnId);
-      if (isNaN(txnId)) {
-        throw new Error("ID de transaction blockchain invalide");
+      if (!window.ethereum) {
+        throw new Error("MetaMask n'est pas installé");
       }
 
-      console.log('Releasing funds for blockchain transaction:', txnId);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
+
+      // Récupérer la dernière transaction si pas d'ID spécifique
+      let txnId: number;
+      if (!blockchainTxnId || blockchainTxnId === '0') {
+        const count = await contract.transactionCount();
+        txnId = count.toNumber() - 1;
+        console.log('Using latest transaction ID:', txnId);
+      } else {
+        txnId = Number(blockchainTxnId);
+      }
+
+      // Vérifier que la transaction existe et correspond
+      const txnData = await contract.transactions(txnId);
+      console.log('Transaction data before release:', txnData);
+
+      if (txnData.seller.toLowerCase() !== sellerAddress.toLowerCase()) {
+        throw new Error("L'adresse du vendeur ne correspond pas à celle de la transaction");
+      }
+
+      if (txnData.fundsReleased) {
+        throw new Error("Les fonds ont déjà été libérés");
+      }
+
+      console.log('Releasing funds for transaction:', txnId);
       const tx = await contract.releaseFunds(txnId);
       console.log('Release funds transaction sent:', tx.hash);
 
@@ -79,6 +95,10 @@ export const useReleaseFunds = (transactionId: string, blockchainTxnId: string |
           title: "Fonds libérés avec succès",
           description: "Les fonds ont été envoyés au vendeur.",
         });
+
+        // Vérifier l'état final de la transaction
+        const txnDataAfter = await contract.transactions(txnId);
+        console.log('Transaction data after release:', txnDataAfter);
       } else {
         throw new Error("La transaction a échoué sur la blockchain");
       }
