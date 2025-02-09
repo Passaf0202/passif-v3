@@ -394,6 +394,10 @@ export type Database = {
           blockchain_txn_id: string
           buyer_confirmation: boolean | null
           buyer_id: string | null
+          can_be_cancelled: boolean | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           chain_id: number | null
           commission_amount: number
           created_at: string | null
@@ -422,6 +426,10 @@ export type Database = {
           blockchain_txn_id?: string
           buyer_confirmation?: boolean | null
           buyer_id?: string | null
+          can_be_cancelled?: boolean | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           chain_id?: number | null
           commission_amount: number
           created_at?: string | null
@@ -450,6 +458,10 @@ export type Database = {
           blockchain_txn_id?: string
           buyer_confirmation?: boolean | null
           buyer_id?: string | null
+          can_be_cancelled?: boolean | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           chain_id?: number | null
           commission_amount?: number
           created_at?: string | null
