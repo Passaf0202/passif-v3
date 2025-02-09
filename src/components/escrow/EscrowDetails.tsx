@@ -1,9 +1,9 @@
 
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EscrowStatus } from "./EscrowStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -11,14 +11,13 @@ interface EscrowDetailsProps {
 
 export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const [transaction, setTransaction] = useState<any>(null);
-  const [isAlreadyConfirmed, setIsAlreadyConfirmed] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchTransaction = async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select("*, listings(*), buyer_confirmation")
+        .select("*, listings(*)")
         .eq("id", transactionId)
         .single();
 
@@ -27,8 +26,8 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         return;
       }
 
+      console.log("Transaction data:", data);
       setTransaction(data);
-      setIsAlreadyConfirmed(data.buyer_confirmation);
     };
 
     fetchTransaction();
@@ -47,7 +46,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         (payload) => {
           console.log("Transaction updated:", payload);
           setTransaction(payload.new);
-          setIsAlreadyConfirmed(payload.new.buyer_confirmation);
         }
       )
       .subscribe();
@@ -79,14 +77,13 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           </p>
         </div>
 
-        {!isAlreadyConfirmed && (
-          <EscrowStatus
-            transactionId={transaction.id}
-            buyerId={transaction.buyer_id}
-            sellerId={transaction.seller_id}
-            currentUserId={user.id}
-          />
-        )}
+        <EscrowStatus
+          transactionId={transaction.id}
+          buyerId={transaction.buyer_id}
+          sellerId={transaction.seller_id}
+          currentUserId={user.id}
+          sellerWalletAddress={transaction.seller_wallet_address}
+        />
       </CardContent>
     </Card>
   );

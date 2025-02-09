@@ -2,7 +2,7 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
@@ -22,6 +22,7 @@ interface EscrowStatusProps {
   buyerId: string;
   sellerId: string;
   currentUserId: string;
+  sellerWalletAddress?: string;
 }
 
 export function EscrowStatus({
@@ -29,6 +30,7 @@ export function EscrowStatus({
   buyerId,
   sellerId,
   currentUserId,
+  sellerWalletAddress
 }: EscrowStatusProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isFundsSecured, setIsFundsSecured] = useState(false);
@@ -37,55 +39,11 @@ export function EscrowStatus({
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
 
-  useEffect(() => {
-    const checkTransactionStatus = async () => {
-      console.log('Checking transaction status for ID:', transactionId);
-      
-      const { data: transaction, error } = await supabase
-        .from('transactions')
-        .select('funds_secured, blockchain_txn_id, transaction_hash')
-        .eq('id', transactionId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching transaction:', error);
-        return;
-      }
-
-      console.log('Transaction status:', transaction);
-      setIsFundsSecured(transaction.funds_secured);
-    };
-
-    checkTransactionStatus();
-
-    const subscription = supabase
-      .channel(`transaction-${transactionId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "transactions",
-          filter: `id=eq.${transactionId}`,
-        },
-        (payload) => {
-          console.log('Transaction updated:', payload);
-          setIsFundsSecured(payload.new.funds_secured);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [transactionId]);
-
-  const handleConfirm = async () => {
+  const handleReleaseFunds = async () => {
     try {
       setIsLoading(true);
-      console.log('Starting confirmation process...');
+      console.log('Starting funds release process...');
 
-      // Vérifier que l'utilisateur est sur le bon réseau
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -94,7 +52,6 @@ export function EscrowStatus({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Se connecter au wallet
       if (!window.ethereum) {
         throw new Error("MetaMask n'est pas installé");
       }
@@ -104,9 +61,6 @@ export function EscrowStatus({
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
 
-      console.log('Connected wallet address:', signerAddress);
-
-      // Récupérer les détails de la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
         .select('*')
@@ -120,12 +74,10 @@ export function EscrowStatus({
 
       console.log('Transaction from database:', transaction);
 
-      // Vérifier que l'utilisateur est l'acheteur
       if (!isUserBuyer) {
         throw new Error("Seul l'acheteur peut libérer les fonds");
       }
 
-      // Vérifier que l'adresse connectée correspond à celle de l'acheteur
       const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
       const txnId = Number(transaction.blockchain_txn_id);
       const txData = await contract.transactions(txnId);
@@ -144,27 +96,24 @@ export function EscrowStatus({
         throw new Error("Les fonds ont déjà été libérés");
       }
 
-      // Estimer le gas
       const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
-      const gasLimit = gasEstimate.mul(150).div(100); // +50% marge
+      const gasLimit = gasEstimate.mul(150).div(100);
       const gasPrice = await provider.getGasPrice();
-      const adjustedGasPrice = gasPrice.mul(120).div(100); // +20% sur le prix du gas
+      const adjustedGasPrice = gasPrice.mul(120).div(100);
 
       console.log('Gas estimation:', {
-        gasEstimate: gasEstimate.toString(),
-        gasLimit: gasLimit.toString(),
-        gasPrice: gasPrice.toString(),
-        adjustedGasPrice: adjustedGasPrice.toString()
+        estimate: gasEstimate.toString(),
+        limit: gasLimit.toString(),
+        price: gasPrice.toString(),
+        adjustedPrice: adjustedGasPrice.toString()
       });
 
-      // Vérifier le solde pour couvrir les frais de gas
       const balance = await provider.getBalance(signerAddress);
       const gasCost = gasLimit.mul(adjustedGasPrice);
       if (balance.lt(gasCost)) {
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
-      // Envoyer la transaction
       const tx = await contract.releaseFunds(txnId, {
         gasLimit,
         gasPrice: adjustedGasPrice
@@ -172,19 +121,17 @@ export function EscrowStatus({
 
       console.log('Release funds transaction sent:', tx.hash);
 
-      // Attendre la confirmation
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Mettre à jour la base de données
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
-            buyer_confirmation: true,
             status: 'completed',
             escrow_status: 'completed',
-            updated_at: new Date().toISOString()
+            released_at: new Date().toISOString(),
+            transaction_confirmed_at: new Date().toISOString()
           })
           .eq('id', transactionId);
 
@@ -202,9 +149,7 @@ export function EscrowStatus({
       
       let errorMessage = "Une erreur est survenue lors de la libération des fonds";
       
-      if (error.message.includes("encore été sécurisés")) {
-        errorMessage = "Les fonds n'ont pas encore été sécurisés sur la blockchain. Veuillez patienter quelques minutes et réessayer.";
-      } else if (error.message.includes("user rejected")) {
+      if (error.message.includes("user rejected")) {
         errorMessage = "Vous avez rejeté la transaction";
       } else if (error.message.includes("insufficient funds")) {
         errorMessage = "Solde insuffisant pour payer les frais de transaction";
@@ -226,24 +171,10 @@ export function EscrowStatus({
 
   return (
     <div className="space-y-4">
-      <Alert variant={isFundsSecured ? "default" : "destructive"}>
-        <AlertDescription>
-          {isUserBuyer ? (
-            isFundsSecured ? (
-              "En tant qu'acheteur, vous pouvez confirmer la réception de l'article pour libérer les fonds."
-            ) : (
-              "Veuillez patienter que les fonds soient sécurisés sur la blockchain avant de pouvoir les libérer."
-            )
-          ) : (
-            "En tant que vendeur, vous recevrez les fonds une fois que l'acheteur aura confirmé la réception."
-          )}
-        </AlertDescription>
-      </Alert>
-
-      {isUserBuyer && (
+      {isUserBuyer ? (
         <Button
-          onClick={handleConfirm}
-          disabled={isLoading || !isFundsSecured}
+          onClick={handleReleaseFunds}
+          disabled={isLoading}
           className="w-full bg-purple-500 hover:bg-purple-600"
         >
           {isLoading ? (
@@ -252,9 +183,15 @@ export function EscrowStatus({
               Libération des fonds en cours...
             </>
           ) : (
-            "Confirmer la réception"
+            "Libérer les fonds"
           )}
         </Button>
+      ) : (
+        <Alert>
+          <AlertDescription>
+            En tant que vendeur, vous recevrez les fonds une fois que l'acheteur les aura libérés.
+          </AlertDescription>
+        </Alert>
       )}
     </div>
   );
