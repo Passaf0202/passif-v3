@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,10 +30,12 @@ export default function PaymentPage() {
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
-  const [retryCount, setRetryCount] = useState(0);
+  const retryCountRef = useRef(0);
   const MAX_RETRIES = 5;
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const fetchTransactionDetails = async () => {
       try {
         if (!id) {
@@ -40,7 +43,7 @@ export default function PaymentPage() {
           return;
         }
 
-        console.log(`Fetching transaction details for ID: ${id} (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
+        console.log(`Fetching transaction details for ID: ${id} (Attempt ${retryCountRef.current + 1}/${MAX_RETRIES})`);
 
         const { data: transaction, error: fetchError } = await supabase
           .from('transactions')
@@ -61,12 +64,10 @@ export default function PaymentPage() {
         }
 
         if (!transaction) {
-          if (retryCount < MAX_RETRIES) {
+          if (retryCountRef.current < MAX_RETRIES) {
             console.log("Transaction not found, retrying in 2 seconds...");
-            setRetryCount(prev => prev + 1);
-            setTimeout(() => {
-              fetchTransactionDetails();
-            }, 2000);
+            retryCountRef.current += 1;
+            timeoutId = setTimeout(fetchTransactionDetails, 2000);
             return;
           }
           setError("Transaction introuvable après plusieurs tentatives");
@@ -91,23 +92,27 @@ export default function PaymentPage() {
         }
       } catch (error: any) {
         console.error("Erreur lors de la récupération des détails:", error);
-        if (retryCount < MAX_RETRIES) {
+        if (retryCountRef.current < MAX_RETRIES) {
           console.log("Error occurred, retrying in 2 seconds...");
-          setRetryCount(prev => prev + 1);
-          setTimeout(() => {
-            fetchTransactionDetails();
-          }, 2000);
+          retryCountRef.current += 1;
+          timeoutId = setTimeout(fetchTransactionDetails, 2000);
           return;
         }
         setError(error.message || "Une erreur est survenue lors de la récupération des détails");
       } finally {
-        if (retryCount >= MAX_RETRIES || transactionDetails) {
+        if (retryCountRef.current >= MAX_RETRIES || transactionDetails) {
           setIsLoading(false);
         }
       }
     };
 
     fetchTransactionDetails();
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [id]);
 
   const handleReleaseFunds = async () => {
@@ -177,7 +182,7 @@ export default function PaymentPage() {
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-sm text-muted-foreground">
-              Chargement de la transaction... (Tentative {retryCount + 1}/{MAX_RETRIES})
+              Chargement de la transaction... (Tentative {retryCountRef.current + 1}/{MAX_RETRIES})
             </p>
           </div>
         </div>
