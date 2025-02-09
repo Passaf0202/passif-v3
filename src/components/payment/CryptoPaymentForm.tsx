@@ -43,14 +43,21 @@ export function CryptoPaymentForm({
   } = useEscrowPayment({
     listingId,
     address: user?.id,
-    onTransactionCreated: (id: string) => setTransactionId(id),
+    onTransactionHash: (hash: string) => {
+      console.log("Transaction hash:", hash);
+    },
+    onTransactionCreated: (id: string) => {
+      console.log("Transaction created with ID:", id);
+      setTransactionId(id);
+    },
     onPaymentComplete: () => {
-      // Appeler onPaymentComplete quand le paiement initial est complété
-      onPaymentComplete();
+      console.log("Payment completed, redirecting to EscrowDetails view");
+      onPaymentComplete(); // Ceci va rediriger vers la page de détails où l'utilisateur pourra libérer les fonds
     }
   });
 
   const { isLoading: isReleasingFunds, handleReleaseFunds } = useFundsRelease(transactionId || '', () => {
+    console.log("Funds released successfully");
     onPaymentComplete();
   });
 
