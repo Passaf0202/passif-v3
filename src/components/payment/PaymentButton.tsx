@@ -80,7 +80,7 @@ export function PaymentButton({
         ) : disabled ? (
           "Transaction en attente de confirmation..."
         ) : isWrongNetwork ? (
-          "Changer vers Polygon Testnet"
+          "Changer vers Polygon Amoy"
         ) : !isConnected ? (
           "Connecter votre wallet"
         ) : !sellerAddress ? (
@@ -98,7 +98,7 @@ export function PaymentButton({
 
       {isWrongNetwork && isConnected && (
         <p className="text-sm text-red-500 text-center">
-          Veuillez vous connecter au réseau Polygon Testnet
+          Veuillez vous connecter au réseau Polygon Amoy
         </p>
       )}
     </div>
