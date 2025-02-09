@@ -14,43 +14,64 @@ export const usePaymentTransaction = () => {
         throw new Error("MetaMask n'est pas installé");
       }
 
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      
-      // Configuration spécifique pour Polygon Amoy
-      const network = {
+      // Force la connexion au réseau Polygon Amoy
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x13881" }], // 80001 en hexadécimal
+      }).catch(async (switchError: any) => {
+        // Si le réseau n'existe pas, on l'ajoute
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: "0x13881",
+              chainName: "Polygon Amoy",
+              nativeCurrency: {
+                name: "MATIC",
+                symbol: "MATIC",
+                decimals: 18
+              },
+              rpcUrls: ["https://rpc-amoy.polygon.technology"],
+              blockExplorerUrls: ["https://www.oklink.com/amoy"]
+            }]
+          });
+        } else {
+          throw switchError;
+        }
+      });
+
+      // Initialiser le provider avec une configuration spécifique
+      const provider = new ethers.providers.Web3Provider(window.ethereum, {
         name: 'Polygon Amoy',
         chainId: 80001,
-        ensAddress: null // Important : on désactive ENS car non supporté sur Amoy
-      };
-      
-      await provider.ready;
-      console.log('Provider network:', await provider.getNetwork());
+        ensAddress: null // Désactive explicitement ENS
+      });
 
+      await provider.ready;
+      const network = await provider.getNetwork();
+      console.log('Connected to network:', network);
+
+      if (network.chainId !== 80001) {
+        throw new Error("Veuillez vous connecter au réseau Polygon Amoy");
+      }
+
+      const signer = provider.getSigner();
       const contract = getEscrowContract(provider);
       
       const formattedAmount = formatAmount(cryptoAmount);
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
       console.log('Amount in Wei:', amountInWei.toString());
 
-      console.log('Creating transaction with params:', {
-        sellerAddress,
-        cryptoAmount,
-        transactionId,
-        amountInWei: amountInWei.toString()
-      });
-
       // Vérifier le solde avant la transaction
-      const signer = provider.getSigner();
       const balance = await provider.getBalance(await signer.getAddress());
       if (balance.lt(amountInWei)) {
         throw new Error("Solde insuffisant pour effectuer la transaction");
       }
 
-      // Estimer le gas avec une marge de sécurité plus importante
+      // Estimer le gas
       const gasEstimate = await contract.estimateGas.createTransaction(sellerAddress, {
         value: amountInWei,
       });
-      console.log('Estimated gas:', gasEstimate.toString());
       const gasPrice = await provider.getGasPrice();
       const adjustedGasLimit = gasEstimate.mul(150).div(100); // +50% de marge
 
@@ -61,11 +82,10 @@ export const usePaymentTransaction = () => {
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
-      // Envoyer la transaction avec le gas limit ajusté
+      // Envoyer la transaction
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
-        gasLimit: adjustedGasLimit,
-        gasPrice: gasPrice.mul(120).div(100) // +20% sur le gas price pour augmenter les chances de succès
+        gasLimit: adjustedGasLimit
       });
 
       console.log('Transaction sent:', tx.hash);
@@ -81,11 +101,6 @@ export const usePaymentTransaction = () => {
       console.log('Parsed transaction ID:', blockchainTxnId);
 
       if (transactionId) {
-        console.log('Storing transaction data:', {
-          blockchain_txn_id: blockchainTxnId,
-          transaction_hash: tx.hash
-        });
-
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
@@ -106,7 +121,6 @@ export const usePaymentTransaction = () => {
     } catch (error: any) {
       console.error('Error in createTransaction:', error);
       
-      // Amélioration des messages d'erreur
       if (error.code === 'INSUFFICIENT_FUNDS') {
         throw new Error("Solde insuffisant pour effectuer la transaction");
       } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
