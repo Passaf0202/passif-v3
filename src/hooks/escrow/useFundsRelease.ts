@@ -44,7 +44,7 @@ export function useFundsRelease(transactionId: string) {
 
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
-        .select('*')
+        .select('*, listings(*)')
         .eq('id', transactionId)
         .single();
 

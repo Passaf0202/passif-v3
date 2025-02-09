@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useEscrowPayment } from "@/hooks/useEscrowPayment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,7 +61,6 @@ export function CryptoPaymentForm({
   const finalCryptoAmount = convertedAmount?.amount || initialCryptoAmount;
   const finalCryptoCurrency = convertedAmount?.currency || selectedCurrency;
 
-  // Available cryptocurrencies (hardcoded for now, could be fetched from backend)
   const availableCurrencies = [
     { symbol: "BNB", name: "Binance Coin" },
     { symbol: "USDT", name: "Tether" },
