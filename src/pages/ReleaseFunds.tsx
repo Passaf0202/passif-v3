@@ -2,119 +2,100 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { EscrowDetails } from "@/components/escrow/EscrowDetails";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useReleaseFunds } from "@/hooks/escrow/useReleaseFunds";
 
 export default function ReleaseFunds() {
   const { id } = useParams<{ id: string }>();
-  const [transactionDetails, setTransactionDetails] = useState<any>(null);
-  const [sellerAddress, setSellerAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchTransactionDetails = async () => {
-      try {
-        if (!id) {
-          console.error("No transaction ID provided");
-          toast({
-            title: "Erreur",
-            description: "ID de transaction manquant",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
-        }
+    const checkTransaction = async () => {
+      if (!id) {
+        setError("ID de transaction manquant");
+        setIsLoading(false);
+        return;
+      }
 
-        console.log("Fetching transaction details for ID:", id);
-        
-        const { data: transaction, error } = await supabase
+      try {
+        console.log("Vérification de la transaction:", id);
+        const { data: transaction, error: transactionError } = await supabase
           .from('transactions')
           .select(`
             *,
             listings (
               title,
               crypto_amount,
-              crypto_currency
+              crypto_currency,
+              wallet_address
             ),
-            blockchain_txn_id,
-            seller_wallet_address
+            buyer:buyer_id (
+              id,
+              full_name
+            ),
+            seller:seller_id (
+              id,
+              full_name
+            )
           `)
           .eq('id', id)
           .maybeSingle();
 
-        if (error) {
-          console.error("Error fetching transaction details:", error);
+        if (transactionError) {
+          console.error("Erreur lors de la récupération de la transaction:", transactionError);
+          setError("Impossible de récupérer les détails de la transaction");
           toast({
             title: "Erreur",
             description: "Impossible de récupérer les détails de la transaction",
             variant: "destructive",
           });
-          setIsLoading(false);
-          return;
-        }
-
-        if (!transaction) {
-          console.log("No transaction found for ID:", id);
+        } else if (!transaction) {
+          console.log("Aucune transaction trouvée pour l'ID:", id);
+          setError("Transaction introuvable");
           toast({
             title: "Erreur",
             description: "Transaction introuvable",
             variant: "destructive",
           });
-          setIsLoading(false);
-          return;
+        } else {
+          console.log("Transaction trouvée:", transaction);
+          setError(null);
         }
-
-        console.log("Transaction details retrieved:", transaction);
-        setTransactionDetails(transaction);
-        setSellerAddress(transaction.seller_wallet_address);
       } catch (error) {
-        console.error("Error in fetchTransactionDetails:", error);
-        toast({
-          title: "Erreur",
-          description: "Une erreur est survenue lors de la récupération des détails",
-          variant: "destructive",
-        });
+        console.error("Erreur lors de la vérification de la transaction:", error);
+        setError("Une erreur est survenue");
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (id) {
-      fetchTransactionDetails();
-    }
+    checkTransaction();
   }, [id, toast]);
-
-  const { isReleasing, handleReleaseFunds } = useReleaseFunds(
-    id || '',
-    transactionDetails?.blockchain_txn_id,
-    sellerAddress
-  );
 
   if (isLoading) {
     return (
       <div>
         <Navbar />
-        <div className="container mx-auto px-4 py-8 flex justify-center">
+        <div className="container mx-auto p-8 flex justify-center items-center">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </div>
     );
   }
 
-  if (!transactionDetails) {
+  if (error) {
     return (
       <div>
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto p-8">
           <Alert variant="destructive">
             <AlertDescription>
-              Transaction introuvable ou inaccessible
+              {error}
             </AlertDescription>
           </Alert>
         </div>
@@ -125,59 +106,8 @@ export default function ReleaseFunds() {
   return (
     <div>
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Libération des fonds</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium">Article</h3>
-                <p className="text-sm text-muted-foreground">
-                  {transactionDetails.listings?.title}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium">Montant</h3>
-                <p className="text-sm text-muted-foreground">
-                  {transactionDetails.listings?.crypto_amount} {transactionDetails.listings?.crypto_currency}
-                </p>
-              </div>
-
-              {sellerAddress && (
-                <div>
-                  <h3 className="font-medium">Adresse du vendeur</h3>
-                  <p className="text-sm text-muted-foreground break-all">
-                    {sellerAddress}
-                  </p>
-                </div>
-              )}
-
-              <Alert>
-                <AlertDescription>
-                  En libérant les fonds, vous confirmez avoir reçu l'article en bon état.
-                </AlertDescription>
-              </Alert>
-
-              <Button
-                onClick={handleReleaseFunds}
-                disabled={isReleasing || !sellerAddress}
-                className="w-full"
-              >
-                {isReleasing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Libération des fonds en cours...
-                  </>
-                ) : (
-                  "Confirmer la réception et libérer les fonds"
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="container mx-auto p-8">
+        <EscrowDetails transactionId={id || ''} />
       </div>
     </div>
   );
