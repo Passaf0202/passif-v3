@@ -407,11 +407,13 @@ export type Database = {
           id: string
           listing_id: string | null
           network: string | null
+          released_at: string | null
           seller_confirmation: boolean | null
           seller_id: string | null
           smart_contract_address: string | null
           status: string | null
           token_symbol: string | null
+          transaction_confirmed_at: string | null
           transaction_hash: string | null
           updated_at: string | null
         }
@@ -433,11 +435,13 @@ export type Database = {
           id?: string
           listing_id?: string | null
           network?: string | null
+          released_at?: string | null
           seller_confirmation?: boolean | null
           seller_id?: string | null
           smart_contract_address?: string | null
           status?: string | null
           token_symbol?: string | null
+          transaction_confirmed_at?: string | null
           transaction_hash?: string | null
           updated_at?: string | null
         }
@@ -459,11 +463,13 @@ export type Database = {
           id?: string
           listing_id?: string | null
           network?: string | null
+          released_at?: string | null
           seller_confirmation?: boolean | null
           seller_id?: string | null
           smart_contract_address?: string | null
           status?: string | null
           token_symbol?: string | null
+          transaction_confirmed_at?: string | null
           transaction_hash?: string | null
           updated_at?: string | null
         }
