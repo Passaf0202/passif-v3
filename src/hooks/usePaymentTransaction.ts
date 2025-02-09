@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEscrowContract } from "./escrow/useEscrowContract";
 import { useTransactionUpdater } from "./escrow/useTransactionUpdater";
 import { useNavigate } from "react-router-dom";
+import { CONTRACT_ADDRESS, ESCROW_ABI } from "@/utils/escrow/contractUtils";
 
 export const usePaymentTransaction = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -14,8 +15,6 @@ export const usePaymentTransaction = () => {
   const navigate = useNavigate();
   
   const { toast } = useToast();
-  const { getContract, getActiveContract } = useEscrowContract();
-  const { createTransaction, updateTransactionStatus } = useTransactionUpdater();
 
   const handlePayment = async (
     sellerAddress: string,
@@ -41,7 +40,7 @@ export const usePaymentTransaction = () => {
       }
 
       const signer = provider.getSigner();
-      const contract = getContract(provider);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ESCROW_ABI, signer);
       
       const formattedAmount = cryptoAmount.toString();
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);

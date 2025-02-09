@@ -28,7 +28,7 @@ export function PaymentButton({
 }: PaymentButtonProps) {
   const { toast } = useToast();
   const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
-  const { createTransaction } = usePaymentTransaction();
+  const { handlePayment } = usePaymentTransaction();
 
   const handleClick = async () => {
     if (!isConnected || !sellerAddress || !cryptoAmount) {
@@ -43,7 +43,7 @@ export function PaymentButton({
     try {
       await ensureCorrectNetwork();
 
-      const txHash = await createTransaction(sellerAddress, cryptoAmount, transactionId);
+      const txHash = await handlePayment(sellerAddress, cryptoAmount, transactionId);
       console.log('Transaction successful:', txHash);
 
       toast({
