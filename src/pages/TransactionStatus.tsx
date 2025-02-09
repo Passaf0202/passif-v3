@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,10 +27,20 @@ export default function TransactionStatus() {
         setError(null);
 
         console.log("ID de transaction reçu:", id);
+
+        if (!id) {
+          console.error("Aucun ID de transaction fourni");
+          setError("Aucun ID de transaction fourni");
+          setLoading(false);
+          return;
+        }
+
+        // Retirer les potentiels caractères ':' au début
+        const cleanId = id.replace(/^:/, '');
         
         // Validate UUID format
-        if (!id || !UUID_REGEX.test(id)) {
-          console.error("ID de transaction invalide:", id);
+        if (!UUID_REGEX.test(cleanId)) {
+          console.error("ID de transaction invalide:", cleanId);
           setError("ID de transaction invalide");
           setLoading(false);
           return;
@@ -43,7 +54,7 @@ export default function TransactionStatus() {
             buyer:profiles!buyer_id (username, full_name),
             seller:profiles!seller_id (username, full_name)
           `)
-          .eq("id", id)
+          .eq("id", cleanId)
           .or(`buyer_id.eq.${user?.id},seller_id.eq.${user?.id}`);
 
         console.log("Résultat de la requête:", { data: userTransactions, error: userError });
