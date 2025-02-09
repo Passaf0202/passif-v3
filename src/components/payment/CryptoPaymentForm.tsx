@@ -11,6 +11,7 @@ import { useCryptoRates } from "@/hooks/useCryptoRates";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useFundsRelease } from "@/hooks/escrow/useFundsRelease";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -30,6 +31,7 @@ export function CryptoPaymentForm({
   onPaymentComplete,
 }: CryptoPaymentFormProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
   const [transactionId, setTransactionId] = useState<string | null>(null);
@@ -66,6 +68,11 @@ export function CryptoPaymentForm({
       await handlePayment();
     } catch (error: any) {
       console.error('Payment error:', error);
+      toast({
+        title: "Erreur de paiement",
+        description: error.message || "Une erreur est survenue lors du paiement",
+        variant: "destructive",
+      });
     }
   };
 
