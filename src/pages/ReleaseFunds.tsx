@@ -50,12 +50,9 @@ export default function ReleaseFunds() {
       if (error) throw error;
       if (!data) throw new Error("Transaction non trouvée");
 
-      const sellerWalletAddress = data.listing?.wallet_address || data.listing?.user?.wallet_address;
-      console.log("Seller wallet address:", sellerWalletAddress);
-
       return {
         ...data,
-        seller_wallet_address: sellerWalletAddress
+        seller_wallet_address: data.seller_wallet_address || data.listing?.wallet_address || data.listing?.user?.wallet_address
       };
     },
     enabled: !!id && !!user?.id
@@ -63,12 +60,12 @@ export default function ReleaseFunds() {
 
   const handleReleaseFunds = async () => {
     try {
-      const sellerWalletAddress = transaction?.seller_wallet_address;
-      console.log("Attempting to release funds to seller:", sellerWalletAddress);
-      
-      if (!sellerWalletAddress) {
-        console.error("Transaction data:", transaction);
-        throw new Error("L'adresse du vendeur est manquante");
+      if (!transaction?.blockchain_txn_id) {
+        throw new Error("ID de transaction blockchain manquant");
+      }
+
+      if (!transaction?.smart_contract_address) {
+        throw new Error("Adresse du contrat manquante");
       }
 
       if (chain?.id !== amoy.id) {
@@ -86,11 +83,11 @@ export default function ReleaseFunds() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
 
-      const contractAddress = transaction.smart_contract_address;
+      // ABI minimal pour la fonction releaseFunds
       const abi = ["function releaseFunds(uint256 txnId)"];
-      const contract = new ethers.Contract(contractAddress, abi, signer);
+      const contract = new ethers.Contract(transaction.smart_contract_address, abi, signer);
 
-      console.log("Releasing funds with transaction ID:", transaction.blockchain_txn_id);
+      console.log("Transaction ID for release:", transaction.blockchain_txn_id);
       const tx = await contract.releaseFunds(transaction.blockchain_txn_id);
       console.log("Release funds transaction sent:", tx.hash);
 
@@ -103,7 +100,6 @@ export default function ReleaseFunds() {
           .update({
             status: 'completed',
             escrow_status: 'completed',
-            buyer_confirmation: true,
             released_at: new Date().toISOString(),
           })
           .eq('id', id);
