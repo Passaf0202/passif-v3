@@ -64,7 +64,7 @@ export default function PaymentPage() {
         
         if (!transaction) {
           console.error("No transaction found for ID:", id);
-          throw new Error("Transaction non trouvée");
+          throw new Error("Transaction non trouvée dans la base de données");
         }
 
         console.log("Transaction found:", transaction);
@@ -81,13 +81,23 @@ export default function PaymentPage() {
         // Utiliser le blockchain_sequence_number stocké dans Supabase
         if (transaction.blockchain_sequence_number !== null) {
           console.log("Fetching blockchain data for sequence number:", transaction.blockchain_sequence_number);
-          const txnData = await contract.transactions(transaction.blockchain_sequence_number);
-          console.log("Blockchain transaction data:", txnData);
-          setSellerAddress(txnData.seller);
-          setBlockchainTxId(transaction.blockchain_sequence_number);
+          try {
+            const txnData = await contract.transactions(transaction.blockchain_sequence_number);
+            console.log("Blockchain transaction data:", txnData);
+            
+            if (txnData && txnData.seller && txnData.seller !== ethers.constants.AddressZero) {
+              setSellerAddress(txnData.seller);
+              setBlockchainTxId(transaction.blockchain_sequence_number);
+            } else {
+              throw new Error("Données blockchain invalides");
+            }
+          } catch (contractError) {
+            console.error("Contract error:", contractError);
+            throw new Error("Erreur lors de la récupération des données blockchain");
+          }
         } else {
           console.error("No blockchain_sequence_number found for transaction");
-          throw new Error("Données blockchain manquantes");
+          throw new Error("Numéro de séquence blockchain manquant");
         }
 
         setIsLoading(false);
