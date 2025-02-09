@@ -10,6 +10,9 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export default function TransactionStatus() {
   const { id } = useParams();
   const [transaction, setTransaction] = useState<any>(null);
@@ -21,6 +24,14 @@ export default function TransactionStatus() {
     const fetchTransaction = async () => {
       try {
         setLoading(true);
+        
+        // Validate UUID format
+        if (!id || !UUID_REGEX.test(id)) {
+          setError("ID de transaction invalide");
+          setLoading(false);
+          return;
+        }
+
         console.log("Fetching transaction with ID:", id);
 
         const { data, error } = await supabase
