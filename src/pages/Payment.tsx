@@ -74,6 +74,11 @@ export default function Payment() {
         .from('transactions')
         .select(`
           *,
+          seller:profiles!transactions_seller_id_fkey (
+            id,
+            wallet_address,
+            full_name
+          ),
           listing:listings!transactions_listing_id_fkey (
             id,
             title,
