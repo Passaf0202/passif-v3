@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
@@ -33,6 +34,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   useEffect(() => {
     const fetchTransaction = async () => {
+      console.log('Fetching transaction with ID:', transactionId);
       const { data, error } = await supabase
         .from("transactions")
         .select(`
@@ -82,6 +84,15 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   }, [transactionId]);
 
   const handleReleaseFunds = async () => {
+    if (!transaction?.blockchain_txn_id) {
+      toast({
+        title: "Erreur",
+        description: "ID de transaction blockchain manquant",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsReleasing(true);
 
@@ -102,8 +113,14 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         signer
       );
 
-      console.log('Releasing funds for blockchain transaction:', transaction.blockchain_txn_id);
-      const tx = await contract.releaseFunds(transaction.blockchain_txn_id);
+      // Convertir l'ID de transaction en nombre
+      const txnId = Number(transaction.blockchain_txn_id);
+      if (isNaN(txnId)) {
+        throw new Error("ID de transaction blockchain invalide");
+      }
+
+      console.log('Releasing funds for blockchain transaction:', txnId);
+      const tx = await contract.releaseFunds(txnId);
       console.log('Release funds transaction sent:', tx.hash);
 
       const receipt = await tx.wait();
@@ -115,7 +132,8 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           .update({
             status: 'completed',
             escrow_status: 'completed',
-            released_at: new Date().toISOString()
+            released_at: new Date().toISOString(),
+            buyer_confirmation: true
           })
           .eq('id', transactionId);
 
@@ -153,7 +171,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         <div className="space-y-2">
           <h3 className="font-medium">Article</h3>
           <p className="text-sm text-muted-foreground">
-            {transaction.listings.title}
+            {transaction.listings?.title || "Titre non disponible"}
           </p>
         </div>
 
@@ -172,20 +190,36 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         </div>
 
         {isBuyer && !isAlreadyConfirmed && (
-          <Button
-            onClick={handleReleaseFunds}
-            disabled={isReleasing}
-            className="w-full"
-          >
-            {isReleasing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Libération des fonds en cours...
-              </>
-            ) : (
-              "Confirmer la réception et libérer les fonds"
-            )}
-          </Button>
+          <>
+            <Alert>
+              <AlertDescription>
+                Une fois que vous aurez reçu l'article, cliquez sur le bouton ci-dessous pour libérer les fonds au vendeur.
+              </AlertDescription>
+            </Alert>
+
+            <Button
+              onClick={handleReleaseFunds}
+              disabled={isReleasing}
+              className="w-full"
+            >
+              {isReleasing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Libération des fonds en cours...
+                </>
+              ) : (
+                "Confirmer la réception et libérer les fonds"
+              )}
+            </Button>
+          </>
+        )}
+
+        {isAlreadyConfirmed && (
+          <Alert>
+            <AlertDescription>
+              Les fonds ont été libérés au vendeur.
+            </AlertDescription>
+          </Alert>
         )}
       </CardContent>
     </Card>
