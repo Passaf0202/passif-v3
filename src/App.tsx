@@ -14,9 +14,10 @@ import ListingDetails from "@/pages/ListingDetails";
 import Favorites from "@/pages/Favorites";
 import Checkout from "@/pages/Checkout";
 import ReleaseFunds from "@/pages/ReleaseFunds";
+import Transaction from "@/pages/Transaction";
 import { UserProfile } from "@/components/UserProfile";
 import Search from "@/pages/Search";
-import Transaction from "@/pages/Transaction";
+import PaymentPage from "@/pages/PaymentPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ function App() {
               <Route path="/listings/:id" element={<ListingDetails />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/:id" element={<PaymentPage />} />
               <Route path="/release-funds/:id" element={<ReleaseFunds />} />
               <Route path="/transaction/:id" element={<Transaction />} />
               <Route path="/profile" element={<UserProfile />} />
