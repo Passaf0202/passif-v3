@@ -30,6 +30,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         .select(`
           *,
           listing:listings!transactions_listing_id_fkey (
+            id,
             title,
             wallet_address,
             user:profiles!listings_user_id_fkey (
@@ -53,7 +54,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
       console.log("Transaction data:", data);
       
-      // Utiliser en priorité l'adresse du wallet de l'annonce, sinon celle du profil utilisateur
+      // On utilise d'abord l'adresse du wallet de l'annonce, sinon celle du profil
       const sellerWalletAddress = data.listing?.wallet_address || data.listing?.user?.wallet_address;
       console.log("Seller wallet address:", sellerWalletAddress);
       
@@ -62,7 +63,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         seller_wallet_address: sellerWalletAddress
       };
       
-      console.log("Enriched transaction data:", enrichedTransaction);
+      console.log("Enriched transaction with seller wallet:", enrichedTransaction);
       setTransaction(enrichedTransaction);
     };
 
@@ -92,8 +93,11 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   const handleReleaseFunds = async () => {
     try {
-      if (!transaction?.seller_wallet_address) {
-        console.error("Missing seller wallet address:", transaction);
+      const sellerWalletAddress = transaction?.seller_wallet_address;
+      console.log("Attempting to release funds to seller:", sellerWalletAddress);
+      
+      if (!sellerWalletAddress) {
+        console.error("Transaction data:", transaction);
         throw new Error("L'adresse du vendeur est manquante");
       }
 
