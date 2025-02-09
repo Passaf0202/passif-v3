@@ -58,33 +58,18 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   if (!transaction || !user) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Détails de la transaction</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="font-medium">Article</h3>
-          <p className="text-sm text-muted-foreground">
-            {transaction.listings.title}
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="font-medium">Montant</h3>
-          <p className="text-sm text-muted-foreground">
-            {transaction.amount} {transaction.token_symbol}
-          </p>
-        </div>
-
-        <EscrowStatus
-          transactionId={transaction.id}
-          buyerId={transaction.buyer_id}
-          sellerId={transaction.seller_id}
-          currentUserId={user.id}
-          sellerWalletAddress={transaction.seller_wallet_address}
-        />
-      </CardContent>
-    </Card>
+    <div className="max-w-2xl mx-auto">
+      <EscrowStatus
+        transactionId={transaction.id}
+        buyerId={transaction.buyer_id}
+        sellerId={transaction.seller_id}
+        currentUserId={user.id}
+        sellerWalletAddress={transaction.seller_wallet_address}
+        amount={transaction.amount}
+        cryptoAmount={transaction.amount}
+        cryptoCurrency={transaction.token_symbol}
+        title={transaction.listings.title}
+      />
+    </div>
   );
 }
