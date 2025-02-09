@@ -58,7 +58,7 @@ export function PaymentButton({
             seller_wallet_address
           `)
           .eq('id', transactionId)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error("Error fetching transaction:", error);
@@ -66,6 +66,7 @@ export function PaymentButton({
         }
 
         if (transaction) {
+          console.log("Transaction details found:", transaction);
           setTransactionDetails(transaction);
           setShowReleaseFunds(!!transaction.funds_secured);
         }
@@ -102,6 +103,13 @@ export function PaymentButton({
       console.log('Transaction successful:', txHash);
 
       onClick();
+      
+      // Si nous avons un transactionId après le paiement, rediriger vers la page de paiement
+      if (transactionId) {
+        console.log('Redirecting to payment page with ID:', transactionId);
+        navigate(`/payment/${transactionId}`);
+      }
+
       setShowReleaseFunds(true);
 
     } catch (error: any) {
