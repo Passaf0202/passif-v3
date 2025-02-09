@@ -34,17 +34,26 @@ export function useContractInteraction() {
       provider
     );
 
+    // Récupérer les données de la transaction du contrat
     const txData = await contract.transactions(txnId);
     console.log('Transaction data from contract:', txData);
 
+    // Vérifie si les données sont valides
+    if (!txData || !txData.buyer) {
+      throw new Error("Transaction non trouvée dans le contrat");
+    }
+
+    // Vérifie si les fonds sont déposés
     if (!txData.isFunded) {
       throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
     }
 
+    // Vérifie si la transaction n'est pas déjà complétée
     if (txData.isCompleted) {
       throw new Error("Les fonds ont déjà été libérés");
     }
 
+    // Vérifie si l'utilisateur est bien l'acheteur
     if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
       throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
     }
@@ -56,13 +65,18 @@ export function useContractInteraction() {
     try {
       const { data: transaction, error } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id')
+        .select('blockchain_txn_id, funds_secured')
         .eq('id', transactionId)
         .single();
 
       if (error) throw error;
+      
       if (!transaction?.blockchain_txn_id) {
         throw new Error("ID de transaction blockchain non trouvé");
+      }
+
+      if (!transaction.funds_secured) {
+        throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
       }
 
       const txnId = parseInt(transaction.blockchain_txn_id);
@@ -91,6 +105,7 @@ export function useContractInteraction() {
     const contract = await validateTransaction(txnId, signerAddress);
     const contractWithSigner = contract.connect(signer);
 
+    // Estimer le gas avec une marge de sécurité de 20%
     const gasEstimate = await contractWithSigner.estimateGas.releaseFunds(txnId);
     console.log('Estimated gas:', gasEstimate.toString());
     const gasLimit = gasEstimate.mul(120).div(100);
