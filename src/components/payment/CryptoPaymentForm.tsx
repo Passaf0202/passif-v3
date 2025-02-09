@@ -11,6 +11,7 @@ import { PaymentButton } from "./PaymentButton";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -36,8 +37,10 @@ export function CryptoPaymentForm({
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   
+  const { data: cryptoDetails, isLoading: isCryptoLoading } = useCryptoConversion(price, listingId, cryptoCurrency);
+  
   // Fetch listing details to ensure we have the most up-to-date information
-  const { data: listing } = useQuery({
+  const { data: listing, isLoading: isListingLoading } = useQuery({
     queryKey: ['listing-payment', listingId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -75,11 +78,21 @@ export function CryptoPaymentForm({
     onPaymentComplete
   });
 
-  if (!initialCryptoAmount) {
+  const isLoading = isListingLoading || isCryptoLoading;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
         <Loader2 className="h-6 w-6 animate-spin" />
         <span className="ml-2">Calcul du montant en cours...</span>
+      </div>
+    );
+  }
+
+  if (!cryptoDetails?.amount) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <span className="text-red-500">Erreur lors du calcul du montant. Veuillez réessayer.</span>
       </div>
     );
   }
@@ -96,8 +109,8 @@ export function CryptoPaymentForm({
           <TransactionDetails
             title={title}
             price={price}
-            cryptoAmount={initialCryptoAmount}
-            cryptoCurrency={cryptoCurrency}
+            cryptoAmount={cryptoDetails.amount}
+            cryptoCurrency={cryptoDetails.currency}
           />
 
           <div className="mt-4 space-y-4">
@@ -114,9 +127,9 @@ export function CryptoPaymentForm({
               onClick={handlePayment}
               isProcessing={isProcessing}
               isConnected={!!user}
-              cryptoAmount={initialCryptoAmount}
-              cryptoCurrency={cryptoCurrency}
-              disabled={isProcessing || !initialCryptoAmount}
+              cryptoAmount={cryptoDetails.amount}
+              cryptoCurrency={cryptoDetails.currency}
+              disabled={isProcessing || !cryptoDetails.amount}
               sellerAddress={currentSellerAddress}
               mode="pay"
             />
