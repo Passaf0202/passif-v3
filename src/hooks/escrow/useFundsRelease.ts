@@ -14,7 +14,7 @@ const ESCROW_ABI = [
 
 const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
 
-export function useFundsRelease(transactionId: string) {
+export function useFundsRelease(transactionId: string, onSuccess?: () => void) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { chain } = useNetwork();
@@ -42,7 +42,6 @@ export function useFundsRelease(transactionId: string) {
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
 
-      // Récupérer la transaction depuis Supabase
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
         .select('*')
@@ -60,10 +59,8 @@ export function useFundsRelease(transactionId: string) {
 
       console.log('Transaction details:', transaction);
 
-      // Initialiser le contrat
       const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
       
-      // Vérifier l'état de la transaction sur la blockchain
       const blockchainTxnId = Number(transaction.blockchain_txn_id);
       const txData = await contract.transactions(blockchainTxnId);
 
@@ -81,11 +78,10 @@ export function useFundsRelease(transactionId: string) {
         throw new Error("Les fonds ont déjà été libérés");
       }
 
-      // Estimation du gas avec une marge de sécurité
       const gasEstimate = await contract.estimateGas.releaseFunds(blockchainTxnId);
-      const gasLimit = gasEstimate.mul(150).div(100); // +50% de marge
+      const gasLimit = gasEstimate.mul(150).div(100);
       const gasPrice = await provider.getGasPrice();
-      const adjustedGasPrice = gasPrice.mul(120).div(100); // +20% pour augmenter les chances de succès
+      const adjustedGasPrice = gasPrice.mul(120).div(100);
 
       console.log('Gas estimation:', {
         estimate: gasEstimate.toString(),
@@ -94,14 +90,12 @@ export function useFundsRelease(transactionId: string) {
         adjustedPrice: adjustedGasPrice.toString()
       });
 
-      // Vérifier le solde pour les frais de gas
       const balance = await provider.getBalance(signerAddress);
       const gasCost = gasLimit.mul(adjustedGasPrice);
       if (balance.lt(gasCost)) {
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
-      // Envoyer la transaction
       const tx = await contract.releaseFunds(blockchainTxnId, {
         gasLimit,
         gasPrice: adjustedGasPrice
@@ -109,12 +103,10 @@ export function useFundsRelease(transactionId: string) {
 
       console.log('Release funds transaction sent:', tx.hash);
 
-      // Attendre la confirmation
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
 
       if (receipt.status === 1) {
-        // Mettre à jour le statut dans Supabase
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
@@ -130,6 +122,10 @@ export function useFundsRelease(transactionId: string) {
           title: "Succès",
           description: "Les fonds ont été libérés au vendeur avec succès.",
         });
+
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
         throw new Error("La libération des fonds a échoué");
       }

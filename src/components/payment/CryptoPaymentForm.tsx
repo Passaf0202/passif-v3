@@ -44,10 +44,11 @@ export function CryptoPaymentForm({
     listingId,
     address: user?.id,
     onTransactionCreated: (id: string) => setTransactionId(id),
-    onPaymentComplete,
   });
 
-  const { isLoading: isReleasingFunds, handleReleaseFunds } = useFundsRelease(transactionId || '');
+  const { isLoading: isReleasingFunds, handleReleaseFunds } = useFundsRelease(transactionId || '', () => {
+    onPaymentComplete();
+  });
 
   if (!convertedAmount && !initialCryptoAmount) {
     return (
@@ -113,7 +114,7 @@ export function CryptoPaymentForm({
                 ) : !user ? (
                   "Connectez votre wallet"
                 ) : (
-                  "Payer"
+                  `Payer ${finalCryptoAmount.toFixed(6)} ${initialCryptoCurrency}`
                 )}
               </Button>
             )}
