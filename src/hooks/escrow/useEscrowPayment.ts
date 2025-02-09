@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEscrowContract } from "./useEscrowContract";
 import { useTransactionUpdater } from "./useTransactionUpdater";
+import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -28,6 +29,7 @@ export function useEscrowPayment({
   const { toast } = useToast();
   const { getContract, getActiveContract } = useEscrowContract();
   const { createTransaction, updateTransactionStatus } = useTransactionUpdater();
+  const { ensureCorrectNetwork } = useNetworkSwitch();
 
   const handlePayment = async () => {
     if (!address) {
@@ -39,6 +41,9 @@ export function useEscrowPayment({
       setIsProcessing(true);
       setError(null);
       console.log('🔹 Starting escrow payment process for listing:', listingId);
+
+      // S'assurer que nous sommes sur le bon réseau
+      await ensureCorrectNetwork();
 
       // Get the authenticated user
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();

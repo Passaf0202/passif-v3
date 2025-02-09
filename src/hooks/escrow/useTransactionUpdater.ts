@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export const useTransactionUpdater = () => {
@@ -20,31 +21,52 @@ export const useTransactionUpdater = () => {
       chainId
     });
 
-    const { data, error } = await supabase
-      .from('transactions')
-      .insert({
-        listing_id: listingId,
-        buyer_id: buyerId,
-        seller_id: sellerId,
-        amount: amount,
-        commission_amount: commission,
-        status: 'pending',
-        escrow_status: 'pending',
-        smart_contract_address: contractAddress,
-        chain_id: chainId,
-        network: 'polygon_amoy',
-        token_symbol: 'MATIC'
-      })
-      .select()
-      .single();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Vous devez être connecté pour créer une transaction");
+      }
 
-    if (error) {
-      console.error('Transaction creation error:', error);
-      throw new Error("Erreur lors de la création de la transaction");
+      // Verify that the authenticated user is the buyer
+      if (user.id !== buyerId) {
+        console.error('User ID mismatch:', { userId: user.id, buyerId });
+        throw new Error("Vous n'êtes pas autorisé à créer cette transaction");
+      }
+
+      const { data, error: insertError } = await supabase
+        .from('transactions')
+        .insert({
+          listing_id: listingId,
+          buyer_id: buyerId,
+          seller_id: sellerId,
+          amount: amount,
+          commission_amount: commission,
+          status: 'pending',
+          escrow_status: 'pending',
+          smart_contract_address: contractAddress,
+          chain_id: chainId,
+          network: 'polygon_amoy',
+          token_symbol: 'MATIC'
+        })
+        .select('*')
+        .single();
+
+      if (insertError) {
+        console.error('Transaction creation error:', {
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+          code: insertError.code
+        });
+        throw new Error("Erreur lors de la création de la transaction");
+      }
+
+      console.log('Transaction created successfully:', data);
+      return data;
+    } catch (error: any) {
+      console.error('Error in createTransaction:', error);
+      throw error;
     }
-
-    console.log('Transaction created:', data);
-    return data;
   };
 
   const updateTransactionStatus = async (
@@ -58,26 +80,41 @@ export const useTransactionUpdater = () => {
       txHash
     });
 
-    const updates: any = {
-      status,
-      updated_at: new Date().toISOString()
-    };
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Vous devez être connecté pour mettre à jour une transaction");
+      }
 
-    if (txHash) {
-      updates.transaction_hash = txHash;
-    }
+      const updates: any = {
+        status,
+        updated_at: new Date().toISOString()
+      };
 
-    const { error } = await supabase
-      .from('transactions')
-      .update(updates)
-      .eq('id', transactionId);
+      if (txHash) {
+        updates.transaction_hash = txHash;
+      }
 
-    if (error) {
-      console.error('Error updating transaction:', error);
+      if (status === 'completed') {
+        updates.escrow_status = 'completed';
+      }
+
+      const { error } = await supabase
+        .from('transactions')
+        .update(updates)
+        .eq('id', transactionId)
+        .filter('buyer_id', 'eq', user.id);
+
+      if (error) {
+        console.error('Error updating transaction:', error);
+        throw error;
+      }
+
+      console.log('Transaction status updated successfully');
+    } catch (error) {
+      console.error('Error in updateTransactionStatus:', error);
       throw error;
     }
-
-    console.log('Transaction status updated successfully');
   };
 
   return {
