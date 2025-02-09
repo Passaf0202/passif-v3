@@ -33,7 +33,6 @@ export default function ReleaseFunds() {
 
         console.log("Fetching transaction details for ID:", id);
         
-        // Instead of using .eq() with id, we'll use .match() to ensure proper parameter binding
         const { data: transaction, error } = await supabase
           .from('transactions')
           .select(`
@@ -46,7 +45,7 @@ export default function ReleaseFunds() {
             blockchain_txn_id,
             seller_wallet_address
           `)
-          .match({ id: id })
+          .eq('id', id)
           .maybeSingle();
 
         if (error) {
