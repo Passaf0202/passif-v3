@@ -1,21 +1,37 @@
 
-import { ethers } from 'ethers';
+import { useState } from "react";
+import { ethers } from "ethers";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { formatAmount, getEscrowContract } from '@/utils/escrow/contractUtils';
+import { useEscrowContract } from "./escrow/useEscrowContract";
+import { useTransactionUpdater } from "./escrow/useTransactionUpdater";
+import { useNavigate } from "react-router-dom";
 
 export const usePaymentTransaction = () => {
-  const createTransaction = async (
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
+  const navigate = useNavigate();
+  
+  const { toast } = useToast();
+  const { getContract, getActiveContract } = useEscrowContract();
+  const { createTransaction, updateTransactionStatus } = useTransactionUpdater();
+
+  const handlePayment = async (
     sellerAddress: string,
     cryptoAmount: number,
     transactionId?: string
   ) => {
+    if (!window.ethereum) {
+      throw new Error("MetaMask n'est pas installé");
+    }
+
     try {
-      if (!window.ethereum) {
-        throw new Error("MetaMask n'est pas installé");
-      }
+      setIsProcessing(true);
+      setError(null);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []); // Demander explicitement la connexion
+      await provider.send("eth_requestAccounts", []); 
       
       const network = await provider.getNetwork();
       console.log('Connected to network:', network);
@@ -25,34 +41,24 @@ export const usePaymentTransaction = () => {
       }
 
       const signer = provider.getSigner();
-      console.log('Got signer, fetching contract...');
-      const contract = getEscrowContract(provider);
-      console.log('Contract instance created');
+      const contract = getContract(provider);
       
-      const formattedAmount = formatAmount(cryptoAmount);
+      const formattedAmount = cryptoAmount.toString();
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
       console.log('Amount in Wei:', amountInWei.toString());
 
-      // Vérifier le solde avant la transaction
       const signerAddress = await signer.getAddress();
       const balance = await provider.getBalance(signerAddress);
-      console.log('Current balance:', ethers.utils.formatEther(balance), 'POL');
       
       if (balance.lt(amountInWei)) {
-        console.error('Insufficient balance:', {
-          balance: ethers.utils.formatEther(balance),
-          required: formattedAmount
-        });
         throw new Error("Solde POL insuffisant pour effectuer la transaction");
       }
 
-      // Ajouter un délai avant la transaction pour s'assurer que la connexion est stable
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Créer la transaction avec un gas limit fixe et un prix du gas légèrement plus élevé
       try {
         const gasPrice = await provider.getGasPrice();
-        const adjustedGasPrice = gasPrice.mul(120).div(100); // +20% pour assurer la transaction
+        const adjustedGasPrice = gasPrice.mul(120).div(100);
         console.log('Using gas price:', ethers.utils.formatUnits(adjustedGasPrice, 'gwei'), 'gwei');
 
         const tx = await contract.createTransaction(sellerAddress, {
@@ -69,19 +75,22 @@ export const usePaymentTransaction = () => {
           throw new Error("La transaction a échoué sur la blockchain");
         }
 
-        // Mettre à jour la transaction dans la base de données
         if (transactionId) {
           const { error: updateError } = await supabase
             .from('transactions')
             .update({
               transaction_hash: tx.hash,
               funds_secured: true,
-              funds_secured_at: new Date().toISOString()
+              funds_secured_at: new Date().toISOString(),
+              blockchain_txn_id: receipt.events?.[0]?.args?.[0]?.toString() || '0'
             })
             .eq('id', transactionId);
 
           if (updateError) {
             console.error('Error updating transaction:', updateError);
+          } else {
+            // Redirect to the transaction details page
+            navigate(`/transaction/${transactionId}`);
           }
         }
 
@@ -90,7 +99,6 @@ export const usePaymentTransaction = () => {
       } catch (txError: any) {
         console.error('Transaction failed:', txError);
         
-        // Améliorer la détection des erreurs spécifiques
         if (txError.code === 'INSUFFICIENT_FUNDS') {
           throw new Error("Solde POL insuffisant pour payer les frais de transaction");
         } else if (txError.code === 'UNPREDICTABLE_GAS_LIMIT') {
@@ -114,8 +122,10 @@ export const usePaymentTransaction = () => {
       }
       
       throw error;
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  return { createTransaction };
+  return { handlePayment, isProcessing, error, transactionStatus };
 };

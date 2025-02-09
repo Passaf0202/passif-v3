@@ -12,16 +12,9 @@ export const useSellerAddress = (transactionId: string) => {
       try {
         const { data, error } = await supabase
           .from('transactions')
-          .select(`
-            seller_wallet_address,
-            listing:listings (
-              user:profiles!listings_user_id_fkey (
-                wallet_address
-              )
-            )
-          `)
+          .select('seller_wallet_address')
           .eq('id', transactionId)
-          .maybeSingle();
+          .single();
 
         if (error) throw error;
 
@@ -30,17 +23,9 @@ export const useSellerAddress = (transactionId: string) => {
           return;
         }
 
-        // Try to get seller address from the transaction first
-        let address = data.seller_wallet_address;
-        
-        // If not found, try to get it from the listing's user profile
-        if (!address && data.listing?.user?.wallet_address) {
-          address = data.listing.user.wallet_address;
-        }
-
-        if (address) {
-          console.log('Setting seller address:', address);
-          setSellerAddress(address);
+        if (data.seller_wallet_address) {
+          console.log('Setting seller address:', data.seller_wallet_address);
+          setSellerAddress(data.seller_wallet_address);
         } else {
           console.error('No seller address found');
           toast({
