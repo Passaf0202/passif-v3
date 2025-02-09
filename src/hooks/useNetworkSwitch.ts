@@ -17,8 +17,20 @@ export const useNetworkSwitch = () => {
       try {
         console.log('🔹 Switching to Polygon Amoy network...');
         await switchNetwork(amoy.id);
+        
         // Attendre que le changement de réseau soit effectif
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Vérifier à nouveau le réseau après le délai
+        const currentProvider = window.ethereum;
+        if (!currentProvider) {
+          throw new Error("MetaMask n'est pas installé");
+        }
+        
+        const chainId = await currentProvider.request({ method: 'eth_chainId' });
+        if (parseInt(chainId, 16) !== amoy.id) {
+          throw new Error("Le changement de réseau a échoué");
+        }
         
         console.log('🟢 Successfully switched to Polygon Amoy');
         toast({

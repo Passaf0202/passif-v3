@@ -65,19 +65,27 @@ export function useEscrowPayment({
         .eq('id', listingId)
         .single();
 
-      if (listingError || !listing || !listing.user?.wallet_address || !listing.crypto_amount) {
+      if (listingError || !listing || !listing.crypto_amount) {
         console.error('🚨 Error fetching listing:', listingError);
         throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
-      console.log("🟢 Listing details:", listing);
+      // Utiliser l'adresse du wallet de l'annonce, sinon celle du profil vendeur
+      const sellerAddress = listing.wallet_address || listing.user?.wallet_address;
+      if (!sellerAddress) {
+        throw new Error("L'adresse du vendeur n'est pas disponible");
+      }
 
-      if (listing.user.wallet_address.toLowerCase() === address.toLowerCase()) {
+      console.log("🟢 Listing details:", listing);
+      console.log("🟢 Seller address:", sellerAddress);
+
+      if (sellerAddress.toLowerCase() === address.toLowerCase()) {
         throw new Error("Vous ne pouvez pas acheter votre propre annonce");
       }
 
-      // Vérifier le solde
+      // Initialiser le provider et vérifier le solde
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       const balance = await provider.getBalance(address);
       const amountInWei = ethers.utils.parseEther(listing.crypto_amount.toString());
@@ -98,7 +106,7 @@ export function useEscrowPayment({
 
       // Estimation des frais de gas
       const gasPrice = await provider.getGasPrice();
-      const estimatedGasLimit = await contract.estimateGas.createTransaction(listing.user.wallet_address, {
+      const estimatedGasLimit = await contract.estimateGas.createTransaction(sellerAddress, {
         value: amountInWei
       });
 
@@ -108,17 +116,17 @@ export function useEscrowPayment({
       }
 
       console.log("🔹 Transaction parameters:", {
-        seller: listing.user.wallet_address,
+        seller: sellerAddress,
         amount: ethers.utils.formatEther(amountInWei),
         gasLimit: estimatedGasLimit.toString(),
         gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
       });
 
       // Exécuter la transaction
-      const tx = await contract.createTransaction(listing.user.wallet_address, {
+      const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
-        gasLimit: estimatedGasLimit,
-        gasPrice
+        gasLimit: estimatedGasLimit.mul(120).div(100), // +20% marge de sécurité
+        gasPrice: gasPrice.mul(120).div(100) // +20% sur le gas price
       });
 
       console.log("🟢 Transaction sent:", tx.hash);
@@ -143,10 +151,12 @@ export function useEscrowPayment({
       if (receipt.status === 1) {
         await updateTransactionStatus(transaction.id, 'processing', tx.hash);
 
+        // Mettre à jour le statut des fonds
         await supabase.from('transactions')
           .update({
             funds_secured: true,
-            funds_secured_at: new Date().toISOString()
+            funds_secured_at: new Date().toISOString(),
+            blockchain_txn_id: receipt.logs[0].topics[1] // L'ID de la transaction sur la blockchain
           })
           .eq('id', transaction.id);
 
