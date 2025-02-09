@@ -86,3 +86,4 @@ export const parseTransactionId = async (receipt: ethers.ContractReceipt): Promi
   const txIndex = receipt.logs[0].logIndex;
   return txIndex.toString();
 };
+
