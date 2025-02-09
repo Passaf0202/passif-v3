@@ -11,14 +11,13 @@ interface EscrowDetailsProps {
 
 export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const [transaction, setTransaction] = useState<any>(null);
-  const [isAlreadyConfirmed, setIsAlreadyConfirmed] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchTransaction = async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select("*, listings(*), buyer_confirmation")
+        .select("*, listings(*)")
         .eq("id", transactionId)
         .single();
 
@@ -28,33 +27,9 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       }
 
       setTransaction(data);
-      setIsAlreadyConfirmed(data.buyer_confirmation);
     };
 
     fetchTransaction();
-
-    // Subscribe to changes
-    const subscription = supabase
-      .channel(`transaction-${transactionId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "transactions",
-          filter: `id=eq.${transactionId}`,
-        },
-        (payload) => {
-          console.log("Transaction updated:", payload);
-          setTransaction(payload.new);
-          setIsAlreadyConfirmed(payload.new.buyer_confirmation);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [transactionId]);
 
   if (!transaction || !user) return null;
@@ -79,14 +54,12 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           </p>
         </div>
 
-        {!isAlreadyConfirmed && (
-          <EscrowStatus
-            transactionId={transaction.id}
-            buyerId={transaction.buyer_id}
-            sellerId={transaction.seller_id}
-            currentUserId={user.id}
-          />
-        )}
+        <EscrowStatus
+          transactionId={transaction.id}
+          buyerId={transaction.buyer_id}
+          sellerId={transaction.seller_id}
+          currentUserId={user.id}
+        />
       </CardContent>
     </Card>
   );
