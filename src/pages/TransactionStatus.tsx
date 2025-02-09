@@ -9,6 +9,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
+import { ethers } from "ethers";
+
+const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
+const ESCROW_ABI = [
+  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "function transactionCount() view returns (uint256)"
+];
 
 // UUID validation regex
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -38,41 +45,72 @@ export default function TransactionStatus() {
         // Retirer les potentiels caractères ':' au début
         const cleanId = id.replace(/^:/, '');
         
-        // Validate UUID format
-        if (!UUID_REGEX.test(cleanId)) {
-          console.error("ID de transaction invalide:", cleanId);
-          setError("ID de transaction invalide");
-          setLoading(false);
-          return;
+        // Si c'est un UUID, chercher d'abord dans Supabase
+        if (UUID_REGEX.test(cleanId)) {
+          const { data: userTransactions, error: userError } = await supabase
+            .from("transactions")
+            .select(`
+              *,
+              listings (title),
+              buyer:profiles!buyer_id (username, full_name),
+              seller:profiles!seller_id (username, full_name)
+            `)
+            .eq("id", cleanId)
+            .or(`buyer_id.eq.${user?.id},seller_id.eq.${user?.id}`);
+
+          console.log("Résultat de la requête Supabase:", { data: userTransactions, error: userError });
+
+          if (!userError && userTransactions && userTransactions.length > 0) {
+            console.log("Transaction trouvée dans Supabase:", userTransactions[0]);
+            setTransaction(userTransactions[0]);
+            setLoading(false);
+            return;
+          }
         }
 
-        const { data: userTransactions, error: userError } = await supabase
-          .from("transactions")
-          .select(`
-            *,
-            listings (title),
-            buyer:profiles!buyer_id (username, full_name),
-            seller:profiles!seller_id (username, full_name)
-          `)
-          .eq("id", cleanId)
-          .or(`buyer_id.eq.${user?.id},seller_id.eq.${user?.id}`);
+        // Si pas trouvé dans Supabase ou si l'ID n'est pas un UUID,
+        // chercher dans la blockchain
+        if (window.ethereum) {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const contract = new ethers.Contract(
+            ESCROW_CONTRACT_ADDRESS,
+            ESCROW_ABI,
+            provider
+          );
 
-        console.log("Résultat de la requête:", { data: userTransactions, error: userError });
+          // Essayer de récupérer directement la transaction si l'ID est un nombre
+          try {
+            const txNumber = parseInt(cleanId);
+            if (!isNaN(txNumber)) {
+              const blockchainTx = await contract.getTransaction(txNumber);
+              console.log("Transaction trouvée dans la blockchain:", blockchainTx);
 
-        if (userError) {
-          console.error("Erreur lors de la récupération de la transaction:", userError);
-          setError("Erreur lors de la récupération de la transaction");
-          return;
+              // Chercher maintenant dans Supabase avec l'adresse du buyer/seller
+              const { data: dbTx, error: dbError } = await supabase
+                .from("transactions")
+                .select(`
+                  *,
+                  listings (title),
+                  buyer:profiles!buyer_id (username, full_name),
+                  seller:profiles!seller_id (username, full_name)
+                `)
+                .eq("blockchain_txn_id", txNumber.toString())
+                .single();
+
+              if (!dbError && dbTx) {
+                console.log("Transaction correspondante trouvée dans Supabase:", dbTx);
+                setTransaction(dbTx);
+                setLoading(false);
+                return;
+              }
+            }
+          } catch (error) {
+            console.error("Erreur lors de la recherche dans la blockchain:", error);
+          }
         }
 
-        if (!userTransactions || userTransactions.length === 0) {
-          console.error("Transaction non trouvée ou accès non autorisé");
-          setError("Transaction non trouvée ou accès non autorisé");
-          return;
-        }
-
-        console.log("Transaction trouvée:", userTransactions[0]);
-        setTransaction(userTransactions[0]);
+        // Si on arrive ici, c'est qu'on n'a pas trouvé la transaction
+        setError("Transaction non trouvée ou accès non autorisé");
       } catch (err) {
         console.error("Erreur inattendue:", err);
         setError("Une erreur inattendue s'est produite");
