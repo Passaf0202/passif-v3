@@ -2,6 +2,7 @@
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
+import { supabase } from "@/integrations/supabase/client";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
@@ -36,32 +37,56 @@ export function useContractInteraction() {
     const txData = await contract.transactions(txnId);
     console.log('Transaction data from contract:', txData);
 
-    if (!txData.amount.gt(0)) {
-      throw new Error("Transaction non trouvée dans le contrat");
-    }
-
-    if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-      throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
+    if (!txData.isFunded) {
+      throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
     }
 
     if (txData.isCompleted) {
       throw new Error("Les fonds ont déjà été libérés");
     }
 
-    if (!txData.isFunded) {
-      throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
+    if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+      throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
     }
 
     return contract;
   };
 
-  const releaseFunds = async (txnId: number) => {
+  const getBlockchainTxnId = async (transactionId: string): Promise<number> => {
+    try {
+      const { data: transaction, error } = await supabase
+        .from('transactions')
+        .select('blockchain_txn_id')
+        .eq('id', transactionId)
+        .single();
+
+      if (error) throw error;
+      if (!transaction?.blockchain_txn_id) {
+        throw new Error("ID de transaction blockchain non trouvé");
+      }
+
+      const txnId = parseInt(transaction.blockchain_txn_id);
+      if (isNaN(txnId)) {
+        throw new Error("ID de transaction blockchain invalide");
+      }
+
+      return txnId;
+    } catch (error) {
+      console.error("Error getting blockchain transaction ID:", error);
+      throw error;
+    }
+  };
+
+  const releaseFunds = async (transactionId: string) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
     const signerAddress = await signer.getAddress();
 
     await ensureCorrectNetwork();
+
+    const txnId = await getBlockchainTxnId(transactionId);
+    console.log('Using blockchain transaction ID:', txnId);
 
     const contract = await validateTransaction(txnId, signerAddress);
     const contractWithSigner = contract.connect(signer);
@@ -77,6 +102,17 @@ export function useContractInteraction() {
 
     const receipt = await tx.wait();
     console.log('Transaction receipt:', receipt);
+
+    if (receipt.status === 1) {
+      await supabase
+        .from('transactions')
+        .update({
+          released_at: new Date().toISOString(),
+          escrow_status: 'completed',
+          status: 'completed'
+        })
+        .eq('id', transactionId);
+    }
 
     return receipt;
   };
