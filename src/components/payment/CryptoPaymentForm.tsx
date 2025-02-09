@@ -9,6 +9,8 @@ import { EscrowAlert } from "./EscrowAlert";
 import { TransactionDetails } from "./TransactionDetails";
 import { PaymentButton } from "./PaymentButton";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CryptoPaymentFormProps {
   listingId: string;
@@ -33,6 +35,27 @@ export function CryptoPaymentForm({
   const navigate = useNavigate();
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   const [transactionId, setTransactionId] = useState<string | null>(null);
+  
+  // Fetch listing details to ensure we have the most up-to-date information
+  const { data: listing } = useQuery({
+    queryKey: ['listing-payment', listingId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('listings')
+        .select(`
+          *,
+          user:profiles!listings_user_id_fkey (
+            id,
+            wallet_address
+          )
+        `)
+        .eq('id', listingId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
   
   const {
     handlePayment,
@@ -60,6 +83,8 @@ export function CryptoPaymentForm({
       </div>
     );
   }
+
+  const currentSellerAddress = listing?.wallet_address || sellerAddress;
 
   return (
     <div className="space-y-6">
@@ -92,7 +117,7 @@ export function CryptoPaymentForm({
               cryptoAmount={initialCryptoAmount}
               cryptoCurrency={cryptoCurrency}
               disabled={isProcessing || !initialCryptoAmount}
-              sellerAddress={sellerAddress}
+              sellerAddress={currentSellerAddress}
               mode="pay"
             />
 
