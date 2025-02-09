@@ -28,8 +28,14 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         .from("transactions")
         .select(`
           *,
-          listings(*, user:profiles!listings_user_id_fkey(wallet_address)),
-          seller:profiles!transactions_seller_id_fkey(*)
+          listings:listings!transactions_listing_id_fkey (
+            *,
+            user:profiles!listings_user_id_fkey (
+              id,
+              wallet_address
+            )
+          ),
+          seller:profiles!transactions_seller_id_fkey (*)
         `)
         .eq("id", transactionId)
         .single();
@@ -45,7 +51,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
     fetchTransaction();
 
-    // Subscribe to changes
     const subscription = supabase
       .channel(`transaction-${transactionId}`)
       .on(
