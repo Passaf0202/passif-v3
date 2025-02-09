@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ethers } from "ethers";
 import { useToast } from "@/components/ui/use-toast";
@@ -44,7 +45,7 @@ export function useEscrowPayment({
         throw new Error("Vous devez être connecté pour effectuer un paiement");
       }
 
-      // Récupérer les détails de l'annonce
+      // Récupérer les détails de l'annonce avec le wallet_address du vendeur
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .select(`
@@ -52,21 +53,32 @@ export function useEscrowPayment({
           user:profiles!listings_user_id_fkey (
             id,
             wallet_address
-          )
+          ),
+          wallet_address
         `)
         .eq('id', listingId)
         .single();
 
-      if (listingError || !listing || !listing.user?.wallet_address || !listing.crypto_amount) {
+      if (listingError || !listing) {
         console.error('🚨 Error fetching listing:', listingError);
         throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
-      console.log("🟢 Listing details:", listing);
+      // Utiliser l'adresse du wallet stockée dans l'annonce en priorité,
+      // sinon utiliser celle du profil utilisateur
+      const sellerWalletAddress = listing.wallet_address || listing.user?.wallet_address;
 
-      if (listing.user.wallet_address.toLowerCase() === address.toLowerCase()) {
-        throw new Error("Vous ne pouvez pas acheter votre propre annonce");
+      if (!sellerWalletAddress) {
+        console.error('🚨 No wallet address found for seller');
+        throw new Error("Le vendeur n'a pas connecté son portefeuille");
       }
+
+      if (!listing.crypto_amount) {
+        console.error('🚨 No crypto amount found for listing');
+        throw new Error("Le montant en crypto n'est pas défini pour cette annonce");
+      }
+
+      console.log("🟢 Using seller wallet address:", sellerWalletAddress);
 
       // Vérifier le solde
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -90,7 +102,7 @@ export function useEscrowPayment({
 
       // Estimation des frais de gas
       const gasPrice = await provider.getGasPrice();
-      const estimatedGasLimit = await contract.estimateGas.createTransaction(listing.user.wallet_address, {
+      const estimatedGasLimit = await contract.estimateGas.createTransaction(sellerWalletAddress, {
         value: amountInWei
       });
 
@@ -100,14 +112,14 @@ export function useEscrowPayment({
       }
 
       console.log("🔹 Transaction parameters:", {
-        seller: listing.user.wallet_address,
+        seller: sellerWalletAddress,
         amount: ethers.utils.formatEther(amountInWei),
         gasLimit: estimatedGasLimit.toString(),
         gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
       });
 
       // Exécuter la transaction
-      const tx = await contract.createTransaction(listing.user.wallet_address, {
+      const tx = await contract.createTransaction(sellerWalletAddress, {
         value: amountInWei,
         gasLimit: estimatedGasLimit,
         gasPrice
@@ -125,7 +137,7 @@ export function useEscrowPayment({
       const transaction = await createTransaction(
         listingId,
         authUser.id,
-        listing.user.id,
+        listing.user_id,
         listing.crypto_amount,
         listing.crypto_amount * 0.05,
         activeContract.address,
@@ -138,7 +150,8 @@ export function useEscrowPayment({
         await supabase.from('transactions')
           .update({
             funds_secured: true,
-            funds_secured_at: new Date().toISOString()
+            funds_secured_at: new Date().toISOString(),
+            seller_wallet_address: sellerWalletAddress // Ajout de l'adresse du vendeur
           })
           .eq('id', transaction.id);
 
