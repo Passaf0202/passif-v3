@@ -39,6 +39,8 @@ export default function PaymentPage() {
           throw new Error("ID de transaction manquant");
         }
 
+        console.log("Recherche de la transaction avec l'ID:", id);
+
         // Récupérer d'abord les détails de la transaction depuis Supabase
         const { data: transaction, error: transactionError } = await supabase
           .from('transactions')
@@ -54,19 +56,22 @@ export default function PaymentPage() {
           .eq('id', id)
           .maybeSingle();
 
+        console.log("Résultat de la requête:", { transaction, transactionError });
+
         if (transactionError) {
           console.error("Erreur Supabase:", transactionError);
           throw transactionError;
         }
 
         if (!transaction) {
-          throw new Error("Transaction non trouvée");
+          throw new Error("Transaction non trouvée dans la base de données");
         }
 
         setTransactionDetails(transaction);
 
         // Si l'adresse du vendeur est déjà dans la transaction, l'utiliser
         if (transaction.seller_wallet_address) {
+          console.log("Adresse du vendeur trouvée dans la transaction:", transaction.seller_wallet_address);
           setSellerAddress(transaction.seller_wallet_address);
           return;
         }
@@ -81,17 +86,23 @@ export default function PaymentPage() {
 
         // Utiliser le blockchain_sequence_number stocké dans Supabase
         if (transaction.blockchain_sequence_number !== null) {
+          console.log("Recherche dans la blockchain avec sequence number:", transaction.blockchain_sequence_number);
           const txnData = await contract.transactions(transaction.blockchain_sequence_number);
           
           if (txnData && txnData.seller && txnData.seller !== ethers.constants.AddressZero) {
+            console.log("Adresse du vendeur trouvée dans la blockchain:", txnData.seller);
             setSellerAddress(txnData.seller);
             setBlockchainTxId(transaction.blockchain_sequence_number);
 
             // Mettre à jour l'adresse dans Supabase
-            await supabase
+            const { error: updateError } = await supabase
               .from('transactions')
               .update({ seller_wallet_address: txnData.seller })
               .eq('id', id);
+
+            if (updateError) {
+              console.error("Erreur lors de la mise à jour de l'adresse:", updateError);
+            }
           } else {
             throw new Error("Données blockchain invalides");
           }
@@ -101,7 +112,7 @@ export default function PaymentPage() {
 
         setIsLoading(false);
       } catch (error: any) {
-        console.error("Erreur lors de la récupération de l'adresse du vendeur:", error);
+        console.error("Erreur détaillée:", error);
         setError(error.message || "Une erreur est survenue");
         setIsLoading(false);
       }
