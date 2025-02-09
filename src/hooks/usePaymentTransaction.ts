@@ -20,7 +20,7 @@ export const usePaymentTransaction = () => {
       const network = await provider.getNetwork();
       console.log('Connected to network:', network);
 
-      if (network.chainId !== 80001) {
+      if (network.chainId !== 80002) { // Polygon Amoy chainId
         throw new Error("Veuillez vous connecter au réseau Polygon Testnet");
       }
 
