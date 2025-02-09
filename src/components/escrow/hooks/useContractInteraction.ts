@@ -6,8 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
-  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)",
-  "function transactionCount() view returns (uint256)"
+  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)"
 ];
 
 const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
@@ -43,19 +42,14 @@ export function useContractInteraction() {
       throw new Error("Transaction non trouvée dans le contrat");
     }
 
-    // Vérifie si les fonds sont déposés
-    if (!txData.isFunded) {
-      throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
+    // Vérifie si l'utilisateur est bien l'acheteur
+    if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+      throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
     }
 
     // Vérifie si la transaction n'est pas déjà complétée
     if (txData.isCompleted) {
       throw new Error("Les fonds ont déjà été libérés");
-    }
-
-    // Vérifie si l'utilisateur est bien l'acheteur
-    if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-      throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
     }
 
     return contract;
@@ -65,7 +59,7 @@ export function useContractInteraction() {
     try {
       const { data: transaction, error } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, funds_secured')
+        .select('blockchain_txn_id, funds_secured, transaction_hash')
         .eq('id', transactionId)
         .single();
 
@@ -75,8 +69,9 @@ export function useContractInteraction() {
         throw new Error("ID de transaction blockchain non trouvé");
       }
 
-      if (!transaction.funds_secured) {
-        throw new Error("Les fonds n'ont pas été déposés pour cette transaction");
+      // Vérifie si le hash de transaction existe
+      if (!transaction.transaction_hash) {
+        throw new Error("Hash de transaction non trouvé");
       }
 
       const txnId = parseInt(transaction.blockchain_txn_id);
@@ -92,44 +87,49 @@ export function useContractInteraction() {
   };
 
   const releaseFunds = async (transactionId: string) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
-    const signerAddress = await signer.getAddress();
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
 
-    await ensureCorrectNetwork();
+      await ensureCorrectNetwork();
 
-    const txnId = await getBlockchainTxnId(transactionId);
-    console.log('Using blockchain transaction ID:', txnId);
+      const txnId = await getBlockchainTxnId(transactionId);
+      console.log('Using blockchain transaction ID:', txnId);
 
-    const contract = await validateTransaction(txnId, signerAddress);
-    const contractWithSigner = contract.connect(signer);
+      const contract = await validateTransaction(txnId, signerAddress);
+      const contractWithSigner = contract.connect(signer);
 
-    // Estimer le gas avec une marge de sécurité de 20%
-    const gasEstimate = await contractWithSigner.estimateGas.releaseFunds(txnId);
-    console.log('Estimated gas:', gasEstimate.toString());
-    const gasLimit = gasEstimate.mul(120).div(100);
+      // Estimer le gas avec une marge de sécurité de 20%
+      const gasEstimate = await contractWithSigner.estimateGas.releaseFunds(txnId);
+      console.log('Estimated gas:', gasEstimate.toString());
+      const gasLimit = gasEstimate.mul(120).div(100);
 
-    const tx = await contractWithSigner.releaseFunds(txnId, {
-      gasLimit: gasLimit
-    });
-    console.log('Transaction sent:', tx.hash);
+      const tx = await contractWithSigner.releaseFunds(txnId, {
+        gasLimit: gasLimit
+      });
+      console.log('Transaction sent:', tx.hash);
 
-    const receipt = await tx.wait();
-    console.log('Transaction receipt:', receipt);
+      const receipt = await tx.wait();
+      console.log('Transaction receipt:', receipt);
 
-    if (receipt.status === 1) {
-      await supabase
-        .from('transactions')
-        .update({
-          released_at: new Date().toISOString(),
-          escrow_status: 'completed',
-          status: 'completed'
-        })
-        .eq('id', transactionId);
+      if (receipt.status === 1) {
+        await supabase
+          .from('transactions')
+          .update({
+            released_at: new Date().toISOString(),
+            escrow_status: 'completed',
+            status: 'completed'
+          })
+          .eq('id', transactionId);
+      }
+
+      return receipt;
+    } catch (error) {
+      console.error("Error in releaseFunds:", error);
+      throw error;
     }
-
-    return receipt;
   };
 
   return {
