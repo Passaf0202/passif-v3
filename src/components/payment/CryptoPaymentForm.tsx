@@ -42,6 +42,9 @@ export function CryptoPaymentForm({
   } = useEscrowPayment({
     listingId,
     address: user?.id,
+    onTransactionHash: (hash: string) => {
+      console.log('Transaction hash:', hash);
+    },
     onTransactionCreated: (id: string) => {
       setTransactionId(id);
       navigate(`/release-funds/${id}`);

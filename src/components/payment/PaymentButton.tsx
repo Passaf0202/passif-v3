@@ -78,7 +78,7 @@ export function PaymentButton({
       return "Connecter votre wallet";
     }
     if (mode === 'release') {
-      return "Libérer les fonds au vendeur";
+      return "Confirmer la réception";
     }
     return `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`;
   };
