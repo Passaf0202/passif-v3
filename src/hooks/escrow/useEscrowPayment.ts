@@ -92,7 +92,7 @@ export function useEscrowPayment({
       }
 
       // Get contract instance
-      const contract = await getContract();
+      const contract = await getContract("0xe35a0cebf608bff98bcf99093b02469eea2cb38c");
       if (!contract) {
         throw new Error("Impossible d'initialiser le contrat");
       }
