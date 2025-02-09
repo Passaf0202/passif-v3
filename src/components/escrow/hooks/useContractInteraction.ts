@@ -47,11 +47,6 @@ export function useContractInteraction() {
       throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
     }
 
-    // Vérifie si les fonds sont déposés
-    if (!txData.isFunded) {
-      throw new Error("Les fonds n'ont pas encore été déposés");
-    }
-
     // Vérifie si la transaction n'est pas déjà complétée
     if (txData.isCompleted) {
       throw new Error("Les fonds ont déjà été libérés");
@@ -64,30 +59,32 @@ export function useContractInteraction() {
     try {
       const { data: transaction, error } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, transaction_hash')
+        .select('blockchain_txn_id')
         .eq('id', transactionId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur lors de la récupération de la transaction:", error);
+        throw error;
+      }
       
       if (!transaction) {
+        console.error("Transaction non trouvée dans la base de données");
         throw new Error("Transaction non trouvée");
       }
 
       if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === '0') {
+        console.error("ID de transaction blockchain non défini");
         throw new Error("ID de transaction blockchain non trouvé");
-      }
-
-      // Vérifie si le hash de transaction existe
-      if (!transaction.transaction_hash) {
-        throw new Error("Hash de transaction non trouvé");
       }
 
       const txnId = parseInt(transaction.blockchain_txn_id);
       if (isNaN(txnId)) {
+        console.error("ID de transaction blockchain invalide:", transaction.blockchain_txn_id);
         throw new Error("ID de transaction blockchain invalide");
       }
 
+      console.log("ID de transaction blockchain récupéré:", txnId);
       return txnId;
     } catch (error) {
       console.error("Error getting blockchain transaction ID:", error);
@@ -97,31 +94,32 @@ export function useContractInteraction() {
 
   const releaseFunds = async (transactionId: string) => {
     try {
+      console.log("Début de la libération des fonds pour la transaction:", transactionId);
+      
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
+      console.log("Adresse du signataire:", signerAddress);
 
       await ensureCorrectNetwork();
 
       const txnId = await getBlockchainTxnId(transactionId);
-      console.log('Using blockchain transaction ID:', txnId);
+      console.log('ID de transaction blockchain:', txnId);
 
       const contract = await validateTransaction(txnId, signerAddress);
       const contractWithSigner = contract.connect(signer);
 
-      // Estimer le gas avec une marge de sécurité de 20%
-      const gasEstimate = await contractWithSigner.estimateGas.releaseFunds(txnId);
-      console.log('Estimated gas:', gasEstimate.toString());
-      const gasLimit = gasEstimate.mul(120).div(100);
+      const gasLimit = await contractWithSigner.estimateGas.releaseFunds(txnId);
+      console.log('Limite de gas estimée:', gasLimit.toString());
 
       const tx = await contractWithSigner.releaseFunds(txnId, {
-        gasLimit: gasLimit
+        gasLimit: gasLimit.mul(120).div(100) // Ajouter 20% de marge
       });
-      console.log('Transaction sent:', tx.hash);
+      console.log('Transaction envoyée:', tx.hash);
 
       const receipt = await tx.wait();
-      console.log('Transaction receipt:', receipt);
+      console.log('Reçu de la transaction:', receipt);
 
       if (receipt.status === 1) {
         await supabase
@@ -132,6 +130,8 @@ export function useContractInteraction() {
             status: 'completed'
           })
           .eq('id', transactionId);
+        
+        console.log("Mise à jour de la base de données réussie");
       }
 
       return receipt;
