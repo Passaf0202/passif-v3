@@ -125,7 +125,7 @@ export function CryptoPaymentForm({
     );
   }
 
-  if (!cryptoDetails?.data?.amount) {
+  if (!cryptoDetails?.amount) {
     return (
       <div className="flex items-center justify-center p-4">
         <span className="text-red-500">Erreur lors du calcul du montant. Veuillez réessayer.</span>
@@ -145,8 +145,8 @@ export function CryptoPaymentForm({
           <TransactionDetails
             title={title}
             price={price}
-            cryptoAmount={cryptoDetails.data.amount}
-            cryptoCurrency={cryptoDetails.data.currency}
+            cryptoAmount={cryptoDetails.amount}
+            cryptoCurrency={cryptoDetails.currency}
           />
 
           <div className="mt-4 space-y-4">
@@ -163,9 +163,9 @@ export function CryptoPaymentForm({
               onClick={handlePayment}
               isProcessing={isProcessing}
               isConnected={!!user}
-              cryptoAmount={cryptoDetails.data.amount}
-              cryptoCurrency={cryptoDetails.data.currency}
-              disabled={isProcessing || !cryptoDetails.data.amount}
+              cryptoAmount={cryptoDetails.amount}
+              cryptoCurrency={cryptoDetails.currency}
+              disabled={isProcessing || !cryptoDetails.amount}
               sellerAddress={currentSellerAddress}
               mode="pay"
             />
