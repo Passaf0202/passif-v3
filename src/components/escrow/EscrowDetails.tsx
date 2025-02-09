@@ -28,7 +28,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         .from("transactions")
         .select(`
           *,
-          listings(*),
+          listings(*, user:profiles!listings_user_id_fkey(wallet_address)),
           seller:profiles!transactions_seller_id_fkey(*)
         `)
         .eq("id", transactionId)
@@ -72,7 +72,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     try {
       setIsLoading(true);
 
-      // Vérifier que l'utilisateur est sur le bon réseau
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -81,7 +80,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Se connecter au wallet
       if (!window.ethereum) {
         throw new Error("MetaMask n'est pas installé");
       }
@@ -90,21 +88,22 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
 
-      // Récupérer l'instance du contrat
+      const sellerWalletAddress = transaction.listings.user.wallet_address;
+      if (!sellerWalletAddress) {
+        throw new Error("L'adresse du vendeur n'a pas été trouvée");
+      }
+
       const contractAddress = transaction.smart_contract_address;
       const abi = ["function releaseFunds(uint256 txnId)"];
       const contract = new ethers.Contract(contractAddress, abi, signer);
 
-      // Envoyer la transaction
       const tx = await contract.releaseFunds(transaction.blockchain_txn_id);
       console.log("Release funds transaction sent:", tx.hash);
 
-      // Attendre la confirmation
       const receipt = await tx.wait();
       console.log("Transaction receipt:", receipt);
 
       if (receipt.status === 1) {
-        // Mettre à jour le statut de la transaction dans Supabase
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
