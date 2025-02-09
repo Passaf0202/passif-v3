@@ -1,9 +1,14 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EscrowStatus } from "./EscrowStatus";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ethers } from "ethers";
+import { useNetwork, useSwitchNetwork } from "wagmi";
+import { amoy } from "@/config/chains";
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -11,14 +16,21 @@ interface EscrowDetailsProps {
 
 export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const [transaction, setTransaction] = useState<any>(null);
-  const [isAlreadyConfirmed, setIsAlreadyConfirmed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
 
   useEffect(() => {
     const fetchTransaction = async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select("*, listings(*), buyer_confirmation")
+        .select(`
+          *,
+          listings(*),
+          seller:profiles!transactions_seller_id_fkey(*)
+        `)
         .eq("id", transactionId)
         .single();
 
@@ -27,8 +39,8 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         return;
       }
 
+      console.log("Transaction data:", data);
       setTransaction(data);
-      setIsAlreadyConfirmed(data.buyer_confirmation);
     };
 
     fetchTransaction();
@@ -46,8 +58,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         },
         (payload) => {
           console.log("Transaction updated:", payload);
-          setTransaction(payload.new);
-          setIsAlreadyConfirmed(payload.new.buyer_confirmation);
+          setTransaction((prev: any) => ({ ...prev, ...payload.new }));
         }
       )
       .subscribe();
@@ -57,7 +68,77 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     };
   }, [transactionId]);
 
+  const handleReleaseFunds = async () => {
+    try {
+      setIsLoading(true);
+
+      // Vérifier que l'utilisateur est sur le bon réseau
+      if (chain?.id !== amoy.id) {
+        if (!switchNetwork) {
+          throw new Error("Impossible de changer de réseau automatiquement");
+        }
+        await switchNetwork(amoy.id);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      // Se connecter au wallet
+      if (!window.ethereum) {
+        throw new Error("MetaMask n'est pas installé");
+      }
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+
+      // Récupérer l'instance du contrat
+      const contractAddress = transaction.smart_contract_address;
+      const abi = ["function releaseFunds(uint256 txnId)"];
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+
+      // Envoyer la transaction
+      const tx = await contract.releaseFunds(transaction.blockchain_txn_id);
+      console.log("Release funds transaction sent:", tx.hash);
+
+      // Attendre la confirmation
+      const receipt = await tx.wait();
+      console.log("Transaction receipt:", receipt);
+
+      if (receipt.status === 1) {
+        // Mettre à jour le statut de la transaction dans Supabase
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            status: 'completed',
+            escrow_status: 'completed',
+            buyer_confirmation: true,
+            released_at: new Date().toISOString(),
+          })
+          .eq('id', transactionId);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Succès",
+          description: "Les fonds ont été libérés au vendeur",
+        });
+      } else {
+        throw new Error("La libération des fonds a échoué");
+      }
+    } catch (error: any) {
+      console.error('Error releasing funds:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de la libération des fonds",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!transaction || !user) return null;
+
+  const isUserBuyer = user.id === transaction.buyer_id;
 
   return (
     <Card>
@@ -79,13 +160,33 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           </p>
         </div>
 
-        {!isAlreadyConfirmed && (
-          <EscrowStatus
-            transactionId={transaction.id}
-            buyerId={transaction.buyer_id}
-            sellerId={transaction.seller_id}
-            currentUserId={user.id}
-          />
+        {isUserBuyer && transaction.funds_secured && !transaction.buyer_confirmation && (
+          <Button
+            onClick={handleReleaseFunds}
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Libération des fonds en cours...
+              </>
+            ) : (
+              "Libérer les fonds au vendeur"
+            )}
+          </Button>
+        )}
+
+        {!transaction.funds_secured && (
+          <p className="text-sm text-yellow-600">
+            En attente de la sécurisation des fonds sur la blockchain...
+          </p>
+        )}
+
+        {transaction.buyer_confirmation && (
+          <p className="text-sm text-green-600">
+            Les fonds ont été libérés au vendeur
+          </p>
         )}
       </CardContent>
     </Card>
