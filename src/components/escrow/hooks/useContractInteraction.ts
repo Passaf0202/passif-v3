@@ -61,17 +61,20 @@ export function useContractInteraction() {
         .from('transactions')
         .select('blockchain_txn_id, funds_secured, transaction_hash')
         .eq('id', transactionId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
-      if (!transaction?.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain non trouvé");
+      if (!transaction) {
+        throw new Error("Transaction non trouvée");
       }
 
-      // Vérifie si le hash de transaction existe
-      if (!transaction.transaction_hash) {
-        throw new Error("Hash de transaction non trouvé");
+      if (!transaction.funds_secured) {
+        throw new Error("Les fonds n'ont pas encore été déposés");
+      }
+
+      if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === '0') {
+        throw new Error("ID de transaction blockchain non trouvé");
       }
 
       const txnId = parseInt(transaction.blockchain_txn_id);
@@ -88,6 +91,22 @@ export function useContractInteraction() {
 
   const releaseFunds = async (transactionId: string) => {
     try {
+      // Vérifier d'abord que la transaction existe dans Supabase
+      const { data: transaction, error: transactionError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('id', transactionId)
+        .maybeSingle();
+
+      if (transactionError) throw transactionError;
+      if (!transaction) {
+        throw new Error("Transaction non trouvée");
+      }
+
+      if (!transaction.funds_secured) {
+        throw new Error("Les fonds n'ont pas encore été déposés");
+      }
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
