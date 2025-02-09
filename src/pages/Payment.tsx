@@ -2,7 +2,6 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { CryptoPaymentForm } from "@/components/payment/CryptoPaymentForm";
-import { EscrowDetails } from "@/components/escrow/EscrowDetails";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -16,7 +15,6 @@ export default function Payment() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const initialListing = location.state?.listing;
-  const returnUrl = location.state?.returnUrl;
 
   const { 
     data: fetchedListing, 
@@ -50,61 +48,13 @@ export default function Payment() {
         .eq('id', id)
         .maybeSingle();
       
-      if (error) {
-        console.error('Error fetching listing:', error);
-        throw error;
-      }
-      if (!data) {
-        console.log('No listing found with ID:', id);
-        throw new Error('Listing not found');
-      }
+      if (error) throw error;
+      if (!data) throw new Error('Listing not found');
+      
       console.log('Fetched listing:', data);
       return data;
     },
-    enabled: !initialListing && !!id && id !== 'USDC',
-    retry: false
-  });
-
-  const { data: transaction, isLoading: isTransactionLoading } = useQuery({
-    queryKey: ['transaction', id, user?.id],
-    queryFn: async () => {
-      if (!user?.id || !id || id === 'USDC') return null;
-      
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(`
-          *,
-          listing:listings!transactions_listing_id_fkey (
-            id,
-            title,
-            price,
-            wallet_address,
-            user:profiles!listings_user_id_fkey (
-              id,
-              full_name,
-              wallet_address
-            )
-          )
-        `)
-        .eq('listing_id', id)
-        .eq('buyer_id', user.id)
-        .order('created_at', { ascending: false })
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching transaction:', error);
-        return null;
-      }
-      
-      const enrichedTransaction = {
-        ...data,
-        seller_wallet_address: data?.listing?.wallet_address || data?.listing?.user?.wallet_address
-      };
-      
-      console.log('Latest transaction with seller wallet:', enrichedTransaction);
-      return enrichedTransaction;
-    },
-    enabled: !!id && !!user?.id && id !== 'USDC'
+    enabled: !initialListing && !!id && id !== 'USDC'
   });
 
   const listing = initialListing || fetchedListing;
@@ -113,7 +63,7 @@ export default function Payment() {
     navigate('/');
   };
 
-  if (isListingLoading || isTransactionLoading) {
+  if (isListingLoading) {
     return (
       <div>
         <Navbar />
@@ -161,24 +111,18 @@ export default function Payment() {
     );
   }
 
-  const shouldShowEscrowDetails = transaction && (transaction.funds_secured || transaction.buyer_confirmation);
-
   return (
     <div>
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        {shouldShowEscrowDetails ? (
-          <EscrowDetails transactionId={transaction.id} />
-        ) : (
-          <CryptoPaymentForm
-            listingId={listing.id}
-            title={listing.title}
-            price={listing.price}
-            cryptoAmount={listing.crypto_amount}
-            cryptoCurrency="BNB"
-            onPaymentComplete={() => navigate(returnUrl || `/listings/${listing.id}`)}
-          />
-        )}
+        <CryptoPaymentForm
+          listingId={listing.id}
+          title={listing.title}
+          price={listing.price}
+          cryptoAmount={listing.crypto_amount}
+          cryptoCurrency="BNB"
+          onPaymentComplete={(transactionId) => navigate(`/release-funds/${transactionId}`)}
+        />
       </div>
     </div>
   );
