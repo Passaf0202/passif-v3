@@ -65,7 +65,6 @@ export default function Payment() {
     retry: false
   });
 
-  // Fetch transaction data
   const { data: transaction, isLoading: isTransactionLoading } = useQuery({
     queryKey: ['transaction', id, user?.id],
     queryFn: async () => {
@@ -154,11 +153,13 @@ export default function Payment() {
     );
   }
 
+  const shouldShowEscrowDetails = transaction && (transaction.funds_secured || transaction.buyer_confirmation);
+
   return (
     <div>
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        {transaction?.buyer_confirmation || transaction?.funds_secured ? (
+        {shouldShowEscrowDetails ? (
           <EscrowDetails transactionId={transaction.id} />
         ) : (
           <CryptoPaymentForm
