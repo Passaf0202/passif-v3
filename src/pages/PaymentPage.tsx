@@ -28,7 +28,6 @@ export default function PaymentPage() {
 
         console.log("Tentative de récupération de la transaction avec ID:", id);
 
-        // Vérifions d'abord si l'ID existe dans la table transactions
         const { data: transaction, error: transactionError } = await supabase
           .from('transactions')
           .select(`
@@ -105,7 +104,8 @@ export default function PaymentPage() {
         .update({
           status: 'completed',
           released_at: new Date().toISOString(),
-          released_by: user.id
+          released_by: user.id,
+          buyer_confirmation: true
         })
         .eq('id', id);
 
