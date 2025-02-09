@@ -41,6 +41,7 @@ function App() {
               <Route path="/listings/:id" element={<ListingDetails />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/:id" element={<ReleaseFunds />} /> {/* Ajout de la nouvelle route */}
               <Route path="/release-funds/:id" element={<ReleaseFunds />} />
               <Route path="/transaction/:id" element={<Transaction />} />
               <Route path="/profile" element={<UserProfile />} />
@@ -56,3 +57,4 @@ function App() {
 }
 
 export default App;
+
