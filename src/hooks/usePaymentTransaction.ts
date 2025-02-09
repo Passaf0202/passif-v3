@@ -14,12 +14,11 @@ export const usePaymentTransaction = () => {
         throw new Error("MetaMask n'est pas installé");
       }
 
-      // Force la connexion au réseau Polygon Amoy
+      // Forcer la connexion au réseau Polygon Amoy
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: "0x13881" }], // 80001 en hexadécimal
       }).catch(async (switchError: any) => {
-        // Si le réseau n'existe pas, on l'ajoute
         if (switchError.code === 4902) {
           await window.ethereum.request({
             method: "wallet_addEthereumChain",
@@ -40,30 +39,37 @@ export const usePaymentTransaction = () => {
         }
       });
 
-      // Initialiser le provider avec une configuration spécifique
-      const provider = new ethers.providers.Web3Provider(window.ethereum, {
-        name: 'Polygon Amoy',
-        chainId: 80001,
-        ensAddress: null // Désactive explicitement ENS
-      });
+      // Utiliser directement un JsonRpcProvider
+      const provider = new ethers.providers.JsonRpcProvider("https://rpc-amoy.polygon.technology");
+      console.log('Provider initialized');
 
-      await provider.ready;
+      // Vérifier la connexion au réseau
       const network = await provider.getNetwork();
       console.log('Connected to network:', network);
 
       if (network.chainId !== 80001) {
-        throw new Error("Veuillez vous connecter au réseau Polygon Amoy");
+        throw new Error("Erreur de connexion au réseau Polygon Amoy");
       }
 
-      const signer = provider.getSigner();
+      // Obtenir le signer depuis window.ethereum
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const userAddress = accounts[0];
+      
+      // Créer un signer avec le provider RPC
+      const signer = provider.getSigner(userAddress);
+      console.log('Signer created for address:', userAddress);
+
       const contract = getEscrowContract(provider);
+      console.log('Contract initialized:', contract.address);
       
       const formattedAmount = formatAmount(cryptoAmount);
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
       console.log('Amount in Wei:', amountInWei.toString());
 
-      // Vérifier le solde avant la transaction
-      const balance = await provider.getBalance(await signer.getAddress());
+      // Vérifier le solde
+      const balance = await provider.getBalance(userAddress);
+      console.log('User balance:', ethers.utils.formatEther(balance), 'MATIC');
+      
       if (balance.lt(amountInWei)) {
         throw new Error("Solde insuffisant pour effectuer la transaction");
       }
@@ -72,18 +78,27 @@ export const usePaymentTransaction = () => {
       const gasEstimate = await contract.estimateGas.createTransaction(sellerAddress, {
         value: amountInWei,
       });
+      
       const gasPrice = await provider.getGasPrice();
+      console.log('Gas price:', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei');
+      
       const adjustedGasLimit = gasEstimate.mul(150).div(100); // +50% de marge
+      console.log('Adjusted gas limit:', adjustedGasLimit.toString());
 
       // Vérifier que le solde peut couvrir le montant + les frais de gas
       const gasCost = adjustedGasLimit.mul(gasPrice);
       const totalCost = amountInWei.add(gasCost);
+      
       if (balance.lt(totalCost)) {
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
+      // Connecter le contrat au signer
+      const connectedContract = contract.connect(signer);
+      console.log('Contract connected to signer');
+
       // Envoyer la transaction
-      const tx = await contract.createTransaction(sellerAddress, {
+      const tx = await connectedContract.createTransaction(sellerAddress, {
         value: amountInWei,
         gasLimit: adjustedGasLimit
       });
