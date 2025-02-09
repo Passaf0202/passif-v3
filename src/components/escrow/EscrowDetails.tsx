@@ -24,16 +24,9 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   useEffect(() => {
     const fetchTransaction = async () => {
-      console.log("Fetching transaction:", transactionId);
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
-          *,
-          listing:listings!transactions_listing_id_fkey (
-            title,
-            price
-          )
-        `)
+        .select(`*, listing:listings!transactions_listing_id_fkey (title)`)
         .eq("id", transactionId)
         .single();
 
@@ -95,11 +88,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
 
-      if (!transaction.seller_wallet_address) {
-        console.error("Transaction data:", transaction);
-        throw new Error("L'adresse du vendeur n'a pas été trouvée");
-      }
-
       const contractAddress = transaction.smart_contract_address;
       const abi = ["function releaseFunds(uint256 txnId)"];
       const contract = new ethers.Contract(contractAddress, abi, signer);
@@ -128,8 +116,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           title: "Succès",
           description: "Les fonds ont été libérés au vendeur",
         });
-      } else {
-        throw new Error("La libération des fonds a échoué");
       }
     } catch (error: any) {
       console.error('Error releasing funds:', error);
@@ -148,54 +134,55 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const isUserBuyer = user.id === transaction.buyer_id;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Détails de la transaction</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="font-medium">Article</h3>
-          <p className="text-sm text-muted-foreground">
-            {transaction.listing?.title}
-          </p>
-        </div>
+    <div className="space-y-8">
+      <h1 className="text-2xl font-bold">Paiement sécurisé</h1>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Détails de la transaction</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium mb-1">Article</h3>
+              <p className="text-gray-600">{transaction.listing?.title}</p>
+            </div>
 
-        <div className="space-y-2">
-          <h3 className="font-medium">Montant</h3>
-          <p className="text-sm text-muted-foreground">
-            {transaction.amount} {transaction.token_symbol}
-          </p>
-        </div>
+            <div>
+              <h3 className="text-lg font-medium mb-1">Prix</h3>
+              <p className="text-gray-600">
+                {transaction.amount} €
+              </p>
+              <p className="text-blue-600">
+                ≈ {transaction.crypto_amount} {transaction.token_symbol}
+              </p>
+            </div>
+          </div>
 
-        {isUserBuyer && transaction.funds_secured && !transaction.buyer_confirmation && (
-          <Button
-            onClick={handleReleaseFunds}
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Libération des fonds en cours...
-              </>
-            ) : (
-              "Libérer les fonds au vendeur"
-            )}
-          </Button>
-        )}
+          {isUserBuyer && transaction.funds_secured && !transaction.buyer_confirmation && (
+            <Button
+              onClick={handleReleaseFunds}
+              disabled={isLoading}
+              className="w-full mt-4"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Libération des fonds en cours...
+                </>
+              ) : (
+                "Libérer les fonds au vendeur"
+              )}
+            </Button>
+          )}
 
-        {!transaction.funds_secured && (
-          <p className="text-sm text-yellow-600">
-            En attente de la sécurisation des fonds sur la blockchain...
-          </p>
-        )}
-
-        {transaction.buyer_confirmation && (
-          <p className="text-sm text-green-600">
-            Les fonds ont été libérés au vendeur
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          {transaction.buyer_confirmation && (
+            <p className="text-green-600 text-center font-medium">
+              Les fonds ont été libérés au vendeur
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
