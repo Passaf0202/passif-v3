@@ -34,14 +34,18 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
               id,
               wallet_address
             )
-          ),
-          seller:profiles!transactions_seller_id_fkey (*)
+          )
         `)
         .eq("id", transactionId)
         .single();
 
       if (error) {
         console.error("Error fetching transaction:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer les détails de la transaction",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -71,7 +75,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [transactionId]);
+  }, [transactionId, toast]);
 
   const handleReleaseFunds = async () => {
     try {
