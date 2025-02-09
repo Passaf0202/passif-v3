@@ -2,61 +2,89 @@
 import { ethers } from 'ethers';
 
 export const ESCROW_ABI = [
-  "function createTransaction(address seller) payable returns (uint256)",
-  "function confirmTransaction(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
-  "event TransactionCreated(uint256 indexed txnId, address indexed buyer, address indexed seller, uint256 amount)",
-  "event FundsDeposited(uint256 indexed txnId, address indexed buyer, address indexed seller, uint256 amount)"
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_seller",
+        "type": "address"
+      }
+    ],
+    "name": "createTransaction",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "txnId",
+        "type": "uint256"
+      }
+    ],
+    "name": "releaseFunds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "transactions",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "seller",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isFunded",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isCompleted",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
 ];
 
-// Adresse du contrat sur Polygon Amoy
-export const CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
+export const CONTRACT_ADDRESS = "0x6441a3C16A73d5B3eF727FaCB4b4fC5Edb8CCe18";
 
 export const formatAmount = (amount: number): string => {
   return amount.toFixed(18).replace(/\.?0+$/, '');
 };
 
-export const getEscrowContract = (provider: ethers.providers.Provider) => {
-  return new ethers.Contract(CONTRACT_ADDRESS, ESCROW_ABI, provider);
+export const getEscrowContract = (signerOrProvider: ethers.Signer | ethers.providers.Provider) => {
+  return new ethers.Contract(CONTRACT_ADDRESS, ESCROW_ABI, signerOrProvider);
 };
 
 export const parseTransactionId = async (receipt: ethers.ContractReceipt): Promise<string> => {
-  const iface = new ethers.utils.Interface(ESCROW_ABI);
-  
-  console.log('Processing transaction logs...', receipt);
-  console.log('Number of logs:', receipt.logs.length);
-
   if (!receipt.logs || receipt.logs.length === 0) {
     throw new Error("Aucun log trouvé dans la transaction");
   }
 
-  for (let i = receipt.logs.length - 1; i >= 0; i--) {
-    const log = receipt.logs[i];
-    
-    if (log.address.toLowerCase() === CONTRACT_ADDRESS.toLowerCase()) {
-      try {
-        const parsedLog = iface.parseLog(log);
-        console.log('Successfully parsed log:', parsedLog);
-
-        if (parsedLog.name === 'TransactionCreated' || parsedLog.name === 'FundsDeposited') {
-          const txnId = parsedLog.args.txnId.toString();
-          console.log(`Found transaction ID from ${parsedLog.name} event:`, txnId);
-          return txnId;
-        }
-      } catch (error) {
-        console.log('Error parsing log:', error);
-        continue;
-      }
-    }
-  }
-
-  const lastLog = receipt.logs[receipt.logs.length - 1];
-  if (lastLog && lastLog.topics && lastLog.topics.length > 1) {
-    const potentialTxnId = ethers.BigNumber.from(lastLog.topics[1]).toString();
-    console.log('Found potential transaction ID from topics:', potentialTxnId);
-    return potentialTxnId;
-  }
-
-  throw new Error("Impossible de récupérer l'ID de transaction dans les logs");
+  // Dans ce cas, nous allons utiliser l'index de la transaction comme ID
+  const txIndex = receipt.logs[0].logIndex;
+  return txIndex.toString();
 };
-
