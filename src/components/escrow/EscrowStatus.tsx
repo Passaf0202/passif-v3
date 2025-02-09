@@ -1,7 +1,7 @@
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EscrowLoadingButton } from "./EscrowLoadingButton";
-import { useFundsRelease } from "./useFundsRelease";
+import { useFundsRelease } from "../../hooks/escrow/useFundsRelease";
 
 interface EscrowStatusProps {
   transactionId: string;
