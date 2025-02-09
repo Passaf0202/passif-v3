@@ -8,34 +8,51 @@ import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Loader2 } from "lucide-react";
 
 export default function TransactionStatus() {
   const { id } = useParams();
   const [transaction, setTransaction] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchTransaction = async () => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select(`
-          *,
-          listings (*),
-          buyer:buyer_id (username, full_name),
-          seller:seller_id (username, full_name)
-        `)
-        .eq("id", id)
-        .single();
+      try {
+        setLoading(true);
+        console.log("Fetching transaction with ID:", id);
 
-      if (error) {
-        console.error("Error fetching transaction:", error);
-        return;
+        const { data, error } = await supabase
+          .from("transactions")
+          .select(`
+            *,
+            listings (*),
+            buyer:buyer_id (username, full_name),
+            seller:seller_id (username, full_name)
+          `)
+          .eq("id", id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching transaction:", error);
+          setError("Erreur lors de la récupération de la transaction");
+          return;
+        }
+
+        console.log("Transaction data:", data);
+        setTransaction(data);
+      } catch (err) {
+        console.error("Error in fetchTransaction:", err);
+        setError("Une erreur inattendue s'est produite");
+      } finally {
+        setLoading(false);
       }
-
-      setTransaction(data);
     };
 
-    fetchTransaction();
+    if (id) {
+      fetchTransaction();
+    }
 
     // Subscribe to changes
     const subscription = supabase
@@ -60,7 +77,46 @@ export default function TransactionStatus() {
     };
   }, [id]);
 
-  if (!transaction || !user) return null;
+  if (!user) {
+    return (
+      <div className="container max-w-2xl py-8">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Veuillez vous connecter pour voir les détails de la transaction.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="container max-w-2xl py-8 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Chargement...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container max-w-2xl py-8">
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!transaction) {
+    return (
+      <div className="container max-w-2xl py-8">
+        <Alert>
+          <AlertDescription>Transaction non trouvée</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   const isUserBuyer = user.id === transaction.buyer_id;
   const userRole = isUserBuyer ? "acheteur" : "vendeur";
