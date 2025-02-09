@@ -17,6 +17,11 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   useEffect(() => {
     const fetchTransaction = async () => {
+      if (!transactionId) {
+        console.error('Transaction ID is missing');
+        return;
+      }
+
       console.log('Fetching transaction with ID:', transactionId);
       const { data, error } = await supabase
         .from("transactions")
@@ -28,7 +33,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           blockchain_txn_id
         `)
         .eq("id", transactionId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching transaction:", error);
@@ -36,8 +41,10 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       }
 
       console.log("Transaction data:", data);
-      setTransaction(data);
-      setIsAlreadyConfirmed(data.buyer_confirmation);
+      if (data) {
+        setTransaction(data);
+        setIsAlreadyConfirmed(data.buyer_confirmation);
+      }
     };
 
     fetchTransaction();
