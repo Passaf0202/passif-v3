@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -36,15 +37,6 @@ export function PaymentButton({
       toast({
         title: "Erreur",
         description: "Veuillez connecter votre wallet",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (mode === 'release' && (!transactionId || !contractAddress)) {
-      toast({
-        title: "Erreur",
-        description: "Informations de transaction manquantes",
         variant: "destructive",
       });
       return;
@@ -94,7 +86,7 @@ export function PaymentButton({
     <div className="w-full space-y-2">
       <Button 
         onClick={handleClick} 
-        disabled={isProcessing || !isConnected || (mode === 'pay' && !cryptoAmount) || disabled}
+        disabled={isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress}
         className="w-full bg-primary hover:bg-primary/90"
       >
         {isProcessing ? (

@@ -1,4 +1,3 @@
-
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -49,7 +48,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Fetch the listing's original wallet address and crypto details
   const { data: listingData } = useQuery({
     queryKey: ['listing-details', listing.id],
     queryFn: async () => {
@@ -57,7 +55,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         .from('listings')
         .select('wallet_address, crypto_amount, crypto_currency')
         .eq('id', listing.id)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error fetching listing details:', error);
