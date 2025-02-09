@@ -11,23 +11,12 @@ import { amoy } from "@/config/chains";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-const ESCROW_ABI = [
-  "function transactionCount() view returns (uint256)",
-  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
-  "function releaseFunds(uint256 txnId)"
-];
-
-const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
+import { useReleaseFunds } from "@/hooks/escrow/useReleaseFunds";
 
 export default function ReleaseFunds() {
   const { id } = useParams();
-  const [sellerAddress, setSellerAddress] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [transactionDetails, setTransactionDetails] = useState<any>(null);
-  const { toast } = useToast();
-  const { chain } = useNetwork();
-  const { switchNetwork } = useSwitchNetwork();
+  const [sellerAddress, setSellerAddress] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTransactionDetails = async () => {
@@ -42,28 +31,17 @@ export default function ReleaseFunds() {
               title,
               crypto_amount,
               crypto_currency
-            )
+            ),
+            blockchain_txn_id,
+            seller_wallet_address
           `)
           .eq('id', id)
           .single();
 
         if (error) throw error;
         setTransactionDetails(transaction);
+        setSellerAddress(transaction.seller_wallet_address);
 
-        // Récupérer l'adresse du vendeur depuis le smart contract
-        if (window.ethereum) {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, provider);
-          
-          const count = await contract.transactionCount();
-          const txnId = count.sub(1);
-          console.log("Dernier ID de transaction:", txnId.toString());
-          
-          const txnData = await contract.transactions(txnId);
-          console.log("Données de la transaction:", txnData);
-          
-          setSellerAddress(txnData.seller);
-        }
       } catch (error) {
         console.error("Erreur lors de la récupération des détails:", error);
       }
@@ -72,65 +50,11 @@ export default function ReleaseFunds() {
     fetchTransactionDetails();
   }, [id]);
 
-  const handleReleaseFunds = async () => {
-    if (!window.ethereum || !sellerAddress) return;
-
-    try {
-      setIsLoading(true);
-
-      if (chain?.id !== amoy.id) {
-        if (switchNetwork) {
-          await switchNetwork(amoy.id);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } else {
-          throw new Error("Impossible de changer de réseau");
-        }
-      }
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
-
-      const count = await contract.transactionCount();
-      const txnId = count.sub(1);
-      console.log("Libération des fonds pour la transaction:", txnId.toString());
-
-      const tx = await contract.releaseFunds(txnId);
-      console.log("Transaction envoyée:", tx.hash);
-
-      const receipt = await tx.wait();
-      console.log("Reçu de la transaction:", receipt);
-
-      if (receipt.status === 1) {
-        // Mettre à jour le statut dans Supabase
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            status: 'completed',
-            escrow_status: 'completed',
-            released_at: new Date().toISOString(),
-            buyer_confirmation: true
-          })
-          .eq('id', id);
-
-        if (updateError) throw updateError;
-
-        toast({
-          title: "Succès",
-          description: "Les fonds ont été libérés au vendeur",
-        });
-      }
-    } catch (error: any) {
-      console.error("Erreur lors de la libération des fonds:", error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la libération des fonds",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { isReleasing, handleReleaseFunds } = useReleaseFunds(
+    id || '',
+    transactionDetails?.blockchain_txn_id,
+    sellerAddress
+  );
 
   if (!transactionDetails) {
     return (
@@ -184,10 +108,10 @@ export default function ReleaseFunds() {
 
               <Button
                 onClick={handleReleaseFunds}
-                disabled={isLoading || !sellerAddress}
+                disabled={isReleasing || !sellerAddress}
                 className="w-full"
               >
-                {isLoading ? (
+                {isReleasing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Libération des fonds en cours...

@@ -8,8 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
-  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
-  "function transactionCount() view returns (uint256)"
+  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)"
 ];
 
 const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
@@ -49,11 +48,10 @@ export const useReleaseFunds = (transactionId: string, blockchainTxnId: string |
       const signer = provider.getSigner();
       const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
 
-      // Récupérer la dernière transaction si pas d'ID spécifique
       let txnId: number;
       if (!blockchainTxnId || blockchainTxnId === '0') {
         const count = await contract.transactionCount();
-        txnId = count.toNumber() - 1;
+        txnId = count.toNumber();
         console.log('Using latest transaction ID:', txnId);
       } else {
         txnId = Number(blockchainTxnId);
@@ -67,7 +65,7 @@ export const useReleaseFunds = (transactionId: string, blockchainTxnId: string |
         throw new Error("L'adresse du vendeur ne correspond pas à celle de la transaction");
       }
 
-      if (txnData.fundsReleased) {
+      if (txnData.isCompleted) {
         throw new Error("Les fonds ont déjà été libérés");
       }
 
