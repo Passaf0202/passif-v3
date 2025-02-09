@@ -1,3 +1,4 @@
+
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -71,29 +72,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     },
   });
 
-  const handleBuyClick = () => {
-    if (!user) {
-      toast({
-        title: "Erreur",
-        description: "Vous devez être connecté pour acheter",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    navigate(`/payment/${listing.id}`, { 
-      state: { 
-        listing: {
-          ...listing,
-          crypto_amount: cryptoDetails?.amount,
-          crypto_currency: cryptoDetails?.currency,
-          wallet_address: listingData?.wallet_address || listing.wallet_address
-        },
-        returnUrl: `/listings/${listing.id}`
-      } 
-    });
-  };
-
   if (!listing.user) {
     console.error("User information is missing from the listing");
     return (
@@ -142,7 +120,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           price={listing.price}
           cryptoAmount={cryptoDetails?.amount}
           cryptoCurrency={cryptoDetails?.currency}
-          handleBuyClick={handleBuyClick}
         />
 
         <div className="space-y-4">

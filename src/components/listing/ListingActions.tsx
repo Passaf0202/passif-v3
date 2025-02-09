@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from 'wagmi';
 import { PaymentButton } from "../payment/PaymentButton";
-import { useRouter } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface ListingActionsProps {
   listingId: string;
@@ -31,7 +31,7 @@ export const ListingActions = ({
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const handleCryptoPayment = async () => {
     if (!user) {
@@ -53,7 +53,7 @@ export const ListingActions = ({
     }
 
     try {
-      router.push(`/payment/${listingId}`);
+      navigate(`/payment/${listingId}`);
     } catch (error) {
       console.error('Payment error:', error);
       toast({
