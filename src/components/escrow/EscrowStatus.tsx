@@ -1,7 +1,7 @@
 
 import { EscrowAlerts } from "./EscrowAlerts";
 import { EscrowActionButton } from "./EscrowActionButton";
-import { useEscrowRelease } from "./useEscrowRelease";
+import { useEscrowRelease } from "./hooks/useEscrowRelease";
 
 interface EscrowStatusProps {
   transactionId: string;
