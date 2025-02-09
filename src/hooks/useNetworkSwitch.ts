@@ -22,12 +22,11 @@ export const useNetworkSwitch = () => {
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Vérifier à nouveau le réseau après le délai
-        const currentProvider = window.ethereum;
-        if (!currentProvider) {
+        if (!window.ethereum) {
           throw new Error("MetaMask n'est pas installé");
         }
         
-        const chainId = await currentProvider.request({ method: 'eth_chainId' });
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         if (parseInt(chainId, 16) !== amoy.id) {
           throw new Error("Le changement de réseau a échoué");
         }

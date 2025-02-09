@@ -27,7 +27,7 @@ export function useEscrowPayment({
   const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
   
   const { toast } = useToast();
-  const { getContract, getActiveContract } = useEscrowContract();
+  const { getContract } = useEscrowContract();
   const { createTransaction, updateTransactionStatus } = useTransactionUpdater();
   const { ensureCorrectNetwork } = useNetworkSwitch();
 
@@ -40,7 +40,7 @@ export function useEscrowPayment({
     try {
       setIsProcessing(true);
       setError(null);
-      console.log('🔹 Starting escrow payment process for listing:', listingId);
+      console.log('🔹 Starting payment process for listing:', listingId);
 
       // S'assurer que nous sommes sur le bon réseau
       await ensureCorrectNetwork();
@@ -76,9 +76,6 @@ export function useEscrowPayment({
         throw new Error("L'adresse du vendeur n'est pas disponible");
       }
 
-      console.log("🟢 Listing details:", listing);
-      console.log("🟢 Seller address:", sellerAddress);
-
       if (sellerAddress.toLowerCase() === address.toLowerCase()) {
         throw new Error("Vous ne pouvez pas acheter votre propre annonce");
       }
@@ -94,19 +91,17 @@ export function useEscrowPayment({
         throw new Error("Fonds insuffisants dans votre portefeuille");
       }
 
-      // Récupérer le smart contract
-      const activeContract = await getActiveContract();
-      if (!activeContract?.address) {
-        throw new Error("Aucun contrat actif trouvé");
+      // Get contract instance
+      const contract = await getContract();
+      if (!contract) {
+        throw new Error("Impossible d'initialiser le contrat");
       }
-      console.log("🔹 Active contract:", activeContract);
 
-      const contract = await getContract(activeContract.address);
-      console.log("🟢 Contract instance initialized:", contract);
+      console.log("🟢 Contract instance initialized");
 
       // Estimation des frais de gas
       const gasPrice = await provider.getGasPrice();
-      const estimatedGasLimit = await contract.estimateGas.createTransaction(sellerAddress, {
+      const estimatedGasLimit = await contract.estimateGas.confirmTransaction(sellerAddress, {
         value: amountInWei
       });
 
@@ -123,7 +118,7 @@ export function useEscrowPayment({
       });
 
       // Exécuter la transaction
-      const tx = await contract.createTransaction(sellerAddress, {
+      const tx = await contract.confirmTransaction(sellerAddress, {
         value: amountInWei,
         gasLimit: estimatedGasLimit.mul(120).div(100), // +20% marge de sécurité
         gasPrice: gasPrice.mul(120).div(100) // +20% sur le gas price
@@ -144,21 +139,14 @@ export function useEscrowPayment({
         listing.user.id,
         listing.crypto_amount,
         listing.crypto_amount * 0.05,
-        activeContract.address,
-        activeContract.chain_id
+        contract.address,
+        80001, // Chain ID for Polygon Amoy
+        sellerAddress
       );
 
       if (receipt.status === 1) {
-        await updateTransactionStatus(transaction.id, 'processing', tx.hash);
-
-        // Mettre à jour le statut des fonds
-        await supabase.from('transactions')
-          .update({
-            funds_secured: true,
-            funds_secured_at: new Date().toISOString(),
-            blockchain_txn_id: receipt.logs[0].topics[1] // L'ID de la transaction sur la blockchain
-          })
-          .eq('id', transaction.id);
+        const txnId = receipt.logs[0].topics[1];
+        await updateTransactionStatus(transaction.id, 'processing', tx.hash, txnId);
 
         if (onTransactionCreated) {
           onTransactionCreated(transaction.id);

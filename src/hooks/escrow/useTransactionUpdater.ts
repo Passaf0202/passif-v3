@@ -9,7 +9,8 @@ export const useTransactionUpdater = () => {
     amount: number,
     commission: number,
     contractAddress: string,
-    chainId: number
+    chainId: number,
+    sellerWalletAddress: string
   ) => {
     console.log('Creating transaction:', {
       listingId,
@@ -18,7 +19,8 @@ export const useTransactionUpdater = () => {
       amount,
       commission,
       contractAddress,
-      chainId
+      chainId,
+      sellerWalletAddress
     });
 
     try {
@@ -46,7 +48,11 @@ export const useTransactionUpdater = () => {
           smart_contract_address: contractAddress,
           chain_id: chainId,
           network: 'polygon_amoy',
-          token_symbol: 'MATIC'
+          token_symbol: 'MATIC',
+          seller_wallet_address: sellerWalletAddress,
+          funds_secured: false,
+          buyer_confirmation: false,
+          seller_confirmation: false
         })
         .select('*')
         .single();
@@ -72,12 +78,14 @@ export const useTransactionUpdater = () => {
   const updateTransactionStatus = async (
     transactionId: string,
     status: 'pending' | 'processing' | 'completed' | 'failed',
-    txHash?: string
+    txHash?: string,
+    blockchainTxnId?: string
   ) => {
     console.log('Updating transaction status:', {
       transactionId,
       status,
-      txHash
+      txHash,
+      blockchainTxnId
     });
 
     try {
@@ -95,8 +103,15 @@ export const useTransactionUpdater = () => {
         updates.transaction_hash = txHash;
       }
 
+      if (blockchainTxnId) {
+        updates.blockchain_txn_id = blockchainTxnId;
+        updates.funds_secured = true;
+        updates.funds_secured_at = new Date().toISOString();
+      }
+
       if (status === 'completed') {
         updates.escrow_status = 'completed';
+        updates.released_at = new Date().toISOString();
       }
 
       const { error } = await supabase
