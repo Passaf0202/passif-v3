@@ -5,6 +5,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useReleaseFunds } from "@/hooks/escrow/useReleaseFunds";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -31,6 +36,54 @@ export function PaymentButton({
   const navigate = useNavigate();
   const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
   const { handlePayment } = usePaymentTransaction();
+  const [showReleaseFunds, setShowReleaseFunds] = useState(false);
+  const [transactionDetails, setTransactionDetails] = useState<any>(null);
+  const [isLoadingTransaction, setIsLoadingTransaction] = useState(true);
+
+  useEffect(() => {
+    const fetchTransactionDetails = async () => {
+      if (!transactionId) return;
+
+      try {
+        const { data: transaction, error } = await supabase
+          .from('transactions')
+          .select(`
+            *,
+            listings (
+              title,
+              crypto_amount,
+              crypto_currency
+            ),
+            blockchain_txn_id,
+            seller_wallet_address
+          `)
+          .eq('id', transactionId)
+          .single();
+
+        if (error) {
+          console.error("Error fetching transaction:", error);
+          return;
+        }
+
+        if (transaction) {
+          setTransactionDetails(transaction);
+          setShowReleaseFunds(!!transaction.funds_secured);
+        }
+      } catch (error) {
+        console.error("Error in fetchTransactionDetails:", error);
+      } finally {
+        setIsLoadingTransaction(false);
+      }
+    };
+
+    fetchTransactionDetails();
+  }, [transactionId]);
+
+  const { isReleasing, handleReleaseFunds } = useReleaseFunds(
+    transactionId || '',
+    transactionDetails?.blockchain_txn_id,
+    sellerAddress
+  );
 
   const handleClick = async () => {
     if (!isConnected || !sellerAddress || !cryptoAmount) {
@@ -49,6 +102,7 @@ export function PaymentButton({
       console.log('Transaction successful:', txHash);
 
       onClick();
+      setShowReleaseFunds(true);
 
     } catch (error: any) {
       console.error('Transaction error:', error);
@@ -61,6 +115,63 @@ export function PaymentButton({
   };
 
   const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress;
+
+  if (showReleaseFunds && transactionDetails) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Libération des fonds</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-medium">Article</h3>
+              <p className="text-sm text-muted-foreground">
+                {transactionDetails.listings?.title}
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-medium">Montant</h3>
+              <p className="text-sm text-muted-foreground">
+                {transactionDetails.listings?.crypto_amount} {transactionDetails.listings?.crypto_currency}
+              </p>
+            </div>
+
+            {sellerAddress && (
+              <div>
+                <h3 className="font-medium">Adresse du vendeur</h3>
+                <p className="text-sm text-muted-foreground break-all">
+                  {sellerAddress}
+                </p>
+              </div>
+            )}
+
+            <Alert>
+              <AlertDescription>
+                En libérant les fonds, vous confirmez avoir reçu l'article en bon état.
+              </AlertDescription>
+            </Alert>
+
+            <Button
+              onClick={handleReleaseFunds}
+              disabled={isReleasing || !sellerAddress}
+              className="w-full"
+            >
+              {isReleasing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Libération des fonds en cours...
+                </>
+              ) : (
+                "Confirmer la réception et libérer les fonds"
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="w-full space-y-2">
