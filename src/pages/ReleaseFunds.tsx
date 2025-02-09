@@ -35,6 +35,7 @@ export default function ReleaseFunds() {
             id,
             title,
             price,
+            crypto_amount,
             wallet_address,
             user:profiles!listings_user_id_fkey (
               id,
@@ -175,7 +176,7 @@ export default function ReleaseFunds() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Prix</h3>
                 <p className="text-gray-600">{transaction.amount} €</p>
-                <p className="text-blue-600">≈ {transaction.crypto_amount} {transaction.token_symbol}</p>
+                <p className="text-blue-600">≈ {transaction.listing?.crypto_amount} {transaction.token_symbol}</p>
               </div>
 
               <Button

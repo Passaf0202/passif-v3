@@ -121,7 +121,11 @@ export default function Payment() {
           price={listing.price}
           cryptoAmount={listing.crypto_amount}
           cryptoCurrency="BNB"
-          onPaymentComplete={(transactionId) => navigate(`/release-funds/${transactionId}`)}
+          onPaymentComplete={() => {
+            if (listing.id) {
+              navigate(`/release-funds/${listing.id}`);
+            }
+          }}
         />
       </div>
     </div>
