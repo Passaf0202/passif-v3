@@ -153,9 +153,9 @@ export const usePaymentTransaction = () => {
           throw new Error("Erreur lors de la création de la transaction");
         }
 
-        // Rediriger vers la page de la transaction
         if (transaction) {
-          navigate(`/transaction/${transaction.id}`);
+          // Rediriger vers la nouvelle page de libération des fonds
+          navigate(`/release-funds/${transaction.id}`);
         }
       }
 
@@ -182,4 +182,3 @@ export const usePaymentTransaction = () => {
 
   return { handlePayment, isProcessing, error, transactionStatus };
 };
-
