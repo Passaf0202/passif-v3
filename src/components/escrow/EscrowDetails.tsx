@@ -104,6 +104,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       const abi = ["function releaseFunds(uint256 txnId)"];
       const contract = new ethers.Contract(contractAddress, abi, signer);
 
+      console.log("Releasing funds with transaction ID:", transaction.blockchain_txn_id);
       const tx = await contract.releaseFunds(transaction.blockchain_txn_id);
       console.log("Release funds transaction sent:", tx.hash);
 
