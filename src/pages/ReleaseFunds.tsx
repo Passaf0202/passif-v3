@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
+import { PaymentButton } from "@/components/payment/PaymentButton";
+import { useState } from "react";
 
 export default function ReleaseFunds() {
   const { id } = useParams();
@@ -19,6 +21,7 @@ export default function ReleaseFunds() {
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const { 
     data: transaction,
@@ -59,15 +62,18 @@ export default function ReleaseFunds() {
   });
 
   const handleReleaseFunds = async () => {
+    if (!transaction?.blockchain_txn_id || !transaction?.smart_contract_address) {
+      toast({
+        title: "Erreur",
+        description: "Informations de transaction manquantes",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
     try {
-      if (!transaction?.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain manquant");
-      }
-
-      if (!transaction?.smart_contract_address) {
-        throw new Error("Adresse du contrat manquante");
-      }
-
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -89,7 +95,7 @@ export default function ReleaseFunds() {
 
       console.log("Transaction ID for release:", transaction.blockchain_txn_id);
       
-      // Convert blockchain_txn_id to BigNumber if it's a string
+      // Convert blockchain_txn_id to BigNumber
       const txnId = ethers.BigNumber.from(transaction.blockchain_txn_id);
       const tx = await contract.releaseFunds(txnId);
       
@@ -124,6 +130,8 @@ export default function ReleaseFunds() {
         description: error.message || "Une erreur est survenue lors de la libération des fonds",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -179,12 +187,16 @@ export default function ReleaseFunds() {
                 <p className="text-blue-600">≈ {transaction.listing?.crypto_amount} {transaction.token_symbol}</p>
               </div>
 
-              <Button
+              <PaymentButton
                 onClick={handleReleaseFunds}
-                className="w-full mt-4 bg-primary hover:bg-primary/90"
-              >
-                Libérer les fonds au vendeur
-              </Button>
+                isProcessing={isProcessing}
+                isConnected={!!user}
+                disabled={isProcessing}
+                sellerAddress={transaction.seller_wallet_address}
+                transactionId={transaction.blockchain_txn_id}
+                contractAddress={transaction.smart_contract_address}
+                mode="release"
+              />
             </div>
           </div>
         </div>

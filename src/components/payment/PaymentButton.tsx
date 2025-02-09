@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
-import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
+import { ethers } from "ethers";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -14,6 +14,8 @@ interface PaymentButtonProps {
   disabled?: boolean;
   sellerAddress?: string;
   transactionId?: string | null;
+  contractAddress?: string;
+  mode?: 'pay' | 'release';
 }
 
 export function PaymentButton({ 
@@ -24,17 +26,27 @@ export function PaymentButton({
   onClick,
   disabled = false,
   sellerAddress,
-  transactionId
+  transactionId,
+  contractAddress,
+  mode = 'pay'
 }: PaymentButtonProps) {
   const { toast } = useToast();
   const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
-  const { createTransaction } = usePaymentTransaction();
 
   const handleClick = async () => {
-    if (!isConnected || !sellerAddress || !cryptoAmount) {
+    if (!isConnected) {
       toast({
         title: "Erreur",
-        description: "Veuillez connecter votre wallet et vérifier les informations de paiement",
+        description: "Veuillez connecter votre wallet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (mode === 'release' && (!transactionId || !contractAddress)) {
+      toast({
+        title: "Erreur",
+        description: "Informations de transaction manquantes",
         variant: "destructive",
       });
       return;
@@ -42,16 +54,7 @@ export function PaymentButton({
 
     try {
       await ensureCorrectNetwork();
-      console.log("Processing transaction with seller address:", sellerAddress);
-      
-      await createTransaction(sellerAddress, cryptoAmount, transactionId);
-
-      toast({
-        title: "Transaction réussie",
-        description: "Les fonds ont été bloqués dans le contrat d'escrow",
-      });
       onClick();
-
     } catch (error: any) {
       console.error('Transaction error:', error);
       toast({
@@ -62,7 +65,26 @@ export function PaymentButton({
     }
   };
 
-  if (!sellerAddress) {
+  const getButtonText = () => {
+    if (isProcessing) {
+      return "Transaction en cours...";
+    }
+    if (disabled) {
+      return "Transaction en attente de confirmation...";
+    }
+    if (isWrongNetwork) {
+      return "Changer vers Polygon Amoy";
+    }
+    if (!isConnected) {
+      return "Connecter votre wallet";
+    }
+    if (mode === 'release') {
+      return "Libérer les fonds au vendeur";
+    }
+    return `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`;
+  };
+
+  if (!sellerAddress && mode === 'pay') {
     return (
       <Button disabled className="w-full">
         Adresse du vendeur manquante
@@ -74,7 +96,7 @@ export function PaymentButton({
     <div className="w-full space-y-2">
       <Button 
         onClick={handleClick} 
-        disabled={isProcessing || !isConnected || !cryptoAmount || disabled}
+        disabled={isProcessing || !isConnected || (mode === 'pay' && !cryptoAmount) || disabled}
         className="w-full bg-primary hover:bg-primary/90"
       >
         {isProcessing ? (
@@ -82,14 +104,8 @@ export function PaymentButton({
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Transaction en cours...
           </>
-        ) : disabled ? (
-          "Transaction en attente de confirmation..."
-        ) : isWrongNetwork ? (
-          "Changer vers Polygon Amoy"
-        ) : !isConnected ? (
-          "Connecter votre wallet"
         ) : (
-          `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
+          getButtonText()
         )}
       </Button>
 
