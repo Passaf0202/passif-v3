@@ -21,14 +21,18 @@ export default function ReleaseFunds() {
     const fetchTransactionDetails = async () => {
       try {
         if (!id) {
+          console.error("No transaction ID provided");
           toast({
             title: "Erreur",
             description: "ID de transaction manquant",
             variant: "destructive",
           });
+          setIsLoading(false);
           return;
         }
 
+        console.log("Fetching transaction details for ID:", id);
+        
         const { data: transaction, error } = await supabase
           .from('transactions')
           .select(`
@@ -45,7 +49,7 @@ export default function ReleaseFunds() {
           .single();
 
         if (error) {
-          console.error("Erreur lors de la récupération des détails:", error);
+          console.error("Error fetching transaction details:", error);
           toast({
             title: "Erreur",
             description: "Impossible de récupérer les détails de la transaction",
@@ -54,11 +58,21 @@ export default function ReleaseFunds() {
           return;
         }
 
-        console.log("Transaction details:", transaction);
+        if (!transaction) {
+          console.log("No transaction found for ID:", id);
+          toast({
+            title: "Erreur",
+            description: "Transaction introuvable",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log("Transaction details retrieved:", transaction);
         setTransactionDetails(transaction);
         setSellerAddress(transaction.seller_wallet_address);
       } catch (error) {
-        console.error("Erreur lors de la récupération des détails:", error);
+        console.error("Error in fetchTransactionDetails:", error);
         toast({
           title: "Erreur",
           description: "Une erreur est survenue lors de la récupération des détails",
@@ -69,7 +83,9 @@ export default function ReleaseFunds() {
       }
     };
 
-    fetchTransactionDetails();
+    if (id) {
+      fetchTransactionDetails();
+    }
   }, [id, toast]);
 
   const { isReleasing, handleReleaseFunds } = useReleaseFunds(
