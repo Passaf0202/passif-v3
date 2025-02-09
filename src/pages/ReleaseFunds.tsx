@@ -45,7 +45,7 @@ export default function ReleaseFunds() {
           )
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       if (!data) throw new Error("Transaction non trouvée");
