@@ -47,6 +47,11 @@ export function useContractInteraction() {
       throw new Error("Vous n'êtes pas l'acheteur de cette transaction");
     }
 
+    // Vérifie si les fonds sont déposés
+    if (!txData.isFunded) {
+      throw new Error("Les fonds n'ont pas encore été déposés");
+    }
+
     // Vérifie si la transaction n'est pas déjà complétée
     if (txData.isCompleted) {
       throw new Error("Les fonds ont déjà été libérés");
@@ -59,7 +64,7 @@ export function useContractInteraction() {
     try {
       const { data: transaction, error } = await supabase
         .from('transactions')
-        .select('blockchain_txn_id, funds_secured, transaction_hash')
+        .select('blockchain_txn_id, transaction_hash')
         .eq('id', transactionId)
         .maybeSingle();
 
@@ -69,12 +74,13 @@ export function useContractInteraction() {
         throw new Error("Transaction non trouvée");
       }
 
-      if (!transaction.funds_secured) {
-        throw new Error("Les fonds n'ont pas encore été déposés");
-      }
-
       if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === '0') {
         throw new Error("ID de transaction blockchain non trouvé");
+      }
+
+      // Vérifie si le hash de transaction existe
+      if (!transaction.transaction_hash) {
+        throw new Error("Hash de transaction non trouvé");
       }
 
       const txnId = parseInt(transaction.blockchain_txn_id);
@@ -91,22 +97,6 @@ export function useContractInteraction() {
 
   const releaseFunds = async (transactionId: string) => {
     try {
-      // Vérifier d'abord que la transaction existe dans Supabase
-      const { data: transaction, error: transactionError } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('id', transactionId)
-        .maybeSingle();
-
-      if (transactionError) throw transactionError;
-      if (!transaction) {
-        throw new Error("Transaction non trouvée");
-      }
-
-      if (!transaction.funds_secured) {
-        throw new Error("Les fonds n'ont pas encore été déposés");
-      }
-
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
