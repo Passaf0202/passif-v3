@@ -53,7 +53,7 @@ export default function PaymentPage() {
             )
           `)
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         console.log("Supabase response:", { transaction, supabaseError });
 
