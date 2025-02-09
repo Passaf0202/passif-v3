@@ -1,5 +1,4 @@
 
-import { useQuery } from "@tanstack/react-query";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -8,53 +7,25 @@ interface CryptoAmount {
   currency: string;
 }
 
-const POL_RATES = {
-  EUR: 0.92,
-  USD: 1.00,
-  GBP: 0.79
-};
+const POL_RATE = 1.00; // Fixed rate for POL/USD
 
 export const useCryptoConversion = (price: number, listingId?: string): { amount: CryptoAmount | null, isLoading: boolean } => {
   const { selectedCurrency } = useCurrencyStore();
-  const { isLoading } = useQuery({
-    queryKey: ['crypto-rate', selectedCurrency],
-    queryFn: async () => {
-      try {
-        const rate = POL_RATES[selectedCurrency as keyof typeof POL_RATES];
-        
-        if (!rate) {
-          console.error('Invalid currency:', selectedCurrency);
-          return null;
-        }
-
-        const cryptoAmount = price / rate;
-        
-        if (listingId && price) {
-          await updateListingCryptoAmount(listingId, cryptoAmount);
-        }
-
-        return rate;
-      } catch (error) {
-        console.error('Error in rate query:', error);
-        return null;
-      }
-    },
-    staleTime: 30000,
-    retry: 2,
-  });
 
   const calculateCryptoAmount = (): CryptoAmount | null => {
-    const rate = POL_RATES[selectedCurrency as keyof typeof POL_RATES];
-    
-    if (!price || typeof price !== 'number' || !rate) {
+    if (!price || typeof price !== 'number') {
       return null;
     }
 
-    const cryptoAmount = price / rate;
+    const cryptoAmount = price / POL_RATE;
 
     if (isNaN(cryptoAmount) || cryptoAmount <= 0) {
       console.error('Invalid crypto amount calculated:', cryptoAmount);
       return null;
+    }
+
+    if (listingId && price) {
+      updateListingCryptoAmount(listingId, cryptoAmount).catch(console.error);
     }
 
     return {
@@ -65,7 +36,7 @@ export const useCryptoConversion = (price: number, listingId?: string): { amount
 
   return {
     amount: calculateCryptoAmount(),
-    isLoading
+    isLoading: false
   };
 };
 

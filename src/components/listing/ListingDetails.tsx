@@ -50,7 +50,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
+  const { amount: cryptoDetails } = useCryptoConversion(listing.price, listing.id);
 
   // Fetch the listing's original wallet address
   const { data: listingData } = useQuery({
@@ -67,7 +67,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         throw error;
       }
 
-      console.log('Fetched listing wallet:', data);
       return data;
     },
   });
@@ -92,8 +91,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <ListingHeader 
           title={listing.title} 
           price={listing.price} 
-          cryptoAmount={cryptoDetails.data?.amount}
-          cryptoCurrency={cryptoDetails.data?.currency}
+          cryptoAmount={cryptoDetails?.amount}
+          cryptoCurrency={cryptoDetails?.currency}
         />
         
         <SellerInfo 
@@ -118,8 +117,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           sellerAddress={sellerWalletAddress || ''}
           title={listing.title}
           price={listing.price}
-          cryptoAmount={cryptoDetails.data?.amount}
-          cryptoCurrency={cryptoDetails.data?.currency}
+          cryptoAmount={cryptoDetails?.amount}
+          cryptoCurrency={cryptoDetails?.currency}
         />
 
         <div className="space-y-4">

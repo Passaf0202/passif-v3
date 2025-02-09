@@ -139,7 +139,6 @@ export default function Payment() {
           title={listing.title}
           price={listing.price}
           cryptoAmount={listing.crypto_amount}
-          cryptoCurrency="BNB"
           sellerAddress={sellerWalletAddress}
           onPaymentComplete={() => {
             if (listing.id) {
