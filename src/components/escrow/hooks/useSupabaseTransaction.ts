@@ -10,13 +10,18 @@ type RequiredTransactionFields = {
 
 export const useSupabaseTransaction = () => {
   const fetchFromSupabase = async (transactionId: string) => {
+    if (!transactionId) {
+      console.error("[useSupabaseTransaction] No transaction ID provided");
+      throw new Error("ID de transaction manquant");
+    }
+
     console.log("[useSupabaseTransaction] Fetching transaction with ID:", transactionId);
     
     // First, check if the transaction exists
     const { data: existCheck, error: existError } = await supabase
       .from("transactions")
       .select("id")
-      .eq("id", transactionId)
+      .eq('id', transactionId)
       .maybeSingle();
 
     if (existError) {
@@ -44,7 +49,7 @@ export const useSupabaseTransaction = () => {
           *
         )
       `)
-      .eq("id", transactionId)
+      .eq('id', transactionId)
       .maybeSingle();
 
     if (txnError) {
