@@ -23,85 +23,93 @@ export const useSupabaseTransaction = () => {
 
     console.log("[useSupabaseTransaction] Fetching transaction with ID:", transactionId);
     
-    // First, check if the transaction exists
-    const { data: existCheck, error: existError } = await supabase
-      .from("transactions")
-      .select("id, blockchain_txn_id")
-      .eq('id', transactionId)
-      .maybeSingle();
+    try {
+      // Première vérification dans la table transactions
+      const { data: transactionData, error: transactionError } = await supabase
+        .from("transactions")
+        .select(`
+          *,
+          listings!transactions_listing_id_fkey (
+            title,
+            user_id,
+            wallet_address
+          ),
+          buyer:profiles!transactions_buyer_id_fkey (
+            id,
+            wallet_address
+          ),
+          seller:profiles!transactions_seller_id_fkey (
+            id,
+            wallet_address
+          )
+        `)
+        .eq('id', transactionId)
+        .maybeSingle();
 
-    if (existError) {
-      console.error("[useSupabaseTransaction] Error checking transaction existence:", existError);
-      throw new Error("Erreur lors de la vérification de la transaction");
+      if (transactionError) {
+        console.error("[useSupabaseTransaction] Error fetching transaction:", transactionError);
+        throw new Error("Erreur lors de la récupération de la transaction");
+      }
+
+      // Si pas trouvé dans transactions, chercher dans transaction_details
+      if (!transactionData) {
+        console.log("[useSupabaseTransaction] Transaction not found in transactions table, checking transaction_details");
+        const { data: detailsData, error: detailsError } = await supabase
+          .from("transaction_details")
+          .select("*")
+          .eq('id', transactionId)
+          .maybeSingle();
+
+        if (detailsError) {
+          console.error("[useSupabaseTransaction] Error fetching from transaction_details:", detailsError);
+          throw new Error("Erreur lors de la récupération des détails de la transaction");
+        }
+
+        if (!detailsData) {
+          console.error("[useSupabaseTransaction] Transaction not found in any table");
+          throw new Error("Transaction non trouvée");
+        }
+
+        console.log("[useSupabaseTransaction] Found in transaction_details:", detailsData);
+        return detailsData;
+      }
+
+      console.log("[useSupabaseTransaction] Transaction found:", transactionData);
+      return transactionData;
+    } catch (error) {
+      console.error("[useSupabaseTransaction] Unexpected error:", error);
+      throw error;
     }
-
-    if (!existCheck) {
-      console.error("[useSupabaseTransaction] Transaction not found in database");
-      throw new Error("Transaction non trouvée");
-    }
-
-    console.log("[useSupabaseTransaction] Found transaction with blockchain_txn_id:", existCheck.blockchain_txn_id);
-
-    const { data: txnData, error: txnError } = await supabase
-      .from("transactions")
-      .select(`
-        *,
-        listings (
-          *
-        ),
-        buyer:profiles!transactions_buyer_id_fkey (
-          *
-        ),
-        seller:profiles!transactions_seller_id_fkey (
-          *
-        )
-      `)
-      .eq('id', transactionId)
-      .single();
-
-    if (txnError) {
-      console.error("[useSupabaseTransaction] Error fetching transaction:", txnError);
-      throw new Error("Impossible de charger les détails de la transaction");
-    }
-
-    if (!txnData) {
-      console.error("[useSupabaseTransaction] No transaction found with ID:", transactionId);
-      throw new Error("Transaction non trouvée");
-    }
-
-    console.log("[useSupabaseTransaction] Transaction data retrieved:", {
-      id: txnData.id,
-      status: txnData.status,
-      blockchain_txn_id: txnData.blockchain_txn_id,
-      buyer_id: txnData.buyer_id,
-      seller_id: txnData.seller_id,
-      listing_id: txnData.listing_id
-    });
-    
-    return txnData;
   };
 
   const createSupabaseTransaction = async (transactionData: RequiredTransactionFields) => {
     console.log("[useSupabaseTransaction] Creating transaction with data:", transactionData);
     
-    const { data: newTransaction, error: createError } = await supabase
-      .from('transactions')
-      .insert({
-        ...transactionData,
-        status: 'pending',
-        escrow_status: 'pending',
-        blockchain_txn_id: transactionData.blockchain_txn_id || '0'
-      })
-      .select()
-      .single();
+    try {
+      const { data: newTransaction, error: createError } = await supabase
+        .from('transactions')
+        .insert({
+          ...transactionData,
+          status: 'pending',
+          escrow_status: 'pending',
+          blockchain_txn_id: transactionData.blockchain_txn_id || '0',
+          can_be_cancelled: true,
+          funds_secured: false
+        })
+        .select()
+        .single();
 
-    if (createError) {
-      console.error("[useSupabaseTransaction] Error creating transaction:", createError);
-      throw new Error("Erreur lors de la création de la transaction");
+      if (createError) {
+        console.error("[useSupabaseTransaction] Error creating transaction:", createError);
+        throw new Error("Erreur lors de la création de la transaction");
+      }
+
+      console.log("[useSupabaseTransaction] New transaction created:", newTransaction);
+      return newTransaction;
+    } catch (error) {
+      console.error("[useSupabaseTransaction] Unexpected error creating transaction:", error);
+      throw error;
     }
-
-    console.log("[useSupabaseTransaction] New transaction created:", newTransaction);
-    return newTransaction;
   };
 
   return {
@@ -109,4 +117,3 @@ export const useSupabaseTransaction = () => {
     createSupabaseTransaction
   };
 };
-
