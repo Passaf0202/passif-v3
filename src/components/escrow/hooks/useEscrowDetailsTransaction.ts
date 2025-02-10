@@ -44,10 +44,13 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
 
       // Validate and format the listings data
       let formattedListings = null;
-      if (txnData.listings && typeof txnData.listings === 'object' && 'title' in txnData.listings) {
-        formattedListings = {
-          title: txnData.listings.title
-        };
+      if (txnData.listings && typeof txnData.listings === 'object') {
+        const listingsData = txnData.listings as { title?: string };
+        if (listingsData && 'title' in listingsData) {
+          formattedListings = {
+            title: listingsData.title
+          };
+        }
       }
 
       // Ensure all required fields are present
