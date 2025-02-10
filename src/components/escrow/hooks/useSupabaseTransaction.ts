@@ -15,7 +15,6 @@ export const useSupabaseTransaction = () => {
       throw new Error("ID de transaction manquant");
     }
 
-    // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(transactionId)) {
       console.error("[useSupabaseTransaction] Invalid transaction ID format:", transactionId);
@@ -27,7 +26,7 @@ export const useSupabaseTransaction = () => {
     // First, check if the transaction exists
     const { data: existCheck, error: existError } = await supabase
       .from("transactions")
-      .select("id")
+      .select("id, blockchain_txn_id")
       .eq('id', transactionId)
       .maybeSingle();
 
@@ -41,7 +40,8 @@ export const useSupabaseTransaction = () => {
       throw new Error("Transaction non trouvée");
     }
 
-    // If transaction exists, fetch full details
+    console.log("[useSupabaseTransaction] Found transaction with blockchain_txn_id:", existCheck.blockchain_txn_id);
+
     const { data: txnData, error: txnError } = await supabase
       .from("transactions")
       .select(`
@@ -57,7 +57,7 @@ export const useSupabaseTransaction = () => {
         )
       `)
       .eq('id', transactionId)
-      .maybeSingle();
+      .single();
 
     if (txnError) {
       console.error("[useSupabaseTransaction] Error fetching transaction:", txnError);
@@ -72,6 +72,7 @@ export const useSupabaseTransaction = () => {
     console.log("[useSupabaseTransaction] Transaction data retrieved:", {
       id: txnData.id,
       status: txnData.status,
+      blockchain_txn_id: txnData.blockchain_txn_id,
       buyer_id: txnData.buyer_id,
       seller_id: txnData.seller_id,
       listing_id: txnData.listing_id
@@ -108,3 +109,4 @@ export const useSupabaseTransaction = () => {
     createSupabaseTransaction
   };
 };
+
