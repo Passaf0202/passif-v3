@@ -11,7 +11,7 @@ export default function Payment() {
       <div>
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <p>Transaction non trouvée</p>
+          <p className="text-center text-muted-foreground">Transaction non trouvée</p>
         </div>
       </div>
     );
@@ -26,4 +26,3 @@ export default function Payment() {
     </div>
   );
 }
-
