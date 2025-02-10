@@ -57,7 +57,7 @@ export const useSupabaseTransaction = () => {
         )
       `)
       .eq('id', transactionId)
-      .single();
+      .maybeSingle();
 
     if (txnError) {
       console.error("[useSupabaseTransaction] Error fetching transaction:", txnError);
