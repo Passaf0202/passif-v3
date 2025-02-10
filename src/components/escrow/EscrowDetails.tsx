@@ -21,34 +21,61 @@ interface EscrowDetailsProps {
 export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const [transaction, setTransaction] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   
   useEffect(() => {
     const fetchTransaction = async () => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select(`
-          *,
-          listings!inner(*),
-          buyer:profiles!transactions_buyer_id_fkey(*),
-          seller:profiles!transactions_seller_id_fkey(*)
-        `)
-        .eq("id", transactionId)
-        .single();
+      try {
+        setIsFetching(true);
+        const { data, error } = await supabase
+          .from("transactions")
+          .select(`
+            *,
+            listings(*),
+            buyer:profiles!transactions_buyer_id_fkey(*),
+            seller:profiles!transactions_seller_id_fkey(*)
+          `)
+          .eq("id", transactionId)
+          .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching transaction:", error);
-        return;
+        if (error) {
+          console.error("Error fetching transaction:", error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger les détails de la transaction",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!data) {
+          toast({
+            title: "Transaction introuvable",
+            description: "Cette transaction n'existe pas",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log("Transaction data:", data);
+        setTransaction(data);
+      } catch (error) {
+        console.error("Error in fetchTransaction:", error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors du chargement des données",
+          variant: "destructive",
+        });
+      } finally {
+        setIsFetching(false);
       }
-
-      console.log("Transaction data:", data);
-      setTransaction(data);
     };
 
     fetchTransaction();
-  }, [transactionId]);
+  }, [transactionId, toast]);
 
   const handleReleaseFunds = async () => {
     try {
@@ -60,6 +87,10 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         }
         await switchNetwork(amoy.id);
         await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      if (!window.ethereum) {
+        throw new Error("MetaMask n'est pas installé");
       }
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -108,11 +139,23 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     }
   };
 
-  if (!transaction) {
+  if (isFetching) {
     return (
       <div className="flex justify-center items-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
+    );
+  }
+
+  if (!transaction) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <p className="text-center text-muted-foreground">
+            Transaction introuvable
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -125,7 +168,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         <div className="space-y-2">
           <h3 className="font-medium">Article</h3>
           <p className="text-sm text-muted-foreground">
-            {transaction.listings.title}
+            {transaction.listings?.title || "N/A"}
           </p>
         </div>
 
