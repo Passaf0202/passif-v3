@@ -58,14 +58,12 @@ export function EscrowActions({
         signer
       );
 
-      // S'assurer que l'ID est un nombre valide
-      if (isNaN(Number(transaction.blockchain_txn_id))) {
+      const txnId = Number(transaction.blockchain_txn_id);
+      if (isNaN(txnId)) {
         throw new Error("L'ID de transaction n'est pas un nombre valide");
       }
 
-      const txnId = Number(transaction.blockchain_txn_id);
-      console.log("Using numeric transaction ID:", txnId);
-
+      console.log("Calling releaseFunds with ID:", txnId);
       const tx = await contract.releaseFunds(txnId);
       console.log("Release funds transaction sent:", tx.hash);
 

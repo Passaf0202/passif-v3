@@ -16,16 +16,21 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
   const fetchTransaction = async () => {
     try {
       setIsFetching(true);
-      console.log("Fetching transaction details for ID:", transactionId);
+      console.log("Fetching transaction details for UUID:", transactionId);
       
       const txnData = await fetchFromSupabase(transactionId);
-      
+      console.log("Transaction data successfully fetched:", txnData);
+
       if (!txnData) {
         console.error("No transaction found for ID:", transactionId);
         throw new Error("Transaction non trouvée");
       }
 
-      console.log("Transaction data successfully fetched:", txnData);
+      if (!txnData.blockchain_txn_id) {
+        console.error("No blockchain transaction ID found");
+        throw new Error("ID de transaction blockchain manquant");
+      }
+
       setTransaction(txnData);
     } catch (error: any) {
       console.error("Error in fetchTransaction:", error);

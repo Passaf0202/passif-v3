@@ -35,14 +35,26 @@ export const useSupabaseTransaction = () => {
       throw new Error("Impossible de charger les détails de la transaction");
     }
 
+    if (!txnData) {
+      console.error("No transaction found with ID:", transactionId);
+      throw new Error("Transaction non trouvée");
+    }
+
     console.log("Transaction data retrieved:", txnData);
     return txnData;
   };
 
   const createSupabaseTransaction = async (transactionData: RequiredTransactionFields) => {
+    console.log("Creating transaction with data:", transactionData);
+    
     const { data: newTransaction, error: createError } = await supabase
       .from('transactions')
-      .insert(transactionData)
+      .insert({
+        ...transactionData,
+        status: 'pending',
+        escrow_status: 'pending',
+        blockchain_txn_id: transactionData.blockchain_txn_id || '0'
+      })
       .select()
       .single();
 
@@ -51,6 +63,7 @@ export const useSupabaseTransaction = () => {
       throw new Error("Erreur lors de la création de la transaction");
     }
 
+    console.log("New transaction created:", newTransaction);
     return newTransaction;
   };
 
