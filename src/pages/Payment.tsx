@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { EscrowDetails } from "@/components/escrow/EscrowDetails";
 
 export default function Payment() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
 
   if (!id) {
     return (
@@ -26,3 +26,4 @@ export default function Payment() {
     </div>
   );
 }
+
