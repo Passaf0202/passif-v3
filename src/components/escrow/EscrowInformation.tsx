@@ -11,7 +11,7 @@ export function EscrowInformation({ transaction }: EscrowInformationProps) {
       <div className="space-y-2">
         <h3 className="font-medium">Article</h3>
         <p className="text-sm text-muted-foreground">
-          {transaction?.listings?.title || "N/A"}
+          {transaction?.listing_title || "N/A"}
         </p>
       </div>
 

@@ -42,21 +42,10 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         throw new Error("ID de transaction blockchain manquant");
       }
 
-      // Validate and format the listings data
-      let formattedListings = null;
-      if (txnData.listings && typeof txnData.listings === 'object') {
-        const listingsData = txnData.listings as { title?: string };
-        if (listingsData && 'title' in listingsData) {
-          formattedListings = {
-            title: listingsData.title
-          };
-        }
-      }
-
-      // Ensure all required fields are present
+      // Format the transaction data
       const formattedTransaction: Transaction = {
         ...txnData,
-        listings: formattedListings
+        listing_title: txnData.listing_title || 'N/A'
       };
 
       setTransaction(formattedTransaction);
