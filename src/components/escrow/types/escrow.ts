@@ -12,9 +12,9 @@ export interface Transaction {
   buyer_confirmation: boolean;
   seller_confirmation: boolean;
   seller_wallet_address?: string;
-  listings?: {
+  listings: {
     title: string;
-  };
+  } | null;
   buyer?: {
     id: string;
   };
