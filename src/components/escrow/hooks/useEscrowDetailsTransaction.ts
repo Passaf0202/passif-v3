@@ -10,24 +10,22 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const { toast } = useToast();
-  const { fetchFromSupabase, createSupabaseTransaction } = useSupabaseTransaction();
+  const { fetchFromSupabase } = useSupabaseTransaction();
   const { getBlockchainTransaction } = useBlockchainTransaction();
 
   const fetchTransaction = async () => {
     try {
       setIsFetching(true);
+      console.log("Fetching transaction:", transactionId);
       
-      // Try to fetch from Supabase first
       const txnData = await fetchFromSupabase(transactionId);
+      console.log("Transaction data from Supabase:", txnData);
 
       if (!txnData) {
-        // If not in Supabase, fetch from blockchain
-        const blockchainData = await getBlockchainTransaction(transactionId);
-        const newTransaction = await createSupabaseTransaction(blockchainData);
-        setTransaction(newTransaction);
-      } else {
-        setTransaction(txnData);
+        throw new Error("Transaction non trouvée");
       }
+
+      setTransaction(txnData);
     } catch (error: any) {
       console.error("Error in fetchTransaction:", error);
       toast({

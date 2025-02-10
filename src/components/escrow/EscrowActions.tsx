@@ -58,11 +58,15 @@ export function EscrowActions({
         signer
       );
 
-      // Convert blockchain_txn_id to BigNumber
-      const blockchainTxnId = ethers.BigNumber.from(transaction.blockchain_txn_id);
-      console.log("Converted blockchain ID to BigNumber:", blockchainTxnId.toString());
+      // S'assurer que l'ID est un nombre valide
+      if (isNaN(Number(transaction.blockchain_txn_id))) {
+        throw new Error("L'ID de transaction n'est pas un nombre valide");
+      }
 
-      const tx = await contract.releaseFunds(blockchainTxnId);
+      const txnId = Number(transaction.blockchain_txn_id);
+      console.log("Using numeric transaction ID:", txnId);
+
+      const tx = await contract.releaseFunds(txnId);
       console.log("Release funds transaction sent:", tx.hash);
 
       const receipt = await tx.wait();
