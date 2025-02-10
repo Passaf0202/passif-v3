@@ -15,6 +15,13 @@ export const useSupabaseTransaction = () => {
       throw new Error("ID de transaction manquant");
     }
 
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(transactionId)) {
+      console.error("[useSupabaseTransaction] Invalid transaction ID format:", transactionId);
+      throw new Error("Format d'ID de transaction invalide");
+    }
+
     console.log("[useSupabaseTransaction] Fetching transaction with ID:", transactionId);
     
     // First, check if the transaction exists
