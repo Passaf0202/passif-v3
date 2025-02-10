@@ -1,7 +1,13 @@
 
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "../types/escrow";
+
+// Define a type with required fields for transaction creation
+type RequiredTransactionFields = {
+  amount: number;
+  commission_amount: number;
+  blockchain_txn_id: string;
+} & Partial<Omit<Transaction, 'amount' | 'commission_amount' | 'blockchain_txn_id'>>;
 
 export const useSupabaseTransaction = () => {
   const fetchFromSupabase = async (transactionId: string) => {
@@ -30,7 +36,7 @@ export const useSupabaseTransaction = () => {
     return txnData;
   };
 
-  const createSupabaseTransaction = async (transactionData: Partial<Transaction>) => {
+  const createSupabaseTransaction = async (transactionData: RequiredTransactionFields) => {
     const { data: newTransaction, error: createError } = await supabase
       .from('transactions')
       .insert(transactionData)
