@@ -30,19 +30,16 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     const fetchTransaction = async () => {
       try {
         setIsFetching(true);
-        const { data, error } = await supabase
+        
+        // First, check if the transaction exists
+        const { data: txnData, error: txnError } = await supabase
           .from("transactions")
-          .select(`
-            *,
-            listings(*),
-            buyer:profiles!transactions_buyer_id_fkey(*),
-            seller:profiles!transactions_seller_id_fkey(*)
-          `)
+          .select("*")
           .eq("id", transactionId)
           .maybeSingle();
 
-        if (error) {
-          console.error("Error fetching transaction:", error);
+        if (txnError) {
+          console.error("Error fetching transaction:", txnError);
           toast({
             title: "Erreur",
             description: "Impossible de charger les détails de la transaction",
@@ -51,7 +48,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           return;
         }
 
-        if (!data) {
+        if (!txnData) {
           toast({
             title: "Transaction introuvable",
             description: "Cette transaction n'existe pas",
@@ -60,8 +57,40 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           return;
         }
 
-        console.log("Transaction data:", data);
-        setTransaction(data);
+        // Then fetch related data
+        const { data: listingData } = await supabase
+          .from("listings")
+          .select("*")
+          .eq("id", txnData.listing_id)
+          .maybeSingle();
+
+        const { data: buyerData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", txnData.buyer_id)
+          .maybeSingle();
+
+        const { data: sellerData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", txnData.seller_id)
+          .maybeSingle();
+
+        // Combine all data
+        setTransaction({
+          ...txnData,
+          listings: listingData || null,
+          buyer: buyerData || null,
+          seller: sellerData || null
+        });
+
+        console.log("Transaction data:", {
+          ...txnData,
+          listings: listingData || null,
+          buyer: buyerData || null,
+          seller: sellerData || null
+        });
+
       } catch (error) {
         console.error("Error in fetchTransaction:", error);
         toast({
