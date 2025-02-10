@@ -17,6 +17,19 @@ export default function Payment() {
     );
   }
 
+  // Validate UUID format before passing to EscrowDetails
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <p className="text-center text-muted-foreground">Format d'ID de transaction invalide</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <Navbar />
