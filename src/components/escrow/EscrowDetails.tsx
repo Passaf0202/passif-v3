@@ -80,47 +80,34 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
             const txn = await contract.getTransaction(transactionId);
             console.log("Transaction details from contract:", txn);
 
-            const { error: createError } = await supabase
+            const amountInEther = parseFloat(ethers.utils.formatEther(txn.amount || '0'));
+            console.log("Parsed amount:", amountInEther);
+
+            const transactionData = {
+              amount: amountInEther,
+              blockchain_txn_id: '0', // Will be updated by trigger
+              status: 'pending',
+              escrow_status: 'pending',
+              commission_amount: amountInEther * 0.05, // 5% commission
+              token_symbol: 'ETH',
+              can_be_cancelled: true,
+              funds_secured: false,
+              buyer_confirmation: false,
+              seller_confirmation: false
+            };
+
+            const { data: newTransaction, error: createError } = await supabase
               .from('transactions')
-              .insert({
-                id: transactionId,
-                blockchain_txn_id: '0', // Will be updated by trigger
-                status: 'pending',
-                escrow_status: 'pending',
-                amount: ethers.utils.formatEther(txn.amount || '0'),
-                commission_amount: 0, // Default commission amount
-                token_symbol: 'ETH', // Default token
-                can_be_cancelled: true,
-                funds_secured: false,
-                buyer_confirmation: false,
-                seller_confirmation: false
-              });
+              .insert(transactionData)
+              .select()
+              .single();
 
             if (createError) {
               console.error("Error creating transaction:", createError);
               throw new Error("Erreur lors de la création de la transaction");
             }
 
-            // Retry fetching the newly created transaction
-            const { data: newTxnData, error: refetchError } = await supabase
-              .from("transactions")
-              .select(`
-                *,
-                listings (
-                  *
-                ),
-                buyer:profiles!transactions_buyer_id_fkey (
-                  *
-                ),
-                seller:profiles!transactions_seller_id_fkey (
-                  *
-                )
-              `)
-              .eq("id", transactionId)
-              .maybeSingle();
-
-            if (refetchError) throw refetchError;
-            setTransaction(newTxnData);
+            setTransaction(newTransaction);
           } else {
             throw new Error("Transaction non trouvée sur la blockchain");
           }
