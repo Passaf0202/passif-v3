@@ -14,7 +14,7 @@ export interface Transaction {
   seller_wallet_address?: string;
   listings: {
     title: string;
-  } | null;
+  } | null | undefined;
   buyer?: {
     id: string;
   };

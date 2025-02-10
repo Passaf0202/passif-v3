@@ -42,7 +42,13 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         throw new Error("ID de transaction blockchain manquant");
       }
 
-      setTransaction(txnData as Transaction);
+      // Ensure listings is properly typed
+      const formattedTransaction: Transaction = {
+        ...txnData,
+        listings: txnData.listings || null
+      };
+
+      setTransaction(formattedTransaction);
     } catch (error: any) {
       console.error("[useEscrowDetailsTransaction] Error in fetchTransaction:", error);
       toast({
