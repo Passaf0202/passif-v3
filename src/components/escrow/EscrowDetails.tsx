@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 
 const ESCROW_ABI = [
   "function releaseFunds(uint256 txnId)",
+  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)",
   "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)"
 ];
 
@@ -75,13 +76,24 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
           // If we find matching transaction data, create record in Supabase
           if (events.length > 0) {
+            // Fetch transaction details from the contract
+            const txn = await contract.getTransaction(transactionId);
+            console.log("Transaction details from contract:", txn);
+
             const { error: createError } = await supabase
               .from('transactions')
               .insert({
                 id: transactionId,
                 blockchain_txn_id: '0', // Will be updated by trigger
                 status: 'pending',
-                escrow_status: 'pending'
+                escrow_status: 'pending',
+                amount: ethers.utils.formatEther(txn.amount || '0'),
+                commission_amount: 0, // Default commission amount
+                token_symbol: 'ETH', // Default token
+                can_be_cancelled: true,
+                funds_secured: false,
+                buyer_confirmation: false,
+                seller_confirmation: false
               });
 
             if (createError) {
@@ -222,27 +234,27 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         <div className="space-y-2">
           <h3 className="font-medium">Article</h3>
           <p className="text-sm text-muted-foreground">
-            {transaction.listings?.title || "N/A"}
+            {transaction?.listings?.title || "N/A"}
           </p>
         </div>
 
         <div className="space-y-2">
           <h3 className="font-medium">Montant</h3>
           <p className="text-sm text-muted-foreground">
-            {transaction.amount} {transaction.token_symbol}
+            {transaction?.amount} {transaction?.token_symbol}
           </p>
         </div>
 
         <div className="space-y-2">
           <h3 className="font-medium">État</h3>
           <p className="text-sm text-muted-foreground">
-            {transaction.escrow_status === 'pending' ? 'En attente' : 
-             transaction.escrow_status === 'completed' ? 'Terminée' : 
+            {transaction?.escrow_status === 'pending' ? 'En attente' : 
+             transaction?.escrow_status === 'completed' ? 'Terminée' : 
              'En cours'}
           </p>
         </div>
 
-        {transaction.escrow_status !== 'completed' && (
+        {transaction?.escrow_status !== 'completed' && (
           <Button
             onClick={handleReleaseFunds}
             disabled={isLoading}
