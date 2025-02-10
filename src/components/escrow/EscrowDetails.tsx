@@ -16,6 +16,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     useEscrowDetailsTransaction(transactionId);
 
   useEffect(() => {
+    console.log("Fetching transaction details for UUID:", transactionId);
     fetchTransaction();
   }, [transactionId]);
 
@@ -38,6 +39,12 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       </Card>
     );
   }
+
+  console.log("Transaction details:", {
+    uuid: transactionId,
+    blockchainTxnId: transaction.blockchain_txn_id,
+    status: transaction.status
+  });
 
   return (
     <Card>

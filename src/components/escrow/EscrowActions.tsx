@@ -44,6 +44,12 @@ export function EscrowActions({
         throw new Error("MetaMask n'est pas installé");
       }
 
+      if (!transaction.blockchain_txn_id) {
+        throw new Error("ID de transaction blockchain non trouvé");
+      }
+
+      console.log("Using blockchain transaction ID:", transaction.blockchain_txn_id);
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
@@ -52,9 +58,12 @@ export function EscrowActions({
         signer
       );
 
-      console.log("Releasing funds for transaction:", transaction?.blockchain_txn_id);
-      const tx = await contract.releaseFunds(transaction?.blockchain_txn_id);
-      console.log("Transaction sent:", tx.hash);
+      // Convert blockchain_txn_id to BigNumber
+      const blockchainTxnId = ethers.BigNumber.from(transaction.blockchain_txn_id);
+      console.log("Converted blockchain ID to BigNumber:", blockchainTxnId.toString());
+
+      const tx = await contract.releaseFunds(blockchainTxnId);
+      console.log("Release funds transaction sent:", tx.hash);
 
       const receipt = await tx.wait();
       console.log("Transaction receipt:", receipt);
