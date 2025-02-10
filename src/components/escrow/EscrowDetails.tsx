@@ -31,71 +31,96 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       try {
         setIsFetching(true);
         
-        // First, check if the transaction exists
+        // First, try to fetch from Supabase
         const { data: txnData, error: txnError } = await supabase
           .from("transactions")
-          .select("*")
+          .select(`
+            *,
+            listings (
+              *
+            ),
+            buyer:profiles!transactions_buyer_id_fkey (
+              *
+            ),
+            seller:profiles!transactions_seller_id_fkey (
+              *
+            )
+          `)
           .eq("id", transactionId)
           .maybeSingle();
 
         if (txnError) {
           console.error("Error fetching transaction:", txnError);
-          toast({
-            title: "Erreur",
-            description: "Impossible de charger les détails de la transaction",
-            variant: "destructive",
-          });
-          return;
+          throw new Error("Impossible de charger les détails de la transaction");
         }
 
         if (!txnData) {
-          toast({
-            title: "Transaction introuvable",
-            description: "Cette transaction n'existe pas",
-            variant: "destructive",
-          });
-          return;
+          // If not found in Supabase, try to fetch from blockchain
+          if (!window.ethereum) {
+            throw new Error("MetaMask n'est pas installé");
+          }
+
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const contract = new ethers.Contract(
+            "0xe35a0cebf608bff98bcf99093b02469eea2cb38c",
+            ESCROW_ABI,
+            provider
+          );
+
+          // Fetch latest transaction count and iterate backwards
+          const latestBlock = await provider.getBlockNumber();
+          const events = await contract.queryFilter('*', latestBlock - 1000, latestBlock);
+          
+          console.log("Found blockchain events:", events);
+
+          // If we find matching transaction data, create record in Supabase
+          if (events.length > 0) {
+            const { error: createError } = await supabase
+              .from('transactions')
+              .insert({
+                id: transactionId,
+                blockchain_txn_id: '0', // Will be updated by trigger
+                status: 'pending',
+                escrow_status: 'pending'
+              });
+
+            if (createError) {
+              console.error("Error creating transaction:", createError);
+              throw new Error("Erreur lors de la création de la transaction");
+            }
+
+            // Retry fetching the newly created transaction
+            const { data: newTxnData, error: refetchError } = await supabase
+              .from("transactions")
+              .select(`
+                *,
+                listings (
+                  *
+                ),
+                buyer:profiles!transactions_buyer_id_fkey (
+                  *
+                ),
+                seller:profiles!transactions_seller_id_fkey (
+                  *
+                )
+              `)
+              .eq("id", transactionId)
+              .maybeSingle();
+
+            if (refetchError) throw refetchError;
+            setTransaction(newTxnData);
+          } else {
+            throw new Error("Transaction non trouvée sur la blockchain");
+          }
+        } else {
+          setTransaction(txnData);
         }
 
-        // Then fetch related data
-        const { data: listingData } = await supabase
-          .from("listings")
-          .select("*")
-          .eq("id", txnData.listing_id)
-          .maybeSingle();
-
-        const { data: buyerData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", txnData.buyer_id)
-          .maybeSingle();
-
-        const { data: sellerData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", txnData.seller_id)
-          .maybeSingle();
-
-        // Combine all data
-        setTransaction({
-          ...txnData,
-          listings: listingData || null,
-          buyer: buyerData || null,
-          seller: sellerData || null
-        });
-
-        console.log("Transaction data:", {
-          ...txnData,
-          listings: listingData || null,
-          buyer: buyerData || null,
-          seller: sellerData || null
-        });
-
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error in fetchTransaction:", error);
         toast({
           title: "Erreur",
-          description: "Une erreur est survenue lors du chargement des données",
+          description: error.message || "Une erreur est survenue lors du chargement des données",
           variant: "destructive",
         });
       } finally {
