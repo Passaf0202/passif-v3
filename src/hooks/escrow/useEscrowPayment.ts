@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ethers } from "ethers";
 import { useToast } from "@/components/ui/use-toast";
@@ -10,13 +11,15 @@ interface UseEscrowPaymentProps {
   address?: string;
   onTransactionHash?: (hash: string) => void;
   onPaymentComplete: () => void;
+  onTransactionCreated?: (id: string) => void;
 }
 
 export function useEscrowPayment({ 
   listingId, 
   address,
   onTransactionHash,
-  onPaymentComplete 
+  onPaymentComplete,
+  onTransactionCreated
 }: UseEscrowPaymentProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,16 +38,16 @@ export function useEscrowPayment({
     try {
       setIsProcessing(true);
       setError(null);
-      console.log('🔹 Starting escrow payment process for listing:', listingId);
+      console.log('Starting escrow payment process for listing:', listingId);
 
       // Get the authenticated user
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
       if (authError || !authUser) {
-        console.error('🚨 Auth error:', authError);
+        console.error('Auth error:', authError);
         throw new Error("Vous devez être connecté pour effectuer un paiement");
       }
 
-      // Récupérer les détails de l'annonce
+      // Récupérer les détails de l'annonce avec le wallet_address du vendeur
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .select(`
@@ -57,14 +60,40 @@ export function useEscrowPayment({
         .eq('id', listingId)
         .single();
 
-      if (listingError || !listing || !listing.user?.wallet_address || !listing.crypto_amount) {
-        console.error('🚨 Error fetching listing:', listingError);
+      if (listingError || !listing) {
+        console.error('Error fetching listing:', listingError);
         throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
-      console.log("🟢 Listing details:", listing);
+      // Si le wallet_address n'est pas dans la table listings, le récupérer depuis le profil du vendeur
+      let sellerWalletAddress = listing.user?.wallet_address;
 
-      if (listing.user.wallet_address.toLowerCase() === address.toLowerCase()) {
+      if (!sellerWalletAddress) {
+        const { data: sellerProfile, error: sellerError } = await supabase
+          .from('profiles')
+          .select('wallet_address')
+          .eq('id', listing.user_id)
+          .single();
+
+        if (sellerError) {
+          console.error('Error fetching seller profile:', sellerError);
+          throw new Error("Impossible de récupérer l'adresse du vendeur");
+        }
+
+        sellerWalletAddress = sellerProfile?.wallet_address;
+      }
+
+      if (!sellerWalletAddress) {
+        throw new Error("L'adresse du vendeur n'est pas disponible");
+      }
+
+      console.log("Seller wallet address:", sellerWalletAddress);
+
+      if (!listing.crypto_amount) {
+        throw new Error("Le montant en crypto n'est pas défini");
+      }
+
+      if (sellerWalletAddress.toLowerCase() === address.toLowerCase()) {
         throw new Error("Vous ne pouvez pas acheter votre propre annonce");
       }
 
@@ -83,14 +112,13 @@ export function useEscrowPayment({
       if (!activeContract?.address) {
         throw new Error("Aucun contrat actif trouvé");
       }
-      console.log("🔹 Active contract:", activeContract);
 
       const contract = await getContract(activeContract.address);
-      console.log("🟢 Contract instance initialized:", contract);
+      console.log("Contract instance initialized:", contract);
 
       // Estimation des frais de gas
       const gasPrice = await provider.getGasPrice();
-      const estimatedGasLimit = await contract.estimateGas.createTransaction(listing.user.wallet_address, {
+      const estimatedGasLimit = await contract.estimateGas.createTransaction(sellerWalletAddress, {
         value: amountInWei
       });
 
@@ -99,38 +127,42 @@ export function useEscrowPayment({
         throw new Error("Fonds insuffisants pour couvrir les frais de transaction");
       }
 
-      console.log("🔹 Transaction parameters:", {
-        seller: listing.user.wallet_address,
+      console.log("Transaction parameters:", {
+        seller: sellerWalletAddress,
         amount: ethers.utils.formatEther(amountInWei),
         gasLimit: estimatedGasLimit.toString(),
         gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
       });
 
       // Exécuter la transaction
-      const tx = await contract.createTransaction(listing.user.wallet_address, {
+      const tx = await contract.createTransaction(sellerWalletAddress, {
         value: amountInWei,
         gasLimit: estimatedGasLimit,
         gasPrice
       });
 
-      console.log("🟢 Transaction sent:", tx.hash);
+      console.log("Transaction sent:", tx.hash);
       if (onTransactionHash) {
         onTransactionHash(tx.hash);
       }
 
       const receipt = await tx.wait();
-      console.log("🟢 Transaction confirmed:", receipt);
+      console.log("Transaction confirmed:", receipt);
 
       // Créer l'entrée transaction en base de données
       const transaction = await createTransaction(
         listingId,
         authUser.id,
-        listing.user.id,
+        listing.user_id,
         listing.crypto_amount,
         listing.crypto_amount * 0.05,
         activeContract.address,
         activeContract.chain_id
       );
+
+      if (onTransactionCreated && transaction.id) {
+        onTransactionCreated(transaction.id);
+      }
 
       if (receipt.status === 1) {
         await updateTransactionStatus(transaction.id, 'processing', tx.hash);
@@ -153,7 +185,7 @@ export function useEscrowPayment({
       }
 
     } catch (error: any) {
-      console.error('🚨 Payment error:', error);
+      console.error('Payment error:', error);
       setError(error.message || "Une erreur est survenue lors du paiement");
       setTransactionStatus('failed');
       toast({
