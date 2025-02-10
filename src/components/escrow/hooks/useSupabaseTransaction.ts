@@ -11,6 +11,8 @@ type RequiredTransactionFields = {
 
 export const useSupabaseTransaction = () => {
   const fetchFromSupabase = async (transactionId: string) => {
+    console.log("Fetching transaction with ID:", transactionId);
+    
     const { data: txnData, error: txnError } = await supabase
       .from("transactions")
       .select(`
@@ -33,6 +35,7 @@ export const useSupabaseTransaction = () => {
       throw new Error("Impossible de charger les détails de la transaction");
     }
 
+    console.log("Transaction data retrieved:", txnData);
     return txnData;
   };
 

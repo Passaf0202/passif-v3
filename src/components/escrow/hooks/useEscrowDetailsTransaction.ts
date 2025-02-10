@@ -16,15 +16,16 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
   const fetchTransaction = async () => {
     try {
       setIsFetching(true);
-      console.log("Fetching transaction:", transactionId);
+      console.log("Fetching transaction details for ID:", transactionId);
       
       const txnData = await fetchFromSupabase(transactionId);
-      console.log("Transaction data from Supabase:", txnData);
-
+      
       if (!txnData) {
+        console.error("No transaction found for ID:", transactionId);
         throw new Error("Transaction non trouvée");
       }
 
+      console.log("Transaction data successfully fetched:", txnData);
       setTransaction(txnData);
     } catch (error: any) {
       console.error("Error in fetchTransaction:", error);
