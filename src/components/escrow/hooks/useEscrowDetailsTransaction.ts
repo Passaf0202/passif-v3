@@ -16,24 +16,35 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
   const fetchTransaction = async () => {
     try {
       setIsFetching(true);
-      console.log("Fetching transaction details for UUID:", transactionId);
+      console.log("[useEscrowDetailsTransaction] Fetching transaction details for UUID:", transactionId);
       
       const txnData = await fetchFromSupabase(transactionId);
-      console.log("Transaction data successfully fetched:", txnData);
+      console.log("[useEscrowDetailsTransaction] Transaction data successfully fetched:", txnData);
 
       if (!txnData) {
-        console.error("No transaction found for ID:", transactionId);
+        console.error("[useEscrowDetailsTransaction] No transaction found for ID:", transactionId);
         throw new Error("Transaction non trouvée");
       }
 
+      // Log all transaction data for debugging
+      console.log("[useEscrowDetailsTransaction] Full transaction data:", {
+        id: txnData.id,
+        status: txnData.status,
+        escrow_status: txnData.escrow_status,
+        buyer_id: txnData.buyer_id,
+        seller_id: txnData.seller_id,
+        listing_id: txnData.listing_id,
+        blockchain_txn_id: txnData.blockchain_txn_id,
+      });
+
       if (!txnData.blockchain_txn_id) {
-        console.error("No blockchain transaction ID found");
+        console.error("[useEscrowDetailsTransaction] No blockchain transaction ID found");
         throw new Error("ID de transaction blockchain manquant");
       }
 
       setTransaction(txnData);
     } catch (error: any) {
-      console.error("Error in fetchTransaction:", error);
+      console.error("[useEscrowDetailsTransaction] Error in fetchTransaction:", error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors du chargement des données",

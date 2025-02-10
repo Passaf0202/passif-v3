@@ -2,7 +2,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "../types/escrow";
 
-// Define a type with required fields for transaction creation
 type RequiredTransactionFields = {
   amount: number;
   commission_amount: number;
@@ -11,8 +10,26 @@ type RequiredTransactionFields = {
 
 export const useSupabaseTransaction = () => {
   const fetchFromSupabase = async (transactionId: string) => {
-    console.log("Fetching transaction with ID:", transactionId);
+    console.log("[useSupabaseTransaction] Fetching transaction with ID:", transactionId);
     
+    // First, check if the transaction exists
+    const { data: existCheck, error: existError } = await supabase
+      .from("transactions")
+      .select("id")
+      .eq("id", transactionId)
+      .maybeSingle();
+
+    if (existError) {
+      console.error("[useSupabaseTransaction] Error checking transaction existence:", existError);
+      throw new Error("Erreur lors de la vérification de la transaction");
+    }
+
+    if (!existCheck) {
+      console.error("[useSupabaseTransaction] Transaction not found in database");
+      throw new Error("Transaction non trouvée");
+    }
+
+    // If transaction exists, fetch full details
     const { data: txnData, error: txnError } = await supabase
       .from("transactions")
       .select(`
@@ -31,21 +48,28 @@ export const useSupabaseTransaction = () => {
       .maybeSingle();
 
     if (txnError) {
-      console.error("Error fetching transaction:", txnError);
+      console.error("[useSupabaseTransaction] Error fetching transaction:", txnError);
       throw new Error("Impossible de charger les détails de la transaction");
     }
 
     if (!txnData) {
-      console.error("No transaction found with ID:", transactionId);
+      console.error("[useSupabaseTransaction] No transaction found with ID:", transactionId);
       throw new Error("Transaction non trouvée");
     }
 
-    console.log("Transaction data retrieved:", txnData);
+    console.log("[useSupabaseTransaction] Transaction data retrieved:", {
+      id: txnData.id,
+      status: txnData.status,
+      buyer_id: txnData.buyer_id,
+      seller_id: txnData.seller_id,
+      listing_id: txnData.listing_id
+    });
+    
     return txnData;
   };
 
   const createSupabaseTransaction = async (transactionData: RequiredTransactionFields) => {
-    console.log("Creating transaction with data:", transactionData);
+    console.log("[useSupabaseTransaction] Creating transaction with data:", transactionData);
     
     const { data: newTransaction, error: createError } = await supabase
       .from('transactions')
@@ -59,11 +83,11 @@ export const useSupabaseTransaction = () => {
       .single();
 
     if (createError) {
-      console.error("Error creating transaction:", createError);
+      console.error("[useSupabaseTransaction] Error creating transaction:", createError);
       throw new Error("Erreur lors de la création de la transaction");
     }
 
-    console.log("New transaction created:", newTransaction);
+    console.log("[useSupabaseTransaction] New transaction created:", newTransaction);
     return newTransaction;
   };
 
