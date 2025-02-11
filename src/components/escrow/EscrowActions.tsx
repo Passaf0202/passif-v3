@@ -8,6 +8,7 @@ import { ESCROW_CONTRACT_ADDRESS, ESCROW_ABI } from "./types/escrow";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Transaction } from "./types/escrow";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EscrowActionsProps {
   transaction: Transaction;
@@ -27,6 +28,11 @@ export function EscrowActions({
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  const canReleaseFunds = transaction.funds_secured && 
+    !transaction.buyer_confirmation && 
+    (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
   const handleReleaseFunds = async () => {
     try {
@@ -76,6 +82,7 @@ export function EscrowActions({
           .update({
             status: 'completed',
             escrow_status: 'completed',
+            buyer_confirmation: true,
             updated_at: new Date().toISOString()
           })
           .eq('id', transactionId);
@@ -84,7 +91,7 @@ export function EscrowActions({
 
         toast({
           title: "Succès",
-          description: "Les fonds ont été libérés avec succès.",
+          description: "Les fonds ont été libérés avec succès",
         });
 
         onRelease();
@@ -110,7 +117,7 @@ export function EscrowActions({
   return (
     <Button
       onClick={handleReleaseFunds}
-      disabled={isLoading}
+      disabled={isLoading || !canReleaseFunds}
       className="w-full bg-purple-500 hover:bg-purple-600"
     >
       {isLoading ? (
@@ -118,8 +125,10 @@ export function EscrowActions({
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           Libération des fonds en cours...
         </>
+      ) : canReleaseFunds ? (
+        "Confirmer et libérer les fonds"
       ) : (
-        "Confirmer la réception"
+        "En attente de confirmation"
       )}
     </Button>
   );

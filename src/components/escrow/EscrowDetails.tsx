@@ -6,6 +6,8 @@ import { useEscrowDetailsTransaction } from "./hooks/useEscrowDetailsTransaction
 import { TransactionStatus } from "./TransactionStatus";
 import { EscrowActions } from "./EscrowActions";
 import { EscrowInformation } from "./EscrowInformation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -32,9 +34,12 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     return (
       <Card>
         <CardContent className="p-8">
-          <p className="text-center text-muted-foreground">
-            Transaction introuvable
-          </p>
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Transaction introuvable. Veuillez vérifier l'identifiant de la transaction.
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     );
@@ -43,7 +48,8 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   console.log("Transaction details:", {
     uuid: transactionId,
     blockchainTxnId: transaction.blockchain_txn_id,
-    status: transaction.status
+    status: transaction.status,
+    funds_secured: transaction.funds_secured
   });
 
   return (
