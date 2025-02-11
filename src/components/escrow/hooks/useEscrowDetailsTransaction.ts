@@ -13,8 +13,7 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
     console.log("[useEscrowDetailsTransaction] Fetching transaction:", transactionId);
 
     try {
-      // Essayer d'abord de trouver la transaction par listing_id
-      let { data: txn, error: listingError } = await supabase
+      let { data: txn, error } = await supabase
         .from('transactions')
         .select(`
           *,
@@ -30,19 +29,18 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
             full_name
           )
         `)
-        .eq('listing_id', transactionId)
-        .order('created_at', { ascending: false })
+        .eq('id', transactionId)
         .maybeSingle();
 
-      if (listingError) {
-        console.error("[useEscrowDetailsTransaction] Error fetching by listing_id:", listingError);
-        throw listingError;
+      if (error) {
+        console.error("[useEscrowDetailsTransaction] Error fetching transaction:", error);
+        throw error;
       }
 
-      // Si aucune transaction n'est trouvée par listing_id, essayer par id direct
+      // Si aucune transaction n'est trouvée avec l'ID direct, essayons de chercher par listing_id
       if (!txn) {
-        console.log("[useEscrowDetailsTransaction] No transaction found with listing_id, trying transaction id");
-        let { data: txnById, error } = await supabase
+        console.log("[useEscrowDetailsTransaction] No transaction found with ID, trying listing_id");
+        let { data: txnByListing, error: listingError } = await supabase
           .from('transactions')
           .select(`
             *,
@@ -58,15 +56,16 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
               full_name
             )
           `)
-          .eq('id', transactionId)
+          .eq('listing_id', transactionId)
+          .order('created_at', { ascending: false })
           .maybeSingle();
 
-        if (error) {
-          console.error("[useEscrowDetailsTransaction] Error fetching by id:", error);
-          throw error;
+        if (listingError) {
+          console.error("[useEscrowDetailsTransaction] Error fetching by listing_id:", listingError);
+          throw listingError;
         }
 
-        txn = txnById;
+        txn = txnByListing;
       }
 
       if (txn) {
