@@ -1,18 +1,32 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "../types/escrow";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useEscrowDetailsTransaction = (transactionId: string) => {
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const { toast } = useToast();
 
   const fetchTransaction = async () => {
     setIsFetching(true);
     console.log("[useEscrowDetailsTransaction] Fetching transaction:", transactionId);
 
     try {
+      // Vérifier d'abord que l'utilisateur est connecté
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error("[useEscrowDetailsTransaction] No active session");
+        toast({
+          title: "Erreur d'authentification",
+          description: "Vous devez être connecté pour voir les détails de la transaction",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Essayer d'abord de trouver la transaction par listing_id
       let { data: txn, error: listingError } = await supabase
         .from('transactions')
@@ -36,7 +50,12 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
 
       if (listingError) {
         console.error("[useEscrowDetailsTransaction] Error fetching by listing_id:", listingError);
-        throw listingError;
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer les détails de la transaction",
+          variant: "destructive",
+        });
+        return;
       }
 
       // Si aucune transaction n'est trouvée par listing_id, essayer par id direct
@@ -63,7 +82,12 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
 
         if (error) {
           console.error("[useEscrowDetailsTransaction] Error fetching by id:", error);
-          throw error;
+          toast({
+            title: "Erreur",
+            description: "Impossible de récupérer les détails de la transaction",
+            variant: "destructive",
+          });
+          return;
         }
 
         txn = txnById;
@@ -89,9 +113,20 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
           seller: txn.seller
         };
         setTransaction(formattedTransaction);
+      } else {
+        toast({
+          title: "Transaction non trouvée",
+          description: "Aucune transaction correspondante n'a été trouvée",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("[useEscrowDetailsTransaction] Error:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la récupération des détails de la transaction",
+        variant: "destructive",
+      });
     } finally {
       setIsFetching(false);
     }
