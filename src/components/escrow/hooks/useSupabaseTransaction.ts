@@ -56,7 +56,12 @@ export const useSupabaseTransaction = () => {
         console.log("[useSupabaseTransaction] Transaction not found in transactions table, checking transaction_details");
         const { data: detailsData, error: detailsError } = await supabase
           .from("transaction_details")
-          .select("*")
+          .select(`
+            *,
+            listings!transactions_listing_id_fkey (
+              title
+            )
+          `)
           .eq('id', transactionId)
           .maybeSingle();
 
@@ -71,11 +76,17 @@ export const useSupabaseTransaction = () => {
         }
 
         console.log("[useSupabaseTransaction] Found in transaction_details:", detailsData);
-        return detailsData;
+        return {
+          ...detailsData,
+          listing_title: detailsData.listings?.title || detailsData.listing_title || 'N/A'
+        };
       }
 
       console.log("[useSupabaseTransaction] Transaction found:", transactionData);
-      return transactionData;
+      return {
+        ...transactionData,
+        listing_title: transactionData.listings?.title || 'N/A'
+      };
     } catch (error) {
       console.error("[useSupabaseTransaction] Unexpected error:", error);
       throw error;
