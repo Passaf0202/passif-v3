@@ -3,16 +3,16 @@ import { ethers } from 'ethers';
 import { formatAmount, getEscrowContract, parseTransactionId } from '@/utils/escrow/contractUtils';
 import { useTransactionCreation } from './useTransactionCreation';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const usePaymentTransaction = () => {
-  const { createTransaction, updateTransactionWithBlockchain } = useTransactionCreation();
+  const { updateTransactionWithBlockchain } = useTransactionCreation();
   const { toast } = useToast();
 
-  const createPaymentTransaction = async (
+  const processPayment = async (
+    transactionId: string,
     sellerAddress: string,
-    cryptoAmount: number,
-    listingId: string,
-    cryptoCurrency: string = 'MATIC'
+    cryptoAmount: number
   ) => {
     try {
       if (!window.ethereum) {
@@ -20,23 +20,12 @@ export const usePaymentTransaction = () => {
       }
 
       console.log('[usePaymentTransaction] Starting payment process:', {
+        transactionId,
         sellerAddress,
-        cryptoAmount,
-        listingId,
-        cryptoCurrency
+        cryptoAmount
       });
 
-      // 1. Créer d'abord la transaction dans Supabase
-      const transaction = await createTransaction(
-        listingId,
-        cryptoAmount,
-        cryptoCurrency,
-        sellerAddress
-      );
-
-      console.log('[usePaymentTransaction] Supabase transaction created:', transaction);
-
-      // 2. Initialiser le provider et le contrat
+      // 1. Initialiser le provider et le contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = getEscrowContract(provider);
@@ -48,7 +37,7 @@ export const usePaymentTransaction = () => {
         amountInWei: amountInWei.toString()
       });
 
-      // 3. Créer la transaction blockchain
+      // 2. Créer la transaction blockchain
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei
       });
@@ -58,13 +47,13 @@ export const usePaymentTransaction = () => {
       const receipt = await tx.wait();
       console.log('[usePaymentTransaction] Transaction confirmed:', receipt);
 
-      // 4. Parser l'ID de transaction blockchain
+      // 3. Parser l'ID de transaction blockchain
       const blockchainTxnId = await parseTransactionId(receipt);
       console.log('[usePaymentTransaction] Parsed blockchain transaction ID:', blockchainTxnId);
 
-      // 5. Mettre à jour la transaction Supabase
+      // 4. Mettre à jour la transaction Supabase
       await updateTransactionWithBlockchain(
-        transaction.id,
+        transactionId,
         blockchainTxnId,
         tx.hash
       );
@@ -74,12 +63,17 @@ export const usePaymentTransaction = () => {
         description: "Le paiement a été effectué avec succès",
       });
 
-      return transaction.id;
+      return transactionId;
     } catch (error: any) {
       console.error('[usePaymentTransaction] Error:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors du paiement",
+        variant: "destructive",
+      });
       throw error;
     }
   };
 
-  return { createPaymentTransaction };
+  return { processPayment };
 };
