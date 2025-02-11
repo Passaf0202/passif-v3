@@ -54,7 +54,7 @@ export const useTransactionCreation = () => {
           status: 'pending',
           escrow_status: 'pending',
           network: 'polygon_amoy',
-          token_symbol: cryptoCurrency,
+          token_symbol: 'POL',
           seller_wallet_address: sellerAddress,
           can_be_cancelled: true,
           chain_id: 80002 // Polygon Amoy testnet
@@ -81,48 +81,7 @@ export const useTransactionCreation = () => {
     }
   };
 
-  const updateTransactionWithBlockchain = async (
-    transactionId: string,
-    blockchainTxnId: string,
-    transactionHash: string
-  ) => {
-    try {
-      console.log("[useTransactionCreation] Updating transaction with blockchain data:", {
-        transactionId,
-        blockchainTxnId,
-        transactionHash
-      });
-
-      const { error: updateError } = await supabase
-        .from('transactions')
-        .update({
-          blockchain_txn_id: blockchainTxnId,
-          transaction_hash: transactionHash,
-          funds_secured: true,
-          funds_secured_at: new Date().toISOString()
-        })
-        .eq('id', transactionId);
-
-      if (updateError) {
-        console.error("[useTransactionCreation] Error updating transaction:", updateError);
-        throw new Error("Erreur lors de la mise à jour de la transaction");
-      }
-
-      console.log("[useTransactionCreation] Transaction updated successfully");
-
-    } catch (error: any) {
-      console.error("[useTransactionCreation] Error:", error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la mise à jour de la transaction",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
   return {
-    createTransaction,
-    updateTransactionWithBlockchain
+    createTransaction
   };
 };

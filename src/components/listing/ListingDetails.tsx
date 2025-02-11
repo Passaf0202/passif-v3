@@ -89,7 +89,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       const transaction = await createTransaction(
         listing.id,
         cryptoDetails?.amount || 0,
-        cryptoDetails?.currency || 'MATIC',
+        cryptoDetails?.currency || 'POL',
         listingData?.wallet_address || listing.wallet_address || ''
       );
 
