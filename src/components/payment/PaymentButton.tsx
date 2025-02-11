@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
