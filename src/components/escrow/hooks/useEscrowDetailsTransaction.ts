@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "../types/escrow";
 import { useToast } from "@/components/ui/use-toast";
@@ -27,8 +27,8 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         return;
       }
 
-      // Essayer d'abord de trouver la transaction par listing_id
-      let { data: txn, error: listingError } = await supabase
+      // Récupérer la transaction directement par son ID
+      let { data: txn, error } = await supabase
         .from('transactions')
         .select(`
           *,
@@ -44,53 +44,17 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
             full_name
           )
         `)
-        .eq('listing_id', transactionId)
-        .order('created_at', { ascending: false })
-        .maybeSingle();
+        .eq('id', transactionId)
+        .single();
 
-      if (listingError) {
-        console.error("[useEscrowDetailsTransaction] Error fetching by listing_id:", listingError);
+      if (error) {
+        console.error("[useEscrowDetailsTransaction] Error fetching transaction:", error);
         toast({
           title: "Erreur",
           description: "Impossible de récupérer les détails de la transaction",
           variant: "destructive",
         });
         return;
-      }
-
-      // Si aucune transaction n'est trouvée par listing_id, essayer par id direct
-      if (!txn) {
-        console.log("[useEscrowDetailsTransaction] No transaction found with listing_id, trying transaction id");
-        let { data: txnById, error } = await supabase
-          .from('transactions')
-          .select(`
-            *,
-            listing:listings!transactions_listing_id_fkey (
-              title
-            ),
-            buyer:profiles!transactions_buyer_id_fkey (
-              id,
-              full_name
-            ),
-            seller:profiles!transactions_seller_id_fkey (
-              id,
-              full_name
-            )
-          `)
-          .eq('id', transactionId)
-          .maybeSingle();
-
-        if (error) {
-          console.error("[useEscrowDetailsTransaction] Error fetching by id:", error);
-          toast({
-            title: "Erreur",
-            description: "Impossible de récupérer les détails de la transaction",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        txn = txnById;
       }
 
       if (txn) {
