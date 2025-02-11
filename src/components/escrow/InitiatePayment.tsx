@@ -8,12 +8,14 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { ESCROW_ABI } from "@/hooks/escrow/contractConstants";
 import { supabase } from "@/integrations/supabase/client";
+import { AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface InitiatePaymentProps {
   transaction: {
     id: string;
     amount: number;
-    seller_wallet_address: string;
+    seller_wallet_address?: string;
   };
   onSuccess: () => void;
 }
@@ -23,6 +25,18 @@ export function InitiatePayment({ transaction, onSuccess }: InitiatePaymentProps
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Vérifier si l'adresse du vendeur est disponible
+  if (!transaction.seller_wallet_address) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          L'adresse du vendeur n'est pas disponible. Impossible de procéder au paiement.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   const handlePayment = async () => {
     try {
