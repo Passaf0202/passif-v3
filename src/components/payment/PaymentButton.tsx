@@ -54,6 +54,10 @@ export function PaymentButton({
 
       console.log("[PaymentButton] Transaction created with ID:", transactionId);
 
+      if (!transactionId) {
+        throw new Error("L'ID de transaction est manquant");
+      }
+
       // Appeler onClick avant la redirection
       onClick();
 

@@ -74,7 +74,7 @@ export const usePaymentTransaction = () => {
         description: "Le paiement a été effectué avec succès",
       });
 
-      return transaction.id; // Retourner l'ID de la transaction Supabase
+      return transaction.id;
     } catch (error: any) {
       console.error('[usePaymentTransaction] Error:', error);
       throw error;
