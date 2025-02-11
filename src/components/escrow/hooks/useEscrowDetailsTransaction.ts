@@ -13,6 +13,7 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
     console.log("[useEscrowDetailsTransaction] Fetching transaction:", transactionId);
 
     try {
+      // Try to fetch transaction by ID first
       let { data: txn, error } = await supabase
         .from('transactions')
         .select(`
@@ -37,10 +38,10 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         throw error;
       }
 
-      // Si aucune transaction n'est trouvée avec l'ID direct, essayons de chercher par listing_id
+      // If no transaction found by ID, try fetching by listing_id with additional error handling
       if (!txn) {
         console.log("[useEscrowDetailsTransaction] No transaction found with ID, trying listing_id");
-        let { data: txnByListing, error: listingError } = await supabase
+        const { data: txnByListing, error: listingError } = await supabase
           .from('transactions')
           .select(`
             *,
@@ -90,7 +91,7 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         setTransaction(formattedTransaction);
       }
     } catch (error) {
-      console.error("[useEscrowDetailsTransaction] Error:", error);
+      console.error("[useEscrowDetailsTransaction] Unexpected error:", error);
     } finally {
       setIsFetching(false);
     }
