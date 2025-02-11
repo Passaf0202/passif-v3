@@ -8,6 +8,7 @@ import { EscrowActions } from "./EscrowActions";
 import { EscrowInformation } from "./EscrowInformation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { InitiatePayment } from "./InitiatePayment";
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -26,6 +27,10 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     console.log("Fetching transaction details for UUID:", transactionId);
     fetchTransaction();
   }, [transactionId, fetchTransaction]);
+
+  const handlePaymentSuccess = () => {
+    fetchTransaction();
+  };
 
   let content;
   if (isFetching) {
@@ -48,18 +53,24 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       <div className="space-y-6">
         <EscrowInformation transaction={transaction} />
         <TransactionStatus transaction={transaction} />
-        <EscrowActions 
-          transaction={transaction}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-          onRelease={fetchTransaction}
-          transactionId={transactionId}
-        />
+        {!transaction.funds_secured ? (
+          <InitiatePayment 
+            transaction={transaction}
+            onSuccess={handlePaymentSuccess}
+          />
+        ) : (
+          <EscrowActions 
+            transaction={transaction}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            onRelease={fetchTransaction}
+            transactionId={transactionId}
+          />
+        )}
       </div>
     );
   }
 
-  // La structure de base est toujours rendue
   return (
     <Card>
       <CardHeader>
