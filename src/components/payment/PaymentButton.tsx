@@ -44,7 +44,17 @@ export function PaymentButton({
     }
 
     try {
-      // 1. Vérifier et changer de réseau si nécessaire
+      // 1. Vérifier que MetaMask est disponible
+      if (!window.ethereum) {
+        toast({
+          title: "MetaMask non détecté",
+          description: "Veuillez installer MetaMask pour continuer",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // 2. Vérifier et changer de réseau si nécessaire
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -53,12 +63,12 @@ export function PaymentButton({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // 2. Appeler onClick (qui crée la transaction dans Supabase)
+      // 3. Appeler onClick (qui crée la transaction dans Supabase)
       await onClick();
 
       console.log('[PaymentButton] Fetching transaction for listing:', listingId);
 
-      // 3. Récupérer l'ID de la transaction créée avec gestion d'erreur améliorée
+      // 4. Récupérer l'ID de la transaction créée avec gestion d'erreur améliorée
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
         .select('id')
@@ -79,7 +89,7 @@ export function PaymentButton({
 
       console.log('[PaymentButton] Found transaction:', transaction);
 
-      // 4. Traiter le paiement avec le contrat intelligent
+      // 5. Traiter le paiement avec le contrat intelligent
       await processPayment(transaction.id, sellerAddress, cryptoAmount);
 
     } catch (error: any) {
