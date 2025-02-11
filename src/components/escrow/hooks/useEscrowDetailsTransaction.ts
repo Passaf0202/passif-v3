@@ -44,8 +44,20 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
 
       // Format the transaction data
       const formattedTransaction: Transaction = {
-        ...txnData,
-        listing_title: txnData.listing?.title || txnData.listing_title || 'N/A'
+        id: txnData.id,
+        amount: txnData.amount,
+        commission_amount: txnData.commission_amount,
+        blockchain_txn_id: txnData.blockchain_txn_id,
+        status: txnData.status,
+        escrow_status: txnData.escrow_status,
+        token_symbol: txnData.token_symbol || '',
+        can_be_cancelled: txnData.can_be_cancelled || false,
+        funds_secured: txnData.funds_secured || false,
+        buyer_confirmation: txnData.buyer_confirmation || false,
+        seller_confirmation: txnData.seller_confirmation || false,
+        seller_wallet_address: txnData.seller_wallet_address,
+        // Utiliser la valeur du titre depuis la transaction ou un fallback
+        listing_title: txnData.listing_title || 'N/A'
       };
 
       setTransaction(formattedTransaction);
