@@ -1,38 +1,60 @@
 
 import { ethers } from 'ethers';
-import { supabase } from "@/integrations/supabase/client";
 import { formatAmount, getEscrowContract, parseTransactionId } from '@/utils/escrow/contractUtils';
+import { useTransactionCreation } from './useTransactionCreation';
+import { useToast } from '@/components/ui/use-toast';
 
 export const usePaymentTransaction = () => {
-  const createTransaction = async (
+  const { createTransaction, updateTransactionWithBlockchain } = useTransactionCreation();
+  const { toast } = useToast();
+
+  const createPaymentTransaction = async (
     sellerAddress: string,
     cryptoAmount: number,
-    transactionId?: string
+    listingId: string,
+    cryptoCurrency: string = 'MATIC'
   ) => {
     try {
       if (!window.ethereum) {
         throw new Error("MetaMask n'est pas installé");
       }
 
+      console.log('[usePaymentTransaction] Starting payment process:', {
+        sellerAddress,
+        cryptoAmount,
+        listingId,
+        cryptoCurrency
+      });
+
+      // 1. Créer d'abord la transaction dans Supabase
+      const transaction = await createTransaction(
+        listingId,
+        cryptoAmount,
+        cryptoCurrency,
+        sellerAddress
+      );
+
+      // 2. Initialiser le provider et le contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      
       console.log('Connected to network:', await provider.getNetwork());
 
       const contract = getEscrowContract(provider);
-      
       const formattedAmount = formatAmount(cryptoAmount);
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
+
       console.log('Transaction params:', {
         sellerAddress,
         amountInWei: amountInWei.toString()
       });
 
+      // 3. Vérifier le solde
       const signer = provider.getSigner();
       const balance = await provider.getBalance(await signer.getAddress());
       if (balance.lt(amountInWei)) {
         throw new Error("Solde insuffisant pour effectuer la transaction");
       }
 
+      // 4. Estimer le gas
       const gasEstimate = await contract.estimateGas.createTransaction(sellerAddress, {
         value: amountInWei,
       });
@@ -47,6 +69,7 @@ export const usePaymentTransaction = () => {
         throw new Error("Solde insuffisant pour couvrir les frais de transaction");
       }
 
+      // 5. Envoyer la transaction
       const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei,
         gasLimit: adjustedGasLimit,
@@ -62,34 +85,25 @@ export const usePaymentTransaction = () => {
         throw new Error("La transaction a échoué sur la blockchain");
       }
 
+      // 6. Parser l'ID de transaction blockchain
       const blockchainTxnId = await parseTransactionId(receipt);
       console.log('Parsed blockchain transaction ID:', blockchainTxnId);
 
-      if (transactionId) {
-        console.log('Updating Supabase transaction:', {
-          blockchain_txn_id: blockchainTxnId,
-          transaction_hash: tx.hash
-        });
+      // 7. Mettre à jour la transaction Supabase
+      await updateTransactionWithBlockchain(
+        transaction.id,
+        blockchainTxnId.toString(),
+        tx.hash
+      );
 
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            blockchain_txn_id: blockchainTxnId.toString(),
-            transaction_hash: tx.hash,
-            funds_secured: true,
-            funds_secured_at: new Date().toISOString()
-          })
-          .eq('id', transactionId);
+      toast({
+        title: "Transaction réussie",
+        description: "La transaction a été créée avec succès",
+      });
 
-        if (updateError) {
-          console.error('Error updating transaction:', updateError);
-          throw new Error("Erreur lors de la mise à jour de la transaction dans la base de données");
-        }
-      }
-
-      return blockchainTxnId.toString();
+      return transaction.id;
     } catch (error: any) {
-      console.error('Error in createTransaction:', error);
+      console.error('Error in createPaymentTransaction:', error);
       
       if (error.code === 'INSUFFICIENT_FUNDS') {
         throw new Error("Solde insuffisant pour effectuer la transaction");
@@ -105,6 +119,5 @@ export const usePaymentTransaction = () => {
     }
   };
 
-  return { createTransaction };
+  return { createPaymentTransaction };
 };
-

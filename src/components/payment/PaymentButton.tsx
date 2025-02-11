@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
+import { useRouter } from "react-router-dom";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -13,25 +14,26 @@ interface PaymentButtonProps {
   onClick: () => void;
   disabled?: boolean;
   sellerAddress?: string;
-  transactionId?: string;
+  listingId: string;
 }
 
 export function PaymentButton({ 
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency = 'BNB',
+  cryptoCurrency = 'MATIC',
   onClick,
   disabled = false,
   sellerAddress,
-  transactionId
+  listingId
 }: PaymentButtonProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
-  const { createTransaction } = usePaymentTransaction();
+  const { createPaymentTransaction } = usePaymentTransaction();
 
   const handleClick = async () => {
-    if (!isConnected || !sellerAddress || !cryptoAmount) {
+    if (!isConnected || !sellerAddress || !cryptoAmount || !listingId) {
       toast({
         title: "Erreur",
         description: "Veuillez connecter votre wallet et vérifier les informations de paiement",
@@ -43,14 +45,17 @@ export function PaymentButton({
     try {
       await ensureCorrectNetwork();
 
-      await createTransaction(sellerAddress, cryptoAmount, transactionId);
+      const transactionId = await createPaymentTransaction(
+        sellerAddress,
+        cryptoAmount,
+        listingId,
+        cryptoCurrency
+      );
 
-      toast({
-        title: "Transaction réussie",
-        description: "Les fonds ont été bloqués dans le contrat d'escrow",
-      });
+      // Rediriger vers la page de la transaction
+      router.push(`/payment/${transactionId}`);
+
       onClick();
-
     } catch (error: any) {
       console.error('Transaction error:', error);
       toast({
@@ -61,7 +66,7 @@ export function PaymentButton({
     }
   };
 
-  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress;
+  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress || !listingId;
 
   return (
     <div className="w-full space-y-2">
