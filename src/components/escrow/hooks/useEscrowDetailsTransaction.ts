@@ -45,7 +45,7 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
       // Format the transaction data
       const formattedTransaction: Transaction = {
         ...txnData,
-        listing_title: txnData.listing_title || 'N/A'
+        listing_title: txnData.listing?.title || 'N/A'
       };
 
       setTransaction(formattedTransaction);

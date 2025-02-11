@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
-import { useRouter } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -28,7 +28,7 @@ export function PaymentButton({
   listingId
 }: PaymentButtonProps) {
   const { toast } = useToast();
-  const router = useRouter();
+  const navigate = useNavigate();
   const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
   const { createPaymentTransaction } = usePaymentTransaction();
 
@@ -53,7 +53,7 @@ export function PaymentButton({
       );
 
       // Rediriger vers la page de la transaction
-      router.push(`/payment/${transactionId}`);
+      navigate(`/payment/${transactionId}`);
 
       onClick();
     } catch (error: any) {

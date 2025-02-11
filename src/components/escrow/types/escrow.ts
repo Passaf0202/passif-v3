@@ -19,6 +19,9 @@ export interface Transaction {
   seller?: {
     id: string;
   };
+  listing?: {
+    title: string;
+  };
 }
 
 export const ESCROW_ABI = [

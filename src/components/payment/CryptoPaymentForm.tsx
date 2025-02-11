@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useEscrowPayment } from "@/hooks/useEscrowPayment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,19 +33,17 @@ export function CryptoPaymentForm({
   const [showEscrowInfo, setShowEscrowInfo] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState(initialCryptoCurrency);
   const { data: cryptoRates, isLoading: isLoadingRates } = useCryptoRates();
-  const [transactionId, setTransactionId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const convertedAmount = useCryptoConversion(price, listingId, selectedCurrency);
-  
+
   const {
     handlePayment,
-    isProcessing,
     error,
     transactionStatus,
   } = useEscrowPayment({
     listingId,
     address: user?.id,
-    onTransactionCreated: (id: string) => setTransactionId(id),
     onPaymentComplete,
   });
 
@@ -118,7 +117,8 @@ export function CryptoPaymentForm({
               cryptoAmount={finalCryptoAmount}
               cryptoCurrency={finalCryptoCurrency}
               disabled={isProcessing || !finalCryptoAmount}
-              transactionId={transactionId}
+              sellerAddress={user?.id}
+              listingId={listingId}
             />
 
             {error && (

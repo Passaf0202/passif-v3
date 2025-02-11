@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ContactModal } from "@/components/ContactModal";
@@ -78,6 +79,7 @@ export const ListingActions = ({
           cryptoCurrency={cryptoCurrency}
           onClick={handleCryptoPayment}
           sellerAddress={sellerAddress}
+          listingId={listingId}
         />
 
         <Button variant="outline" className="w-full" asChild>
