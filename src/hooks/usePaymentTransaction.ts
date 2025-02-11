@@ -3,16 +3,16 @@ import { ethers } from 'ethers';
 import { formatAmount, getEscrowContract, parseTransactionId } from '@/utils/escrow/contractUtils';
 import { useTransactionCreation } from './useTransactionCreation';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 export const usePaymentTransaction = () => {
-  const { updateTransactionWithBlockchain } = useTransactionCreation();
+  const { createTransaction, updateTransactionWithBlockchain } = useTransactionCreation();
   const { toast } = useToast();
 
-  const processPayment = async (
-    transactionId: string,
+  const createPaymentTransaction = async (
     sellerAddress: string,
-    cryptoAmount: number
+    cryptoAmount: number,
+    listingId: string,
+    cryptoCurrency: string = 'MATIC'
   ) => {
     try {
       if (!window.ethereum) {
@@ -20,24 +20,25 @@ export const usePaymentTransaction = () => {
       }
 
       console.log('[usePaymentTransaction] Starting payment process:', {
-        transactionId,
         sellerAddress,
-        cryptoAmount
+        cryptoAmount,
+        listingId,
+        cryptoCurrency
       });
 
-      // 1. Demander explicitement l'accès aux comptes MetaMask
-      console.log('[usePaymentTransaction] Requesting account access...');
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      // 1. Créer d'abord la transaction dans Supabase
+      const transaction = await createTransaction(
+        listingId,
+        cryptoAmount,
+        cryptoCurrency,
+        sellerAddress
+      );
+
+      console.log('[usePaymentTransaction] Supabase transaction created:', transaction);
 
       // 2. Initialiser le provider et le contrat
-      console.log('[usePaymentTransaction] Initializing provider and signer...');
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      
-      // Vérifier que nous avons bien un signer
-      const signerAddress = await signer.getAddress();
-      console.log('[usePaymentTransaction] Signer address:', signerAddress);
-
       const contract = getEscrowContract(provider);
       const formattedAmount = formatAmount(cryptoAmount);
       const amountInWei = ethers.utils.parseUnits(formattedAmount, 18);
@@ -48,7 +49,7 @@ export const usePaymentTransaction = () => {
       });
 
       // 3. Créer la transaction blockchain
-      const tx = await contract.connect(signer).createTransaction(sellerAddress, {
+      const tx = await contract.createTransaction(sellerAddress, {
         value: amountInWei
       });
 
@@ -63,7 +64,7 @@ export const usePaymentTransaction = () => {
 
       // 5. Mettre à jour la transaction Supabase
       await updateTransactionWithBlockchain(
-        transactionId,
+        transaction.id,
         blockchainTxnId,
         tx.hash
       );
@@ -73,26 +74,12 @@ export const usePaymentTransaction = () => {
         description: "Le paiement a été effectué avec succès",
       });
 
-      return transactionId;
+      return transaction.id;
     } catch (error: any) {
       console.error('[usePaymentTransaction] Error:', error);
-      // Gérer spécifiquement les erreurs MetaMask
-      if (error.code === 4001) {
-        toast({
-          title: "Transaction annulée",
-          description: "Vous avez refusé la transaction dans MetaMask",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Erreur",
-          description: error.message || "Une erreur est survenue lors du paiement",
-          variant: "destructive",
-        });
-      }
       throw error;
     }
   };
 
-  return { processPayment };
+  return { createPaymentTransaction };
 };

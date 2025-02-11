@@ -2,10 +2,9 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
-import { useNetwork, useSwitchNetwork } from "wagmi";
-import { amoy } from "@/config/chains";
-import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -22,16 +21,16 @@ export function PaymentButton({
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency = 'POL',
+  cryptoCurrency = 'MATIC',
   onClick,
   disabled = false,
   sellerAddress,
   listingId
 }: PaymentButtonProps) {
   const { toast } = useToast();
-  const { chain } = useNetwork();
-  const { switchNetwork } = useSwitchNetwork();
-  const { processPayment } = usePaymentTransaction();
+  const navigate = useNavigate();
+  const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
+  const { createPaymentTransaction } = usePaymentTransaction();
 
   const handleClick = async () => {
     if (!isConnected || !sellerAddress || !cryptoAmount || !listingId) {
@@ -44,56 +43,28 @@ export function PaymentButton({
     }
 
     try {
-      // 1. Vérifier que MetaMask est disponible
-      if (!window.ethereum) {
-        toast({
-          title: "MetaMask non détecté",
-          description: "Veuillez installer MetaMask pour continuer",
-          variant: "destructive",
-        });
-        return;
+      await ensureCorrectNetwork();
+
+      const transactionId = await createPaymentTransaction(
+        sellerAddress,
+        cryptoAmount,
+        listingId,
+        cryptoCurrency
+      );
+
+      console.log("[PaymentButton] Transaction created with ID:", transactionId);
+
+      if (!transactionId) {
+        throw new Error("L'ID de transaction est manquant");
       }
 
-      // 2. Vérifier et changer de réseau si nécessaire
-      if (chain?.id !== amoy.id) {
-        if (!switchNetwork) {
-          throw new Error("Impossible de changer de réseau automatiquement");
-        }
-        await switchNetwork(amoy.id);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      // Appeler onClick avant la redirection
+      onClick();
 
-      // 3. Appeler onClick (qui crée la transaction dans Supabase)
-      await onClick();
-
-      console.log('[PaymentButton] Fetching transaction for listing:', listingId);
-
-      // 4. Récupérer l'ID de la transaction créée avec gestion d'erreur améliorée
-      const { data: transaction, error: transactionError } = await supabase
-        .from('transactions')
-        .select('id')
-        .eq('listing_id', listingId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (transactionError) {
-        console.error('[PaymentButton] Supabase error:', transactionError);
-        throw new Error("Erreur lors de la récupération de la transaction");
-      }
-
-      if (!transaction) {
-        console.error('[PaymentButton] No transaction found for listing:', listingId);
-        throw new Error("La transaction n'a pas été créée correctement");
-      }
-
-      console.log('[PaymentButton] Found transaction:', transaction);
-
-      // 5. Traiter le paiement avec le contrat intelligent
-      await processPayment(transaction.id, sellerAddress, cryptoAmount);
-
+      // Rediriger vers la page de la transaction avec l'ID correct
+      navigate(`/payment/${transactionId}`);
     } catch (error: any) {
-      console.error('[PaymentButton] Transaction error:', error);
+      console.error('Transaction error:', error);
       toast({
         title: "Erreur de transaction",
         description: error.message || "La transaction a échoué. Veuillez réessayer.",
@@ -102,26 +73,44 @@ export function PaymentButton({
     }
   };
 
+  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress || !listingId;
+
   return (
-    <Button 
-      onClick={handleClick} 
-      disabled={isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress}
-      className="w-full bg-primary hover:bg-primary/90"
-    >
-      {isProcessing ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Transaction en cours...
-        </>
-      ) : disabled ? (
-        "Transaction en attente de confirmation..."
-      ) : !isConnected ? (
-        "Connecter votre wallet"
-      ) : !sellerAddress ? (
-        "Adresse du vendeur manquante"
-      ) : (
-        `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
+    <div className="w-full space-y-2">
+      <Button 
+        onClick={handleClick} 
+        disabled={buttonDisabled}
+        className="w-full bg-primary hover:bg-primary/90"
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Transaction en cours...
+          </>
+        ) : disabled ? (
+          "Transaction en attente de confirmation..."
+        ) : isWrongNetwork ? (
+          "Changer vers Polygon Amoy"
+        ) : !isConnected ? (
+          "Connecter votre wallet"
+        ) : !sellerAddress ? (
+          "Adresse du vendeur manquante"
+        ) : (
+          `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
+        )}
+      </Button>
+
+      {!isConnected && (
+        <p className="text-sm text-red-500 text-center">
+          Veuillez connecter votre portefeuille pour effectuer le paiement
+        </p>
       )}
-    </Button>
+
+      {isWrongNetwork && isConnected && (
+        <p className="text-sm text-red-500 text-center">
+          Veuillez vous connecter au réseau Polygon Amoy
+        </p>
+      )}
+    </div>
   );
 }

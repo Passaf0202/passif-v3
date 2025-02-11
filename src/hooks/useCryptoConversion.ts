@@ -1,9 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useCryptoConversion = (price: number, listingId?: string, cryptoCurrency: string = 'POL') => {
+export const useCryptoConversion = (price: number, listingId?: string, cryptoCurrency: string = 'BNB') => {
   const { selectedCurrency } = useCurrencyStore();
 
   const { data: rateData } = useQuery({
@@ -97,7 +96,7 @@ async function updateListingCryptoAmount(listingId: string, amount: number, curr
         crypto_amount: amount,
         crypto_currency: currency
       })
-      .eq('id', listingId);
+      .eq('id', listingId); // Use listingId, not currency for the query
 
     if (error) {
       console.error('Error updating listing crypto amount:', error);
@@ -109,9 +108,9 @@ async function updateListingCryptoAmount(listingId: string, amount: number, curr
 
 function getFallbackRate(currency: string): number {
   const fallbackRates: Record<string, number> = {
-    'POL': 0.92, // EUR rate for testnet
-    'USDT': 0.92,
-    'USDC': 0.92,
+    'BNB': 275, // EUR rate
+    'USDT': 0.92, // EUR rate
+    'USDC': 0.92, // EUR rate
   };
   return fallbackRates[currency] || 1;
 }

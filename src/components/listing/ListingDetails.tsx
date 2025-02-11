@@ -1,4 +1,3 @@
-
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -11,7 +10,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useTransactionCreation } from "@/hooks/useTransactionCreation";
 
 interface ListingDetailsProps {
   listing: {
@@ -50,7 +48,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { createTransaction } = useTransactionCreation();
   
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
 
@@ -74,7 +71,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     },
   });
 
-  const handleBuyClick = async () => {
+  const handleBuyClick = () => {
     if (!user) {
       toast({
         title: "Erreur",
@@ -84,27 +81,17 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       return;
     }
     
-    try {
-      // Création de la transaction dans la base de données d'abord
-      const transaction = await createTransaction(
-        listing.id,
-        cryptoDetails?.amount || 0,
-        cryptoDetails?.currency || 'POL',
-        listingData?.wallet_address || listing.wallet_address || ''
-      );
-
-      console.log("Transaction created:", transaction);
-
-      // Redirection vers la page de paiement avec l'ID de la transaction
-      navigate(`/payment/${transaction.id}`);
-    } catch (error: any) {
-      console.error('Error creating transaction:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la création de la transaction",
-        variant: "destructive",
-      });
-    }
+    navigate(`/payment/${listing.id}`, { 
+      state: { 
+        listing: {
+          ...listing,
+          crypto_amount: cryptoDetails?.amount,
+          crypto_currency: cryptoDetails?.currency,
+          wallet_address: listingData?.wallet_address || listing.wallet_address
+        },
+        returnUrl: `/listings/${listing.id}`
+      } 
+    });
   };
 
   if (!listing.user) {

@@ -54,7 +54,7 @@ export const useTransactionCreation = () => {
           status: 'pending',
           escrow_status: 'pending',
           network: 'polygon_amoy',
-          token_symbol: 'POL',
+          token_symbol: cryptoCurrency,
           seller_wallet_address: sellerAddress,
           can_be_cancelled: true,
           chain_id: 80002 // Polygon Amoy testnet
