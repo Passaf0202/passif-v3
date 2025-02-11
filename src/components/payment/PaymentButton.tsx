@@ -54,10 +54,12 @@ export function PaymentButton({
       }
 
       // 2. Appeler onClick (qui crée la transaction dans Supabase)
-      onClick();
+      await onClick();
 
-      // 3. Récupérer l'ID de la transaction créée
-      const { data: transaction } = await supabase
+      console.log('[PaymentButton] Fetching transaction for listing:', listingId);
+
+      // 3. Récupérer l'ID de la transaction créée avec gestion d'erreur améliorée
+      const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
         .select('id')
         .eq('listing_id', listingId)
@@ -65,15 +67,23 @@ export function PaymentButton({
         .limit(1)
         .single();
 
+      if (transactionError) {
+        console.error('[PaymentButton] Supabase error:', transactionError);
+        throw new Error("Erreur lors de la récupération de la transaction");
+      }
+
       if (!transaction) {
+        console.error('[PaymentButton] No transaction found for listing:', listingId);
         throw new Error("La transaction n'a pas été créée correctement");
       }
+
+      console.log('[PaymentButton] Found transaction:', transaction);
 
       // 4. Traiter le paiement avec le contrat intelligent
       await processPayment(transaction.id, sellerAddress, cryptoAmount);
 
     } catch (error: any) {
-      console.error('Transaction error:', error);
+      console.error('[PaymentButton] Transaction error:', error);
       toast({
         title: "Erreur de transaction",
         description: error.message || "La transaction a échoué. Veuillez réessayer.",
