@@ -17,7 +17,7 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         .from('transactions')
         .select(`
           *,
-          listing:listings (
+          listing:listings!transactions_listing_id_fkey (
             title
           ),
           buyer:profiles!transactions_buyer_id_fkey (
@@ -44,7 +44,7 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
           .from('transactions')
           .select(`
             *,
-            listing:listings (
+            listing:listings!transactions_listing_id_fkey (
               title
             ),
             buyer:profiles!transactions_buyer_id_fkey (
@@ -83,7 +83,9 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
           buyer_confirmation: txn.buyer_confirmation,
           seller_confirmation: txn.seller_confirmation,
           seller_wallet_address: txn.seller_wallet_address,
-          listing_title: txn.listing?.title || 'N/A'
+          listing_title: txn.listing?.title || 'N/A',
+          buyer: txn.buyer,
+          seller: txn.seller
         };
         setTransaction(formattedTransaction);
       }
