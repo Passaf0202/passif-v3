@@ -52,10 +52,13 @@ export function PaymentButton({
         cryptoCurrency
       );
 
-      // Rediriger vers la page de la transaction
-      navigate(`/payment/${transactionId}`);
+      console.log("[PaymentButton] Transaction created with ID:", transactionId);
 
+      // Appeler onClick avant la redirection
       onClick();
+
+      // Rediriger vers la page de la transaction avec l'ID correct
+      navigate(`/payment/${transactionId}`);
     } catch (error: any) {
       console.error('Transaction error:', error);
       toast({
