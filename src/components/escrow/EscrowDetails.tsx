@@ -14,38 +14,50 @@ interface EscrowDetailsProps {
 }
 
 export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
-  const { 
-    transaction, 
-    isLoading, 
-    setIsLoading, 
-    isFetching, 
-    fetchTransaction 
-  } = useEscrowDetailsTransaction(transactionId);
+  const { transaction, isLoading, setIsLoading, isFetching, fetchTransaction } = 
+    useEscrowDetailsTransaction(transactionId);
 
   useEffect(() => {
     console.log("Fetching transaction details for UUID:", transactionId);
     fetchTransaction();
-  }, [transactionId, fetchTransaction]);
+  }, [transactionId]);
 
-  let content;
   if (isFetching) {
-    content = (
+    return (
       <div className="flex justify-center items-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
-  } else if (!transaction) {
-    content = (
-      <Alert variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          Transaction introuvable. Veuillez vérifier l'identifiant de la transaction.
-        </AlertDescription>
-      </Alert>
+  }
+
+  if (!transaction) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Transaction introuvable. Veuillez vérifier l'identifiant de la transaction.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
     );
-  } else {
-    content = (
-      <div className="space-y-6">
+  }
+
+  console.log("Transaction details:", {
+    uuid: transactionId,
+    blockchainTxnId: transaction.blockchain_txn_id,
+    status: transaction.status,
+    funds_secured: transaction.funds_secured
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Détails de la transaction</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
         <EscrowInformation transaction={transaction} />
         <TransactionStatus transaction={transaction} />
         <EscrowActions 
@@ -55,18 +67,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           onRelease={fetchTransaction}
           transactionId={transactionId}
         />
-      </div>
-    );
-  }
-
-  // La structure de base est toujours rendue
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Détails de la transaction</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {content}
       </CardContent>
     </Card>
   );
