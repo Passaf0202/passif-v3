@@ -30,11 +30,11 @@ export function EscrowActions({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const canReleaseFunds = transaction.funds_secured && 
+  const canConfirmTransaction = transaction.funds_secured && 
     !transaction.buyer_confirmation && 
     (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
-  const handleReleaseFunds = async () => {
+  const handleConfirmTransaction = async () => {
     try {
       setIsLoading(true);
 
@@ -69,29 +69,44 @@ export function EscrowActions({
         throw new Error("L'ID de transaction n'est pas un nombre valide");
       }
 
-      console.log("Calling releaseFunds with ID:", txnId);
-      const tx = await contract.releaseFunds(txnId);
-      console.log("Release funds transaction sent:", tx.hash);
+      console.log("Calling confirmTransaction with ID:", txnId);
+      const tx = await contract.confirmTransaction(txnId);
+      console.log("Confirm transaction sent:", tx.hash);
 
       const receipt = await tx.wait();
       console.log("Transaction receipt:", receipt);
 
       if (receipt.status === 1) {
+        const updates: any = {
+          updated_at: new Date().toISOString()
+        };
+
+        // Mettre à jour la confirmation en fonction de l'utilisateur
+        if (user?.id === transaction.buyer?.id) {
+          updates.buyer_confirmation = true;
+        } else if (user?.id === transaction.seller?.id) {
+          updates.seller_confirmation = true;
+        }
+
+        // Si les deux ont confirmé, marquer comme complété
+        if (
+          (updates.buyer_confirmation && transaction.seller_confirmation) ||
+          (updates.seller_confirmation && transaction.buyer_confirmation)
+        ) {
+          updates.status = 'completed';
+          updates.escrow_status = 'completed';
+        }
+
         const { error: updateError } = await supabase
           .from('transactions')
-          .update({
-            status: 'completed',
-            escrow_status: 'completed',
-            buyer_confirmation: true,
-            updated_at: new Date().toISOString()
-          })
+          .update(updates)
           .eq('id', transactionId);
 
         if (updateError) throw updateError;
 
         toast({
           title: "Succès",
-          description: "Les fonds ont été libérés avec succès",
+          description: "Transaction confirmée avec succès",
         });
 
         onRelease();
@@ -99,7 +114,7 @@ export function EscrowActions({
         throw new Error("La transaction a échoué sur la blockchain");
       }
     } catch (error: any) {
-      console.error('Error releasing funds:', error);
+      console.error('Error confirming transaction:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue",
@@ -116,16 +131,16 @@ export function EscrowActions({
 
   return (
     <Button
-      onClick={handleReleaseFunds}
-      disabled={isLoading || !canReleaseFunds}
+      onClick={handleConfirmTransaction}
+      disabled={isLoading || !canConfirmTransaction}
       className="w-full bg-purple-500 hover:bg-purple-600"
     >
       {isLoading ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Libération des fonds en cours...
+          Confirmation en cours...
         </>
-      ) : canReleaseFunds ? (
+      ) : canConfirmTransaction ? (
         "Confirmer et libérer les fonds"
       ) : (
         "En attente de confirmation"
