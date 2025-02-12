@@ -43,8 +43,10 @@ export function PaymentButton({
     }
 
     try {
+      // 1. S'assurer d'être sur le bon réseau avant tout
       await ensureCorrectNetwork();
 
+      // 2. Créer la transaction
       const transactionId = await createPaymentTransaction(
         sellerAddress,
         cryptoAmount,
@@ -93,7 +95,7 @@ export function PaymentButton({
         ) : !sellerAddress ? (
           "Adresse du vendeur manquante"
         ) : (
-          `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency} sur Polygon Amoy`
+          `Payer ${cryptoAmount?.toFixed(6)} POL sur Polygon Amoy`
         )}
       </Button>
 
@@ -105,7 +107,7 @@ export function PaymentButton({
 
       {isWrongNetwork && isConnected && (
         <p className="text-sm text-red-500 text-center">
-          Veuillez vous connecter au réseau Polygon Amoy
+          Veuillez vous connecter au réseau Polygon Amoy pour payer en POL
         </p>
       )}
     </div>
