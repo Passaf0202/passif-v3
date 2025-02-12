@@ -34,6 +34,26 @@ export function EscrowActions({
     !transaction.buyer_confirmation && 
     (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
+  const verifyBlockchainTransaction = async (contract: ethers.Contract, txnId: ethers.BigNumber) => {
+    try {
+      const txnData = await contract.getTransaction(txnId);
+      console.log("Transaction data from blockchain:", txnData);
+
+      if (!txnData || txnData.amount.eq(0)) {
+        throw new Error("Transaction non trouvée sur la blockchain");
+      }
+
+      if (txnData.fundsReleased) {
+        throw new Error("Les fonds ont déjà été libérés");
+      }
+
+      return txnData;
+    } catch (error) {
+      console.error("Error verifying blockchain transaction:", error);
+      throw new Error("La transaction n'est pas valide sur la blockchain");
+    }
+  };
+
   const handleConfirmTransaction = async () => {
     try {
       setIsLoading(true);
@@ -77,39 +97,44 @@ export function EscrowActions({
         signer
       );
 
-      // 3. Conversion de l'ID de transaction en BigNumber
-      let txnId;
-      try {
-        txnId = ethers.BigNumber.from(transaction.blockchain_txn_id);
-        console.log("Transaction ID as BigNumber:", txnId.toString());
-      } catch (error) {
-        console.error("Error converting transaction ID:", error);
-        throw new Error("ID de transaction invalide");
+      // 3. Récupérer les événements pour trouver le vrai ID de transaction
+      const filter = contract.filters.TransactionCreated();
+      const events = await contract.queryFilter(filter, -1000); // Check last 1000 blocks
+      
+      console.log("Found TransactionCreated events:", events);
+      
+      let realTxnId = null;
+      for (const event of events) {
+        if (event.transactionHash === transaction.transaction_hash) {
+          realTxnId = event.args?.txnId;
+          console.log("Found matching transaction with ID:", realTxnId.toString());
+          break;
+        }
       }
 
-      // 4. Vérification de la transaction sur la blockchain
-      try {
-        const txnData = await contract.getTransaction(txnId);
-        console.log("Transaction data from blockchain:", txnData);
-      } catch (error) {
-        console.error("Error fetching transaction:", error);
+      if (!realTxnId) {
+        console.log("Using stored blockchain_txn_id as fallback");
+        realTxnId = ethers.BigNumber.from(transaction.blockchain_txn_id);
       }
+
+      // 4. Vérifier la transaction sur la blockchain
+      await verifyBlockchainTransaction(contract, realTxnId);
 
       // 5. Estimation du gaz avec une marge de sécurité
       let gasEstimate;
       try {
-        gasEstimate = await contract.estimateGas.confirmTransaction(txnId);
+        gasEstimate = await contract.estimateGas.confirmTransaction(realTxnId);
         console.log("Gas estimate:", gasEstimate.toString());
         // Ajouter 20% de marge de sécurité
         gasEstimate = gasEstimate.mul(120).div(100);
       } catch (error) {
         console.error("Gas estimation error:", error);
-        throw new Error("Impossible d'estimer les frais de gaz");
+        throw new Error("Impossible d'estimer les frais de gaz. La transaction n'est peut-être pas valide.");
       }
 
       // 6. Envoi de la transaction avec les paramètres optimisés
       console.log("Sending transaction with gas limit:", gasEstimate.toString());
-      const tx = await contract.confirmTransaction(txnId, {
+      const tx = await contract.confirmTransaction(realTxnId, {
         gasLimit: gasEstimate
       });
       
