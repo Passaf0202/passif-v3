@@ -34,8 +34,37 @@ export function EscrowActions({
     !transaction.buyer_confirmation && 
     (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
+  const findTransactionIdFromEvents = async (contract: ethers.Contract, transactionHash: string) => {
+    try {
+      const filter = contract.filters.TransactionCreated();
+      // Augmenter la plage de recherche à 10000 blocs
+      const currentBlock = await contract.provider.getBlockNumber();
+      const startBlock = Math.max(0, currentBlock - 10000);
+      
+      console.log("Searching for events from block", startBlock, "to", currentBlock);
+      const events = await contract.queryFilter(filter, startBlock, currentBlock);
+      
+      console.log("Found TransactionCreated events:", events);
+      
+      for (const event of events) {
+        if (event.transactionHash.toLowerCase() === transactionHash.toLowerCase()) {
+          console.log("Found matching transaction with ID:", event.args?.txnId.toString());
+          return {
+            txnId: event.args?.txnId,
+            blockNumber: event.blockNumber
+          };
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error("Error finding transaction ID from events:", error);
+      return null;
+    }
+  };
+
   const verifyBlockchainTransaction = async (contract: ethers.Contract, txnId: ethers.BigNumber) => {
     try {
+      console.log("Verifying transaction on blockchain with ID:", txnId.toString());
       const txnData = await contract.getTransaction(txnId);
       console.log("Transaction data from blockchain:", txnData);
 
@@ -67,10 +96,6 @@ export function EscrowActions({
         throw new Error("Les fonds ne sont pas encore sécurisés");
       }
 
-      if (!transaction.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain non trouvé");
-      }
-
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -82,8 +107,6 @@ export function EscrowActions({
       if (!window.ethereum) {
         throw new Error("MetaMask n'est pas installé");
       }
-
-      console.log("Using blockchain transaction ID:", transaction.blockchain_txn_id);
 
       // 2. Initialisation du contrat avec le provider
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -97,23 +120,36 @@ export function EscrowActions({
         signer
       );
 
-      // 3. Récupérer les événements pour trouver le vrai ID de transaction
-      const filter = contract.filters.TransactionCreated();
-      const events = await contract.queryFilter(filter, -1000); // Check last 1000 blocks
-      
-      console.log("Found TransactionCreated events:", events);
-      
-      let realTxnId = null;
-      for (const event of events) {
-        if (event.transactionHash === transaction.transaction_hash) {
-          realTxnId = event.args?.txnId;
-          console.log("Found matching transaction with ID:", realTxnId.toString());
-          break;
-        }
+      // 3. Rechercher le vrai ID de transaction
+      let realTxnId: ethers.BigNumber;
+      let transactionInfo = null;
+
+      if (transaction.transaction_hash) {
+        console.log("Searching for transaction ID using hash:", transaction.transaction_hash);
+        transactionInfo = await findTransactionIdFromEvents(contract, transaction.transaction_hash);
       }
 
-      if (!realTxnId) {
+      if (transactionInfo) {
+        realTxnId = transactionInfo.txnId;
+        console.log("Found real transaction ID:", realTxnId.toString());
+        
+        // Mettre à jour la base de données avec le bon ID et le numéro de bloc
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            blockchain_txn_id: realTxnId.toString(),
+            block_number: transactionInfo.blockNumber
+          })
+          .eq('id', transactionId);
+
+        if (updateError) {
+          console.error("Error updating transaction data:", updateError);
+        }
+      } else {
         console.log("Using stored blockchain_txn_id as fallback");
+        if (!transaction.blockchain_txn_id) {
+          throw new Error("ID de transaction introuvable");
+        }
         realTxnId = ethers.BigNumber.from(transaction.blockchain_txn_id);
       }
 
@@ -129,7 +165,22 @@ export function EscrowActions({
         gasEstimate = gasEstimate.mul(120).div(100);
       } catch (error) {
         console.error("Gas estimation error:", error);
-        throw new Error("Impossible d'estimer les frais de gaz. La transaction n'est peut-être pas valide.");
+        
+        // Marquer la transaction comme ayant échoué si on ne peut pas l'estimer
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            status: 'failed',
+            escrow_status: 'failed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', transactionId);
+
+        if (updateError) {
+          console.error("Error updating transaction status:", updateError);
+        }
+
+        throw new Error("Impossible de confirmer la transaction. Elle n'est peut-être plus valide sur la blockchain.");
       }
 
       // 6. Envoi de la transaction avec les paramètres optimisés

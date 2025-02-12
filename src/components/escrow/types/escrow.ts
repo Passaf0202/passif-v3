@@ -14,6 +14,7 @@ export interface Transaction {
   seller_wallet_address?: string;
   listing_title?: string;
   transaction_hash?: string;
+  block_number?: number;
   buyer?: {
     id: string;
   };
