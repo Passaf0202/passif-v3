@@ -38,6 +38,19 @@ export function EscrowActions({
     try {
       setIsLoading(true);
 
+      // 1. Vérifications préliminaires
+      if (!user?.id) {
+        throw new Error("Utilisateur non connecté");
+      }
+
+      if (!transaction.funds_secured) {
+        throw new Error("Les fonds ne sont pas encore sécurisés");
+      }
+
+      if (!transaction.blockchain_txn_id) {
+        throw new Error("ID de transaction blockchain non trouvé");
+      }
+
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -50,28 +63,57 @@ export function EscrowActions({
         throw new Error("MetaMask n'est pas installé");
       }
 
-      if (!transaction.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain non trouvé");
-      }
-
       console.log("Using blockchain transaction ID:", transaction.blockchain_txn_id);
 
+      // 2. Initialisation du contrat avec le provider
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
+      console.log("Signer address:", signerAddress);
+
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
         ESCROW_ABI,
         signer
       );
 
-      const txnId = Number(transaction.blockchain_txn_id);
-      if (isNaN(txnId)) {
-        throw new Error("L'ID de transaction n'est pas un nombre valide");
+      // 3. Conversion de l'ID de transaction en BigNumber
+      let txnId;
+      try {
+        txnId = ethers.BigNumber.from(transaction.blockchain_txn_id);
+        console.log("Transaction ID as BigNumber:", txnId.toString());
+      } catch (error) {
+        console.error("Error converting transaction ID:", error);
+        throw new Error("ID de transaction invalide");
       }
 
-      console.log("Calling confirmTransaction with ID:", txnId);
-      const tx = await contract.confirmTransaction(txnId);
-      console.log("Confirm transaction sent:", tx.hash);
+      // 4. Vérification de la transaction sur la blockchain
+      try {
+        const txnData = await contract.getTransaction(txnId);
+        console.log("Transaction data from blockchain:", txnData);
+      } catch (error) {
+        console.error("Error fetching transaction:", error);
+      }
+
+      // 5. Estimation du gaz avec une marge de sécurité
+      let gasEstimate;
+      try {
+        gasEstimate = await contract.estimateGas.confirmTransaction(txnId);
+        console.log("Gas estimate:", gasEstimate.toString());
+        // Ajouter 20% de marge de sécurité
+        gasEstimate = gasEstimate.mul(120).div(100);
+      } catch (error) {
+        console.error("Gas estimation error:", error);
+        throw new Error("Impossible d'estimer les frais de gaz");
+      }
+
+      // 6. Envoi de la transaction avec les paramètres optimisés
+      console.log("Sending transaction with gas limit:", gasEstimate.toString());
+      const tx = await contract.confirmTransaction(txnId, {
+        gasLimit: gasEstimate
+      });
+      
+      console.log("Transaction sent:", tx.hash);
 
       const receipt = await tx.wait();
       console.log("Transaction receipt:", receipt);
@@ -82,9 +124,9 @@ export function EscrowActions({
         };
 
         // Mettre à jour la confirmation en fonction de l'utilisateur
-        if (user?.id === transaction.buyer?.id) {
+        if (user.id === transaction.buyer?.id) {
           updates.buyer_confirmation = true;
-        } else if (user?.id === transaction.seller?.id) {
+        } else if (user.id === transaction.seller?.id) {
           updates.seller_confirmation = true;
         }
 
