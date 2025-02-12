@@ -1,8 +1,9 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useCryptoConversion = (price: number, listingId?: string, cryptoCurrency: string = 'BNB') => {
+export const useCryptoConversion = (price: number, listingId?: string, cryptoCurrency: string = 'POL') => {
   const { selectedCurrency } = useCurrencyStore();
 
   const { data: rateData } = useQuery({
@@ -11,7 +12,7 @@ export const useCryptoConversion = (price: number, listingId?: string, cryptoCur
       try {
         console.log(`Fetching rate for ${cryptoCurrency} in ${selectedCurrency}`);
         
-        // Fetch rate from our database instead of external API
+        // Fetch rate from our database
         const { data, error } = await supabase
           .from('crypto_rates')
           .select('*')
@@ -89,6 +90,8 @@ async function updateListingCryptoAmount(listingId: string, amount: number, curr
       return;
     }
 
+    console.log('Updating listing crypto amount:', { listingId, amount, currency });
+    
     // Update the listing with the crypto amount and currency
     const { error } = await supabase
       .from('listings')
@@ -96,10 +99,11 @@ async function updateListingCryptoAmount(listingId: string, amount: number, curr
         crypto_amount: amount,
         crypto_currency: currency
       })
-      .eq('id', listingId); // Use listingId, not currency for the query
+      .eq('id', listingId);
 
     if (error) {
       console.error('Error updating listing crypto amount:', error);
+      throw error;
     }
   } catch (error) {
     console.error('Error in updateListingCryptoAmount:', error);
@@ -108,9 +112,9 @@ async function updateListingCryptoAmount(listingId: string, amount: number, curr
 
 function getFallbackRate(currency: string): number {
   const fallbackRates: Record<string, number> = {
+    'POL': 0.92, // EUR rate
+    'MATIC': 0.82, // EUR rate
     'BNB': 275, // EUR rate
-    'USDT': 0.92, // EUR rate
-    'USDC': 0.92, // EUR rate
   };
   return fallbackRates[currency] || 1;
 }

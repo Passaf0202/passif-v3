@@ -21,7 +21,7 @@ export function PaymentButton({
   isProcessing, 
   isConnected, 
   cryptoAmount, 
-  cryptoCurrency = 'MATIC',
+  cryptoCurrency = 'POL',
   onClick,
   disabled = false,
   sellerAddress,
@@ -58,10 +58,7 @@ export function PaymentButton({
         throw new Error("L'ID de transaction est manquant");
       }
 
-      // Appeler onClick avant la redirection
       onClick();
-
-      // Rediriger vers la page de la transaction avec l'ID correct
       navigate(`/payment/${transactionId}`);
     } catch (error: any) {
       console.error('Transaction error:', error);
@@ -96,7 +93,7 @@ export function PaymentButton({
         ) : !sellerAddress ? (
           "Adresse du vendeur manquante"
         ) : (
-          `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency}`
+          `Payer ${cryptoAmount?.toFixed(6)} ${cryptoCurrency} sur Polygon Amoy`
         )}
       </Button>
 
