@@ -12,6 +12,10 @@ export const ESCROW_ABI = [
 export const CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
 
 export const formatAmount = (amount: number): string => {
+  // Ensure minimum amount for POL (0.001)
+  if (amount < 0.001) {
+    amount = 0.001;
+  }
   return amount.toFixed(18).replace(/\.?0+$/, '');
 };
 

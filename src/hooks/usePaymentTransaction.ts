@@ -26,6 +26,12 @@ export const usePaymentTransaction = () => {
         cryptoCurrency
       });
 
+      // Ensure minimum amount for POL
+      const minimumAmount = 0.001;
+      if (cryptoCurrency === 'POL' && cryptoAmount < minimumAmount) {
+        cryptoAmount = minimumAmount;
+      }
+
       // 1. Vérifier le solde avant de créer la transaction
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
