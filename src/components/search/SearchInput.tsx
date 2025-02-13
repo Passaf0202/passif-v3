@@ -25,7 +25,7 @@ export const SearchInput = ({
     <div className="flex-1">
       <Input
         placeholder="Rechercher sur TRADECOINER"
-        className="h-8 text-sm rounded-full bg-gray-100/80 border-transparent focus:border-transparent focus:ring-0 pl-10 pr-4 transition-all duration-200 placeholder:text-gray-500"
+        className="h-8 text-sm rounded-full bg-gray-100/80 border-transparent focus:border-transparent focus:ring-0 pl-10 pr-4 transition-all duration-200 placeholder:text-gray-500 min-w-[280px]"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => {

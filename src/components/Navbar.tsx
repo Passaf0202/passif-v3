@@ -28,14 +28,14 @@ export function Navbar() {
         {/* Top section */}
         <div className="h-12 px-4 md:px-8">
           <div className="h-full flex items-center justify-center">
-            <div className="w-full max-w-[1200px] grid grid-cols-[auto_1fr_auto] items-center gap-4 md:gap-8">
+            <div className="w-full max-w-[1200px] grid grid-cols-[auto_1fr_auto] items-center gap-4 md:gap-6">
               <div className={`w-auto flex-shrink-0 transition-all duration-200 ${
                 isMobile ? 'scale-90' : ''
               }`}>
                 <NavbarLogo />
               </div>
               <div className="flex justify-start md:justify-center w-full">
-                <div className={isMobile ? "hidden" : "w-full max-w-md"}>
+                <div className={isMobile ? "hidden" : "w-full max-w-xl"}>
                   <SearchBar onSearch={onSearch} />
                 </div>
               </div>

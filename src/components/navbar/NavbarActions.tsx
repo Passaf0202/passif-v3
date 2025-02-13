@@ -50,18 +50,18 @@ export const NavbarActions = () => {
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2 md:gap-3">
       <Button 
         onClick={handleCreateListing}
-        className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-4 rounded-full text-sm transition-colors duration-200"
+        className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200 whitespace-nowrap"
       >
         <Plus className="h-4 w-4 mr-1" />
-        Déposer
+        Déposer une annonce
       </Button>
 
       {user ? (
         <>
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2">
             <Button variant="ghost" size="icon" className="rounded-full" asChild>
               <Link to="/messages">
                 <MessageCircle className="h-5 w-5" />
