@@ -5,9 +5,9 @@ export const NavbarLogo = () => {
   return (
     <Link to="/" className="flex items-center gap-2 flex-shrink-0">
       <img 
-        src="/lovable-uploads/b180dfb2-7810-4b3e-8315-2704d3e69c1e.png" 
+        src="/lovable-uploads/405871c2-f24f-4762-8812-0c16310c4b08.png" 
         alt="TRADECOINER" 
-        className="h-6 w-6" 
+        className="h-8 w-8" 
       />
       <span className="text-xl font-bold tracking-tight text-black">TRADECOINER</span>
     </Link>
