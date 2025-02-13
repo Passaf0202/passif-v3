@@ -55,8 +55,8 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         seller_wallet: txn.seller?.wallet_address
       });
 
-      // Vérifier la cohérence des adresses
-      const sellerAddress = txn.seller_wallet_address || txn.listing?.wallet_address;
+      // Utiliser l'adresse du seller_wallet_address en priorité
+      const sellerAddress = txn.seller_wallet_address;
       if (!sellerAddress) {
         console.error("[useEscrowDetailsTransaction] Missing seller address");
         throw new Error("Adresse du vendeur manquante");
@@ -86,7 +86,7 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         } : undefined,
         seller: txn.seller ? {
           id: txn.seller.id,
-          wallet_address: sellerAddress,
+          wallet_address: sellerAddress, // Utiliser la même adresse que seller_wallet_address
           full_name: txn.seller.full_name
         } : undefined,
         listing: txn.listing ? {

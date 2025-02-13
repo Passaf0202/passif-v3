@@ -47,6 +47,11 @@ export function EscrowActions({
         throw new Error("Les fonds ne sont pas encore sécurisés");
       }
 
+      // Vérification de l'adresse du vendeur
+      if (!transaction.seller_wallet_address) {
+        throw new Error("Adresse du vendeur manquante");
+      }
+
       // Debug détaillé des adresses et des IDs
       console.log("[EscrowActions] Transaction details:", {
         id: transactionId,
@@ -102,7 +107,8 @@ export function EscrowActions({
           amount: ethers.utils.formatEther(amount),
           isFunded,
           isCompleted,
-          signerAddress
+          signerAddress,
+          seller_wallet_address: transaction.seller_wallet_address
         });
 
         if (!isFunded) {
@@ -113,11 +119,11 @@ export function EscrowActions({
           throw new Error("La transaction est déjà complétée sur la blockchain");
         }
 
-        // Vérifier que les adresses correspondent
-        if (seller.toLowerCase() !== transaction.seller_wallet_address?.toLowerCase()) {
+        // Vérifier que les adresses correspondent (cas insensible)
+        if (seller.toLowerCase() !== transaction.seller_wallet_address.toLowerCase()) {
           console.error("[EscrowActions] Seller address mismatch:", {
-            onChain: seller,
-            inDb: transaction.seller_wallet_address
+            onChain: seller.toLowerCase(),
+            inDb: transaction.seller_wallet_address.toLowerCase()
           });
           throw new Error("Adresse du vendeur incohérente");
         }
