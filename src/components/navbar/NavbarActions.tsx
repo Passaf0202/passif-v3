@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { AdminLink } from "./AdminLink";
+import { MenuWalletBalance } from "../wallet/MenuWalletBalance";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,6 +82,11 @@ export const NavbarActions = () => {
                   Mon profil
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <MenuWalletBalance />
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to="/messages" className="w-full cursor-pointer">
                   <MessageCircle className="mr-2 h-4 w-4" />

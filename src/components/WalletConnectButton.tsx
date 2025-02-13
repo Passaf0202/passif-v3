@@ -1,3 +1,4 @@
+
 import { useAccount, useDisconnect } from 'wagmi'
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -6,7 +7,6 @@ import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback } from 'react';
 import { useAuth } from "@/hooks/useAuth";
-import { WalletBalance } from './wallet/WalletBalance';
 
 export function WalletConnectButton() {
   const { address, isConnected } = useAccount()
@@ -88,26 +88,22 @@ export function WalletConnectButton() {
   };
 
   return (
-    <div className="flex items-center gap-3">
-      {isConnected && <WalletBalance />}
-      
-      <Button 
-        onClick={handleConnect}
-        disabled={isOpen}
-        variant={isConnected ? "outline" : "default"}
-        className="h-10 px-3 md:px-4 whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm md:text-base min-w-[120px] md:min-w-[140px] flex-shrink-0"
-      >
-        {isOpen ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Connexion...
-          </>
-        ) : isConnected ? (
-          `${address?.slice(0, 4)}...${address?.slice(-4)}`
-        ) : (
-          'Connecter Wallet'
-        )}
-      </Button>
-    </div>
+    <Button 
+      onClick={handleConnect}
+      disabled={isOpen}
+      variant={isConnected ? "outline" : "default"}
+      className="h-8 px-3 rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm"
+    >
+      {isOpen ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Connexion...
+        </>
+      ) : isConnected ? (
+        `${address?.slice(0, 4)}...${address?.slice(-4)}`
+      ) : (
+        'Connecter Wallet'
+      )}
+    </Button>
   );
 }
