@@ -149,6 +149,7 @@ export function EscrowActions({
       // 3. Trouver l'ID réel de la transaction
       let realTxnId: ethers.BigNumber | null = null;
       let needsUpdate = false;
+      let blockNumber: number | undefined;
 
       if (transaction.transaction_hash) {
         console.log("Searching real transaction ID using hash:", transaction.transaction_hash);
@@ -156,6 +157,7 @@ export function EscrowActions({
         
         if (result.isValid && result.txnId) {
           realTxnId = result.txnId;
+          blockNumber = result.blockNumber;
           needsUpdate = true;
         }
       }
@@ -178,13 +180,13 @@ export function EscrowActions({
       }
 
       // 4. Mettre à jour la base de données si nécessaire
-      if (needsUpdate) {
-        console.log("Updating transaction with new blockchain ID:", realTxnId.toString());
+      if (needsUpdate && blockNumber !== undefined) {
+        console.log("Updating transaction with new blockchain ID:", realTxnId?.toString());
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
-            blockchain_txn_id: realTxnId.toString(),
-            block_number: result.blockNumber
+            blockchain_txn_id: realTxnId?.toString(),
+            block_number: blockNumber
           })
           .eq('id', transactionId);
 
