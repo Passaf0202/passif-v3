@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork } from "wagmi";
@@ -65,31 +64,30 @@ export function EscrowActions({
       throw new Error("Les fonds ont déjà été libérés");
     }
 
-    // Mise à jour de la vérification de l'adresse du vendeur
-    const { data: storedTransaction, error } = await supabase
-      .from('transactions')
-      .select('seller_wallet_address')
-      .eq('id', transactionId)
-      .single();
+    // Si l'acheteur (buyer) est l'adresse qui était censée être le vendeur,
+    // alors les rôles ont été inversés lors de la création de la transaction blockchain
+    const buyerIsSeller = buyer.toLowerCase() === transaction.seller_wallet_address?.toLowerCase();
+    const actualSeller = buyerIsSeller ? seller : buyer;
 
-    if (error) {
-      console.error("Error fetching seller address:", error);
-      throw new Error("Erreur lors de la vérification de l'adresse du vendeur");
-    }
-
-    console.log("Comparing addresses:", {
-      blockchain: seller.toLowerCase(),
-      database: storedTransaction.seller_wallet_address?.toLowerCase(),
-      fromTransaction: transaction.seller_wallet_address?.toLowerCase()
+    console.log("Address verification:", {
+      buyerIsSeller,
+      actualSeller: actualSeller.toLowerCase(),
+      expectedSeller: transaction.seller_wallet_address?.toLowerCase()
     });
 
-    // Vérifier si l'une des adresses correspond
-    if (seller.toLowerCase() !== storedTransaction.seller_wallet_address?.toLowerCase() && 
-        seller.toLowerCase() !== transaction.seller_wallet_address?.toLowerCase()) {
+    // Vérifier que l'adresse du vendeur correspond à celle attendue
+    if (!transaction.seller_wallet_address || 
+        actualSeller.toLowerCase() !== transaction.seller_wallet_address.toLowerCase()) {
       throw new Error("Incohérence d'adresse vendeur. Contactez le support.");
     }
 
-    return { buyer, seller, amount, isFunded, isCompleted };
+    return { 
+      buyer: buyerIsSeller ? seller : buyer, 
+      seller: actualSeller,
+      amount,
+      isFunded,
+      isCompleted 
+    };
   };
 
   const verifyTimingAndPermissions = async (signerAddress: string, buyer: string) => {
