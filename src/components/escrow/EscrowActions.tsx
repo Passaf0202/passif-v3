@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork } from "wagmi";
@@ -38,39 +37,63 @@ export function EscrowActions({
     try {
       console.log("Looking for transaction with hash:", transactionHash);
       
-      // 1. D'abord, obtenir le bloc actuel et calculer le bloc de départ
+      // 1. Obtenir le dernier ID de transaction du contrat
+      const nextId = await contract.nextTransactionId();
+      console.log("Current nextTransactionId on contract:", nextId.toString());
+
+      // 2. Obtenir le bloc actuel
       const currentBlock = await contract.provider.getBlockNumber();
-      const startBlock = Math.max(0, currentBlock - 1000); // Chercher dans les 1000 derniers blocs
-      
-      console.log("Searching from block", startBlock, "to", currentBlock);
+      console.log("Current block:", currentBlock);
 
-      // 2. Obtenir tous les événements TransactionCreated
-      const filter = contract.filters.TransactionCreated();
-      const events = await contract.queryFilter(filter, startBlock, currentBlock);
-      
-      console.log("Found", events.length, "TransactionCreated events");
+      // 3. Chercher d'abord dans les 100 derniers blocs
+      let searchRanges = [
+        { start: currentBlock - 100, end: currentBlock },
+        { start: currentBlock - 500, end: currentBlock - 101 },
+        { start: currentBlock - 1000, end: currentBlock - 501 }
+      ];
 
-      // 3. Chercher notre hash de transaction
-      for (const event of events) {
-        console.log("Checking event in block", event.blockNumber);
-        if (event.transactionHash.toLowerCase() === transactionHash.toLowerCase()) {
-          const txnId = event.args?.txnId;
-          console.log("Found matching event with txnId:", txnId.toString());
-          
-          // 4. Vérifier que la transaction existe toujours
-          const txData = await contract.transactions(txnId);
-          console.log("Transaction data:", txData);
-          
-          if (txData && !txData.amount.eq(0)) {
-            return {
-              txnId,
-              blockNumber: event.blockNumber,
-              isValid: true
-            };
+      for (const range of searchRanges) {
+        console.log(`Searching blocks ${range.start} to ${range.end}`);
+        
+        // Chercher tous les événements TransactionCreated
+        const filter = contract.filters.TransactionCreated();
+        const events = await contract.queryFilter(filter, range.start, range.end);
+        
+        console.log(`Found ${events.length} events in this range`);
+
+        // Chercher notre hash spécifique
+        for (const event of events) {
+          if (event.transactionHash.toLowerCase() === transactionHash.toLowerCase()) {
+            const txnId = event.args?.txnId;
+            console.log("Found matching event with txnId:", txnId.toString());
+            
+            // Vérifier que la transaction existe toujours
+            try {
+              const txData = await contract.getTransaction(txnId);
+              if (txData && !txData.amount.eq(0)) {
+                // Mettre à jour le block_number dans Supabase
+                await supabase
+                  .from('transactions')
+                  .update({
+                    block_number: event.blockNumber,
+                    blockchain_sequence_number: txnId.toNumber()
+                  })
+                  .eq('id', transactionId);
+
+                return {
+                  txnId,
+                  blockNumber: event.blockNumber,
+                  isValid: true
+                };
+              }
+            } catch (error) {
+              console.log("Error checking transaction data:", error);
+            }
           }
         }
       }
 
+      console.log("Transaction not found in any of the search ranges");
       return { isValid: false };
     } catch (error) {
       console.error("Error in findRealTransactionId:", error);
@@ -82,13 +105,14 @@ export function EscrowActions({
     try {
       console.log("Verifying transaction on chain:", txnId.toString());
 
-      // Vérifier d'abord que l'ID est valide
       const nextId = await contract.nextTransactionId();
+      console.log("Current nextTransactionId:", nextId.toString());
+      
       if (txnId.gte(nextId)) {
         throw new Error("ID de transaction invalide (supérieur à nextTransactionId)");
       }
 
-      const txData = await contract.transactions(txnId);
+      const txData = await contract.getTransaction(txnId);
       console.log("Transaction data from chain:", txData);
 
       if (!txData || txData.amount.eq(0)) {
@@ -102,10 +126,7 @@ export function EscrowActions({
       return txData;
     } catch (error) {
       console.error("Error verifying transaction:", error);
-      if (error.message.includes("call revert exception")) {
-        throw new Error("La transaction n'existe pas sur la blockchain");
-      }
-      throw new Error("La transaction n'est pas valide sur la blockchain");
+      throw error;
     }
   };
 
