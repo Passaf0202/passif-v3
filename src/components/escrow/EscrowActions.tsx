@@ -65,7 +65,27 @@ export function EscrowActions({
       throw new Error("Les fonds ont déjà été libérés");
     }
 
-    if (seller.toLowerCase() !== transaction.seller_wallet_address?.toLowerCase()) {
+    // Mise à jour de la vérification de l'adresse du vendeur
+    const { data: storedTransaction, error } = await supabase
+      .from('transactions')
+      .select('seller_wallet_address')
+      .eq('id', transactionId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching seller address:", error);
+      throw new Error("Erreur lors de la vérification de l'adresse du vendeur");
+    }
+
+    console.log("Comparing addresses:", {
+      blockchain: seller.toLowerCase(),
+      database: storedTransaction.seller_wallet_address?.toLowerCase(),
+      fromTransaction: transaction.seller_wallet_address?.toLowerCase()
+    });
+
+    // Vérifier si l'une des adresses correspond
+    if (seller.toLowerCase() !== storedTransaction.seller_wallet_address?.toLowerCase() && 
+        seller.toLowerCase() !== transaction.seller_wallet_address?.toLowerCase()) {
       throw new Error("Incohérence d'adresse vendeur. Contactez le support.");
     }
 
