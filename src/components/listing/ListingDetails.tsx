@@ -1,3 +1,4 @@
+
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -10,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
 
 interface ListingDetailsProps {
   listing: {
@@ -51,23 +53,23 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
 
-  // Fetch the listing's original wallet address
+  // Fetch and validate crypto amount before allowing purchase
   const { data: listingData } = useQuery({
     queryKey: ['listing-wallet', listing.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('listings')
-        .select('wallet_address')
-        .eq('id', listing.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching listing wallet:', error);
-        throw error;
+      try {
+        const validatedListing = await validateAndUpdateCryptoAmount(listing);
+        console.log('Listing with validated crypto amount:', validatedListing);
+        return validatedListing;
+      } catch (error: any) {
+        console.error('Error validating crypto amount:', error);
+        toast({
+          title: "Erreur",
+          description: error.message || "Impossible de calculer le montant en crypto",
+          variant: "destructive",
+        });
+        return listing;
       }
-
-      console.log('Fetched listing wallet:', data);
-      return data;
     },
   });
 
@@ -85,8 +87,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       state: { 
         listing: {
           ...listing,
-          crypto_amount: cryptoDetails?.amount,
-          crypto_currency: cryptoDetails?.currency,
+          crypto_amount: listingData?.crypto_amount || cryptoDetails?.amount,
+          crypto_currency: listingData?.crypto_currency || cryptoDetails?.currency,
           wallet_address: listingData?.wallet_address || listing.wallet_address
         },
         returnUrl: `/listings/${listing.id}`
@@ -103,7 +105,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     );
   }
 
-  // Use the listing's stored wallet_address instead of the user's current wallet
   const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
 
   return (
@@ -114,8 +115,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <ListingHeader 
           title={listing.title} 
           price={listing.price} 
-          cryptoAmount={cryptoDetails?.amount}
-          cryptoCurrency={cryptoDetails?.currency}
+          cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+          cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
         />
         
         <SellerInfo 
@@ -140,8 +141,8 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           sellerAddress={sellerWalletAddress || ''}
           title={listing.title}
           price={listing.price}
-          cryptoAmount={cryptoDetails?.amount}
-          cryptoCurrency={cryptoDetails?.currency}
+          cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+          cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
           handleBuyClick={handleBuyClick}
         />
 

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export const validateAndUpdateCryptoAmount = async (listing: any) => {
@@ -13,18 +14,18 @@ export const validateAndUpdateCryptoAmount = async (listing: any) => {
   const { data: cryptoRate, error: rateError } = await supabase
     .from('crypto_rates')
     .select('*')
-    .eq('symbol', 'BNB')
+    .eq('symbol', 'POL')
     .eq('is_active', true)
     .maybeSingle();
 
   if (rateError || !cryptoRate) {
-    console.error('Error fetching BNB rate:', rateError);
-    throw new Error("Impossible de récupérer le taux de conversion BNB");
+    console.error('Error fetching POL rate:', rateError);
+    throw new Error("Impossible de récupérer le taux de conversion POL");
   }
 
   if (!cryptoRate.rate_eur || cryptoRate.rate_eur <= 0) {
-    console.error('Invalid BNB rate:', cryptoRate.rate_eur);
-    throw new Error("Taux de conversion BNB invalide");
+    console.error('Invalid POL rate:', cryptoRate.rate_eur);
+    throw new Error("Taux de conversion POL invalide");
   }
 
   const cryptoAmount = Number(listing.price) / cryptoRate.rate_eur;
@@ -42,7 +43,7 @@ export const validateAndUpdateCryptoAmount = async (listing: any) => {
     .from('listings')
     .update({
       crypto_amount: cryptoAmount,
-      crypto_currency: 'BNB'
+      crypto_currency: 'POL'
     })
     .eq('id', listing.id);
 
@@ -54,6 +55,6 @@ export const validateAndUpdateCryptoAmount = async (listing: any) => {
   return {
     ...listing,
     crypto_amount: cryptoAmount,
-    crypto_currency: 'BNB'
+    crypto_currency: 'POL'
   };
 };
