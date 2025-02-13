@@ -391,6 +391,7 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          block_number: number | null
           blockchain_sequence_number: number | null
           blockchain_txn_id: string
           buyer_confirmation: boolean | null
@@ -426,6 +427,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          block_number?: number | null
           blockchain_sequence_number?: number | null
           blockchain_txn_id?: string
           buyer_confirmation?: boolean | null
@@ -461,6 +463,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          block_number?: number | null
           blockchain_sequence_number?: number | null
           blockchain_txn_id?: string
           buyer_confirmation?: boolean | null
