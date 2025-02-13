@@ -1,3 +1,4 @@
+
 import { useState, useEffect, RefObject } from "react";
 import { Category } from "@/types/category";
 
@@ -17,12 +18,24 @@ export function useVisibleCategories(
         const containerWidth = container.offsetWidth;
         let currentWidth = 0;
         const tempVisible: Category[] = [];
+        const minSpacing = 16; // Espacement minimum entre les éléments
+        const dotWidth = 16; // Largeur approximative du point
+        const buttonPadding = 16; // Padding total horizontal des boutons
 
-        categories.forEach((category) => {
-          const estimatedWidth = category.name.length * 8 + 48;
-          if (currentWidth + estimatedWidth < containerWidth - 100) {
-            currentWidth += estimatedWidth;
+        // Garder de l'espace pour le bouton "Autres" si nécessaire
+        const reservedSpace = 80;
+
+        categories.forEach((category, index) => {
+          // Calculer la largeur estimée de cet élément
+          const textWidth = category.name.length * 7; // Approximation de la largeur du texte
+          const elementWidth = textWidth + buttonPadding;
+          const withDotWidth = elementWidth + (index < categories.length - 1 ? dotWidth + minSpacing : 0);
+
+          if (currentWidth + withDotWidth < containerWidth - reservedSpace) {
+            currentWidth += withDotWidth;
             tempVisible.push(category);
+          } else {
+            return; // Sortir de la boucle une fois qu'on dépasse la largeur disponible
           }
         });
 
@@ -38,7 +51,7 @@ export function useVisibleCategories(
     } else {
       setVisibleCategories(categories || []);
     }
-  }, [categories, isMobile]);
+  }, [categories, isMobile, containerRef]);
 
   return visibleCategories;
 }
