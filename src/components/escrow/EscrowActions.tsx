@@ -59,7 +59,7 @@ export function EscrowActions({
           
           // 4. Vérifier que cette transaction existe toujours dans le contrat
           try {
-            const txData = await contract.transactions(txnId);
+            const txData = await contract.getTransaction(txnId);
             if (txData && !txData.amount.eq(0)) {
               console.log("Transaction verified on chain:", txData);
               return {
@@ -74,8 +74,6 @@ export function EscrowActions({
         }
       }
 
-      // Si on arrive ici, soit le hash ne correspond à aucun événement,
-      // soit la transaction n'existe plus dans le contrat actuel
       return { isValid: false };
     } catch (error) {
       console.error("Error in findRealTransactionId:", error);
@@ -86,14 +84,14 @@ export function EscrowActions({
   const verifyBlockchainTransaction = async (contract: ethers.Contract, txnId: ethers.BigNumber) => {
     try {
       console.log("Verifying transaction on chain:", txnId.toString());
-      const txnData = await contract.transactions(txnId);
-      console.log("Transaction data from chain:", txnData);
+      const txData = await contract.getTransaction(txnId);
+      console.log("Transaction data from chain:", txData);
 
-      if (!txnData || txnData.amount.eq(0)) {
+      if (!txData || txData.amount.eq(0)) {
         throw new Error("Transaction invalide ou expirée sur la blockchain");
       }
 
-      if (txnData.fundsReleased) {
+      if (txData.fundsReleased) {
         throw new Error("Les fonds ont déjà été libérés");
       }
 
@@ -102,7 +100,7 @@ export function EscrowActions({
         throw new Error("ID de transaction invalide");
       }
 
-      return txnData;
+      return txData;
     } catch (error) {
       console.error("Error verifying transaction:", error);
       throw new Error("La transaction n'est pas valide sur la blockchain");
@@ -166,7 +164,7 @@ export function EscrowActions({
       if (!realTxnId && transaction.blockchain_txn_id) {
         try {
           const storedId = ethers.BigNumber.from(transaction.blockchain_txn_id);
-          const txData = await contract.transactions(storedId);
+          const txData = await contract.getTransaction(storedId);
           if (txData && !txData.amount.eq(0)) {
             realTxnId = storedId;
           }
