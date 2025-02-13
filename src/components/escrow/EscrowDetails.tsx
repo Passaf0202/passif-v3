@@ -7,7 +7,7 @@ import { TransactionStatus } from "./TransactionStatus";
 import { EscrowActions } from "./EscrowActions";
 import { EscrowInformation } from "./EscrowInformation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, AlertCircle } from "lucide-react";
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -23,9 +23,36 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   } = useEscrowDetailsTransaction(transactionId);
 
   useEffect(() => {
-    console.log("Fetching transaction details for UUID:", transactionId);
+    console.log("Fetching transaction details for:", transactionId);
     fetchTransaction();
   }, [transactionId]);
+
+  const renderErrorMessage = () => {
+    // UUID pattern pour vérifier si l'ID ressemble à un ID de transaction
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const isUUID = uuidPattern.test(transactionId);
+
+    if (isUUID) {
+      return (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            La transaction est en cours de traitement. Si vous venez de la créer, 
+            veuillez patienter quelques instants puis rafraîchir la page.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Transaction introuvable. Veuillez vérifier l'identifiant de la transaction.
+        </AlertDescription>
+      </Alert>
+    );
+  };
 
   // Render un composant pour chaque état possible au lieu d'utiliser des retours anticipés
   const renderContent = () => {
@@ -41,12 +68,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       return (
         <Card>
           <CardContent className="p-8">
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Transaction introuvable. Veuillez vérifier l'identifiant de la transaction.
-              </AlertDescription>
-            </Alert>
+            {renderErrorMessage()}
           </CardContent>
         </Card>
       );

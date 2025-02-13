@@ -13,7 +13,7 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
     console.log("[useEscrowDetailsTransaction] Fetching transaction:", transactionId);
 
     try {
-      // Try to fetch transaction by ID first
+      // D'abord essayer de récupérer par ID de transaction
       let { data: txn, error } = await supabase
         .from('transactions')
         .select(`
@@ -34,13 +34,13 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         .maybeSingle();
 
       if (error) {
-        console.error("[useEscrowDetailsTransaction] Error fetching transaction:", error);
+        console.error("[useEscrowDetailsTransaction] Error fetching transaction by ID:", error);
         throw error;
       }
 
-      // If no transaction found by ID, try fetching by listing_id with additional error handling
+      // Si pas trouvé par ID, chercher par listing_id en prenant la plus récente transaction valide
       if (!txn) {
-        console.log("[useEscrowDetailsTransaction] No transaction found with ID, trying listing_id");
+        console.log("[useEscrowDetailsTransaction] No transaction found with ID, trying listing_id with filters");
         const { data: txnByListing, error: listingError } = await supabase
           .from('transactions')
           .select(`
@@ -58,7 +58,9 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
             )
           `)
           .eq('listing_id', transactionId)
+          .not('blockchain_txn_id', 'eq', '0')
           .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (listingError) {
@@ -69,6 +71,7 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         txn = txnByListing;
       }
 
+      // Si on a trouvé une transaction, la formater
       if (txn) {
         console.log("[useEscrowDetailsTransaction] Transaction found:", txn);
         const formattedTransaction: Transaction = {
@@ -85,16 +88,21 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
           seller_confirmation: txn.seller_confirmation,
           seller_wallet_address: txn.seller_wallet_address,
           listing_title: txn.listing?.title || 'N/A',
-          transaction_hash: txn.transaction_hash, // Ajout du transaction_hash
-          block_number: txn.block_number, // Ajout du block_number
+          transaction_hash: txn.transaction_hash,
+          block_number: txn.block_number,
           buyer: txn.buyer,
           seller: txn.seller,
           listing: txn.listing
         };
         setTransaction(formattedTransaction);
+      } else {
+        // Si aucune transaction n'est trouvée, logger pour le debug
+        console.log("[useEscrowDetailsTransaction] No valid transaction found for:", transactionId);
+        setTransaction(null);
       }
     } catch (error) {
       console.error("[useEscrowDetailsTransaction] Unexpected error:", error);
+      setTransaction(null);
     } finally {
       setIsFetching(false);
     }
