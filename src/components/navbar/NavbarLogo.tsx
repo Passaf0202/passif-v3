@@ -17,17 +17,26 @@ export const NavbarLogo = () => {
         console.error('Error fetching logo:', error);
         return { url: '/placeholder.svg' };
       }
-      console.log('Logo data:', data?.value);
+      
+      // Log pour vérifier la structure des données
+      console.log('Raw logo data:', data);
+      console.log('Logo value:', data?.value);
+      console.log('Logo URL:', data?.value?.url);
+      
       return data?.value as { url: string };
     },
     initialData: { url: '/placeholder.svg' },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
+  // Log pour vérifier les données dans le rendu
+  console.log('Logo settings in render:', logoSettings);
+  console.log('Logo URL in render:', logoSettings?.url);
+
   return (
     <Link to="/" className="flex items-center gap-2 flex-shrink-0">
       <img 
-        src={logoSettings?.url}
+        src={logoSettings?.url || '/placeholder.svg'}
         alt="TRADECOINER" 
         className="h-10 w-auto object-contain"
         onError={(e) => {
