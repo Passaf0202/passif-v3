@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,11 +53,10 @@ export const NavbarActions = () => {
     <div className="flex items-center gap-2 md:gap-3">
       <Button 
         onClick={handleCreateListing}
-        className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200 whitespace-nowrap"
+        className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200"
       >
         <Plus className="h-4 w-4 mr-1" />
-        <span className="hidden lg:inline">Déposer une annonce</span>
-        <span className="lg:hidden">Déposer</span>
+        Déposer une annonce
       </Button>
 
       {user ? (

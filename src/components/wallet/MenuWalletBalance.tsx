@@ -6,9 +6,9 @@ export function MenuWalletBalance() {
   const { nativeBalance, isLoading, error } = useWalletBalance();
 
   return (
-    <div className="flex items-center justify-between w-full py-1.5">
+    <div className="flex items-center justify-between w-full py-1.5 group cursor-pointer">
       <div className="flex items-center gap-2">
-        <Wallet className="h-4 w-4 text-primary" />
+        <Wallet className="h-4 w-4 text-muted-foreground group-hover:text-white transition-colors" />
         <span className="text-sm">Portefeuille</span>
       </div>
       <div className="text-sm font-medium">
