@@ -17,12 +17,18 @@ export interface Transaction {
   block_number?: number;
   buyer?: {
     id: string;
+    wallet_address?: string;
+    full_name?: string;
   };
   seller?: {
     id: string;
+    wallet_address?: string;
+    full_name?: string;
   };
   listing?: {
     title: string;
+    wallet_address?: string;
+    user_id?: string;
   };
 }
 
