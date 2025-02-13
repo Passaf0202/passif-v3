@@ -8,8 +8,7 @@ const PRIORITY_CATEGORIES = [
   "Emploi",
   "Services",
   "Mode",
-  "Loisirs",
-  "Famille"
+  "Loisirs"
 ];
 
 export function useOrganizedCategories(categories: Category[] | undefined) {
