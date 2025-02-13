@@ -17,7 +17,6 @@ export const NavbarLogo = () => {
         console.error('Error fetching logo:', error);
         return { url: '/placeholder.svg' };
       }
-      console.log('Logo data:', data?.value);
       return data?.value as { url: string };
     },
     initialData: { url: '/placeholder.svg' },
@@ -27,9 +26,9 @@ export const NavbarLogo = () => {
   return (
     <Link to="/" className="flex items-center gap-2 flex-shrink-0">
       <img 
-        src={logoSettings?.url}
-        alt="TRADECOINER" 
-        className="h-10 w-auto object-contain"
+        src={logoSettings?.url || '/placeholder.svg'}
+        alt="Logo TRADECOINER" 
+        className="h-8 w-auto dark:invert"
         onError={(e) => {
           console.error('Logo loading error, falling back to placeholder');
           e.currentTarget.src = '/placeholder.svg';
