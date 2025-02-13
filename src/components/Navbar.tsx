@@ -19,10 +19,10 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/80">
       <div className="max-w-[1440px] mx-auto">
+        {/* Top section */}
         <div className="px-4 md:px-8">
           <div className="flex items-center gap-8">
             <NavbarLogo />
-            <NavbarCategories categories={categories || []} />
             <div className="flex items-center gap-4">
               <div className="hidden md:flex flex-1 max-w-lg justify-center">
                 <SearchBar onSearch={onSearch} />
@@ -32,6 +32,12 @@ export function Navbar() {
           </div>
         </div>
 
+        {/* Categories section */}
+        <div className="px-4 md:px-8">
+          <NavbarCategories categories={categories || []} />
+        </div>
+
+        {/* Mobile search */}
         <div className="md:hidden px-4 py-2">
           <SearchBar onSearch={onSearch} />
         </div>

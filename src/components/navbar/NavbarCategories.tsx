@@ -15,12 +15,14 @@ export function NavbarCategories({ categories }: NavbarCategoriesProps) {
   const organizedCategories = useOrganizedCategories(categories);
 
   return (
-    <nav className="hidden md:block flex-1">
-      <ul className="flex justify-evenly items-center h-[44px]">
-        {organizedCategories.map((category) => (
+    <nav className="hidden md:block">
+      <ul className="flex items-center h-[44px] mx-[-0.75rem]">
+        {organizedCategories.map((category, index) => (
           <li 
             key={category.id}
-            className="relative"
+            className={`relative flex-1 ${index === 0 ? 'pl-0' : ''} ${
+              index === organizedCategories.length - 1 ? 'pr-0' : ''
+            }`}
             onMouseEnter={() => setHoveredCategory(category.id)}
             onMouseLeave={() => setHoveredCategory(null)}
           >
