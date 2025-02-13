@@ -33,9 +33,7 @@ export function Navbar() {
         </div>
 
         {/* Categories section */}
-        <div className="px-4 md:px-8">
-          <NavbarCategories categories={categories || []} />
-        </div>
+        <NavbarCategories categories={categories || []} />
 
         {/* Mobile search */}
         <div className="md:hidden px-4 py-2">
