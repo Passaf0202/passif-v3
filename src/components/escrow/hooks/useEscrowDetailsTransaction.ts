@@ -84,7 +84,6 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
           token_symbol: txn.token_symbol || '',
           can_be_cancelled: txn.can_be_cancelled,
           funds_secured: txn.funds_secured,
-          funds_secured_at: txn.funds_secured_at,
           buyer_confirmation: txn.buyer_confirmation,
           seller_confirmation: txn.seller_confirmation,
           seller_wallet_address: txn.seller_wallet_address,
