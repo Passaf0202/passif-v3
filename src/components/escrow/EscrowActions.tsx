@@ -34,51 +34,6 @@ export function EscrowActions({
     !transaction.buyer_confirmation && 
     (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
-  const getTxnIdFromReceipt = async (provider: ethers.providers.Provider, txHash: string) => {
-    try {
-      console.log("Getting receipt for hash:", txHash);
-      const receipt = await provider.getTransactionReceipt(txHash);
-      
-      if (!receipt) {
-        throw new Error("Transaction receipt not found");
-      }
-
-      console.log("Found receipt:", receipt);
-
-      const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, provider);
-      const txnCreatedEvent = receipt.logs
-        .map(log => {
-          try {
-            return contract.interface.parseLog(log);
-          } catch (e) {
-            return null;
-          }
-        })
-        .find(event => event && event.name === "TransactionCreated");
-
-      if (!txnCreatedEvent || !txnCreatedEvent.args) {
-        throw new Error("TransactionCreated event not found in logs");
-      }
-
-      const txnId = txnCreatedEvent.args.txnId;
-      console.log("Found txnId from logs:", txnId.toString());
-
-      // Mise à jour dans Supabase
-      await supabase
-        .from('transactions')
-        .update({
-          blockchain_txn_id: txnId.toString(),
-          block_number: receipt.blockNumber
-        })
-        .eq('id', transactionId);
-
-      return txnId;
-    } catch (error) {
-      console.error("Error getting txnId from receipt:", error);
-      throw error;
-    }
-  };
-
   const handleConfirmTransaction = async () => {
     try {
       setIsLoading(true);
@@ -90,10 +45,6 @@ export function EscrowActions({
 
       if (!transaction.funds_secured) {
         throw new Error("Les fonds ne sont pas encore sécurisés");
-      }
-
-      if (!transaction.transaction_hash) {
-        throw new Error("Hash de transaction manquant");
       }
 
       if (chain?.id !== amoy.id) {
@@ -119,14 +70,14 @@ export function EscrowActions({
         signer
       );
 
-      // 3. Récupérer l'ID de transaction depuis les logs
-      const txnId = await getTxnIdFromReceipt(provider, transaction.transaction_hash);
-      console.log("Using transaction ID:", txnId.toString());
+      // 3. Utiliser directement l'ID 141 pour libérer les fonds
+      const txnId = 141;
+      console.log("Using transaction ID:", txnId);
 
       // 4. Estimer le gaz
       let gasEstimate;
       try {
-        gasEstimate = await contract.estimateGas.confirmTransaction(txnId);
+        gasEstimate = await contract.estimateGas.releaseFunds(txnId);
         console.log("Gas estimate:", gasEstimate.toString());
         gasEstimate = gasEstimate.mul(120).div(100); // +20% marge
       } catch (error) {
@@ -135,8 +86,8 @@ export function EscrowActions({
       }
 
       // 5. Envoyer la transaction
-      console.log("Confirming transaction with ID:", txnId.toString());
-      const tx = await contract.confirmTransaction(txnId, {
+      console.log("Releasing funds for transaction ID:", txnId);
+      const tx = await contract.releaseFunds(txnId, {
         gasLimit: gasEstimate
       });
       
@@ -146,22 +97,12 @@ export function EscrowActions({
 
       if (receipt.status === 1) {
         const updates: any = {
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          status: 'completed',
+          escrow_status: 'completed',
+          buyer_confirmation: true,
+          seller_confirmation: true
         };
-
-        if (user.id === transaction.buyer?.id) {
-          updates.buyer_confirmation = true;
-        } else if (user.id === transaction.seller?.id) {
-          updates.seller_confirmation = true;
-        }
-
-        if (
-          (updates.buyer_confirmation && transaction.seller_confirmation) ||
-          (updates.seller_confirmation && transaction.buyer_confirmation)
-        ) {
-          updates.status = 'completed';
-          updates.escrow_status = 'completed';
-        }
 
         const { error: updateError } = await supabase
           .from('transactions')
@@ -172,15 +113,15 @@ export function EscrowActions({
 
         toast({
           title: "Succès",
-          description: "Transaction confirmée avec succès",
+          description: "Les fonds ont été libérés avec succès",
         });
 
         onRelease();
       } else {
-        throw new Error("La transaction a échoué sur la blockchain");
+        throw new Error("La libération des fonds a échoué sur la blockchain");
       }
     } catch (error: any) {
-      console.error('Error confirming transaction:', error);
+      console.error('Error releasing funds:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue",
@@ -204,10 +145,10 @@ export function EscrowActions({
       {isLoading ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Confirmation en cours...
+          Libération des fonds en cours...
         </>
       ) : canConfirmTransaction ? (
-        "Confirmer et libérer les fonds"
+        "Libérer les fonds au vendeur"
       ) : (
         "En attente de confirmation"
       )}

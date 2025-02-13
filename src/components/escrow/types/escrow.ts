@@ -28,11 +28,11 @@ export interface Transaction {
 
 export const ESCROW_ABI = [
   "function createTransaction(address seller) payable returns (uint256)",
-  "function confirmTransaction(uint256 txnId)",
-  "function getTransaction(uint256 txnId) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
-  "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)",
-  "event TransactionConfirmed(uint256 indexed txnId, address confirmer)",
-  "event FundsReleased(uint256 indexed txnId, address seller, uint256 amount)"
+  "function releaseFunds(uint256 txnId)",
+  "function cancelTransaction(uint256 txnId)",
+  "event FundsDeposited(uint256 indexed txnId, address buyer, uint256 amount)",
+  "event FundsReleased(uint256 indexed txnId, address seller, uint256 amount)",
+  "function platform() view returns (address)"
 ];
 
 export const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
