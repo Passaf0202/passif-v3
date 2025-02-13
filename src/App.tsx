@@ -6,7 +6,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { WagmiConfig } from 'wagmi'
 import { Web3Modal } from '@web3modal/react'
 import { wagmiConfig, ethereumClient, projectId } from './config/web3modal'
-import { RootLayout } from "@/components/layouts/RootLayout";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import CreateListing from "@/pages/CreateListing";
@@ -35,23 +34,21 @@ function App() {
       <WagmiConfig config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
-            <RootLayout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/create" element={<CreateListing />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/listings/:id" element={<ListingDetails />} />
-                <Route path="/favorites" element={<Favorites />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/payment/:id" element={<Payment />} />
-                <Route path="/profile" element={<UserProfile />} />
-                <Route path="/search" element={<Search />} />
-                <Route element={<AdminRoute />}>
-                  <Route path="/admin" element={<Admin />} />
-                </Route>
-              </Routes>
-            </RootLayout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/create" element={<CreateListing />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/listings/:id" element={<ListingDetails />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/:id" element={<Payment />} />
+              <Route path="/profile" element={<UserProfile />} />
+              <Route path="/search" element={<Search />} />
+              <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<Admin />} />
+              </Route>
+            </Routes>
             <Toaster />
           </BrowserRouter>
         </QueryClientProvider>
