@@ -1,3 +1,4 @@
+
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, Heart, MessageCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "../ui/use-toast";
+import { AdminLink } from "./AdminLink";
 
 export const NavbarActions = () => {
   const { user } = useAuth();
@@ -61,6 +63,7 @@ export const NavbarActions = () => {
             <Link to="/notifications" className="text-gray-600 hover:text-gray-900">
               <Bell className="h-6 w-6" />
             </Link>
+            <AdminLink />
           </div>
           <div className="flex-shrink-0">
             <WalletConnectButton />
