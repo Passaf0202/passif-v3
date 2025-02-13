@@ -21,10 +21,10 @@ export function Navbar() {
     <div className="sticky top-0 z-50 bg-white border-b w-full">
       <div className="max-w-[1440px] mx-auto">
         <div className="px-4 md:px-6 lg:px-8">
-          <div className="flex h-16 items-center gap-3 md:gap-6">
+          <div className="flex h-14 items-center gap-2 md:gap-4">
             <CategoryDrawer categories={categories || []} />
             <NavbarLogo />
-            <div className="hidden md:flex flex-1 max-w-3xl mx-4">
+            <div className="hidden md:flex flex-1 mx-2">
               <SearchBar onSearch={onSearch} />
             </div>
             <CurrencySelector />

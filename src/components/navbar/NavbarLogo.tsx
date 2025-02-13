@@ -56,7 +56,7 @@ export const NavbarLogo = () => {
   console.log('Rendering logo with URL:', logoUrl);
 
   return (
-    <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+    <Link to="/" className="flex items-center flex-shrink-0">
       <img
         src={logoUrl}
         alt="TRADECOINER"
@@ -64,7 +64,7 @@ export const NavbarLogo = () => {
           console.error('Logo loading error, falling back to placeholder');
           e.currentTarget.src = FALLBACK_LOGO;
         }}
-        className="h-10 w-auto max-w-[220px] object-contain rounded-none"
+        className="h-8 w-auto max-w-[180px] object-contain my-auto"
       />
     </Link>
   );
