@@ -16,8 +16,21 @@ export function CompletedTransactionDetails({ transaction }: CompletedTransactio
     return `https://mumbai.polygonscan.com/tx/${transaction.transaction_hash}`;
   };
 
-  const formatDate = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: fr });
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) {
+      return "Date non disponible";
+    }
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "Date invalide";
+      }
+      return formatDistanceToNow(date, { addSuffix: true, locale: fr });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Date invalide";
+    }
   };
 
   return (
@@ -39,7 +52,7 @@ export function CompletedTransactionDetails({ transaction }: CompletedTransactio
                 Les fonds ont été libérés avec succès au vendeur
               </p>
               <p className="text-xs text-green-600 mt-1">
-                {formatDate(transaction.updated_at || "")}
+                {formatDate(transaction.updated_at)}
               </p>
             </div>
 
