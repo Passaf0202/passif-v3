@@ -85,8 +85,11 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
           seller_confirmation: txn.seller_confirmation,
           seller_wallet_address: txn.seller_wallet_address,
           listing_title: txn.listing?.title || 'N/A',
+          transaction_hash: txn.transaction_hash, // Ajout du transaction_hash
+          block_number: txn.block_number, // Ajout du block_number
           buyer: txn.buyer,
-          seller: txn.seller
+          seller: txn.seller,
+          listing: txn.listing
         };
         setTransaction(formattedTransaction);
       }
