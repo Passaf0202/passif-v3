@@ -61,17 +61,21 @@ export function EscrowActions({
     }
   };
 
-  const verifyBlockchainTransaction = async (contract: ethers.Contract) => {
+  const verifyBlockchainTransaction = async (contract: ethers.Contract, txnId: ethers.BigNumber) => {
     try {
-      console.log("Verifying transaction status on blockchain");
-      const txnStatus = await contract.getStatus();
-      console.log("Transaction status from blockchain:", txnStatus);
+      console.log("Verifying transaction status on blockchain for ID:", txnId.toString());
+      const txnData = await contract.transactions(txnId);
+      console.log("Transaction data from blockchain:", txnData);
 
-      if (txnStatus._fundsReleased) {
+      if (!txnData || txnData.amount.eq(0)) {
+        throw new Error("Transaction non trouvée sur la blockchain");
+      }
+
+      if (txnData.fundsReleased) {
         throw new Error("Les fonds ont déjà été libérés");
       }
 
-      return txnStatus;
+      return txnData;
     } catch (error) {
       console.error("Error verifying blockchain transaction:", error);
       throw new Error("La transaction n'est pas valide sur la blockchain");
@@ -149,7 +153,7 @@ export function EscrowActions({
       }
 
       // 4. Vérifier la transaction sur la blockchain
-      const txnStatus = await verifyBlockchainTransaction(contract);
+      const txnStatus = await verifyBlockchainTransaction(contract, realTxnId);
       console.log("Transaction status verified:", txnStatus);
 
       // 5. Estimation du gaz avec une marge de sécurité
