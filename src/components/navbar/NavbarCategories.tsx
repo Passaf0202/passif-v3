@@ -46,7 +46,7 @@ export function NavbarCategories({
                 onMouseEnter={() => setHoveredCategory(category.id)} 
                 onMouseLeave={() => setHoveredCategory(null)}
               >
-                <button className="px-3 py-1 hover:text-primary transition-colors whitespace-nowrap">
+                <button className="px-2 py-1 hover:text-primary transition-colors whitespace-nowrap">
                   {category.name}
                 </button>
                 

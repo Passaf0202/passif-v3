@@ -19,11 +19,11 @@ export function useVisibleCategories(
         let currentWidth = 0;
         const tempVisible: Category[] = [];
         
-        // Paramètres d'espacement constants
-        const buttonPadding = 24; // 12px de chaque côté (px-3)
-        const dotSpacing = 8; // 4px de chaque côté du point
-        const charWidth = 7; // Largeur moyenne approximative d'un caractère
-        const reservedSpace = 100; // Espace réservé pour "Autres"
+        // Paramètres d'espacement optimisés
+        const buttonPadding = 16; // 8px de chaque côté (px-2)
+        const dotSpacing = 4; // 2px de chaque côté du point
+        const charWidth = 6; // Largeur moyenne plus précise d'un caractère
+        const reservedSpace = 70; // Espace réduit pour "Autres"
 
         for (const category of categories) {
           // Calculer la largeur estimée pour cette catégorie
