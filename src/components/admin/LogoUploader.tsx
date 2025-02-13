@@ -3,10 +3,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const LogoUploader = () => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -42,8 +44,8 @@ export const LogoUploader = () => {
         description: "Le nouveau logo a été téléchargé avec succès.",
       });
 
-      // Force refresh to show new logo
-      window.location.reload();
+      // Invalidate the logo query to force a refresh
+      queryClient.invalidateQueries({ queryKey: ['site-settings', 'logo'] });
     } catch (error) {
       console.error('Error uploading logo:', error);
       toast({

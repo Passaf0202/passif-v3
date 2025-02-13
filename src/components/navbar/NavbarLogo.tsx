@@ -20,7 +20,8 @@ export const NavbarLogo = () => {
       console.log('Logo data:', data?.value);
       return data?.value as { url: string };
     },
-    initialData: { url: '/placeholder.svg' }
+    initialData: { url: '/placeholder.svg' },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
   return (
