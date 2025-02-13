@@ -29,6 +29,7 @@ export interface Transaction {
 export const ESCROW_ABI = [
   "function confirmTransaction(uint256 txnId)",
   "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool buyerConfirmed, bool sellerConfirmed, bool fundsReleased)",
+  "function nextTransactionId() view returns (uint256)",
   "event TransactionCreated(uint256 indexed txnId, address buyer, address seller, uint256 amount)",
   "event TransactionConfirmed(uint256 indexed txnId, address confirmer)",
   "event FundsReleased(uint256 indexed txnId, address seller, uint256 amount)"

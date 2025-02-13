@@ -34,50 +34,77 @@ export function EscrowActions({
     !transaction.buyer_confirmation && 
     (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
-  const findTransactionIdFromEvents = async (contract: ethers.Contract, transactionHash: string) => {
+  const findRealTransactionId = async (contract: ethers.Contract, transactionHash: string) => {
     try {
-      const filter = contract.filters.TransactionCreated();
+      // 1. D'abord, obtenir nextTransactionId pour savoir la plage à chercher
+      const nextId = await contract.nextTransactionId();
+      console.log("Current nextTransactionId:", nextId.toString());
+
+      // 2. Chercher dans les derniers blocs
       const currentBlock = await contract.provider.getBlockNumber();
-      const startBlock = Math.max(0, currentBlock - 10000);
+      const startBlock = Math.max(0, currentBlock - 10000); // Chercher dans les 10000 derniers blocs
       
-      console.log("Searching for events from block", startBlock, "to", currentBlock);
+      console.log("Searching events from block", startBlock, "to", currentBlock);
+      
+      const filter = contract.filters.TransactionCreated();
       const events = await contract.queryFilter(filter, startBlock, currentBlock);
       
-      console.log("Found TransactionCreated events:", events);
-      
+      console.log("Found TransactionCreated events:", events.length);
+
+      // 3. Chercher l'événement correspondant à notre hash
       for (const event of events) {
         if (event.transactionHash.toLowerCase() === transactionHash.toLowerCase()) {
-          console.log("Found matching transaction with ID:", event.args?.txnId.toString());
-          return {
-            txnId: event.args?.txnId,
-            blockNumber: event.blockNumber
-          };
+          const txnId = event.args?.txnId;
+          console.log("Found matching transaction. Event ID:", txnId.toString());
+          
+          // 4. Vérifier que cette transaction existe toujours dans le contrat
+          try {
+            const txData = await contract.transactions(txnId);
+            if (txData && !txData.amount.eq(0)) {
+              console.log("Transaction verified on chain:", txData);
+              return {
+                txnId,
+                blockNumber: event.blockNumber,
+                isValid: true
+              };
+            }
+          } catch (error) {
+            console.error("Error verifying transaction data:", error);
+          }
         }
       }
-      return null;
+
+      // Si on arrive ici, soit le hash ne correspond à aucun événement,
+      // soit la transaction n'existe plus dans le contrat actuel
+      return { isValid: false };
     } catch (error) {
-      console.error("Error finding transaction ID from events:", error);
-      return null;
+      console.error("Error in findRealTransactionId:", error);
+      return { isValid: false };
     }
   };
 
   const verifyBlockchainTransaction = async (contract: ethers.Contract, txnId: ethers.BigNumber) => {
     try {
-      console.log("Verifying transaction status on blockchain for ID:", txnId.toString());
+      console.log("Verifying transaction on chain:", txnId.toString());
       const txnData = await contract.transactions(txnId);
-      console.log("Transaction data from blockchain:", txnData);
+      console.log("Transaction data from chain:", txnData);
 
       if (!txnData || txnData.amount.eq(0)) {
-        throw new Error("Transaction non trouvée sur la blockchain");
+        throw new Error("Transaction invalide ou expirée sur la blockchain");
       }
 
       if (txnData.fundsReleased) {
         throw new Error("Les fonds ont déjà été libérés");
       }
 
+      const nextId = await contract.nextTransactionId();
+      if (txnId.gte(nextId)) {
+        throw new Error("ID de transaction invalide");
+      }
+
       return txnData;
     } catch (error) {
-      console.error("Error verifying blockchain transaction:", error);
+      console.error("Error verifying transaction:", error);
       throw new Error("La transaction n'est pas valide sur la blockchain");
     }
   };
@@ -107,7 +134,7 @@ export function EscrowActions({
         throw new Error("MetaMask n'est pas installé");
       }
 
-      // 2. Initialisation du contrat avec le provider
+      // 2. Initialisation du contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
@@ -119,78 +146,74 @@ export function EscrowActions({
         signer
       );
 
-      // 3. Rechercher le vrai ID de transaction
-      let realTxnId: ethers.BigNumber;
-      let transactionInfo = null;
+      // 3. Trouver l'ID réel de la transaction
+      let realTxnId: ethers.BigNumber | null = null;
+      let needsUpdate = false;
 
       if (transaction.transaction_hash) {
-        console.log("Searching for transaction ID using hash:", transaction.transaction_hash);
-        transactionInfo = await findTransactionIdFromEvents(contract, transaction.transaction_hash);
+        console.log("Searching real transaction ID using hash:", transaction.transaction_hash);
+        const result = await findRealTransactionId(contract, transaction.transaction_hash);
+        
+        if (result.isValid && result.txnId) {
+          realTxnId = result.txnId;
+          needsUpdate = true;
+        }
       }
 
-      if (transactionInfo) {
-        realTxnId = transactionInfo.txnId;
-        console.log("Found real transaction ID:", realTxnId.toString());
-        
-        // Mettre à jour la base de données avec le bon ID et le numéro de bloc
+      // Si on n'a pas trouvé avec le hash, essayer avec l'ID stocké
+      if (!realTxnId && transaction.blockchain_txn_id) {
+        try {
+          const storedId = ethers.BigNumber.from(transaction.blockchain_txn_id);
+          const txData = await contract.transactions(storedId);
+          if (txData && !txData.amount.eq(0)) {
+            realTxnId = storedId;
+          }
+        } catch (error) {
+          console.error("Error checking stored transaction ID:", error);
+        }
+      }
+
+      if (!realTxnId) {
+        throw new Error("Impossible de trouver la transaction sur la blockchain");
+      }
+
+      // 4. Mettre à jour la base de données si nécessaire
+      if (needsUpdate) {
+        console.log("Updating transaction with new blockchain ID:", realTxnId.toString());
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
             blockchain_txn_id: realTxnId.toString(),
-            block_number: transactionInfo.blockNumber
+            block_number: result.blockNumber
           })
           .eq('id', transactionId);
 
         if (updateError) {
-          console.error("Error updating transaction data:", updateError);
+          console.error("Error updating transaction:", updateError);
         }
-      } else {
-        console.log("Using stored blockchain_txn_id as fallback");
-        if (!transaction.blockchain_txn_id) {
-          throw new Error("ID de transaction introuvable");
-        }
-        realTxnId = ethers.BigNumber.from(transaction.blockchain_txn_id);
       }
 
-      // 4. Vérifier la transaction sur la blockchain
-      const txnStatus = await verifyBlockchainTransaction(contract, realTxnId);
-      console.log("Transaction status verified:", txnStatus);
+      // 5. Vérifier la transaction
+      await verifyBlockchainTransaction(contract, realTxnId);
 
-      // 5. Estimation du gaz avec une marge de sécurité
+      // 6. Estimer le gaz
       let gasEstimate;
       try {
         gasEstimate = await contract.estimateGas.confirmTransaction(realTxnId);
         console.log("Gas estimate:", gasEstimate.toString());
-        // Ajouter 20% de marge de sécurité
-        gasEstimate = gasEstimate.mul(120).div(100);
+        gasEstimate = gasEstimate.mul(120).div(100); // +20% marge
       } catch (error) {
         console.error("Gas estimation error:", error);
-        
-        // Marquer la transaction comme ayant échoué si on ne peut pas l'estimer
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            status: 'failed',
-            escrow_status: 'failed',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', transactionId);
-
-        if (updateError) {
-          console.error("Error updating transaction status:", updateError);
-        }
-
-        throw new Error("Impossible de confirmer la transaction. Elle n'est peut-être plus valide sur la blockchain.");
+        throw new Error("Impossible d'estimer les frais de transaction");
       }
 
-      // 6. Envoi de la transaction avec les paramètres optimisés
-      console.log("Sending transaction with gas limit:", gasEstimate.toString());
+      // 7. Envoyer la transaction
+      console.log("Confirming transaction with ID:", realTxnId.toString());
       const tx = await contract.confirmTransaction(realTxnId, {
         gasLimit: gasEstimate
       });
       
       console.log("Transaction sent:", tx.hash);
-
       const receipt = await tx.wait();
       console.log("Transaction receipt:", receipt);
 
@@ -199,14 +222,12 @@ export function EscrowActions({
           updated_at: new Date().toISOString()
         };
 
-        // Mettre à jour la confirmation en fonction de l'utilisateur
         if (user.id === transaction.buyer?.id) {
           updates.buyer_confirmation = true;
         } else if (user.id === transaction.seller?.id) {
           updates.seller_confirmation = true;
         }
 
-        // Si les deux ont confirmé, marquer comme complété
         if (
           (updates.buyer_confirmation && transaction.seller_confirmation) ||
           (updates.seller_confirmation && transaction.buyer_confirmation)
