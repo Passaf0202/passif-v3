@@ -24,14 +24,16 @@ export function Navbar() {
         {/* Top section */}
         <div className="h-12 px-4 md:px-8">
           <div className="h-full flex items-center justify-center">
-            <div className="w-full max-w-[1200px] flex items-center gap-4">
-              <NavbarLogo />
-              <div className="flex-1 flex items-center justify-center gap-4">
-                <div className="hidden md:flex max-w-md">
+            <div className="w-full max-w-[1200px] grid grid-cols-[auto_1fr_auto] items-center gap-4 md:gap-6">
+              <div className="w-[120px]">
+                <NavbarLogo />
+              </div>
+              <div className="flex justify-start md:justify-center max-w-xl mx-auto w-full">
+                <div className="hidden md:block w-full max-w-md">
                   <SearchBar onSearch={onSearch} />
                 </div>
-                <NavbarActions />
               </div>
+              <NavbarActions />
             </div>
           </div>
         </div>
