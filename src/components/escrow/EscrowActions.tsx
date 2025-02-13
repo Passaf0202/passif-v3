@@ -30,15 +30,45 @@ export function EscrowActions({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const canConfirmTransaction = transaction.funds_secured && 
-    !transaction.buyer_confirmation && 
-    (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
+  const verifyBlockchainTransaction = async (contract: ethers.Contract, txnId: number) => {
+    console.log("Verifying blockchain transaction:", txnId);
+
+    const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
+
+    console.log("Blockchain transaction details:", {
+      buyer,
+      seller,
+      amount: ethers.utils.formatEther(amount),
+      isFunded,
+      isCompleted,
+      expectedSellerAddress: transaction.seller_wallet_address
+    });
+
+    // Vérifier que l'adresse du vendeur correspond
+    if (seller.toLowerCase() !== transaction.seller_wallet_address?.toLowerCase()) {
+      throw new Error(
+        "L'adresse du vendeur dans la blockchain ne correspond pas à celle de la transaction. " +
+        "Veuillez contacter le support."
+      );
+    }
+
+    // Vérifier que les fonds sont bien déposés
+    if (!isFunded) {
+      throw new Error("Les fonds n'ont pas encore été déposés sur la blockchain.");
+    }
+
+    // Vérifier que la transaction n'est pas déjà complétée
+    if (isCompleted) {
+      throw new Error("Les fonds ont déjà été libérés pour cette transaction.");
+    }
+
+    return { buyer, seller, amount, isFunded, isCompleted };
+  };
 
   const handleConfirmTransaction = async () => {
     try {
       setIsLoading(true);
 
-      // 1. Vérifications préliminaires
       if (!user?.id) {
         throw new Error("Utilisateur non connecté");
       }
@@ -70,7 +100,6 @@ export function EscrowActions({
         throw new Error("MetaMask n'est pas installé");
       }
 
-      // 2. Initialisation du provider et du contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
@@ -82,7 +111,6 @@ export function EscrowActions({
         signer
       );
 
-      // 3. Récupérer les détails de la transaction blockchain
       if (!transaction.blockchain_txn_id) {
         throw new Error("ID de transaction blockchain manquant");
       }
@@ -91,65 +119,21 @@ export function EscrowActions({
       console.log("Using blockchain transaction ID:", txnId);
 
       // Vérifier la transaction sur la blockchain
-      try {
-        const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
-        console.log("Transaction details from blockchain:", {
-          buyer,
-          seller,
-          amount: ethers.utils.formatEther(amount),
-          isFunded,
-          isCompleted,
-          signerAddress
-        });
+      const blockchainTxn = await verifyBlockchainTransaction(contract, txnId);
+      console.log("Blockchain transaction verified:", blockchainTxn);
 
-        // Vérifications supplémentaires
-        if (!isFunded) {
-          throw new Error("La transaction n'est pas financée sur la blockchain");
-        }
-
-        if (isCompleted) {
-          throw new Error("La transaction est déjà complétée sur la blockchain");
-        }
-
-        if (buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-          throw new Error("Seul l'acheteur peut libérer les fonds");
-        }
-      } catch (error: any) {
-        console.error("Error checking transaction on blockchain:", error);
-        if (error.message.includes("execution reverted")) {
-          throw new Error("La transaction n'existe pas sur la blockchain avec cet ID");
-        }
-        throw error;
+      // Vérifier que l'utilisateur est bien l'acheteur
+      if (blockchainTxn.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+        throw new Error("Seul l'acheteur peut libérer les fonds");
       }
 
-      // 4. Estimer le gaz
-      let gasEstimate;
-      try {
-        console.log("Estimating gas for releaseFunds with txnId:", txnId);
-        gasEstimate = await contract.estimateGas.releaseFunds(txnId);
-        console.log("Gas estimate:", gasEstimate.toString());
-        gasEstimate = gasEstimate.mul(120).div(100); // +20% marge
-      } catch (error: any) {
-        console.error("Gas estimation error:", error);
-        // Afficher plus de détails sur l'erreur
-        if (error.error?.message) {
-          console.error("Error message:", error.error.message);
-        }
-        if (error.error?.data?.message) {
-          console.error("Error data message:", error.error.data.message);
-        }
-        throw new Error(error.error?.message || error.message || "Impossible d'estimer les frais de transaction");
-      }
-
-      // 5. Envoyer la transaction
+      // Envoyer la transaction de libération des fonds
       console.log("Releasing funds for transaction ID:", txnId);
-      const tx = await contract.releaseFunds(txnId, {
-        gasLimit: gasEstimate
-      });
-      
-      console.log("Transaction sent:", tx.hash);
+      const tx = await contract.releaseFunds(txnId);
+      console.log("Release funds transaction sent:", tx.hash);
+
       const receipt = await tx.wait();
-      console.log("Transaction receipt:", receipt);
+      console.log("Release funds transaction receipt:", receipt);
 
       if (receipt.status === 1) {
         const updates: any = {
@@ -178,15 +162,31 @@ export function EscrowActions({
       }
     } catch (error: any) {
       console.error('Error releasing funds:', error);
+      
+      // Améliorer le message d'erreur pour l'utilisateur
+      let errorMessage = "Une erreur est survenue lors de la libération des fonds";
+      
+      if (error.message.includes("Internal JSON-RPC error")) {
+        errorMessage = "Erreur de communication avec la blockchain. Vérifiez que votre wallet est bien connecté et que vous êtes sur le bon réseau.";
+      } else if (error.message.includes("user rejected")) {
+        errorMessage = "Vous avez annulé la transaction";
+      } else {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  const canConfirmTransaction = transaction.funds_secured && 
+    !transaction.buyer_confirmation && 
+    (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
   if (transaction?.escrow_status === 'completed') {
     return null;
