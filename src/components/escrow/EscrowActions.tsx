@@ -59,7 +59,7 @@ export function EscrowActions({
           
           // 4. Vérifier que cette transaction existe toujours dans le contrat
           try {
-            const txData = await contract.getTransaction(txnId);
+            const txData = await contract.transactions(txnId);
             if (txData && !txData.amount.eq(0)) {
               console.log("Transaction verified on chain:", txData);
               return {
@@ -84,7 +84,14 @@ export function EscrowActions({
   const verifyBlockchainTransaction = async (contract: ethers.Contract, txnId: ethers.BigNumber) => {
     try {
       console.log("Verifying transaction on chain:", txnId.toString());
-      const txData = await contract.getTransaction(txnId);
+
+      // Vérifier d'abord que l'ID est valide
+      const nextId = await contract.nextTransactionId();
+      if (txnId.gte(nextId)) {
+        throw new Error("ID de transaction invalide (supérieur à nextTransactionId)");
+      }
+
+      const txData = await contract.transactions(txnId);
       console.log("Transaction data from chain:", txData);
 
       if (!txData || txData.amount.eq(0)) {
@@ -95,14 +102,12 @@ export function EscrowActions({
         throw new Error("Les fonds ont déjà été libérés");
       }
 
-      const nextId = await contract.nextTransactionId();
-      if (txnId.gte(nextId)) {
-        throw new Error("ID de transaction invalide");
-      }
-
       return txData;
     } catch (error) {
       console.error("Error verifying transaction:", error);
+      if (error.message.includes("call revert exception")) {
+        throw new Error("La transaction n'existe pas sur la blockchain");
+      }
       throw new Error("La transaction n'est pas valide sur la blockchain");
     }
   };
@@ -149,7 +154,27 @@ export function EscrowActions({
       let needsUpdate = false;
       let blockNumber: number | undefined;
 
-      if (transaction.transaction_hash) {
+      // D'abord essayer avec l'ID stocké pour plus d'efficacité
+      if (transaction.blockchain_txn_id) {
+        try {
+          console.log("Checking stored blockchain_txn_id:", transaction.blockchain_txn_id);
+          const storedId = ethers.BigNumber.from(transaction.blockchain_txn_id);
+          // Vérifier que l'ID est valide
+          const nextId = await contract.nextTransactionId();
+          if (storedId.lt(nextId)) {
+            const txData = await contract.transactions(storedId);
+            if (txData && !txData.amount.eq(0)) {
+              console.log("Valid transaction found with stored ID");
+              realTxnId = storedId;
+            }
+          }
+        } catch (error) {
+          console.error("Error checking stored transaction ID:", error);
+        }
+      }
+
+      // Si l'ID stocké n'est pas valide, chercher par le hash
+      if (!realTxnId && transaction.transaction_hash) {
         console.log("Searching real transaction ID using hash:", transaction.transaction_hash);
         const result = await findRealTransactionId(contract, transaction.transaction_hash);
         
@@ -157,19 +182,6 @@ export function EscrowActions({
           realTxnId = result.txnId;
           blockNumber = result.blockNumber;
           needsUpdate = true;
-        }
-      }
-
-      // Si on n'a pas trouvé avec le hash, essayer avec l'ID stocké
-      if (!realTxnId && transaction.blockchain_txn_id) {
-        try {
-          const storedId = ethers.BigNumber.from(transaction.blockchain_txn_id);
-          const txData = await contract.getTransaction(storedId);
-          if (txData && !txData.amount.eq(0)) {
-            realTxnId = storedId;
-          }
-        } catch (error) {
-          console.error("Error checking stored transaction ID:", error);
         }
       }
 
