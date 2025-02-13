@@ -24,8 +24,8 @@ export function Navbar() {
         {/* Top section */}
         <div className="h-12 px-4 md:px-8">
           <div className="h-full flex items-center justify-center">
-            <div className="w-full max-w-[1200px] grid grid-cols-[minmax(80px,auto)_1fr_auto] items-center gap-2 md:gap-6">
-              <div className="min-w-[80px] max-w-[120px] w-full">
+            <div className="w-full max-w-[1200px] grid grid-cols-[auto_1fr_auto] items-center gap-4 md:gap-8">
+              <div className="w-auto flex-shrink-0">
                 <NavbarLogo />
               </div>
               <div className="flex justify-start md:justify-center w-full">

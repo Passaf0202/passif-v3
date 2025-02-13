@@ -35,7 +35,6 @@ export const NavbarLogo = () => {
       console.log('Logo data retrieved successfully:', data.value);
       const logoValue = data.value as LogoSettings;
       
-      // Validate URL format
       try {
         new URL(logoValue.url);
         return logoValue;
@@ -44,7 +43,7 @@ export const NavbarLogo = () => {
         return { url: FALLBACK_LOGO };
       }
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
     retry: 2
   });
 
@@ -64,7 +63,7 @@ export const NavbarLogo = () => {
           console.error('Logo loading error, falling back to placeholder');
           e.currentTarget.src = FALLBACK_LOGO;
         }}
-        className="h-8 w-auto max-w-[180px] object-contain my-auto"
+        className="h-8 w-auto object-contain"
       />
     </Link>
   );
