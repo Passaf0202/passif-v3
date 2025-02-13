@@ -44,13 +44,12 @@ export const NavbarLogo = () => {
       <img 
         src={logoSettings?.url || '/placeholder.svg'}
         alt="TRADECOINER" 
-        className="h-8 w-auto max-w-[120px] object-contain"
+        className="h-9 w-auto max-w-[150px] object-contain"
         onError={(e) => {
           console.error('Logo loading error, falling back to placeholder');
           e.currentTarget.src = '/placeholder.svg';
         }}
       />
-      <span className="text-xl font-bold tracking-tight text-black">TRADECOINER</span>
     </Link>
   );
 };
