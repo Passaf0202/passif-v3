@@ -59,7 +59,7 @@ export function EscrowActions({
           
           // 4. Vérifier que cette transaction existe toujours dans le contrat
           try {
-            const txData = await contract.transactions(txnId);
+            const txData = await contract.getTransaction(txnId);
             if (txData && !txData.amount.eq(0)) {
               console.log("Transaction verified on chain:", txData);
               return {
@@ -84,14 +84,7 @@ export function EscrowActions({
   const verifyBlockchainTransaction = async (contract: ethers.Contract, txnId: ethers.BigNumber) => {
     try {
       console.log("Verifying transaction on chain:", txnId.toString());
-
-      // Vérifier d'abord que l'ID est valide
-      const nextId = await contract.nextTransactionId();
-      if (txnId.gte(nextId)) {
-        throw new Error("ID de transaction invalide (supérieur à nextTransactionId)");
-      }
-
-      const txData = await contract.transactions(txnId);
+      const txData = await contract.getTransaction(txnId);
       console.log("Transaction data from chain:", txData);
 
       if (!txData || txData.amount.eq(0)) {
@@ -102,12 +95,10 @@ export function EscrowActions({
         throw new Error("Les fonds ont déjà été libérés");
       }
 
+      // Pour le test temporaire, on ne vérifie pas si l'acheteur et le vendeur sont différents
       return txData;
     } catch (error) {
       console.error("Error verifying transaction:", error);
-      if (error.message.includes("call revert exception")) {
-        throw new Error("La transaction n'existe pas sur la blockchain");
-      }
       throw new Error("La transaction n'est pas valide sur la blockchain");
     }
   };
@@ -159,14 +150,10 @@ export function EscrowActions({
         try {
           console.log("Checking stored blockchain_txn_id:", transaction.blockchain_txn_id);
           const storedId = ethers.BigNumber.from(transaction.blockchain_txn_id);
-          // Vérifier que l'ID est valide
-          const nextId = await contract.nextTransactionId();
-          if (storedId.lt(nextId)) {
-            const txData = await contract.transactions(storedId);
-            if (txData && !txData.amount.eq(0)) {
-              console.log("Valid transaction found with stored ID");
-              realTxnId = storedId;
-            }
+          const txData = await contract.getTransaction(storedId);
+          if (txData && !txData.amount.eq(0)) {
+            console.log("Valid transaction found with stored ID");
+            realTxnId = storedId;
           }
         } catch (error) {
           console.error("Error checking stored transaction ID:", error);
