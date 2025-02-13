@@ -1,86 +1,130 @@
 
-import { ethers } from 'ethers';
-import { formatAmount, getEscrowContract, parseTransactionId } from '@/utils/escrow/contractUtils';
-import { useTransactionCreation } from './useTransactionCreation';
-import { useToast } from '@/components/ui/use-toast';
+import { useState } from "react";
+import { ethers } from "ethers";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
+import { useTransactionCreation } from "@/hooks/useTransactionCreation";
 
-export const usePaymentTransaction = () => {
-  const { createTransaction, updateTransactionWithBlockchain } = useTransactionCreation();
+interface UsePaymentTransactionProps {
+  listingId: string;
+  address?: string;
+  onTransactionHash?: (hash: string) => void;
+  onPaymentComplete: () => void;
+  onTransactionCreated?: (id: string) => void;
+}
+
+const ESCROW_ABI = [
+  "function createTransaction(address seller) payable returns (uint256)",
+  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)",
+  "event FundsDeposited(uint256 indexed txnId, address buyer, uint256 amount)"
+];
+
+const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
+
+export function usePaymentTransaction({ 
+  listingId, 
+  address,
+  onTransactionHash,
+  onPaymentComplete,
+  onTransactionCreated
+}: UsePaymentTransactionProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { ensureCorrectNetwork } = useNetworkSwitch();
+  const { createTransaction, updateTransactionWithBlockchain } = useTransactionCreation();
 
-  const createPaymentTransaction = async (
-    sellerAddress: string,
-    cryptoAmount: number,
-    listingId: string,
-    cryptoCurrency: string = 'POL'
-  ) => {
+  const handlePayment = async () => {
+    if (!address) {
+      setError("Veuillez connecter votre portefeuille pour continuer");
+      return;
+    }
+
     try {
-      if (!window.ethereum) {
-        throw new Error("MetaMask n'est pas installé");
+      setIsProcessing(true);
+      setError(null);
+      console.log('Starting payment process for listing:', listingId);
+
+      // 1. Récupérer les détails de l'annonce
+      const { data: listing, error: listingError } = await supabase
+        .from('listings')
+        .select(`
+          *,
+          user:profiles!listings_user_id_fkey (
+            id,
+            wallet_address
+          )
+        `)
+        .eq('id', listingId)
+        .single();
+
+      if (listingError || !listing) {
+        console.error('Error fetching listing:', listingError);
+        throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
-      console.log('[usePaymentTransaction] Starting payment process:', {
-        sellerAddress,
-        cryptoAmount,
-        listingId,
-        cryptoCurrency
-      });
-
-      // Ensure minimum amount for POL
-      const minimumAmount = 0.001;
-      if (cryptoCurrency === 'POL' && cryptoAmount < minimumAmount) {
-        cryptoAmount = minimumAmount;
+      // 2. Vérifier l'adresse du vendeur
+      const sellerAddress = listing.user?.wallet_address;
+      if (!sellerAddress) {
+        throw new Error("L'adresse du vendeur n'est pas disponible");
       }
 
-      // 1. Vérifier le solde avant de créer la transaction
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      const balance = await provider.getBalance(address);
-      const amountInWei = ethers.utils.parseUnits(formatAmount(cryptoAmount), 18);
+      console.log("Seller wallet address:", sellerAddress);
 
-      // Estimation des frais de gas
-      const contract = getEscrowContract(provider);
-      const gasLimit = await contract.estimateGas.createTransaction(sellerAddress, {
-        value: amountInWei
-      });
-      const gasPrice = await provider.getGasPrice();
-      const gasCost = gasLimit.mul(gasPrice);
-      const totalRequired = amountInWei.add(gasCost);
+      // 3. S'assurer d'être sur le bon réseau
+      await ensureCorrectNetwork();
 
-      if (balance.lt(totalRequired)) {
-        const requiredPOL = ethers.utils.formatEther(totalRequired);
-        const currentPOL = ethers.utils.formatEther(balance);
-        throw new Error(`Fonds insuffisants. Vous avez ${Number(currentPOL).toFixed(6)} POL mais la transaction nécessite environ ${Number(requiredPOL).toFixed(6)} POL (montant + frais de gas). Veuillez obtenir plus de POL sur Polygon Amoy.`);
-      }
-
-      // 2. Créer d'abord la transaction dans Supabase
+      // 4. Créer la transaction Supabase
       const transaction = await createTransaction(
         listingId,
-        cryptoAmount,
-        cryptoCurrency,
+        listing.crypto_amount || 0,
+        'POL',
         sellerAddress
       );
 
-      console.log('[usePaymentTransaction] Supabase transaction created:', transaction);
+      if (onTransactionCreated) {
+        onTransactionCreated(transaction.id);
+      }
 
-      // 3. Créer la transaction blockchain
-      const tx = await contract.createTransaction(sellerAddress, {
-        value: amountInWei,
-        gasLimit,
-        gasPrice
-      });
+      // 5. Initialiser le contrat
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        ESCROW_CONTRACT_ADDRESS,
+        ESCROW_ABI,
+        signer
+      );
 
-      console.log('[usePaymentTransaction] Transaction sent:', tx.hash);
+      // 6. Envoyer la transaction blockchain
+      const amount = ethers.utils.parseEther(listing.crypto_amount?.toString() || "0");
+      console.log("Sending transaction with amount:", ethers.utils.formatEther(amount));
 
+      const tx = await contract.createTransaction(sellerAddress, { value: amount });
+      console.log("Transaction sent:", tx.hash);
+
+      if (onTransactionHash) {
+        onTransactionHash(tx.hash);
+      }
+
+      // 7. Écouter l'événement FundsDeposited pour récupérer l'ID
       const receipt = await tx.wait();
-      console.log('[usePaymentTransaction] Transaction confirmed:', receipt);
+      console.log("Transaction receipt:", receipt);
 
-      // 4. Parser l'ID de transaction blockchain
-      const blockchainTxnId = await parseTransactionId(receipt);
-      console.log('[usePaymentTransaction] Parsed blockchain transaction ID:', blockchainTxnId);
+      // Trouver l'événement FundsDeposited
+      const event = receipt.events?.find(
+        (e: any) => e.event === "FundsDeposited"
+      );
 
-      // 5. Mettre à jour la transaction Supabase
+      if (!event) {
+        throw new Error("Événement FundsDeposited non trouvé");
+      }
+
+      // L'ID est le premier argument de l'événement
+      const blockchainTxnId = event.args[0].toString();
+      console.log("Blockchain transaction ID from event:", blockchainTxnId);
+
+      // 8. Mettre à jour la transaction avec l'ID blockchain
       await updateTransactionWithBlockchain(
         transaction.id,
         blockchainTxnId,
@@ -89,25 +133,27 @@ export const usePaymentTransaction = () => {
 
       toast({
         title: "Transaction réussie",
-        description: "Le paiement a été effectué avec succès",
+        description: "Les fonds ont été déposés dans l'escrow",
       });
 
-      return transaction.id;
-    } catch (error: any) {
-      console.error('[usePaymentTransaction] Error:', error);
-      
-      // Améliorer le message d'erreur pour les erreurs spécifiques
-      let errorMessage = error.message;
-      
-      if (error.code === 4001) {
-        errorMessage = "Transaction refusée par l'utilisateur";
-      } else if (error.message.includes("insufficient funds")) {
-        errorMessage = "Fonds insuffisants sur votre wallet Polygon Amoy (POL)";
-      }
+      onPaymentComplete();
 
-      throw new Error(errorMessage);
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      setError(error.message || "Une erreur est survenue lors du paiement");
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  return { createPaymentTransaction };
-};
+  return {
+    isProcessing,
+    error,
+    handlePayment
+  };
+}
