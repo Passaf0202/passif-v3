@@ -47,6 +47,17 @@ export function EscrowActions({
         throw new Error("Les fonds ne sont pas encore sécurisés");
       }
 
+      console.log("Transaction details:", {
+        id: transactionId,
+        blockchain_txn_id: transaction.blockchain_txn_id,
+        user_id: user.id,
+        buyer_id: transaction.buyer?.id,
+        seller_id: transaction.seller?.id,
+        funds_secured: transaction.funds_secured,
+        buyer_confirmation: transaction.buyer_confirmation,
+        seller_confirmation: transaction.seller_confirmation
+      });
+
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -62,7 +73,8 @@ export function EscrowActions({
       // 2. Initialisation du provider et du contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      console.log("Connected with address:", await signer.getAddress());
+      const signerAddress = await signer.getAddress();
+      console.log("Connected with address:", signerAddress);
 
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
@@ -70,19 +82,37 @@ export function EscrowActions({
         signer
       );
 
-      // 3. Utiliser directement l'ID 141 pour libérer les fonds
-      const txnId = 141;
+      // 3. Récupérer les détails de la transaction blockchain
+      const txnId = Number(transaction.blockchain_txn_id);
       console.log("Using transaction ID:", txnId);
+
+      // Vérifier la transaction sur la blockchain
+      const txnOnChain = await contract.transactions(txnId);
+      console.log("Transaction on chain:", {
+        buyer: txnOnChain.buyer,
+        seller: txnOnChain.seller,
+        amount: txnOnChain.amount.toString(),
+        isFunded: txnOnChain.isFunded,
+        isCompleted: txnOnChain.isCompleted
+      });
 
       // 4. Estimer le gaz
       let gasEstimate;
       try {
+        console.log("Estimating gas for releaseFunds with txnId:", txnId);
         gasEstimate = await contract.estimateGas.releaseFunds(txnId);
         console.log("Gas estimate:", gasEstimate.toString());
         gasEstimate = gasEstimate.mul(120).div(100); // +20% marge
-      } catch (error) {
+      } catch (error: any) {
         console.error("Gas estimation error:", error);
-        throw new Error("Impossible d'estimer les frais de transaction");
+        // Afficher plus de détails sur l'erreur
+        if (error.error?.message) {
+          console.error("Error message:", error.error.message);
+        }
+        if (error.error?.data?.message) {
+          console.error("Error data message:", error.error.data.message);
+        }
+        throw new Error(error.error?.message || error.message || "Impossible d'estimer les frais de transaction");
       }
 
       // 5. Envoyer la transaction
