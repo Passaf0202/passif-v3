@@ -1,7 +1,8 @@
+
 import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Camera, ImagePlus, Lightbulb, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 
 interface ImageUploadProps {
@@ -13,9 +14,24 @@ interface ImageUploadProps {
 export function ImageUpload({ images, onImagesChange, category }: ImageUploadProps) {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const MAX_IMAGES = 5;
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+  const validateFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      console.error(`File ${file.name} is not an image (type: ${file.type})`);
+      return false;
+    }
+    
+    if (file.size > MAX_FILE_SIZE) {
+      console.error(`File ${file.name} is too large (${file.size} bytes)`);
+      return false;
+    }
+
+    return true;
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    console.log("Dropped files:", acceptedFiles.map(f => ({ name: f.name, type: f.type })));
+    console.log("Dropped files:", acceptedFiles.map(f => ({ name: f.name, type: f.type, size: f.size })));
     
     const totalImages = images.length + acceptedFiles.length;
     if (totalImages > MAX_IMAGES) {
@@ -23,22 +39,15 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       return;
     }
 
-    // Vérifier que les fichiers sont bien des images
-    const imageFiles = acceptedFiles.filter(file => {
-      const isImage = file.type.startsWith('image/');
-      if (!isImage) {
-        console.error(`File ${file.name} is not an image (type: ${file.type})`);
-      }
-      return isImage;
-    });
+    const validImageFiles = acceptedFiles.filter(validateFile);
 
-    const newImages = [...images, ...imageFiles].slice(0, MAX_IMAGES);
+    const newImages = [...images, ...validImageFiles].slice(0, MAX_IMAGES);
     onImagesChange(newImages);
 
-    // Créer les URLs de prévisualisation
+    // Create preview URLs
     const urls = newImages.map(file => URL.createObjectURL(file));
     
-    // Nettoyer les anciennes URLs
+    // Cleanup old URLs
     previewUrls.forEach(url => URL.revokeObjectURL(url));
     setPreviewUrls(urls);
   }, [images, onImagesChange, previewUrls]);
@@ -50,7 +59,8 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       'image/png': ['.png'],
       'image/gif': ['.gif']
     },
-    maxFiles: MAX_IMAGES
+    maxFiles: MAX_IMAGES,
+    maxSize: MAX_FILE_SIZE
   });
 
   const removeImage = (index: number) => {
@@ -63,6 +73,13 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     newUrls.splice(index, 1);
     setPreviewUrls(newUrls);
   };
+
+  // Cleanup preview URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [previewUrls]);
 
   const isVehicle = category === "Véhicules";
   const vehiclePhotoTypes = [

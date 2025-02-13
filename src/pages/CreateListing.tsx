@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,15 +21,18 @@ export default function CreateListing() {
       const uploadedUrls: string[] = [];
 
       for (const image of images) {
+        // Validate image type
         if (!image.type.startsWith('image/')) {
           console.error(`File ${image.name} is not an image (type: ${image.type})`);
           continue;
         }
 
+        // Generate a unique filename with proper extension
         const fileExt = image.name.split('.').pop()?.toLowerCase() || '';
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
         console.log("Uploading image:", fileName, "type:", image.type);
 
+        // Upload to Supabase storage
         const { error: uploadError, data } = await supabase.storage
           .from("listings-images")
           .upload(fileName, image, {
@@ -41,6 +45,7 @@ export default function CreateListing() {
           throw uploadError;
         }
 
+        // Get the public URL
         const { data: { publicUrl } } = supabase.storage
           .from("listings-images")
           .getPublicUrl(fileName);
@@ -110,7 +115,7 @@ export default function CreateListing() {
           shipping_weight: values.shipping_weight,
           crypto_currency: values.crypto_currency,
           crypto_amount: values.crypto_amount,
-          wallet_address: address // Stockage permanent de l'adresse du wallet au moment de la création
+          wallet_address: address
         })
         .select('*')
         .single();
