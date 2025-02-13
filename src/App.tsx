@@ -1,3 +1,4 @@
+
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
@@ -15,6 +16,7 @@ import Checkout from "@/pages/Checkout";
 import Payment from "@/pages/Payment";
 import { UserProfile } from "@/components/UserProfile";
 import Search from "@/pages/Search";
+import Admin from "@/pages/Admin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,6 +44,7 @@ function App() {
               <Route path="/payment/:id" element={<Payment />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/search" element={<Search />} />
+              <Route path="/admin" element={<Admin />} />
             </Routes>
             <Toaster />
           </BrowserRouter>
