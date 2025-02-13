@@ -35,6 +35,8 @@ export function EscrowActions({
   const { user } = useAuth();
 
   const verifyBlockchainState = async (provider: ethers.providers.Web3Provider, contract: ethers.Contract, txnId: number) => {
+    console.log("Starting blockchain state verification for txnId:", txnId);
+    
     // 1. Vérifier la synchronisation du nœud
     const currentBlock = await provider.getBlockNumber();
     const latestBlock = await provider.getBlock('latest');
@@ -43,19 +45,35 @@ export function EscrowActions({
       throw new Error("Le nœud n'est pas complètement synchronisé. Veuillez réessayer dans quelques instants.");
     }
 
-    // 2. Vérifier l'état de la transaction
-    console.log("Verifying blockchain state for transaction:", txnId);
+    // 2. Récupérer les données de la blockchain
     const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
 
-    console.log("Blockchain state:", {
-      buyer,
-      seller,
+    console.log("Raw blockchain state:", {
+      buyer: buyer.toLowerCase(),
+      seller: seller.toLowerCase(),
       amount: ethers.utils.formatEther(amount),
       isFunded,
       isCompleted
     });
 
-    // 3. Vérifications approfondies
+    // 3. Récupérer les données de la base de données pour une double vérification
+    const { data: dbTransaction, error: dbError } = await supabase
+      .from('transactions')
+      .select('seller_wallet_address, buyer_id')
+      .eq('id', transactionId)
+      .single();
+
+    if (dbError) {
+      console.error("Database error:", dbError);
+      throw new Error("Erreur lors de la vérification des données");
+    }
+
+    console.log("Database state:", {
+      seller_wallet_address: dbTransaction.seller_wallet_address?.toLowerCase(),
+      expected_seller: transaction.seller_wallet_address?.toLowerCase()
+    });
+
+    // 4. Vérifications approfondies
     if (!isFunded) {
       throw new Error("Les fonds n'ont pas été déposés sur la blockchain");
     }
@@ -64,29 +82,34 @@ export function EscrowActions({
       throw new Error("Les fonds ont déjà été libérés");
     }
 
-    // Si l'acheteur (buyer) est l'adresse qui était censée être le vendeur,
-    // alors les rôles ont été inversés lors de la création de la transaction blockchain
-    const buyerIsSeller = buyer.toLowerCase() === transaction.seller_wallet_address?.toLowerCase();
-    const actualSeller = buyerIsSeller ? seller : buyer;
+    if (!dbTransaction.seller_wallet_address) {
+      throw new Error("Adresse du vendeur non trouvée dans la base de données");
+    }
 
-    console.log("Address verification:", {
-      buyerIsSeller,
-      actualSeller: actualSeller.toLowerCase(),
-      expectedSeller: transaction.seller_wallet_address?.toLowerCase()
-    });
+    // 5. Vérifier les adresses
+    const expectedSellerAddress = dbTransaction.seller_wallet_address.toLowerCase();
+    const blockchainSellerAddress = seller.toLowerCase();
+    const blockchainBuyerAddress = buyer.toLowerCase();
 
-    // Vérifier que l'adresse du vendeur correspond à celle attendue
-    if (!transaction.seller_wallet_address || 
-        actualSeller.toLowerCase() !== transaction.seller_wallet_address.toLowerCase()) {
+    // Vérifier si l'une des adresses correspond au vendeur attendu
+    if (blockchainSellerAddress !== expectedSellerAddress && 
+        blockchainBuyerAddress !== expectedSellerAddress) {
+      console.error("Address mismatch:", {
+        expectedSeller: expectedSellerAddress,
+        blockchainSeller: blockchainSellerAddress,
+        blockchainBuyer: blockchainBuyerAddress
+      });
       throw new Error("Incohérence d'adresse vendeur. Contactez le support.");
     }
 
-    return { 
-      buyer: buyerIsSeller ? seller : buyer, 
-      seller: actualSeller,
+    // 6. Retourner les données validées
+    const isSellerInBuyerPosition = blockchainBuyerAddress === expectedSellerAddress;
+    return {
+      buyer: isSellerInBuyerPosition ? seller : buyer,
+      seller: isSellerInBuyerPosition ? buyer : seller,
       amount,
       isFunded,
-      isCompleted 
+      isCompleted
     };
   };
 
