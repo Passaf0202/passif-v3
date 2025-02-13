@@ -2,6 +2,11 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type LogoSettings = {
+  url: string;
+};
 
 export const NavbarLogo = () => {
   const { data: logoSettings } = useQuery({
@@ -20,10 +25,12 @@ export const NavbarLogo = () => {
       
       // Log pour vérifier la structure des données
       console.log('Raw logo data:', data);
-      console.log('Logo value:', data?.value);
-      console.log('Logo URL:', data?.value?.url);
       
-      return data?.value as { url: string };
+      // S'assurer que value est bien un objet avec une propriété url
+      const logoValue = data?.value as LogoSettings;
+      console.log('Logo value:', logoValue);
+      
+      return logoValue || { url: '/placeholder.svg' };
     },
     initialData: { url: '/placeholder.svg' },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
@@ -31,7 +38,6 @@ export const NavbarLogo = () => {
 
   // Log pour vérifier les données dans le rendu
   console.log('Logo settings in render:', logoSettings);
-  console.log('Logo URL in render:', logoSettings?.url);
 
   return (
     <Link to="/" className="flex items-center gap-2 flex-shrink-0">
