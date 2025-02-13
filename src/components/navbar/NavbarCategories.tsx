@@ -5,20 +5,20 @@ import { getCategoryIcon } from "@/utils/categoryIcons";
 import { Link } from "react-router-dom";
 import { useOrganizedCategories } from "./categories/useOrganizedCategories";
 import { useVisibleCategories } from "./categories/useVisibleCategories";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavbarCategoriesProps {
   categories: Category[];
+  isMobile?: boolean;
 }
 
 export function NavbarCategories({
-  categories
+  categories,
+  isMobile
 }: NavbarCategoriesProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
   const organizedCategories = useOrganizedCategories(categories);
-  const visibleCategories = useVisibleCategories(organizedCategories, isMobile, containerRef);
+  const visibleCategories = useVisibleCategories(organizedCategories, !!isMobile, containerRef);
 
   const hiddenCategories = organizedCategories.filter(
     cat => !visibleCategories.find(visible => visible.id === cat.id)
@@ -34,8 +34,12 @@ export function NavbarCategories({
     ? [...visibleCategories, othersCategory]
     : visibleCategories;
 
+  if (isMobile) {
+    return null;
+  }
+
   return (
-    <nav className="hidden md:block w-full border-b border-gray-200/80">
+    <nav className="w-full border-b border-gray-200/80">
       <div className="max-w-[1440px] h-12 mx-auto px-4 md:px-8">
         <div className="h-full flex items-center justify-center" ref={containerRef}>
           <ul className="inline-flex items-center gap-1">

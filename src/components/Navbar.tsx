@@ -6,12 +6,16 @@ import { MobileCreateButton } from "./navbar/MobileCreateButton";
 import { useNavigate } from "react-router-dom";
 import { NavbarCategories } from "./navbar/NavbarCategories";
 import { useCategoriesData } from "./navbar/categories/useCategoriesData";
+import { useRef } from "react";
+import { useAdaptiveLayout } from "@/hooks/use-adaptive-layout";
 
 export function Navbar() {
   const navigate = useNavigate();
-  const {
-    data: categories
-  } = useCategoriesData();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+  const { data: categories } = useCategoriesData();
+  
+  const isMobile = useAdaptiveLayout(containerRef, categoriesRef);
 
   const onSearch = (query: string) => {
     console.log("Searching for:", query);
@@ -20,16 +24,18 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/80">
-      <div className="max-w-[1440px] mx-auto">
+      <div className="max-w-[1440px] mx-auto" ref={containerRef}>
         {/* Top section */}
         <div className="h-12 px-4 md:px-8">
           <div className="h-full flex items-center justify-center">
             <div className="w-full max-w-[1200px] grid grid-cols-[auto_1fr_auto] items-center gap-4 md:gap-8">
-              <div className="w-auto flex-shrink-0">
+              <div className={`w-auto flex-shrink-0 transition-all duration-200 ${
+                isMobile ? 'scale-90' : ''
+              }`}>
                 <NavbarLogo />
               </div>
               <div className="flex justify-start md:justify-center w-full">
-                <div className="hidden md:block w-full max-w-md">
+                <div className={isMobile ? "hidden" : "w-full max-w-md"}>
                   <SearchBar onSearch={onSearch} />
                 </div>
               </div>
@@ -39,12 +45,16 @@ export function Navbar() {
         </div>
 
         {/* Categories section */}
-        <NavbarCategories categories={categories || []} />
+        <div ref={categoriesRef}>
+          <NavbarCategories categories={categories || []} isMobile={isMobile} />
+        </div>
 
         {/* Mobile search */}
-        <div className="md:hidden px-4 py-2">
-          <SearchBar onSearch={onSearch} />
-        </div>
+        {isMobile && (
+          <div className="px-4 py-2">
+            <SearchBar onSearch={onSearch} />
+          </div>
+        )}
       </div>
       
       <MobileCreateButton />
