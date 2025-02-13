@@ -1,5 +1,5 @@
+
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SearchInput } from "./search/SearchInput";
@@ -36,7 +36,6 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
     onSearch(searchInput, titleOnly);
     setShowSuggestions(false);
     
-    // Save to recent searches
     const recentSearches = JSON.parse(localStorage.getItem("recentSearches") || "[]");
     const newSearch = { query: searchInput, timestamp: new Date().toISOString() };
     const updatedSearches = [newSearch, ...recentSearches.slice(0, 4)];
@@ -55,25 +54,21 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
 
   return (
     <div className="relative w-full">
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <SearchInput
-          value={searchInput}
-          onChange={(value) => {
-            setSearchInput(value);
-            setShowSuggestions(true);
-          }}
-          onFocus={() => setShowSuggestions(true)}
-          titleOnly={titleOnly}
-          onTitleOnlyChange={setTitleOnly}
-          showCheckbox={false}
-        />
-        <Button 
-          type="submit" 
-          size="icon" 
-          className="h-12 w-12 bg-primary hover:bg-primary/90 rounded-lg"
-        >
-          <Search className="h-5 w-5" />
-        </Button>
+      <form onSubmit={handleSubmit} className="flex">
+        <div className="relative w-full group">
+          <SearchInput
+            value={searchInput}
+            onChange={(value) => {
+              setSearchInput(value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            titleOnly={titleOnly}
+            onTitleOnlyChange={setTitleOnly}
+            showCheckbox={false}
+          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70" />
+        </div>
       </form>
 
       <SearchSuggestions

@@ -42,26 +42,35 @@ export const NavbarActions = () => {
   };
 
   return (
-    <div className="flex items-center justify-end gap-2 flex-1 md:flex-none w-full md:w-auto">
+    <div className="flex items-center gap-6">
       <Button 
         onClick={handleCreateListing}
-        className="bg-primary hover:bg-primary/90 hidden md:flex h-10 whitespace-nowrap"
+        className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-4 rounded-full text-sm transition-colors duration-200"
       >
-        <Plus className="h-4 w-4 mr-2" />
-        Déposer une annonce
+        <Plus className="h-4 w-4 mr-1" />
+        Déposer
       </Button>
 
       {user ? (
         <>
-          <div className="hidden md:flex items-center gap-2">
-            <Link to="/messages" className="text-gray-600 hover:text-gray-900">
-              <MessageCircle className="h-6 w-6" />
+          <div className="hidden md:flex items-center gap-6">
+            <Link 
+              to="/messages" 
+              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            >
+              <MessageCircle className="h-5 w-5" />
             </Link>
-            <Link to="/favorites" className="text-gray-600 hover:text-gray-900">
-              <Heart className="h-6 w-6" />
+            <Link 
+              to="/favorites" 
+              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            >
+              <Heart className="h-5 w-5" />
             </Link>
-            <Link to="/notifications" className="text-gray-600 hover:text-gray-900">
-              <Bell className="h-6 w-6" />
+            <Link 
+              to="/notifications" 
+              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            >
+              <Bell className="h-5 w-5" />
             </Link>
             <AdminLink />
           </div>
@@ -70,9 +79,12 @@ export const NavbarActions = () => {
           </div>
         </>
       ) : (
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-4">
           <Link to="/auth">
-            <Button variant="ghost" className="h-10 whitespace-nowrap">
+            <Button 
+              variant="ghost" 
+              className="h-8 px-4 rounded-full text-sm hover:bg-gray-100 transition-colors duration-200"
+            >
               Connexion
             </Button>
           </Link>
