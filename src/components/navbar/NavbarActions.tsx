@@ -42,7 +42,7 @@ export const NavbarActions = () => {
   };
 
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex items-center gap-4">
       <Button 
         onClick={handleCreateListing}
         className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-4 rounded-full text-sm transition-colors duration-200"
@@ -53,25 +53,22 @@ export const NavbarActions = () => {
 
       {user ? (
         <>
-          <div className="hidden md:flex items-center gap-6">
-            <Link 
-              to="/messages" 
-              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
-            >
-              <MessageCircle className="h-5 w-5" />
-            </Link>
-            <Link 
-              to="/favorites" 
-              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
-            >
-              <Heart className="h-5 w-5" />
-            </Link>
-            <Link 
-              to="/notifications" 
-              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
-            >
-              <Bell className="h-5 w-5" />
-            </Link>
+          <div className="hidden md:flex items-center gap-4">
+            <Button variant="ghost" size="icon" className="rounded-full" asChild>
+              <Link to="/messages">
+                <MessageCircle className="h-5 w-5" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" className="rounded-full" asChild>
+              <Link to="/favorites">
+                <Heart className="h-5 w-5" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" className="rounded-full" asChild>
+              <Link to="/notifications">
+                <Bell className="h-5 w-5" />
+              </Link>
+            </Button>
             <AdminLink />
           </div>
           <div className="flex-shrink-0">
@@ -93,4 +90,4 @@ export const NavbarActions = () => {
       )}
     </div>
   );
-};
+}
