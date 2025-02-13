@@ -9,6 +9,7 @@ export interface Transaction {
   token_symbol: string;
   can_be_cancelled: boolean;
   funds_secured: boolean;
+  funds_secured_at: string | null;
   buyer_confirmation: boolean;
   seller_confirmation: boolean;
   seller_wallet_address?: string;
