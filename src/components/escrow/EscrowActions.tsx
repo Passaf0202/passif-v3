@@ -18,6 +18,11 @@ interface EscrowActionsProps {
   transactionId: string;
 }
 
+const MIN_WAIT_TIME_MS = 30000; // 30 secondes minimum après la sécurisation des fonds
+const MAX_RETRIES = 3;
+const GAS_INCREASE_FACTOR = 1.5; // +50% de gas
+const REQUIRED_CONFIRMATIONS = 2;
+
 export function EscrowActions({ 
   transaction, 
   isLoading, 
@@ -30,163 +35,213 @@ export function EscrowActions({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const canConfirmTransaction = transaction.funds_secured && 
-    !transaction.buyer_confirmation && 
-    (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
+  const verifyBlockchainState = async (provider: ethers.providers.Web3Provider, contract: ethers.Contract, txnId: number) => {
+    // 1. Vérifier la synchronisation du nœud
+    const currentBlock = await provider.getBlockNumber();
+    const latestBlock = await provider.getBlock('latest');
+    
+    if (Math.abs(currentBlock - latestBlock.number) > 5) {
+      throw new Error("Le nœud n'est pas complètement synchronisé. Veuillez réessayer dans quelques instants.");
+    }
+
+    // 2. Vérifier l'état de la transaction
+    console.log("Verifying blockchain state for transaction:", txnId);
+    const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
+
+    console.log("Blockchain state:", {
+      buyer,
+      seller,
+      amount: ethers.utils.formatEther(amount),
+      isFunded,
+      isCompleted
+    });
+
+    // 3. Vérifications approfondies
+    if (!isFunded) {
+      throw new Error("Les fonds n'ont pas été déposés sur la blockchain");
+    }
+
+    if (isCompleted) {
+      throw new Error("Les fonds ont déjà été libérés");
+    }
+
+    if (seller.toLowerCase() !== transaction.seller_wallet_address?.toLowerCase()) {
+      throw new Error("Incohérence d'adresse vendeur. Contactez le support.");
+    }
+
+    return { buyer, seller, amount, isFunded, isCompleted };
+  };
+
+  const verifyTimingAndPermissions = async (signerAddress: string, buyer: string) => {
+    // 1. Vérifier le délai minimum
+    if (transaction.funds_secured_at) {
+      const securedTime = new Date(transaction.funds_secured_at).getTime();
+      const currentTime = Date.now();
+      const timeDiff = currentTime - securedTime;
+
+      if (timeDiff < MIN_WAIT_TIME_MS) {
+        const remainingSeconds = Math.ceil((MIN_WAIT_TIME_MS - timeDiff) / 1000);
+        throw new Error(`Veuillez attendre encore ${remainingSeconds} secondes avant de libérer les fonds`);
+      }
+    }
+
+    // 2. Vérifier les permissions
+    if (buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+      throw new Error("Seul l'acheteur peut libérer les fonds");
+    }
+  };
+
+  const estimateGasWithRetry = async (
+    contract: ethers.Contract,
+    txnId: number,
+    retryCount: number = 0
+  ): Promise<{ gasLimit: ethers.BigNumber; maxFeePerGas: ethers.BigNumber }> => {
+    try {
+      const gasLimit = await contract.estimateGas.releaseFunds(txnId);
+      const feeData = await contract.provider.getFeeData();
+      
+      // Calcul du gas avec une marge progressive selon le nombre de retries
+      const increaseFactor = Math.pow(GAS_INCREASE_FACTOR, retryCount + 1);
+      const adjustedGasLimit = gasLimit.mul(Math.floor(increaseFactor * 100)).div(100);
+      
+      const maxFeePerGas = feeData.maxFeePerGas
+        ? feeData.maxFeePerGas.mul(Math.floor(increaseFactor * 100)).div(100)
+        : ethers.utils.parseUnits("50", "gwei"); // Fallback
+
+      return { gasLimit: adjustedGasLimit, maxFeePerGas };
+    } catch (error) {
+      console.error("Gas estimation error:", error);
+      throw new Error("Impossible d'estimer les frais de transaction");
+    }
+  };
 
   const handleConfirmTransaction = async () => {
-    try {
-      setIsLoading(true);
+    let retryCount = 0;
 
-      // 1. Vérifications préliminaires
-      if (!user?.id) {
-        throw new Error("Utilisateur non connecté");
-      }
-
-      if (!transaction.funds_secured) {
-        throw new Error("Les fonds ne sont pas encore sécurisés");
-      }
-
-      console.log("Transaction details:", {
-        id: transactionId,
-        blockchain_txn_id: transaction.blockchain_txn_id,
-        user_id: user.id,
-        buyer_id: transaction.buyer?.id,
-        seller_id: transaction.seller?.id,
-        funds_secured: transaction.funds_secured,
-        buyer_confirmation: transaction.buyer_confirmation,
-        seller_confirmation: transaction.seller_confirmation
-      });
-
-      if (chain?.id !== amoy.id) {
-        if (!switchNetwork) {
-          throw new Error("Impossible de changer de réseau automatiquement");
-        }
-        await switchNetwork(amoy.id);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-
-      if (!window.ethereum) {
-        throw new Error("MetaMask n'est pas installé");
-      }
-
-      // 2. Initialisation du provider et du contrat
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const signerAddress = await signer.getAddress();
-      console.log("Connected with address:", signerAddress);
-
-      const contract = new ethers.Contract(
-        ESCROW_CONTRACT_ADDRESS,
-        ESCROW_ABI,
-        signer
-      );
-
-      // 3. Récupérer les détails de la transaction blockchain
-      if (!transaction.blockchain_txn_id) {
-        throw new Error("ID de transaction blockchain manquant");
-      }
-
-      const txnId = Number(transaction.blockchain_txn_id);
-      console.log("Using blockchain transaction ID:", txnId);
-
-      // Vérifier la transaction sur la blockchain
+    const attemptRelease = async (): Promise<void> => {
       try {
-        const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
-        console.log("Transaction details from blockchain:", {
-          buyer,
-          seller,
-          amount: ethers.utils.formatEther(amount),
-          isFunded,
-          isCompleted,
-          signerAddress
+        if (!user?.id) throw new Error("Utilisateur non connecté");
+        if (!transaction.funds_secured) throw new Error("Les fonds ne sont pas sécurisés");
+        if (!transaction.blockchain_txn_id) throw new Error("ID de transaction blockchain manquant");
+
+        // 1. Vérifier et changer de réseau si nécessaire
+        if (chain?.id !== amoy.id) {
+          if (!switchNetwork) throw new Error("Impossible de changer de réseau");
+          await switchNetwork(amoy.id);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        if (!window.ethereum) throw new Error("MetaMask n'est pas installé");
+
+        // 2. Initialiser le provider et le contrat
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const signerAddress = await signer.getAddress();
+        const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
+
+        // 3. Vérifier l'état de la blockchain
+        const txnId = Number(transaction.blockchain_txn_id);
+        const blockchainState = await verifyBlockchainState(provider, contract, txnId);
+
+        // 4. Vérifier le timing et les permissions
+        await verifyTimingAndPermissions(signerAddress, blockchainState.buyer);
+
+        // 5. Estimer le gas avec la marge actuelle
+        const { gasLimit, maxFeePerGas } = await estimateGasWithRetry(contract, txnId, retryCount);
+
+        // 6. Vérifier le solde pour le gas
+        const balance = await provider.getBalance(signerAddress);
+        const estimatedCost = gasLimit.mul(maxFeePerGas);
+        if (balance.lt(estimatedCost)) {
+          throw new Error("Solde insuffisant pour couvrir les frais de transaction");
+        }
+
+        // 7. Envoyer la transaction
+        console.log("Sending transaction with params:", {
+          gasLimit: gasLimit.toString(),
+          maxFeePerGas: maxFeePerGas.toString()
         });
 
-        // Vérifications supplémentaires
-        if (!isFunded) {
-          throw new Error("La transaction n'est pas financée sur la blockchain");
-        }
+        const tx = await contract.releaseFunds(txnId, {
+          gasLimit,
+          maxFeePerGas
+        });
 
-        if (isCompleted) {
-          throw new Error("La transaction est déjà complétée sur la blockchain");
-        }
+        console.log("Transaction sent:", tx.hash);
 
-        if (buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-          throw new Error("Seul l'acheteur peut libérer les fonds");
+        // 8. Attendre les confirmations requises
+        const receipt = await tx.wait(REQUIRED_CONFIRMATIONS);
+        console.log("Transaction confirmed:", receipt);
+
+        if (receipt.status === 1) {
+          // 9. Mettre à jour la base de données
+          const { error: updateError } = await supabase
+            .from('transactions')
+            .update({
+              updated_at: new Date().toISOString(),
+              status: 'completed',
+              escrow_status: 'completed',
+              buyer_confirmation: true,
+              seller_confirmation: true
+            })
+            .eq('id', transactionId);
+
+          if (updateError) throw updateError;
+
+          toast({
+            title: "Succès",
+            description: "Les fonds ont été libérés avec succès",
+          });
+
+          onRelease();
+        } else {
+          throw new Error("La transaction a échoué sur la blockchain");
         }
       } catch (error: any) {
-        console.error("Error checking transaction on blockchain:", error);
-        if (error.message.includes("execution reverted")) {
-          throw new Error("La transaction n'existe pas sur la blockchain avec cet ID");
+        console.error('Release error:', error);
+
+        // Gérer les différents types d'erreurs
+        if (error.code === 'UNPREDICTABLE_GAS_LIMIT' || 
+            error.message.includes('Internal JSON-RPC error')) {
+          if (retryCount < MAX_RETRIES) {
+            retryCount++;
+            console.log(`Retrying transaction (${retryCount}/${MAX_RETRIES})...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return attemptRelease();
+          }
         }
-        throw error;
-      }
 
-      // 4. Estimer le gaz
-      let gasEstimate;
-      try {
-        console.log("Estimating gas for releaseFunds with txnId:", txnId);
-        gasEstimate = await contract.estimateGas.releaseFunds(txnId);
-        console.log("Gas estimate:", gasEstimate.toString());
-        gasEstimate = gasEstimate.mul(120).div(100); // +20% marge
-      } catch (error: any) {
-        console.error("Gas estimation error:", error);
-        // Afficher plus de détails sur l'erreur
-        if (error.error?.message) {
-          console.error("Error message:", error.error.message);
+        let errorMessage = "Une erreur est survenue lors de la libération des fonds";
+        
+        if (error.message.includes('user rejected')) {
+          errorMessage = "Vous avez annulé la transaction";
+        } else if (error.message.includes("Internal JSON-RPC error")) {
+          errorMessage = "Erreur de communication avec la blockchain. Veuillez réessayer.";
+        } else {
+          errorMessage = error.message;
         }
-        if (error.error?.data?.message) {
-          console.error("Error data message:", error.error.data.message);
-        }
-        throw new Error(error.error?.message || error.message || "Impossible d'estimer les frais de transaction");
-      }
-
-      // 5. Envoyer la transaction
-      console.log("Releasing funds for transaction ID:", txnId);
-      const tx = await contract.releaseFunds(txnId, {
-        gasLimit: gasEstimate
-      });
-      
-      console.log("Transaction sent:", tx.hash);
-      const receipt = await tx.wait();
-      console.log("Transaction receipt:", receipt);
-
-      if (receipt.status === 1) {
-        const updates: any = {
-          updated_at: new Date().toISOString(),
-          status: 'completed',
-          escrow_status: 'completed',
-          buyer_confirmation: true,
-          seller_confirmation: true
-        };
-
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update(updates)
-          .eq('id', transactionId);
-
-        if (updateError) throw updateError;
 
         toast({
-          title: "Succès",
-          description: "Les fonds ont été libérés avec succès",
+          title: "Erreur",
+          description: errorMessage,
+          variant: "destructive",
         });
 
-        onRelease();
-      } else {
-        throw new Error("La libération des fonds a échoué sur la blockchain");
+        throw error;
       }
-    } catch (error: any) {
-      console.error('Error releasing funds:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue",
-        variant: "destructive",
-      });
+    };
+
+    try {
+      setIsLoading(true);
+      await attemptRelease();
     } finally {
       setIsLoading(false);
     }
   };
+
+  const canConfirmTransaction = transaction.funds_secured && 
+    !transaction.buyer_confirmation && 
+    (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
   if (transaction?.escrow_status === 'completed') {
     return null;
