@@ -81,8 +81,7 @@ export function EscrowActions({
       // 3. Initialisation du provider et du contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const signerAddress = await signer.getAddress();
-      console.log("[EscrowActions] Connected with address:", signerAddress);
+      console.log("[EscrowActions] Connected with address:", await signer.getAddress());
 
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
@@ -104,11 +103,10 @@ export function EscrowActions({
         console.log("[EscrowActions] Transaction details from blockchain:", {
           buyer,
           seller,
+          seller_wallet_address: transaction.seller_wallet_address,
           amount: ethers.utils.formatEther(amount),
           isFunded,
-          isCompleted,
-          signerAddress,
-          seller_wallet_address: transaction.seller_wallet_address
+          isCompleted
         });
 
         if (!isFunded) {
@@ -119,13 +117,55 @@ export function EscrowActions({
           throw new Error("La transaction est déjà complétée sur la blockchain");
         }
 
-        // Vérifier que les adresses correspondent (cas insensible)
-        if (seller.toLowerCase() !== transaction.seller_wallet_address.toLowerCase()) {
-          console.error("[EscrowActions] Seller address mismatch:", {
-            onChain: seller.toLowerCase(),
-            inDb: transaction.seller_wallet_address.toLowerCase()
+        // 6. Estimer le gaz avec une marge de sécurité
+        let gasEstimate;
+        try {
+          console.log("[EscrowActions] Estimating gas for releaseFunds with txnId:", txnId);
+          gasEstimate = await contract.estimateGas.releaseFunds(txnId);
+          console.log("[EscrowActions] Gas estimate:", gasEstimate.toString());
+          gasEstimate = gasEstimate.mul(120).div(100); // +20% marge
+        } catch (error: any) {
+          console.error("[EscrowActions] Gas estimation error:", error);
+          throw new Error(
+            error.message.includes("seller") 
+              ? "Vous n'êtes pas autorisé à libérer les fonds avec cette adresse"
+              : "Impossible d'estimer les frais de transaction"
+          );
+        }
+
+        // 7. Envoyer la transaction
+        console.log("[EscrowActions] Releasing funds for transaction ID:", txnId);
+        const tx = await contract.releaseFunds(txnId, {
+          gasLimit: gasEstimate
+        });
+        
+        console.log("[EscrowActions] Transaction sent:", tx.hash);
+        const receipt = await tx.wait();
+        console.log("[EscrowActions] Transaction receipt:", receipt);
+
+        if (receipt.status === 1) {
+          // 8. Mettre à jour la base de données
+          const { error: updateError } = await supabase
+            .from('transactions')
+            .update({
+              buyer_confirmation: true,
+              seller_confirmation: true,
+              status: 'completed',
+              escrow_status: 'completed',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', transactionId);
+
+          if (updateError) throw updateError;
+
+          toast({
+            title: "Succès",
+            description: "Les fonds ont été libérés avec succès",
           });
-          throw new Error("Adresse du vendeur incohérente");
+
+          onRelease();
+        } else {
+          throw new Error("La libération des fonds a échoué sur la blockchain");
         }
       } catch (error: any) {
         console.error("[EscrowActions] Error checking transaction on blockchain:", error);
@@ -133,53 +173,6 @@ export function EscrowActions({
           throw new Error("La transaction n'existe pas sur la blockchain avec cet ID");
         }
         throw error;
-      }
-
-      // 6. Estimer le gaz avec une marge de sécurité
-      let gasEstimate;
-      try {
-        console.log("[EscrowActions] Estimating gas for releaseFunds with txnId:", txnId);
-        gasEstimate = await contract.estimateGas.releaseFunds(txnId);
-        console.log("[EscrowActions] Gas estimate:", gasEstimate.toString());
-        gasEstimate = gasEstimate.mul(120).div(100); // +20% marge
-      } catch (error: any) {
-        console.error("[EscrowActions] Gas estimation error:", error);
-        throw new Error("Impossible d'estimer les frais de transaction");
-      }
-
-      // 7. Envoyer la transaction
-      console.log("[EscrowActions] Releasing funds for transaction ID:", txnId);
-      const tx = await contract.releaseFunds(txnId, {
-        gasLimit: gasEstimate
-      });
-      
-      console.log("[EscrowActions] Transaction sent:", tx.hash);
-      const receipt = await tx.wait();
-      console.log("[EscrowActions] Transaction receipt:", receipt);
-
-      if (receipt.status === 1) {
-        // 8. Mettre à jour la base de données
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            buyer_confirmation: true,
-            seller_confirmation: true,
-            status: 'completed',
-            escrow_status: 'completed',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', transactionId);
-
-        if (updateError) throw updateError;
-
-        toast({
-          title: "Succès",
-          description: "Les fonds ont été libérés avec succès",
-        });
-
-        onRelease();
-      } else {
-        throw new Error("La libération des fonds a échoué sur la blockchain");
       }
     } catch (error: any) {
       console.error('[EscrowActions] Error releasing funds:', error);
