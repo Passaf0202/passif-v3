@@ -9,7 +9,6 @@ const PRIORITY_CATEGORIES = [
   "Services",
   "Mode",
   "Loisirs",
-  "Maison & Jardin",
   "Famille"
 ];
 

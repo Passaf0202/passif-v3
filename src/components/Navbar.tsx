@@ -20,14 +20,15 @@ export function Navbar() {
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/80">
       <div className="max-w-[1440px] mx-auto">
         <div className="px-4 md:px-8">
-          <div className="flex h-[44px] items-center justify-between gap-8">
+          <div className="flex items-center gap-8">
             <NavbarLogo />
-            
-            <div className="hidden md:flex flex-1 max-w-lg justify-center">
-              <SearchBar onSearch={onSearch} />
+            <NavbarCategories categories={categories || []} />
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex flex-1 max-w-lg justify-center">
+                <SearchBar onSearch={onSearch} />
+              </div>
+              <NavbarActions />
             </div>
-            
-            <NavbarActions />
           </div>
         </div>
 
@@ -36,7 +37,6 @@ export function Navbar() {
         </div>
       </div>
       
-      <NavbarCategories categories={categories || []} />
       <MobileCreateButton />
     </header>
   );
