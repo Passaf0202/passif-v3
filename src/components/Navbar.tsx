@@ -25,8 +25,8 @@ export function Navbar() {
         <div className="h-12 px-4 md:px-8">
           <div className="h-full flex items-center gap-8">
             <NavbarLogo />
-            <div className="flex-1 flex items-center gap-4">
-              <div className="hidden md:flex flex-1 max-w-lg justify-center">
+            <div className="flex-1 flex items-center justify-center gap-4">
+              <div className="hidden md:flex flex-1 max-w-md">
                 <SearchBar onSearch={onSearch} />
               </div>
               <NavbarActions />
