@@ -33,9 +33,9 @@ export function PaymentButton({
   const { handlePayment, isProcessing } = usePaymentTransaction({
     listingId,
     address: sellerAddress,
-    onPaymentComplete: () => {
+    onPaymentComplete: (transactionId: string) => {
       onClick();
-      navigate(`/payment/${listingId}`);
+      navigate(`/payment/${transactionId}`);
     }
   });
 

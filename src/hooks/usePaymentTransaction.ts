@@ -11,7 +11,7 @@ interface UsePaymentTransactionProps {
   listingId: string;
   address?: string;
   onTransactionHash?: (hash: string) => void;
-  onPaymentComplete: () => void;
+  onPaymentComplete: (transactionId: string) => void;
   onTransactionCreated?: (id: string) => void;
 }
 
@@ -186,7 +186,7 @@ export function usePaymentTransaction({
         description: "Les fonds ont été déposés dans l'escrow",
       });
 
-      onPaymentComplete();
+      onPaymentComplete(transaction.id);
 
     } catch (error: any) {
       console.error('Payment error:', error);
