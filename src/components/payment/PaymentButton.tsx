@@ -18,7 +18,7 @@ interface PaymentButtonProps {
 }
 
 export function PaymentButton({ 
-  isProcessing, 
+  isProcessing: externalIsProcessing, 
   isConnected, 
   cryptoAmount, 
   cryptoCurrency = 'POL',
@@ -30,7 +30,14 @@ export function PaymentButton({
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
-  const { createPaymentTransaction } = usePaymentTransaction();
+  const { handlePayment, isProcessing } = usePaymentTransaction({
+    listingId,
+    address: sellerAddress,
+    onPaymentComplete: () => {
+      onClick();
+      navigate(`/payment/${listingId}`);
+    }
+  });
 
   const handleClick = async () => {
     if (!isConnected || !sellerAddress || !cryptoAmount || !listingId) {
@@ -46,22 +53,9 @@ export function PaymentButton({
       // 1. S'assurer d'être sur le bon réseau avant tout
       await ensureCorrectNetwork();
 
-      // 2. Créer la transaction
-      const transactionId = await createPaymentTransaction(
-        sellerAddress,
-        cryptoAmount,
-        listingId,
-        cryptoCurrency
-      );
+      // 2. Lancer le processus de paiement
+      await handlePayment();
 
-      console.log("[PaymentButton] Transaction created with ID:", transactionId);
-
-      if (!transactionId) {
-        throw new Error("L'ID de transaction est manquant");
-      }
-
-      onClick();
-      navigate(`/payment/${transactionId}`);
     } catch (error: any) {
       console.error('Transaction error:', error);
       toast({
@@ -72,7 +66,7 @@ export function PaymentButton({
     }
   };
 
-  const buttonDisabled = isProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress || !listingId;
+  const buttonDisabled = isProcessing || externalIsProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress || !listingId;
 
   return (
     <div className="w-full space-y-2">
@@ -81,7 +75,7 @@ export function PaymentButton({
         disabled={buttonDisabled}
         className="w-full bg-primary hover:bg-primary/90"
       >
-        {isProcessing ? (
+        {isProcessing || externalIsProcessing ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Transaction en cours...
