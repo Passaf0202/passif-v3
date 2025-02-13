@@ -5,7 +5,7 @@ import { getCategoryIcon } from "@/utils/categoryIcons";
 import { Link } from "react-router-dom";
 import { useOrganizedCategories } from "./categories/useOrganizedCategories";
 import { useVisibleCategories } from "./categories/useVisibleCategories";
-import { useMediaQuery } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavbarCategoriesProps {
   categories: Category[];
@@ -16,7 +16,7 @@ export function NavbarCategories({
 }: NavbarCategoriesProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useIsMobile();
   const organizedCategories = useOrganizedCategories(categories);
   const visibleCategories = useVisibleCategories(organizedCategories, isMobile, containerRef);
 
