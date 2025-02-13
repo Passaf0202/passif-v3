@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import { Link } from "react-router-dom";
+import { useOrganizedCategories } from "./categories/useOrganizedCategories";
 
 interface NavbarCategoriesProps {
   categories: Category[];
@@ -11,12 +12,13 @@ interface NavbarCategoriesProps {
 
 export function NavbarCategories({ categories }: NavbarCategoriesProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const organizedCategories = useOrganizedCategories(categories);
 
   return (
     <nav className="hidden md:block w-full border-t border-gray-200/80">
       <div className="max-w-[1440px] mx-auto px-8">
         <ul className="flex items-center h-[44px] -mx-4">
-          {categories.map((category) => (
+          {organizedCategories.map((category) => (
             <li 
               key={category.id}
               className="relative"
@@ -33,11 +35,17 @@ export function NavbarCategories({ categories }: NavbarCategoriesProps) {
                   <div className="p-4">
                     <div className="grid gap-1">
                       {category.subcategories.map((sub) => {
-                        const IconComponent = getCategoryIcon(category.name);
+                        const IconComponent = getCategoryIcon(
+                          category.name === "Autres" ? sub.name : category.name
+                        );
                         return (
                           <Link
                             key={sub.id}
-                            to={`/category/${category.name.toLowerCase()}/${sub.name.toLowerCase()}`}
+                            to={`/category/${
+                              category.name === "Autres" 
+                                ? sub.name.toLowerCase() 
+                                : category.name.toLowerCase()
+                            }/${sub.name.toLowerCase()}`}
                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                           >
                             <IconComponent className="h-5 w-5 text-primary" />
