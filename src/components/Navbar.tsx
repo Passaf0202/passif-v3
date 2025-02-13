@@ -24,10 +24,8 @@ export function Navbar() {
         {/* Top section */}
         <div className="h-12 px-4 md:px-8">
           <div className="h-full flex items-center justify-center">
-            <div className="w-full max-w-[1200px] flex items-center">
-              <div className="w-[120px] mr-2">
-                <NavbarLogo />
-              </div>
+            <div className="w-full max-w-[1200px] flex items-center gap-4">
+              <NavbarLogo />
               <div className="flex-1 flex items-center justify-center gap-4">
                 <div className="hidden md:flex max-w-md">
                   <SearchBar onSearch={onSearch} />
