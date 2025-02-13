@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { useTransactionCreation } from "@/hooks/useTransactionCreation";
+import { TransactionError, TransactionErrorCodes } from "@/utils/escrow/transactionErrors";
 
 interface UsePaymentTransactionProps {
   listingId: string;
@@ -35,10 +36,26 @@ export function usePaymentTransaction({
   const { ensureCorrectNetwork } = useNetworkSwitch();
   const { createTransaction, updateTransactionWithBlockchain } = useTransactionCreation();
 
+  const verifyTransactionAmount = (expectedAmount: ethers.BigNumber, actualAmount: ethers.BigNumber) => {
+    console.log("Verifying amounts:", {
+      expected: ethers.utils.formatEther(expectedAmount),
+      actual: ethers.utils.formatEther(actualAmount)
+    });
+
+    if (!expectedAmount.eq(actualAmount)) {
+      throw new TransactionError(
+        `Montant incorrect. Attendu: ${ethers.utils.formatEther(expectedAmount)} POL, Reçu: ${ethers.utils.formatEther(actualAmount)} POL`,
+        TransactionErrorCodes.AMOUNT_MISMATCH
+      );
+    }
+  };
+
   const handlePayment = async () => {
     if (!address) {
-      setError("Veuillez connecter votre portefeuille pour continuer");
-      return;
+      throw new TransactionError(
+        "Veuillez connecter votre portefeuille pour continuer",
+        TransactionErrorCodes.SELLER_ADDRESS_MISSING
+      );
     }
 
     try {
@@ -61,13 +78,19 @@ export function usePaymentTransaction({
 
       if (listingError || !listing) {
         console.error('Error fetching listing:', listingError);
-        throw new Error("Impossible de récupérer les détails de l'annonce");
+        throw new TransactionError(
+          "Impossible de récupérer les détails de l'annonce",
+          TransactionErrorCodes.NETWORK_ERROR
+        );
       }
 
       // 2. Vérifier l'adresse du vendeur
       const sellerAddress = listing.user?.wallet_address;
       if (!sellerAddress) {
-        throw new Error("L'adresse du vendeur n'est pas disponible");
+        throw new TransactionError(
+          "L'adresse du vendeur n'est pas disponible",
+          TransactionErrorCodes.SELLER_ADDRESS_MISSING
+        );
       }
 
       console.log("Seller wallet address:", sellerAddress);
@@ -75,10 +98,18 @@ export function usePaymentTransaction({
       // 3. S'assurer d'être sur le bon réseau
       await ensureCorrectNetwork();
 
-      // 4. Créer la transaction Supabase
+      // 4. Vérifier le montant
+      if (!listing.crypto_amount || listing.crypto_amount <= 0) {
+        throw new TransactionError(
+          "Le montant de la transaction est invalide",
+          TransactionErrorCodes.INVALID_AMOUNT
+        );
+      }
+
+      // 5. Créer la transaction Supabase
       const transaction = await createTransaction(
         listingId,
-        listing.crypto_amount || 0,
+        listing.crypto_amount,
         'POL',
         sellerAddress
       );
@@ -87,7 +118,7 @@ export function usePaymentTransaction({
         onTransactionCreated(transaction.id);
       }
 
-      // 5. Initialiser le contrat
+      // 6. Initialiser le contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
@@ -96,10 +127,24 @@ export function usePaymentTransaction({
         signer
       );
 
-      // 6. Envoyer la transaction blockchain
-      const amount = ethers.utils.parseEther(listing.crypto_amount?.toString() || "0");
-      console.log("Sending transaction with amount:", ethers.utils.formatEther(amount));
+      // 7. Vérifier le solde
+      const balance = await provider.getBalance(address);
+      const amount = ethers.utils.parseEther(listing.crypto_amount.toString());
+      
+      if (balance.lt(amount)) {
+        throw new TransactionError(
+          "Solde insuffisant pour effectuer la transaction",
+          TransactionErrorCodes.INSUFFICIENT_FUNDS
+        );
+      }
 
+      console.log("Balance verification:", {
+        balance: ethers.utils.formatEther(balance),
+        required: ethers.utils.formatEther(amount)
+      });
+
+      // 8. Envoyer la transaction blockchain
+      console.log("Sending transaction with amount:", ethers.utils.formatEther(amount));
       const tx = await contract.createTransaction(sellerAddress, { value: amount });
       console.log("Transaction sent:", tx.hash);
 
@@ -107,24 +152,29 @@ export function usePaymentTransaction({
         onTransactionHash(tx.hash);
       }
 
-      // 7. Écouter l'événement FundsDeposited pour récupérer l'ID
+      // 9. Attendre et vérifier l'événement
       const receipt = await tx.wait();
       console.log("Transaction receipt:", receipt);
 
-      // Trouver l'événement FundsDeposited
       const event = receipt.events?.find(
         (e: any) => e.event === "FundsDeposited"
       );
 
       if (!event) {
-        throw new Error("Événement FundsDeposited non trouvé");
+        throw new TransactionError(
+          "Événement FundsDeposited non trouvé",
+          TransactionErrorCodes.EVENT_NOT_FOUND
+        );
       }
 
-      // L'ID est le premier argument de l'événement
+      // 10. Vérifier le montant dans l'événement
+      const eventAmount = event.args[2];
+      verifyTransactionAmount(amount, eventAmount);
+
+      // 11. Récupérer l'ID blockchain et mettre à jour
       const blockchainTxnId = event.args[0].toString();
       console.log("Blockchain transaction ID from event:", blockchainTxnId);
 
-      // 8. Mettre à jour la transaction avec l'ID blockchain
       await updateTransactionWithBlockchain(
         transaction.id,
         blockchainTxnId,
@@ -140,12 +190,23 @@ export function usePaymentTransaction({
 
     } catch (error: any) {
       console.error('Payment error:', error);
-      setError(error.message || "Une erreur est survenue lors du paiement");
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue",
-        variant: "destructive",
-      });
+      
+      // Gérer les erreurs spécifiques
+      if (error instanceof TransactionError) {
+        setError(error.message);
+        toast({
+          title: "Erreur de transaction",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        setError(error.message || "Une erreur est survenue lors du paiement");
+        toast({
+          title: "Erreur",
+          description: error.message || "Une erreur est survenue",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsProcessing(false);
     }
