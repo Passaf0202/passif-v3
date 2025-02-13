@@ -86,15 +86,33 @@ export function EscrowActions({
       const txnId = Number(transaction.blockchain_txn_id);
       console.log("Using transaction ID:", txnId);
 
-      // Vérifier la transaction sur la blockchain
-      const txnOnChain = await contract.transactions(txnId);
-      console.log("Transaction on chain:", {
-        buyer: txnOnChain.buyer,
-        seller: txnOnChain.seller,
-        amount: txnOnChain.amount.toString(),
-        isFunded: txnOnChain.isFunded,
-        isCompleted: txnOnChain.isCompleted
-      });
+      // Vérifier la transaction sur la blockchain en utilisant le mapping public
+      try {
+        const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
+        console.log("Transaction on chain:", {
+          buyer,
+          seller,
+          amount: amount.toString(),
+          isFunded,
+          isCompleted
+        });
+
+        // Vérifications supplémentaires
+        if (!isFunded) {
+          throw new Error("La transaction n'est pas financée sur la blockchain");
+        }
+
+        if (isCompleted) {
+          throw new Error("La transaction est déjà complétée sur la blockchain");
+        }
+
+        if (buyer.toLowerCase() !== signerAddress.toLowerCase()) {
+          throw new Error("Seul l'acheteur peut libérer les fonds");
+        }
+      } catch (error: any) {
+        console.error("Error checking transaction:", error);
+        throw new Error(error.message || "Erreur lors de la vérification de la transaction");
+      }
 
       // 4. Estimer le gaz
       let gasEstimate;

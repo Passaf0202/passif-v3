@@ -30,6 +30,7 @@ export const ESCROW_ABI = [
   "function createTransaction(address seller) payable returns (uint256)",
   "function releaseFunds(uint256 txnId)",
   "function cancelTransaction(uint256 txnId)",
+  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)",
   "event FundsDeposited(uint256 indexed txnId, address buyer, uint256 amount)",
   "event FundsReleased(uint256 indexed txnId, address seller, uint256 amount)",
   "function platform() view returns (address)"
