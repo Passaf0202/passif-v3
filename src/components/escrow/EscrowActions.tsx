@@ -37,7 +37,6 @@ export function EscrowActions({
   const findTransactionIdFromEvents = async (contract: ethers.Contract, transactionHash: string) => {
     try {
       const filter = contract.filters.TransactionCreated();
-      // Augmenter la plage de recherche à 10000 blocs
       const currentBlock = await contract.provider.getBlockNumber();
       const startBlock = Math.max(0, currentBlock - 10000);
       
@@ -62,21 +61,17 @@ export function EscrowActions({
     }
   };
 
-  const verifyBlockchainTransaction = async (contract: ethers.Contract, txnId: ethers.BigNumber) => {
+  const verifyBlockchainTransaction = async (contract: ethers.Contract) => {
     try {
-      console.log("Verifying transaction on blockchain with ID:", txnId.toString());
-      const txnData = await contract.getTransaction(txnId);
-      console.log("Transaction data from blockchain:", txnData);
+      console.log("Verifying transaction status on blockchain");
+      const txnStatus = await contract.getStatus();
+      console.log("Transaction status from blockchain:", txnStatus);
 
-      if (!txnData || txnData.amount.eq(0)) {
-        throw new Error("Transaction non trouvée sur la blockchain");
-      }
-
-      if (txnData.fundsReleased) {
+      if (txnStatus._fundsReleased) {
         throw new Error("Les fonds ont déjà été libérés");
       }
 
-      return txnData;
+      return txnStatus;
     } catch (error) {
       console.error("Error verifying blockchain transaction:", error);
       throw new Error("La transaction n'est pas valide sur la blockchain");
@@ -154,7 +149,8 @@ export function EscrowActions({
       }
 
       // 4. Vérifier la transaction sur la blockchain
-      await verifyBlockchainTransaction(contract, realTxnId);
+      const txnStatus = await verifyBlockchainTransaction(contract);
+      console.log("Transaction status verified:", txnStatus);
 
       // 5. Estimation du gaz avec une marge de sécurité
       let gasEstimate;
