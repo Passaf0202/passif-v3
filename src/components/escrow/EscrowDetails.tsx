@@ -6,6 +6,7 @@ import { useEscrowDetailsTransaction } from "./hooks/useEscrowDetailsTransaction
 import { TransactionStatus } from "./TransactionStatus";
 import { EscrowActions } from "./EscrowActions";
 import { EscrowInformation } from "./EscrowInformation";
+import { CompletedTransactionDetails } from "./CompletedTransactionDetails";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, AlertCircle } from "lucide-react";
 
@@ -28,7 +29,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   }, [transactionId]);
 
   const renderErrorMessage = () => {
-    // UUID pattern pour vérifier si l'ID ressemble à un ID de transaction
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     const isUUID = uuidPattern.test(transactionId);
 
@@ -54,7 +54,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     );
   };
 
-  // Render un composant pour chaque état possible au lieu d'utiliser des retours anticipés
   const renderContent = () => {
     if (isFetching) {
       return (
@@ -74,20 +73,24 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       );
     }
 
+    // Si la transaction est complétée, afficher les détails de complétion
+    if (transaction.escrow_status === 'completed') {
+      return <CompletedTransactionDetails transaction={transaction} />;
+    }
+
+    // Sinon, afficher l'interface normale
     return (
-      <>
-        <CardContent className="space-y-6">
-          <EscrowInformation transaction={transaction} />
-          <TransactionStatus transaction={transaction} />
-          <EscrowActions 
-            transaction={transaction}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-            onRelease={fetchTransaction}
-            transactionId={transactionId}
-          />
-        </CardContent>
-      </>
+      <CardContent className="space-y-6">
+        <EscrowInformation transaction={transaction} />
+        <TransactionStatus transaction={transaction} />
+        <EscrowActions 
+          transaction={transaction}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+          onRelease={fetchTransaction}
+          transactionId={transactionId}
+        />
+      </CardContent>
     );
   };
 

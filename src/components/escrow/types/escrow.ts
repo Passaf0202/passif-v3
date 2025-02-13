@@ -15,6 +15,9 @@ export interface Transaction {
   listing_title?: string;
   transaction_hash?: string;
   block_number?: number;
+  updated_at?: string;
+  created_at?: string;
+  funds_secured_at?: string;
   buyer?: {
     id: string;
     wallet_address?: string;
