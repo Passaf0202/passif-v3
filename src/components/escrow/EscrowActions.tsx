@@ -47,17 +47,20 @@ export function EscrowActions({
         throw new Error("Les fonds ne sont pas encore sécurisés");
       }
 
-      console.log("Transaction details:", {
+      // Debug détaillé des adresses et des IDs
+      console.log("[EscrowActions] Transaction details:", {
         id: transactionId,
         blockchain_txn_id: transaction.blockchain_txn_id,
         user_id: user.id,
         buyer_id: transaction.buyer?.id,
         seller_id: transaction.seller?.id,
+        seller_wallet_address: transaction.seller_wallet_address,
         funds_secured: transaction.funds_secured,
         buyer_confirmation: transaction.buyer_confirmation,
         seller_confirmation: transaction.seller_confirmation
       });
 
+      // 2. Vérifier et changer de réseau si nécessaire
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -70,11 +73,11 @@ export function EscrowActions({
         throw new Error("MetaMask n'est pas installé");
       }
 
-      // 2. Initialisation du provider et du contrat
+      // 3. Initialisation du provider et du contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
-      console.log("Connected with address:", signerAddress);
+      console.log("[EscrowActions] Connected with address:", signerAddress);
 
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
@@ -82,18 +85,18 @@ export function EscrowActions({
         signer
       );
 
-      // 3. Récupérer les détails de la transaction blockchain
+      // 4. Récupérer l'ID de transaction blockchain
       if (!transaction.blockchain_txn_id) {
         throw new Error("ID de transaction blockchain manquant");
       }
 
       const txnId = Number(transaction.blockchain_txn_id);
-      console.log("Using blockchain transaction ID:", txnId);
+      console.log("[EscrowActions] Using blockchain transaction ID:", txnId);
 
-      // Vérifier la transaction sur la blockchain
+      // 5. Vérifier la transaction sur la blockchain
       try {
         const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
-        console.log("Transaction details from blockchain:", {
+        console.log("[EscrowActions] Transaction details from blockchain:", {
           buyer,
           seller,
           amount: ethers.utils.formatEther(amount),
@@ -102,7 +105,6 @@ export function EscrowActions({
           signerAddress
         });
 
-        // Vérifications supplémentaires
         if (!isFunded) {
           throw new Error("La transaction n'est pas financée sur la blockchain");
         }
@@ -111,58 +113,55 @@ export function EscrowActions({
           throw new Error("La transaction est déjà complétée sur la blockchain");
         }
 
-        if (buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-          throw new Error("Seul l'acheteur peut libérer les fonds");
+        // Vérifier que les adresses correspondent
+        if (seller.toLowerCase() !== transaction.seller_wallet_address?.toLowerCase()) {
+          console.error("[EscrowActions] Seller address mismatch:", {
+            onChain: seller,
+            inDb: transaction.seller_wallet_address
+          });
+          throw new Error("Adresse du vendeur incohérente");
         }
       } catch (error: any) {
-        console.error("Error checking transaction on blockchain:", error);
+        console.error("[EscrowActions] Error checking transaction on blockchain:", error);
         if (error.message.includes("execution reverted")) {
           throw new Error("La transaction n'existe pas sur la blockchain avec cet ID");
         }
         throw error;
       }
 
-      // 4. Estimer le gaz
+      // 6. Estimer le gaz avec une marge de sécurité
       let gasEstimate;
       try {
-        console.log("Estimating gas for releaseFunds with txnId:", txnId);
+        console.log("[EscrowActions] Estimating gas for releaseFunds with txnId:", txnId);
         gasEstimate = await contract.estimateGas.releaseFunds(txnId);
-        console.log("Gas estimate:", gasEstimate.toString());
+        console.log("[EscrowActions] Gas estimate:", gasEstimate.toString());
         gasEstimate = gasEstimate.mul(120).div(100); // +20% marge
       } catch (error: any) {
-        console.error("Gas estimation error:", error);
-        // Afficher plus de détails sur l'erreur
-        if (error.error?.message) {
-          console.error("Error message:", error.error.message);
-        }
-        if (error.error?.data?.message) {
-          console.error("Error data message:", error.error.data.message);
-        }
-        throw new Error(error.error?.message || error.message || "Impossible d'estimer les frais de transaction");
+        console.error("[EscrowActions] Gas estimation error:", error);
+        throw new Error("Impossible d'estimer les frais de transaction");
       }
 
-      // 5. Envoyer la transaction
-      console.log("Releasing funds for transaction ID:", txnId);
+      // 7. Envoyer la transaction
+      console.log("[EscrowActions] Releasing funds for transaction ID:", txnId);
       const tx = await contract.releaseFunds(txnId, {
         gasLimit: gasEstimate
       });
       
-      console.log("Transaction sent:", tx.hash);
+      console.log("[EscrowActions] Transaction sent:", tx.hash);
       const receipt = await tx.wait();
-      console.log("Transaction receipt:", receipt);
+      console.log("[EscrowActions] Transaction receipt:", receipt);
 
       if (receipt.status === 1) {
-        const updates: any = {
-          updated_at: new Date().toISOString(),
-          status: 'completed',
-          escrow_status: 'completed',
-          buyer_confirmation: true,
-          seller_confirmation: true
-        };
-
+        // 8. Mettre à jour la base de données
         const { error: updateError } = await supabase
           .from('transactions')
-          .update(updates)
+          .update({
+            buyer_confirmation: true,
+            seller_confirmation: true,
+            status: 'completed',
+            escrow_status: 'completed',
+            updated_at: new Date().toISOString()
+          })
           .eq('id', transactionId);
 
         if (updateError) throw updateError;
@@ -177,7 +176,7 @@ export function EscrowActions({
         throw new Error("La libération des fonds a échoué sur la blockchain");
       }
     } catch (error: any) {
-      console.error('Error releasing funds:', error);
+      console.error('[EscrowActions] Error releasing funds:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue",

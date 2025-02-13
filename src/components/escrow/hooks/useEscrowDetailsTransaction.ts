@@ -13,93 +13,84 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
     console.log("[useEscrowDetailsTransaction] Fetching transaction:", transactionId);
 
     try {
-      // D'abord essayer de récupérer par ID de transaction
-      let { data: txn, error } = await supabase
+      const { data: txn, error } = await supabase
         .from('transactions')
         .select(`
           *,
           listing:listings!transactions_listing_id_fkey (
-            title
+            title,
+            wallet_address,
+            user_id
           ),
           buyer:profiles!transactions_buyer_id_fkey (
             id,
-            full_name
+            full_name,
+            wallet_address
           ),
           seller:profiles!transactions_seller_id_fkey (
             id,
-            full_name
+            full_name,
+            wallet_address
           )
         `)
         .eq('id', transactionId)
         .maybeSingle();
 
       if (error) {
-        console.error("[useEscrowDetailsTransaction] Error fetching transaction by ID:", error);
+        console.error("[useEscrowDetailsTransaction] Error fetching transaction:", error);
         throw error;
       }
 
-      // Si pas trouvé par ID, chercher par listing_id en prenant la plus récente transaction valide
       if (!txn) {
-        console.log("[useEscrowDetailsTransaction] No transaction found with ID, trying listing_id with filters");
-        const { data: txnByListing, error: listingError } = await supabase
-          .from('transactions')
-          .select(`
-            *,
-            listing:listings!transactions_listing_id_fkey (
-              title
-            ),
-            buyer:profiles!transactions_buyer_id_fkey (
-              id,
-              full_name
-            ),
-            seller:profiles!transactions_seller_id_fkey (
-              id,
-              full_name
-            )
-          `)
-          .eq('listing_id', transactionId)
-          .not('blockchain_txn_id', 'eq', '0')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (listingError) {
-          console.error("[useEscrowDetailsTransaction] Error fetching by listing_id:", listingError);
-          throw listingError;
-        }
-
-        txn = txnByListing;
-      }
-
-      // Si on a trouvé une transaction, la formater
-      if (txn) {
-        console.log("[useEscrowDetailsTransaction] Transaction found:", txn);
-        const formattedTransaction: Transaction = {
-          id: txn.id,
-          amount: txn.amount,
-          commission_amount: txn.commission_amount,
-          blockchain_txn_id: txn.blockchain_txn_id,
-          status: txn.status,
-          escrow_status: txn.escrow_status,
-          token_symbol: txn.token_symbol || '',
-          can_be_cancelled: txn.can_be_cancelled,
-          funds_secured: txn.funds_secured,
-          buyer_confirmation: txn.buyer_confirmation,
-          seller_confirmation: txn.seller_confirmation,
-          seller_wallet_address: txn.seller_wallet_address,
-          listing_title: txn.listing?.title || 'N/A',
-          transaction_hash: txn.transaction_hash,
-          block_number: txn.block_number,
-          buyer: txn.buyer,
-          seller: txn.seller,
-          listing: txn.listing
-        };
-        setTransaction(formattedTransaction);
-      } else {
-        // Si aucune transaction n'est trouvée, logger pour le debug
-        console.log("[useEscrowDetailsTransaction] No valid transaction found for:", transactionId);
+        console.log("[useEscrowDetailsTransaction] No transaction found with ID:", transactionId);
         setTransaction(null);
+        return;
       }
+
+      // Log des adresses pour le debug
+      console.log("[useEscrowDetailsTransaction] Addresses:", {
+        seller_wallet_address: txn.seller_wallet_address,
+        listing_wallet_address: txn.listing?.wallet_address,
+        buyer_wallet: txn.buyer?.wallet_address,
+        seller_wallet: txn.seller?.wallet_address
+      });
+
+      // Vérifier la cohérence des adresses
+      const sellerAddress = txn.seller_wallet_address || txn.listing?.wallet_address;
+      if (!sellerAddress) {
+        console.error("[useEscrowDetailsTransaction] Missing seller address");
+        throw new Error("Adresse du vendeur manquante");
+      }
+
+      console.log("[useEscrowDetailsTransaction] Transaction found:", txn);
+      const formattedTransaction: Transaction = {
+        id: txn.id,
+        amount: txn.amount,
+        commission_amount: txn.commission_amount,
+        blockchain_txn_id: txn.blockchain_txn_id,
+        status: txn.status,
+        escrow_status: txn.escrow_status,
+        token_symbol: txn.token_symbol || '',
+        can_be_cancelled: txn.can_be_cancelled,
+        funds_secured: txn.funds_secured,
+        buyer_confirmation: txn.buyer_confirmation,
+        seller_confirmation: txn.seller_confirmation,
+        seller_wallet_address: sellerAddress,
+        listing_title: txn.listing?.title || 'N/A',
+        transaction_hash: txn.transaction_hash,
+        block_number: txn.block_number,
+        buyer: {
+          ...txn.buyer,
+          wallet_address: txn.buyer?.wallet_address
+        },
+        seller: {
+          ...txn.seller,
+          wallet_address: sellerAddress
+        },
+        listing: txn.listing
+      };
+
+      setTransaction(formattedTransaction);
     } catch (error) {
       console.error("[useEscrowDetailsTransaction] Unexpected error:", error);
       setTransaction(null);
