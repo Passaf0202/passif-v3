@@ -18,26 +18,25 @@ export function useVisibleCategories(
         const containerWidth = container.offsetWidth;
         let currentWidth = 0;
         const tempVisible: Category[] = [];
-        const minSpacing = 16; // Espacement minimum entre les éléments
-        const dotWidth = 16; // Largeur approximative du point
-        const buttonPadding = 16; // Padding total horizontal des boutons
+        
+        // Paramètres d'espacement constants
+        const buttonPadding = 24; // 12px de chaque côté (px-3)
+        const dotSpacing = 8; // 4px de chaque côté du point
+        const charWidth = 7; // Largeur moyenne approximative d'un caractère
+        const reservedSpace = 100; // Espace réservé pour "Autres"
 
-        // Garder de l'espace pour le bouton "Autres" si nécessaire
-        const reservedSpace = 80;
+        for (const category of categories) {
+          // Calculer la largeur estimée pour cette catégorie
+          const textWidth = category.name.length * charWidth;
+          const totalWidth = textWidth + buttonPadding + dotSpacing;
 
-        categories.forEach((category, index) => {
-          // Calculer la largeur estimée de cet élément
-          const textWidth = category.name.length * 7; // Approximation de la largeur du texte
-          const elementWidth = textWidth + buttonPadding;
-          const withDotWidth = elementWidth + (index < categories.length - 1 ? dotWidth + minSpacing : 0);
-
-          if (currentWidth + withDotWidth < containerWidth - reservedSpace) {
-            currentWidth += withDotWidth;
+          if (currentWidth + totalWidth < containerWidth - reservedSpace) {
+            currentWidth += totalWidth;
             tempVisible.push(category);
           } else {
-            return; // Sortir de la boucle une fois qu'on dépasse la largeur disponible
+            break;
           }
-        });
+        }
 
         setVisibleCategories(tempVisible);
       };

@@ -20,28 +20,25 @@ export function NavbarCategories({
   const organizedCategories = useOrganizedCategories(categories);
   const visibleCategories = useVisibleCategories(organizedCategories, isMobile, containerRef);
 
-  // Calculer les catégories qui seront dans "Autres"
   const hiddenCategories = organizedCategories.filter(
     cat => !visibleCategories.find(visible => visible.id === cat.id)
   );
 
-  // Créer la catégorie "Autres" si nécessaire
   const othersCategory = hiddenCategories.length > 0 ? {
     id: "others",
     name: "Autres",
     subcategories: hiddenCategories
   } : null;
 
-  // Combiner les catégories visibles avec "Autres" si nécessaire
   const displayedCategories = othersCategory 
     ? [...visibleCategories, othersCategory]
     : visibleCategories;
 
   return (
-    <nav className="hidden md:block w-full">
+    <nav className="hidden md:block w-full border-b border-gray-200/80">
       <div className="max-w-[1440px] px-4 md:px-8 mx-auto">
-        <div className="py-1.5" ref={containerRef}>
-          <ul className="flex items-center flex-wrap">
+        <div className="py-2" ref={containerRef}>
+          <ul className="flex items-center justify-start">
             {displayedCategories.map((category, index) => (
               <li 
                 key={category.id} 
@@ -49,12 +46,12 @@ export function NavbarCategories({
                 onMouseEnter={() => setHoveredCategory(category.id)} 
                 onMouseLeave={() => setHoveredCategory(null)}
               >
-                <button className="px-2 py-1 hover:text-primary transition-colors whitespace-nowrap">
+                <button className="px-3 py-1 hover:text-primary transition-colors whitespace-nowrap">
                   {category.name}
                 </button>
                 
                 {index < displayedCategories.length - 1 && (
-                  <span className="text-gray-400 select-none">•</span>
+                  <span className="text-gray-400 select-none mx-0.5">•</span>
                 )}
 
                 {hoveredCategory === category.id && category.subcategories && (
