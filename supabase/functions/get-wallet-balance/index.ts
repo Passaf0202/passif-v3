@@ -9,13 +9,14 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    });
   }
 
   try {
-    // Vérifier si la requête est un POST
     if (req.method !== 'POST') {
-      console.error('Invalid method:', req.method);
       return new Response(
         JSON.stringify({ error: 'Method not allowed' }),
         { 
@@ -28,7 +29,6 @@ serve(async (req) => {
     const { address } = await req.json()
 
     if (!address) {
-      console.error('No wallet address provided');
       return new Response(
         JSON.stringify({ error: 'Wallet address is required' }),
         { 
@@ -42,7 +42,6 @@ serve(async (req) => {
     
     const zerionApiKey = Deno.env.get('ZERION_API_KEY')
     if (!zerionApiKey) {
-      console.error('ZERION_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'Service configuration error' }),
         { 
@@ -55,55 +54,69 @@ serve(async (req) => {
     const credentials = btoa(`${zerionApiKey}:`)
     console.log('Making request to Zerion API');
 
-    const response = await fetch(
-      `https://api.zerion.io/v1/wallets/${address}/portfolio`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Basic ${credentials}`
+    try {
+      const response = await fetch(
+        `https://api.zerion.io/v1/wallets/${address}/portfolio`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Basic ${credentials}`
+          }
         }
-      }
-    )
+      )
 
-    if (!response.ok) {
-      const errorData = await response.text()
-      console.error('Zerion API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorData
-      })
-      
+      if (!response.ok) {
+        const errorData = await response.text()
+        console.error('Zerion API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorData
+        })
+        
+        return new Response(
+          JSON.stringify({ 
+            error: `Zerion API error: ${response.status} ${response.statusText}`,
+            details: errorData
+          }),
+          { 
+            status: response.status,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      const data = await response.json()
+      console.log('Zerion API response received successfully');
+
+      const totalValue = data.data.attributes.total.positions
+
+      return new Response(
+        JSON.stringify({ total_value_usd: totalValue }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      )
+    } catch (fetchError) {
+      console.error('Error fetching from Zerion API:', fetchError);
       return new Response(
         JSON.stringify({ 
-          error: `Zerion API error: ${response.status} ${response.statusText}`,
-          details: errorData
+          error: 'Failed to fetch wallet data from Zerion API',
+          details: fetchError.message
         }),
         { 
-          status: response.status,
+          status: 502,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
-
-    const data = await response.json()
-    console.log('Zerion API response received');
-
-    const totalValue = data.data.attributes.total.positions
-
-    return new Response(
-      JSON.stringify({ total_value_usd: totalValue }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
-      }
-    )
   } catch (error) {
     console.error('Error in get-wallet-balance:', error)
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        details: error.stack
+        error: 'Internal server error',
+        details: error.message
       }),
       { 
         status: 500,
