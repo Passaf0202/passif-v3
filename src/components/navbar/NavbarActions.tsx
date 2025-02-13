@@ -1,12 +1,20 @@
 
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Heart, MessageCircle, Plus } from "lucide-react";
+import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "../ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { AdminLink } from "./AdminLink";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const NavbarActions = () => {
   const { user } = useAuth();
@@ -74,20 +82,57 @@ export const NavbarActions = () => {
           <div className="flex-shrink-0">
             <WalletConnectButton />
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <UserRound className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 mt-2" align="end">
+              <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/profile" className="w-full cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  Mon profil
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/settings" className="w-full cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Paramètres
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                <LogOut className="mr-2 h-4 w-4" />
+                Déconnexion
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </>
       ) : (
         <div className="flex items-center gap-4">
-          <Link to="/auth">
-            <Button 
-              variant="ghost" 
-              className="h-8 px-4 rounded-full text-sm hover:bg-gray-100 transition-colors duration-200"
-            >
-              Connexion
-            </Button>
-          </Link>
-          <WalletConnectButton />
+          <div className="flex-shrink-0">
+            <WalletConnectButton />
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <UserRound className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 mt-2" align="end">
+              <Link to="/auth" className="w-full">
+                <DropdownMenuItem className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  Connexion
+                </DropdownMenuItem>
+              </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
     </div>
   );
-}
+};
