@@ -83,18 +83,23 @@ export function EscrowActions({
       );
 
       // 3. Récupérer les détails de la transaction blockchain
-      const txnId = Number(transaction.blockchain_txn_id);
-      console.log("Using transaction ID:", txnId);
+      if (!transaction.blockchain_txn_id) {
+        throw new Error("ID de transaction blockchain manquant");
+      }
 
-      // Vérifier la transaction sur la blockchain en utilisant le mapping public
+      const txnId = Number(transaction.blockchain_txn_id);
+      console.log("Using blockchain transaction ID:", txnId);
+
+      // Vérifier la transaction sur la blockchain
       try {
         const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
-        console.log("Transaction on chain:", {
+        console.log("Transaction details from blockchain:", {
           buyer,
           seller,
-          amount: amount.toString(),
+          amount: ethers.utils.formatEther(amount),
           isFunded,
-          isCompleted
+          isCompleted,
+          signerAddress
         });
 
         // Vérifications supplémentaires
@@ -110,8 +115,11 @@ export function EscrowActions({
           throw new Error("Seul l'acheteur peut libérer les fonds");
         }
       } catch (error: any) {
-        console.error("Error checking transaction:", error);
-        throw new Error(error.message || "Erreur lors de la vérification de la transaction");
+        console.error("Error checking transaction on blockchain:", error);
+        if (error.message.includes("execution reverted")) {
+          throw new Error("La transaction n'existe pas sur la blockchain avec cet ID");
+        }
+        throw error;
       }
 
       // 4. Estimer le gaz
