@@ -4,10 +4,12 @@ import { Category } from "@/types/category";
 const PRIORITY_CATEGORIES = [
   "Immobilier",
   "Véhicules",
-  "Électronique",
+  "Locations de vacances",
   "Emploi",
-  "Services",
   "Mode",
+  "Maison & Jardin",
+  "Famille",
+  "Électronique",
   "Loisirs"
 ];
 
