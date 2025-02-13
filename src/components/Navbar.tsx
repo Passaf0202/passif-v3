@@ -22,8 +22,8 @@ export function Navbar() {
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/80">
       <div className="max-w-[1440px] mx-auto">
         {/* Top section */}
-        <div className="h-12 px-4 md:px-8">
-          <div className="h-full flex items-center gap-8">
+        <div className="h-12 px-4 md:px-6">
+          <div className="h-full flex items-center gap-6">
             <NavbarLogo />
             <div className="flex-1 flex items-center justify-center gap-4">
               <div className="hidden md:flex flex-1 max-w-md">
