@@ -56,32 +56,16 @@ export const NavbarActions = () => {
         className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200 whitespace-nowrap"
       >
         <Plus className="h-4 w-4 mr-1" />
-        Déposer une annonce
+        <span className="hidden lg:inline">Déposer une annonce</span>
+        <span className="lg:hidden">Déposer</span>
       </Button>
 
       {user ? (
         <>
-          <div className="hidden md:flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full" asChild>
-              <Link to="/messages">
-                <MessageCircle className="h-5 w-5" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" className="rounded-full" asChild>
-              <Link to="/favorites">
-                <Heart className="h-5 w-5" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" className="rounded-full" asChild>
-              <Link to="/notifications">
-                <Bell className="h-5 w-5" />
-              </Link>
-            </Button>
-            <AdminLink />
-          </div>
           <div className="flex-shrink-0">
             <WalletConnectButton />
           </div>
+          <AdminLink />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -98,6 +82,25 @@ export const NavbarActions = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
+                <Link to="/messages" className="w-full cursor-pointer">
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Messages
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/favorites" className="w-full cursor-pointer">
+                  <Heart className="mr-2 h-4 w-4" />
+                  Favoris
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/notifications" className="w-full cursor-pointer">
+                  <Bell className="mr-2 h-4 w-4" />
+                  Notifications
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
                 <Link to="/settings" className="w-full cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
                   Paramètres
@@ -112,7 +115,7 @@ export const NavbarActions = () => {
           </DropdownMenu>
         </>
       ) : (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <div className="flex-shrink-0">
             <WalletConnectButton />
           </div>
