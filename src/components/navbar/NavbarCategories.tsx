@@ -86,7 +86,7 @@ export function NavbarCategories({
         <>
           <div
             ref={menuZoneRef}
-            className="fixed inset-0 z-40 pt-[96px]" // Commence sous la navbar
+            className="fixed inset-0 z-40 pt-[96px]"
             onMouseEnter={handleMenuZoneEnter}
             onMouseLeave={handleMenuZoneLeave}
           >
@@ -98,9 +98,7 @@ export function NavbarCategories({
             {/* Contenu du menu */}
             <div 
               ref={menuRef}
-              className={`fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm transition-all duration-200 ease-out ${
-                menuState.isTransitioning ? 'opacity-95' : 'opacity-100'
-              }`}
+              className="fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm"
               style={{ top: '96px' }}
             >
               {menuState.currentCategory && (

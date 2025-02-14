@@ -67,7 +67,7 @@ export function CategoryContent({ category }: CategoryContentProps) {
 
           {/* Colonne de droite - Sous-catégories */}
           <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-[calc(90vh-120px)] pr-4">
+            <ScrollArea className="h-[calc(70vh-120px)] min-h-[300px] pr-4">
               <div className="grid grid-cols-3 gap-8">
                 {/* Marques populaires si disponibles */}
                 {highlights.brands.length > 0 && (
