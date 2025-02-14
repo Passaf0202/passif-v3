@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export function HeroSection() {
   return (
-    <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden h-auto">
+    <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
       {/* Cercles décoratifs d'arrière-plan */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-r from-black/5 to-black/10 backdrop-blur-[1px]" />
@@ -14,7 +14,7 @@ export function HeroSection() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100/30 rounded-full transform -translate-x-1/3 translate-y-1/3 blur-3xl" />
       </div>
       
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-12 lg:py-16 relative">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-8 lg:py-12 relative">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-12 items-center">
           {/* Colonne de gauche - Texte */}
           <motion.div 
@@ -61,7 +61,7 @@ export function HeroSection() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-3 sm:pt-4 md:pt-6">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-3 sm:pt-4">
               <div className="text-center">
                 <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-black">100K+</div>
                 <div className="text-xs sm:text-sm text-gray-600">Utilisateurs actifs</div>
@@ -100,54 +100,54 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[160px] sm:w-[200px] md:w-[240px] lg:w-[280px] xl:w-[320px] transform scale-90 sm:scale-100"
+              className="relative w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] xl:w-[240px] transform scale-90 sm:scale-100"
             >
               {/* iPhone Frame */}
-              <div className="relative rounded-[40px] bg-[#1A1F2C] p-2 sm:p-3 shadow-2xl">
+              <div className="relative rounded-[32px] bg-[#1A1F2C] p-1.5 sm:p-2 shadow-2xl">
                 {/* Dynamic Island */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[70px] sm:w-[90px] h-[20px] sm:h-[25px] bg-black rounded-b-3xl z-20" />
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[60px] sm:w-[70px] h-[18px] sm:h-[20px] bg-black rounded-b-3xl z-20" />
                 
                 {/* Écran */}
-                <div className="relative bg-white rounded-[32px] overflow-hidden aspect-[9/19.5]">
+                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/18]">
                   {/* Contenu de l'écran */}
-                  <div className="absolute inset-0 p-2 sm:p-3 flex flex-col">
+                  <div className="absolute inset-0 p-2 flex flex-col">
                     {/* En-tête de l'app */}
-                    <div className="flex justify-between items-center mb-2 sm:mb-4">
+                    <div className="flex justify-between items-center mb-2">
                       <div className="space-y-0.5">
-                        <h3 className="text-xs sm:text-sm font-semibold">Transaction</h3>
-                        <p className="text-[8px] sm:text-[10px] text-gray-500">#TC-289345</p>
+                        <h3 className="text-[10px] sm:text-xs font-semibold">Transaction</h3>
+                        <p className="text-[8px] text-gray-500">#TC-289345</p>
                       </div>
-                      <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-green-500 flex items-center justify-center">
-                        <Coins className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+                      <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-green-500 flex items-center justify-center">
+                        <Coins className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />
                       </div>
                     </div>
 
                     {/* Montant */}
-                    <div className="text-center space-y-1 mb-2 sm:mb-4">
-                      <p className="text-[10px] sm:text-xs text-gray-600">Montant total</p>
-                      <div className="text-lg sm:text-xl font-bold">2.45 ETH</div>
-                      <p className="text-[10px] sm:text-xs text-gray-500">≈ 4,892.50 €</p>
+                    <div className="text-center space-y-1 mb-2">
+                      <p className="text-[8px] sm:text-[10px] text-gray-600">Montant total</p>
+                      <div className="text-base sm:text-lg font-bold">2.45 ETH</div>
+                      <p className="text-[8px] sm:text-[10px] text-gray-500">≈ 4,892.50 €</p>
                     </div>
 
                     {/* Indicateurs de sécurité */}
-                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3 space-y-1.5 sm:space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-green-500" />
-                        <span className="text-[10px] sm:text-xs">Transaction sécurisée</span>
+                    <div className="bg-gray-50 rounded-lg p-1.5 sm:p-2 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-1 w-1 rounded-full bg-green-500" />
+                        <span className="text-[8px] sm:text-[10px]">Transaction sécurisée</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-blue-500" />
-                        <span className="text-[10px] sm:text-xs">Protection acheteur</span>
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-1 w-1 rounded-full bg-blue-500" />
+                        <span className="text-[8px] sm:text-[10px]">Protection acheteur</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-purple-500" />
-                        <span className="text-[10px] sm:text-xs">Garantie remboursement</span>
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-1 w-1 rounded-full bg-purple-500" />
+                        <span className="text-[8px] sm:text-[10px]">Garantie remboursement</span>
                       </div>
                     </div>
 
                     {/* Bouton de paiement */}
                     <div className="mt-auto">
-                      <button className="w-full bg-black text-white rounded-lg py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium">
+                      <button className="w-full bg-black text-white rounded-lg py-1 sm:py-1.5 text-[8px] sm:text-[10px] font-medium">
                         Confirmer le paiement
                       </button>
                     </div>
@@ -156,7 +156,7 @@ export function HeroSection() {
               </div>
 
               {/* Reflets sur l'iPhone */}
-              <div className="absolute inset-0 rounded-[40px] bg-gradient-to-tr from-white/5 via-white/10 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 rounded-[32px] bg-gradient-to-tr from-white/5 via-white/10 to-transparent pointer-events-none" />
             </motion.div>
           </motion.div>
         </div>
