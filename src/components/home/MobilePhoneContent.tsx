@@ -1,7 +1,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Loader2 } from "lucide-react";
-import { LazyDiamondScene } from "./LazyDiamondScene";
+import { DiamondViewer } from "./DiamondViewer";
 
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
 
@@ -78,7 +78,9 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
         </div>
 
         <div className="flex-1 p-2">
-          <LazyDiamondScene state={transactionState} />
+          <div className="relative w-32 h-32 mx-auto">
+            <DiamondViewer state={transactionState} />
+          </div>
         </div>
 
         {transactionState !== 'initial' && (
