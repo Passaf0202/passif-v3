@@ -179,9 +179,9 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         min-camera-orbit="65deg 90deg 1.2m"
         max-camera-orbit="65deg 90deg 1.2m"
         auto-rotate-delay={0}
-        shadow-intensity="0.75"
-        exposure="1.3"
-        environment-image="legacy"
+        shadow-intensity="0"
+        exposure="0.8"
+        environment-image="neutral"
         field-of-view="18deg"
         bounds="tight"
         scale="2.2 2.2 2.2"
@@ -191,8 +191,9 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
           height: '100%',
           backgroundColor: 'transparent',
           opacity: isLoading ? '0.7' : '1',
-          transition: 'opacity 0.5s ease-in-out'
-        }}
+          transition: 'opacity 0.5s ease-in-out',
+          '--model-color': 'black'
+        } as any}
       >
         <div slot="poster"></div>
       </model-viewer>
