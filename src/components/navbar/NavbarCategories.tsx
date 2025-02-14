@@ -12,6 +12,7 @@ export function NavbarCategories({
 }: NavbarCategoriesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const categoryRefs = useRef<Record<string, HTMLLIElement | null>>({});
+  const menuContainerRef = useRef<HTMLDivElement>(null);
   
   const {
     menuState,
@@ -49,7 +50,7 @@ export function NavbarCategories({
       <div className="sticky top-0 z-51 bg-white border-b border-gray-200/80">
         <div className="max-w-[1440px] h-12 mx-auto px-4 md:px-8">
           <div className="h-full flex items-center justify-center" ref={containerRef}>
-            <ul className="inline-flex items-center gap-1">
+            <ul className="inline-flex items-center gap-1" ref={menuContainerRef}>
               {displayedCategories.map((category, index) => (
                 <li 
                   key={category.id} 
@@ -84,7 +85,7 @@ export function NavbarCategories({
       {/* Menu et backdrop */}
       {menuState.isOpen && (
         <>
-          {/* La barre de catégories reste au-dessus du flou */}
+          {/* Backdrop flou sur toute la largeur */}
           <div 
             ref={menuZoneRef}
             className="fixed inset-0 z-40"
@@ -92,16 +93,19 @@ export function NavbarCategories({
             onMouseEnter={handleMenuZoneEnter}
             onMouseLeave={handleMenuZoneLeave}
           >
-            {/* Backdrop avec flou en dessous de la barre de catégories */}
             <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
             
-            {/* Conteneur externe du menu */}
-            <div 
-              ref={menuRef}
-              className="relative bg-white border-t border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
-            >
-              {/* Conteneur interne aligné avec les catégories */}
-              <div className="container mx-auto px-4 md:px-8" style={{ maxWidth: containerRef.current?.offsetWidth }}>
+            {/* Container pour centrer le menu */}
+            <div className="relative max-w-[1440px] mx-auto px-4 md:px-8">
+              {/* Menu avec largeur limitée */}
+              <div 
+                ref={menuRef}
+                className="bg-white border-x border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)] rounded-b-lg"
+                style={{ 
+                  width: menuContainerRef.current?.offsetWidth,
+                  marginLeft: menuContainerRef.current?.offsetLeft ? menuContainerRef.current.offsetLeft - 32 : 0 // 32px pour compenser le padding du container
+                }}
+              >
                 {menuState.currentCategory && (
                   <CategoryContent
                     category={displayedCategories.find(cat => cat.id === menuState.currentCategory)!}
