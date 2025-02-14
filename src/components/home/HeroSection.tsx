@@ -82,7 +82,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center"
+            className="relative flex justify-center items-center min-h-[500px] lg:min-h-[600px] xl:min-h-[700px]"
           >
             {/* Effet de halo derrière l'iPhone */}
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
@@ -100,7 +100,7 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] xl:w-[240px] transform scale-90 sm:scale-100"
+              className="relative w-[260px] sm:w-[300px] md:w-[340px] lg:w-[380px] xl:w-[420px] max-w-[40vw] min-w-[260px] transform scale-90 sm:scale-100"
             >
               {/* iPhone Frame */}
               <div className="relative rounded-[32px] bg-[#1A1F2C] p-1.5 sm:p-2 shadow-2xl">
@@ -110,44 +110,44 @@ export function HeroSection() {
                 {/* Écran */}
                 <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/18]">
                   {/* Contenu de l'écran */}
-                  <div className="absolute inset-0 p-2 flex flex-col">
+                  <div className="absolute inset-0 p-2 sm:p-3 md:p-4 flex flex-col">
                     {/* En-tête de l'app */}
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="space-y-0.5">
-                        <h3 className="text-[10px] sm:text-xs font-semibold">Transaction</h3>
-                        <p className="text-[8px] text-gray-500">#TC-289345</p>
+                    <div className="flex justify-between items-center mb-2 sm:mb-3">
+                      <div className="space-y-0.5 sm:space-y-1">
+                        <h3 className="text-[10px] sm:text-xs md:text-sm font-semibold">Transaction</h3>
+                        <p className="text-[8px] sm:text-[10px] md:text-xs text-gray-500">#TC-289345</p>
                       </div>
-                      <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-green-500 flex items-center justify-center">
-                        <Coins className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />
+                      <div className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 rounded-full bg-green-500 flex items-center justify-center">
+                        <Coins className="h-2 w-2 sm:h-3 sm:w-3 md:h-4 md:w-4 text-white" />
                       </div>
                     </div>
 
                     {/* Montant */}
-                    <div className="text-center space-y-1 mb-2">
-                      <p className="text-[8px] sm:text-[10px] text-gray-600">Montant total</p>
-                      <div className="text-base sm:text-lg font-bold">2.45 ETH</div>
-                      <p className="text-[8px] sm:text-[10px] text-gray-500">≈ 4,892.50 €</p>
+                    <div className="text-center space-y-1 sm:space-y-2 mb-2 sm:mb-4">
+                      <p className="text-[8px] sm:text-xs md:text-sm text-gray-600">Montant total</p>
+                      <div className="text-base sm:text-xl md:text-2xl font-bold">2.45 ETH</div>
+                      <p className="text-[8px] sm:text-xs md:text-sm text-gray-500">≈ 4,892.50 €</p>
                     </div>
 
                     {/* Indicateurs de sécurité */}
-                    <div className="bg-gray-50 rounded-lg p-1.5 sm:p-2 space-y-1">
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1 w-1 rounded-full bg-green-500" />
-                        <span className="text-[8px] sm:text-[10px]">Transaction sécurisée</span>
+                    <div className="bg-gray-50 rounded-lg p-1.5 sm:p-3 md:p-4 space-y-1 sm:space-y-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-green-500" />
+                        <span className="text-[8px] sm:text-xs md:text-sm">Transaction sécurisée</span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1 w-1 rounded-full bg-blue-500" />
-                        <span className="text-[8px] sm:text-[10px]">Protection acheteur</span>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-blue-500" />
+                        <span className="text-[8px] sm:text-xs md:text-sm">Protection acheteur</span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1 w-1 rounded-full bg-purple-500" />
-                        <span className="text-[8px] sm:text-[10px]">Garantie remboursement</span>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-purple-500" />
+                        <span className="text-[8px] sm:text-xs md:text-sm">Garantie remboursement</span>
                       </div>
                     </div>
 
                     {/* Bouton de paiement */}
                     <div className="mt-auto">
-                      <button className="w-full bg-black text-white rounded-lg py-1 sm:py-1.5 text-[8px] sm:text-[10px] font-medium">
+                      <button className="w-full bg-black text-white rounded-lg py-1.5 sm:py-2 md:py-3 text-[8px] sm:text-xs md:text-sm font-medium">
                         Confirmer le paiement
                       </button>
                     </div>
