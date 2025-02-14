@@ -85,7 +85,7 @@ export function HeroSection() {
             className="relative flex justify-center items-center min-h-[400px] sm:min-h-[450px] md:min-h-[500px]"
           >
             {/* Effet de halo derrière l'iPhone */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/20 via-blue-200/20 to-transparent rounded-full blur-3xl opacity-70" />
             
             {/* Container de l'iPhone avec effet de flottement */}
             <motion.div
@@ -100,61 +100,69 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[260px] sm:w-[280px] md:w-[280px] lg:w-[300px] xl:w-[320px] max-w-[30vw] min-w-[260px]"
+              className="relative w-[300px] sm:w-[320px] md:w-[340px] lg:w-[360px] xl:w-[380px] max-w-[35vw] min-w-[300px]"
             >
               {/* iPhone Frame */}
-              <div className="relative rounded-[48px] bg-gradient-to-b from-[#2A2F3C] to-[#1A1F2C] p-[1px] shadow-2xl">
-                {/* Bordure métallique */}
-                <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-white/10 via-white/5 to-transparent opacity-50" />
+              <div className="relative rounded-[40px] bg-[#555555] p-[0.5px] shadow-2xl">
+                {/* Effet titane mat */}
+                <div className="absolute inset-0 rounded-[40px] bg-gradient-to-tr from-[#424242] via-[#4a4a4a] to-[#424242] opacity-90" />
                 
                 {/* Corps principal */}
-                <div className="relative rounded-[48px] bg-[#1A1F2C] overflow-hidden">
+                <div className="relative rounded-[40px] overflow-hidden">
                   {/* Dynamic Island */}
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[90px] h-[12px] bg-black rounded-b-[20px] z-20" />
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[120px] h-[8px] bg-black rounded-b-[20px] z-20" />
                   
                   {/* Écran */}
-                  <div className="relative bg-white rounded-[44px] overflow-hidden" style={{ aspectRatio: '19.5/9' }}>
-                    {/* Contenu de l'écran */}
-                    <div className="absolute inset-0 p-3 sm:p-4 flex flex-col">
-                      {/* En-tête de l'app */}
-                      <div className="flex justify-between items-center mb-3">
-                        <div className="space-y-0.5">
-                          <h3 className="text-[11px] font-semibold">Transaction</h3>
-                          <p className="text-[9px] text-gray-500">#TC-289345</p>
+                  <div 
+                    className="relative bg-white overflow-hidden" 
+                    style={{ 
+                      aspectRatio: '19.5/9',
+                      borderRadius: '36px'
+                    }}
+                  >
+                    {/* Contenu de l'écran avec bordures plus fines */}
+                    <div className="absolute inset-[1px] bg-white rounded-[35px] overflow-hidden">
+                      <div className="absolute inset-0 p-4 flex flex-col">
+                        {/* En-tête de l'app */}
+                        <div className="flex justify-between items-center mb-4">
+                          <div className="space-y-0.5">
+                            <h3 className="text-[13px] font-semibold">Transaction</h3>
+                            <p className="text-[11px] text-gray-500">#TC-289345</p>
+                          </div>
+                          <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
+                            <Coins className="h-3.5 w-3.5 text-white" />
+                          </div>
                         </div>
-                        <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center">
-                          <Coins className="h-3 w-3 text-white" />
-                        </div>
-                      </div>
 
-                      {/* Montant */}
-                      <div className="text-center space-y-1.5 mb-3">
-                        <p className="text-[10px] text-gray-600">Montant total</p>
-                        <div className="text-base font-bold">2.45 ETH</div>
-                        <p className="text-[10px] text-gray-500">≈ 4,892.50 €</p>
-                      </div>
+                        {/* Montant */}
+                        <div className="text-center space-y-2 mb-4">
+                          <p className="text-[12px] text-gray-600">Montant total</p>
+                          <div className="text-lg font-bold">2.45 ETH</div>
+                          <p className="text-[11px] text-gray-500">≈ 4,892.50 €</p>
+                        </div>
 
-                      {/* Indicateurs de sécurité */}
-                      <div className="bg-gray-50 rounded-xl p-2.5 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                          <span className="text-[10px]">Transaction sécurisée</span>
+                        {/* Indicateurs de sécurité */}
+                        <div className="bg-gray-50 rounded-xl p-3 space-y-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-green-500" />
+                            <span className="text-[11px]">Transaction sécurisée</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                            <span className="text-[11px]">Protection acheteur</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-purple-500" />
+                            <span className="text-[11px]">Garantie remboursement</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                          <span className="text-[10px]">Protection acheteur</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-                          <span className="text-[10px]">Garantie remboursement</span>
-                        </div>
-                      </div>
 
-                      {/* Bouton de paiement */}
-                      <div className="mt-auto">
-                        <button className="w-full bg-black text-white rounded-xl py-2 text-[10px] font-medium">
-                          Confirmer le paiement
-                        </button>
+                        {/* Bouton de paiement */}
+                        <div className="mt-auto">
+                          <button className="w-full bg-black text-white rounded-xl py-2.5 text-[11px] font-medium">
+                            Confirmer le paiement
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -162,13 +170,15 @@ export function HeroSection() {
               </div>
 
               {/* Reflets et ombres */}
-              <div className="absolute inset-0 rounded-[48px]">
-                {/* Reflet supérieur */}
-                <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/20 to-transparent rounded-t-[48px]" />
+              <div className="absolute inset-0 rounded-[40px] pointer-events-none">
+                {/* Effet titane brillant */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-white/10 to-white/5 mix-blend-overlay" />
                 {/* Reflet latéral */}
-                <div className="absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-white/10 to-transparent" />
-                {/* Ombre portée */}
-                <div className="absolute -bottom-8 inset-x-4 h-12 bg-black/20 blur-xl rounded-full" />
+                <div className="absolute inset-y-0 right-0 w-[20%] bg-gradient-to-l from-white/10 to-transparent" />
+                {/* Reflet supérieur subtil */}
+                <div className="absolute inset-x-0 top-0 h-[30%] bg-gradient-to-b from-white/10 to-transparent opacity-50" />
+                {/* Ombre portée plus naturelle */}
+                <div className="absolute -bottom-10 -inset-x-4 h-16 bg-black/20 blur-2xl rounded-full" />
               </div>
             </motion.div>
           </motion.div>
