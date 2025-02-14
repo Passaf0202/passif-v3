@@ -51,35 +51,44 @@ export function useMenuState() {
     if (!menuRect) return;
 
     const { clientX, clientY } = e;
-    
-    // Zone de sécurité pour les catégories (en haut)
-    const isCategoryZone = 
-      clientY > MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer && 
-      clientY < MENU_ZONES.safeZone.top + MENU_ZONES.categories.height;
 
-    // Zone de sécurité pour le menu principal
-    const isInMenuZone = 
-      clientX >= menuRect.left - MENU_ZONES.safeZone.sides &&
-      clientX <= menuRect.right + MENU_ZONES.safeZone.sides &&
-      clientY >= MENU_ZONES.safeZone.top &&
-      clientY <= menuRect.bottom + MENU_ZONES.safeZone.bottom;
-
-    if (isCategoryZone) {
-      clearTimeouts();
-    } else if (!isInMenuZone) {
-      // Si on est complètement en dehors des zones sécurisées
-      const isFarFromMenu = 
-        clientX < menuRect.left - MENU_ZONES.safeZone.sides * 2 ||
-        clientX > menuRect.right + MENU_ZONES.safeZone.sides * 2 ||
-        clientY < MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer * 2;
-
-      if (isFarFromMenu) {
-        // Fermeture immédiate si on est très loin
-        closeMenu();
-      } else {
-        // Sinon, fermeture progressive
-        scheduleClose();
+    // Définition des trois zones distinctes
+    const zones = {
+      // Zone active du menu (contenu réel)
+      activeMenuZone: {
+        isInside: 
+          clientX >= menuRect.left && 
+          clientX <= menuRect.right && 
+          clientY >= MENU_ZONES.safeZone.top && 
+          clientY <= menuRect.bottom
+      },
+      
+      // Zone des catégories (barre du haut)
+      categoryZone: {
+        isInside: 
+          clientY > MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer && 
+          clientY < MENU_ZONES.safeZone.top + MENU_ZONES.categories.height
+      },
+      
+      // Zone de transition (petite marge autour du menu)
+      transitionZone: {
+        isInside: 
+          clientX >= menuRect.left - 20 && 
+          clientX <= menuRect.right + 20 && 
+          clientY >= MENU_ZONES.safeZone.top - 10 && 
+          clientY <= menuRect.bottom + 10
       }
+    };
+
+    if (zones.activeMenuZone.isInside || zones.categoryZone.isInside) {
+      // Si on est dans la zone active du menu ou la zone des catégories
+      clearTimeouts();
+    } else if (zones.transitionZone.isInside) {
+      // Si on est dans la zone de transition, on programme la fermeture
+      scheduleClose();
+    } else {
+      // Si on est complètement en dehors, fermeture immédiate
+      closeMenu();
     }
   };
 
