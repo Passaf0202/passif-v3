@@ -1,6 +1,6 @@
 
 import { Canvas } from '@react-three/fiber';
-import { Environment, OrbitControls, PresentationControls } from '@react-three/drei';
+import { Environment, PresentationControls } from '@react-three/drei';
 import { Diamond3D } from './Diamond3D';
 import { Suspense } from 'react';
 import { motion } from 'framer-motion';
@@ -20,15 +20,14 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
       <Canvas
         camera={{ position: [0, 0, 5], fov: 45 }}
         style={{ background: 'transparent' }}
+        gl={{ preserveDrawingBuffer: true }}
       >
         <Suspense fallback={null}>
           <PresentationControls
-            global
-            config={{ mass: 2, tension: 500 }}
-            snap={{ mass: 4, tension: 1500 }}
-            rotation={[0, 0.3, 0]}
-            polar={[-Math.PI / 3, Math.PI / 3]}
-            azimuth={[-Math.PI / 1.4, Math.PI / 2]}
+            enabled={false}
+            global={false}
+            cursor={false}
+            snap={false}
           >
             <Diamond3D state={state} />
           </PresentationControls>

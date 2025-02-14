@@ -7,7 +7,7 @@ import { Group } from 'three';
 export function Diamond3D({ state }: { state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed' }) {
   const groupRef = useRef<Group>(null);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (groupRef.current) {
       // Base rotation speed
       let rotationSpeed = 0.5;
