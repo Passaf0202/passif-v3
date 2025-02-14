@@ -1,25 +1,26 @@
-
-import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2 } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2, Wallet, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 export function HeroSection() {
-  const [transactionState, setTransactionState] = useState<'initial' | 'validating' | 'processing' | 'confirmed'>('initial');
+  const [transactionState, setTransactionState] = useState<'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed'>('wallet-connect');
 
-  // Simuler le cycle de transaction
+  // Simuler le cycle de transaction complet
   useEffect(() => {
     const runTransactionCycle = () => {
-      setTransactionState('initial');
-      setTimeout(() => setTransactionState('validating'), 1000);
-      setTimeout(() => setTransactionState('processing'), 3000);
-      setTimeout(() => setTransactionState('confirmed'), 6000);
-      setTimeout(() => setTransactionState('initial'), 9000);
+      setTransactionState('wallet-connect');
+      setTimeout(() => setTransactionState('wallet-connecting'), 2000);
+      setTimeout(() => setTransactionState('search'), 4000);
+      setTimeout(() => setTransactionState('validating'), 6000);
+      setTimeout(() => setTransactionState('processing'), 8000);
+      setTimeout(() => setTransactionState('confirmed'), 10000);
+      setTimeout(() => setTransactionState('wallet-connect'), 13000);
     };
 
     runTransactionCycle();
-    const interval = setInterval(runTransactionCycle, 10000);
+    const interval = setInterval(runTransactionCycle, 13000);
     return () => clearInterval(interval);
   }, []);
 
@@ -141,157 +142,228 @@ export function HeroSection() {
                       <div className="flex justify-between items-center mb-2">
                         <div className="space-y-0.5">
                           <h3 className="text-[10px] sm:text-xs font-semibold">
-                            {transactionState === 'initial' ? "Transaction" : 
+                            {transactionState === 'wallet-connect' ? "Connexion Wallet" : 
+                             transactionState === 'wallet-connecting' ? "Connexion..." :
+                             transactionState === 'search' ? "Recherche" :
                              transactionState === 'validating' ? "Vérification..." :
                              transactionState === 'processing' ? "En cours..." : 
                              "Confirmée !"
                             }
                           </h3>
-                          <p className="text-[8px] text-gray-500">#TC-289345</p>
+                          <p className="text-[8px] text-gray-500">
+                            {transactionState === 'wallet-connect' ? "Étape 1/3" :
+                             transactionState === 'wallet-connecting' ? "Étape 1/3" :
+                             transactionState === 'search' ? "Étape 2/3" :
+                             "Étape 3/3"
+                            }
+                          </p>
                         </div>
                         <motion.div 
                           className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-gradient-to-r flex items-center justify-center"
                           animate={{
-                            backgroundColor: transactionState === 'confirmed' ? '#22c55e' : '#6366f1',
+                            backgroundColor: transactionState === 'confirmed' ? '#22c55e' : 
+                                          transactionState === 'wallet-connect' ? '#3b82f6' :
+                                          transactionState === 'search' ? '#6366f1' : '#6366f1',
                             scale: transactionState === 'processing' ? [1, 1.1, 1] : 1
                           }}
                           transition={{ duration: 0.5, repeat: transactionState === 'processing' ? Infinity : 0 }}
                         >
-                          {transactionState === 'initial' && <Coins className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
+                          {transactionState === 'wallet-connect' && <Wallet className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
+                          {transactionState === 'wallet-connecting' && <Loader2 className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white animate-spin" />}
+                          {transactionState === 'search' && <Search className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
                           {transactionState === 'validating' && <Loader2 className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white animate-spin" />}
                           {transactionState === 'processing' && <Coins className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
                           {transactionState === 'confirmed' && <CheckCircle2 className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
                         </motion.div>
                       </div>
 
-                      {/* Image du produit */}
-                      <div className="relative aspect-video mb-2 rounded-lg overflow-hidden bg-gray-100">
-                        <motion.div 
-                          className="absolute inset-0 flex items-center justify-center"
-                          animate={{
-                            scale: transactionState === 'processing' ? [1, 1.02, 1] : 1
-                          }}
-                          transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
-                        >
-                          {/* Illustration de la voiture */}
-                          <div className="relative w-full h-full">
-                            <svg 
-                              className="w-full h-full p-2" 
-                              viewBox="0 0 24 24" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              strokeWidth="1.5"
+                      {/* Contenu principal dynamique */}
+                      {(transactionState === 'wallet-connect' || transactionState === 'wallet-connecting') ? (
+                        <div className="flex-1 flex flex-col items-center justify-center space-y-2">
+                          <motion.div
+                            animate={{
+                              scale: transactionState === 'wallet-connect' ? [1, 1.05, 1] : 1
+                            }}
+                            transition={{ duration: 1, repeat: transactionState === 'wallet-connect' ? Infinity : 0 }}
+                            className="bg-black text-white text-[8px] sm:text-[10px] px-2 py-1 rounded-full flex items-center gap-1"
+                          >
+                            <Wallet className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
+                            {transactionState === 'wallet-connect' ? "Connecter Wallet" : "Connexion..."}
+                          </motion.div>
+                          <p className="text-[8px] text-center text-gray-500">Connectez-vous pour commencer</p>
+                        </div>
+                      ) : transactionState === 'search' ? (
+                        <div className="flex-1 flex flex-col space-y-2">
+                          <motion.div 
+                            className="bg-gray-100 rounded-lg p-1 flex items-center gap-1"
+                            animate={{ scale: [1, 1.02, 1] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                          >
+                            <Search className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-gray-400" />
+                            <motion.div 
+                              className="text-[8px] sm:text-[10px] text-black"
+                              animate={{ opacity: [1, 0, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
                             >
-                              <motion.path
-                                d="M3 8l1.5-2h15L21 8M3 8v8a2 2 0 002 2h14a2 2 0 002-2V8M3 8h18"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                initial={{ pathLength: 0 }}
-                                animate={{ pathLength: 1 }}
-                                transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}
-                              />
-                              <motion.circle 
-                                cx="7" 
-                                cy="14" 
-                                r="2"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: 0.5 }}
-                              />
-                              <motion.circle 
-                                cx="17" 
-                                cy="14" 
-                                r="2"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: 0.7 }}
-                              />
-                            </svg>
-                            {/* Effet de reflet */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20" />
-                          </div>
-                        </motion.div>
-                        <div className="absolute bottom-1 right-1">
-                          <div className="text-[8px] bg-black/80 text-white px-1.5 py-0.5 rounded-full">
-                            Audi A3 2023
+                              Audi A3...
+                            </motion.div>
+                          </motion.div>
+                          <div className="flex-1 flex items-center justify-center">
+                            <motion.div
+                              initial={{ scale: 0.8, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className="text-center"
+                            >
+                              <svg 
+                                className="w-12 h-12 mx-auto text-gray-400" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="1.5"
+                              >
+                                <motion.path
+                                  d="M3 8l1.5-2h15L21 8M3 8v8a2 2 0 002 2h14a2 2 0 002-2V8M3 8h18"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  initial={{ pathLength: 0 }}
+                                  animate={{ pathLength: 1 }}
+                                  transition={{ duration: 1 }}
+                                />
+                              </svg>
+                              <p className="text-[8px] mt-1">Audi A3 2023 trouvée</p>
+                            </motion.div>
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        // Transaction states (validating, processing, confirmed)
+                        <>
+                          {/* Image du produit */}
+                          <div className="relative aspect-video mb-2 rounded-lg overflow-hidden bg-gray-100">
+                            <motion.div 
+                              className="absolute inset-0 flex items-center justify-center"
+                              animate={{
+                                scale: transactionState === 'processing' ? [1, 1.02, 1] : 1
+                              }}
+                              transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
+                            >
+                              {/* Illustration de la voiture */}
+                              <div className="relative w-full h-full">
+                                <svg 
+                                  className="w-full h-full p-2" 
+                                  viewBox="0 0 24 24" 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  strokeWidth="1.5"
+                                >
+                                  <motion.path
+                                    d="M3 8l1.5-2h15L21 8M3 8v8a2 2 0 002 2h14a2 2 0 002-2V8M3 8h18"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    initial={{ pathLength: 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}
+                                  />
+                                  <motion.circle 
+                                    cx="7" 
+                                    cy="14" 
+                                    r="2"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ delay: 0.5 }}
+                                  />
+                                  <motion.circle 
+                                    cx="17" 
+                                    cy="14" 
+                                    r="2"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ delay: 0.7 }}
+                                  />
+                                </svg>
+                                {/* Effet de reflet */}
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20" />
+                              </div>
+                            </motion.div>
+                            <div className="absolute bottom-1 right-1">
+                              <div className="text-[8px] bg-black/80 text-white px-1.5 py-0.5 rounded-full">
+                                Audi A3 2023
+                              </div>
+                            </div>
+                          </div>
 
-                      {/* Montant avec animation */}
-                      <motion.div 
-                        className="text-center space-y-1 mb-2"
-                        animate={{
-                          scale: transactionState === 'processing' ? [1, 1.02, 1] : 1
-                        }}
-                        transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
-                      >
-                        <p className="text-[8px] sm:text-[10px] text-gray-600">
-                          {transactionState === 'initial' ? "Montant total" :
-                           transactionState === 'validating' ? "Vérification du montant" :
-                           transactionState === 'processing' ? "Transfert en cours" :
-                           "Paiement confirmé"
-                          }
-                        </p>
-                        <div className="text-base sm:text-lg font-bold">2.45 ETH</div>
-                        <p className="text-[8px] sm:text-[10px] text-gray-500">≈ 4,892.50 €</p>
-                      </motion.div>
-
-                      {/* Indicateurs de sécurité animés */}
-                      <div className="bg-gray-50 rounded-lg p-1.5 sm:p-2 space-y-1">
-                        <motion.div 
-                          className="flex items-center gap-1.5"
-                          animate={{ opacity: transactionState !== 'initial' ? 1 : 0.5 }}
-                        >
+                          {/* Montant avec animation */}
                           <motion.div 
-                            className="h-1 w-1 rounded-full bg-green-500"
-                            animate={{ scale: transactionState === 'validating' ? [1, 1.5, 1] : 1 }}
-                            transition={{ duration: 1, repeat: transactionState === 'validating' ? Infinity : 0 }}
-                          />
-                          <span className="text-[8px] sm:text-[10px]">Transaction sécurisée</span>
-                        </motion.div>
-                        <motion.div 
-                          className="flex items-center gap-1.5"
-                          animate={{ opacity: transactionState === 'processing' || transactionState === 'confirmed' ? 1 : 0.5 }}
-                        >
-                          <motion.div 
-                            className="h-1 w-1 rounded-full bg-blue-500"
-                            animate={{ scale: transactionState === 'processing' ? [1, 1.5, 1] : 1 }}
+                            className="text-center space-y-1 mb-2"
+                            animate={{
+                              scale: transactionState === 'processing' ? [1, 1.02, 1] : 1
+                            }}
                             transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
-                          />
-                          <span className="text-[8px] sm:text-[10px]">Protection acheteur</span>
-                        </motion.div>
-                        <motion.div 
-                          className="flex items-center gap-1.5"
-                          animate={{ opacity: transactionState === 'confirmed' ? 1 : 0.5 }}
-                        >
-                          <motion.div 
-                            className="h-1 w-1 rounded-full bg-purple-500"
-                            animate={{ scale: transactionState === 'confirmed' ? [1, 1.5, 1] : 1 }}
-                          />
-                          <span className="text-[8px] sm:text-[10px]">Garantie remboursement</span>
-                        </motion.div>
-                      </div>
+                          >
+                            <p className="text-[8px] sm:text-[10px] text-gray-600">
+                              {transactionState === 'validating' ? "Vérification du montant" :
+                               transactionState === 'processing' ? "Transfert en cours" :
+                               "Paiement confirmé"
+                              }
+                            </p>
+                            <div className="text-base sm:text-lg font-bold">2.45 ETH</div>
+                            <p className="text-[8px] sm:text-[10px] text-gray-500">≈ 4,892.50 €</p>
+                          </motion.div>
 
-                      {/* Bouton avec état */}
-                      <div className="mt-auto">
-                        <motion.button 
-                          className={`w-full rounded-lg py-1 sm:py-1.5 text-[8px] sm:text-[10px] font-medium text-white
-                            ${transactionState === 'initial' ? 'bg-black' :
-                              transactionState === 'validating' ? 'bg-indigo-500' :
-                              transactionState === 'processing' ? 'bg-blue-500' :
-                              'bg-green-500'}`}
-                          animate={{
-                            scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
-                          }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          {transactionState === 'initial' && "Confirmer le paiement"}
-                          {transactionState === 'validating' && "Vérification..."}
-                          {transactionState === 'processing' && "Traitement en cours..."}
-                          {transactionState === 'confirmed' && "Transaction réussie !"}
-                        </motion.button>
-                      </div>
+                          {/* Indicateurs de sécurité animés */}
+                          <div className="bg-gray-50 rounded-lg p-1.5 sm:p-2 space-y-1">
+                            <motion.div 
+                              className="flex items-center gap-1.5"
+                              animate={{ opacity: transactionState !== 'validating' ? 1 : 0.5 }}
+                            >
+                              <motion.div 
+                                className="h-1 w-1 rounded-full bg-green-500"
+                                animate={{ scale: transactionState === 'validating' ? [1, 1.5, 1] : 1 }}
+                                transition={{ duration: 1, repeat: transactionState === 'validating' ? Infinity : 0 }}
+                              />
+                              <span className="text-[8px] sm:text-[10px]">Transaction sécurisée</span>
+                            </motion.div>
+                            <motion.div 
+                              className="flex items-center gap-1.5"
+                              animate={{ opacity: transactionState === 'processing' || transactionState === 'confirmed' ? 1 : 0.5 }}
+                            >
+                              <motion.div 
+                                className="h-1 w-1 rounded-full bg-blue-500"
+                                animate={{ scale: transactionState === 'processing' ? [1, 1.5, 1] : 1 }}
+                                transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
+                              />
+                              <span className="text-[8px] sm:text-[10px]">Protection acheteur</span>
+                            </motion.div>
+                            <motion.div 
+                              className="flex items-center gap-1.5"
+                              animate={{ opacity: transactionState === 'confirmed' ? 1 : 0.5 }}
+                            >
+                              <motion.div 
+                                className="h-1 w-1 rounded-full bg-purple-500"
+                                animate={{ scale: transactionState === 'confirmed' ? [1, 1.5, 1] : 1 }}
+                              />
+                              <span className="text-[8px] sm:text-[10px]">Garantie remboursement</span>
+                            </motion.div>
+                          </div>
+
+                          {/* Bouton avec état */}
+                          <div className="mt-auto">
+                            <motion.button 
+                              className={`w-full rounded-lg py-1 sm:py-1.5 text-[8px] sm:text-[10px] font-medium text-white
+                                ${transactionState === 'validating' ? 'bg-indigo-500' :
+                                  transactionState === 'processing' ? 'bg-blue-500' :
+                                  'bg-green-500'}`}
+                              animate={{
+                                scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
+                              }}
+                              transition={{ duration: 0.5 }}
+                            >
+                              {transactionState === 'validating' && "Vérification..."}
+                              {transactionState === 'processing' && "Traitement en cours..."}
+                              {transactionState === 'confirmed' && "Transaction réussie !"}
+                            </motion.button>
+                          </div>
+                        </>
+                      )}
                     </motion.div>
                   </AnimatePresence>
                 </div>
