@@ -101,27 +101,74 @@ export function HeroSection() {
               }}
               className="relative"
             >
-              {/* Main qui claque des doigts */}
+              {/* Main qui claque des doigts - Nouveau design */}
               <motion.div className="w-[300px] h-[300px] relative">
-                {/* SVG de la main */}
+                {/* SVG de la main avec le nouveau design */}
                 <svg
                   viewBox="0 0 100 100"
                   className="w-full h-full"
                   style={{ filter: "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))" }}
                 >
+                  {/* Base de la main */}
                   <path
-                    d="M30 70 Q35 65, 40 70 T50 70 Q55 65, 60 70 T70 70"
-                    fill="none"
+                    d="M60 70 L60 50 C60 45, 55 42, 50 45 L45 48"
                     stroke="#000000"
                     strokeWidth="2"
+                    strokeLinecap="round"
+                    fill="none"
                   />
+                  {/* Pouce */}
                   <path
-                    d="M45 50 C50 45, 55 45, 60 50 S65 55, 70 50"
-                    fill="none"
+                    d="M45 48 C42 50, 40 45, 42 42 L45 40"
                     stroke="#000000"
                     strokeWidth="2"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  {/* Majeur */}
+                  <path
+                    d="M45 40 C48 38, 52 38, 55 42"
+                    stroke="#000000"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  {/* Autres doigts repliés */}
+                  <path
+                    d="M60 50 C62 48, 65 50, 65 52 L65 58"
+                    stroke="#000000"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    fill="none"
                   />
                 </svg>
+
+                {/* Lignes de "snap" animées */}
+                <motion.g
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ 
+                    opacity: [0, 1, 0],
+                    scale: [0.8, 1, 1.2],
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    repeat: Infinity,
+                    repeatDelay: 1.5
+                  }}
+                >
+                  {[...Array(3)].map((_, i) => (
+                    <motion.div
+                      key={`snap-line-${i}`}
+                      className="absolute top-[40%] left-[45%]"
+                      style={{
+                        width: "20px",
+                        height: "2px",
+                        background: "#000",
+                        transform: `rotate(${45 + i * 15}deg) translate(${i * 5}px, ${i * 5}px)`,
+                      }}
+                    />
+                  ))}
+                </motion.g>
 
                 {/* Diamants animés */}
                 <AnimatePresence>
@@ -130,8 +177,8 @@ export function HeroSection() {
                       key={i}
                       className="absolute"
                       style={{
-                        top: "50%",
-                        left: "50%",
+                        top: "40%",
+                        left: "45%",
                       }}
                       initial={{
                         scale: 0,
@@ -149,7 +196,7 @@ export function HeroSection() {
                         duration: 2,
                         delay: i * 0.1,
                         repeat: Infinity,
-                        repeatDelay: 1,
+                        repeatDelay: 1.5,
                       }}
                     >
                       <Diamond 
@@ -163,7 +210,7 @@ export function HeroSection() {
 
                 {/* Effet d'onde de choc */}
                 <motion.div
-                  className="absolute top-1/2 left-1/2 w-4 h-4 -translate-x-1/2 -translate-y-1/2"
+                  className="absolute top-[40%] left-[45%] w-4 h-4 -translate-x-1/2 -translate-y-1/2"
                   animate={{
                     scale: [1, 4],
                     opacity: [0.5, 0],
@@ -171,7 +218,7 @@ export function HeroSection() {
                   transition={{
                     duration: 1,
                     repeat: Infinity,
-                    repeatDelay: 1,
+                    repeatDelay: 1.5,
                   }}
                 >
                   <div className="w-full h-full rounded-full bg-black/10" />
