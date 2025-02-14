@@ -2,9 +2,8 @@
 import { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { Group } from 'three';
+import { Group, Object3D, Mesh } from 'three';
 
-// Spécifiez le chemin du dossier contenant le GLTF et ses ressources
 const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models';
 
 export function Diamond3D() {
@@ -14,8 +13,8 @@ export function Diamond3D() {
   useEffect(() => {
     console.log('Model loaded:', gltf);
     if (gltf.scene) {
-      gltf.scene.traverse((child) => {
-        if (child.isMesh) {
+      gltf.scene.traverse((child: Object3D) => {
+        if ((child as Mesh).isMesh) {
           console.log('Mesh found:', child);
         }
       });
@@ -39,5 +38,4 @@ export function Diamond3D() {
   );
 }
 
-// Précharger le modèle
 useGLTF.preload(`${MODEL_PATH}/result.gltf`);
