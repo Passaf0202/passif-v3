@@ -20,6 +20,12 @@ interface CategoryHighlight {
   services: string[];
 }
 
+interface MenuState {
+  isOpen: boolean;
+  currentCategory: string | null;
+  isTransitioning: boolean;
+}
+
 const CATEGORY_HIGHLIGHTS: Record<string, CategoryHighlight> = {
   "Véhicules": {
     brands: ["Peugeot", "Renault", "Volkswagen", "BMW", "Mercedes", "Audi"],
@@ -41,15 +47,28 @@ const CATEGORY_HIGHLIGHTS: Record<string, CategoryHighlight> = {
   }
 };
 
+const TIMING = {
+  closeDelay: 400,    // Délai plus long avant la fermeture
+  openDelay: 50,      // Petit délai à l'ouverture
+  transitionDelay: 50 // Délai pour le changement de catégorie
+};
+
 export function NavbarCategories({
   categories,
   isMobile
 }: NavbarCategoriesProps) {
-  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [menuState, setMenuState] = useState<MenuState>({
+    isOpen: false,
+    currentCategory: null,
+    isTransitioning: false
+  });
   const [closeTimeout, setCloseTimeout] = useState<number | null>(null);
+  const [openTimeout, setOpenTimeout] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuZoneRef = useRef<HTMLDivElement>(null);
   const categoryRefs = useRef<Record<string, HTMLLIElement | null>>({});
+
   const organizedCategories = useOrganizedCategories(categories);
   const visibleCategories = useVisibleCategories(organizedCategories, !!isMobile, containerRef);
 
@@ -68,18 +87,7 @@ export function NavbarCategories({
     : visibleCategories;
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (hoveredCategory) {
-        setHoveredCategory(null);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hoveredCategory]);
-
-  useEffect(() => {
-    if (hoveredCategory) {
+    if (menuState.isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -88,30 +96,75 @@ export function NavbarCategories({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [hoveredCategory]);
+  }, [menuState.isOpen]);
 
-  const handleMouseEnter = (categoryId: string) => {
+  const clearTimeouts = () => {
     if (closeTimeout) {
       window.clearTimeout(closeTimeout);
       setCloseTimeout(null);
     }
-    setHoveredCategory(categoryId);
+    if (openTimeout) {
+      window.clearTimeout(openTimeout);
+      setOpenTimeout(null);
+    }
   };
 
-  const handleMouseLeave = () => {
-    const timeout = window.setTimeout(() => {
-      setHoveredCategory(null);
-    }, 200);
-    setCloseTimeout(timeout);
+  const handleCategoryEnter = (categoryId: string) => {
+    clearTimeouts();
+
+    const openTimer = window.setTimeout(() => {
+      setMenuState(prev => ({
+        isOpen: true,
+        currentCategory: categoryId,
+        isTransitioning: prev.currentCategory !== null && prev.currentCategory !== categoryId
+      }));
+    }, menuState.isOpen ? 0 : TIMING.openDelay);
+
+    setOpenTimeout(openTimer);
   };
 
-  useEffect(() => {
-    return () => {
-      if (closeTimeout) {
-        window.clearTimeout(closeTimeout);
-      }
-    };
-  }, [closeTimeout]);
+  const handleMenuZoneEnter = () => {
+    clearTimeouts();
+  };
+
+  const handleMenuZoneLeave = (e: React.MouseEvent) => {
+    const menuRect = menuZoneRef.current?.getBoundingClientRect();
+    if (!menuRect) return;
+
+    const mouseY = e.clientY;
+    const mouseX = e.clientX;
+
+    // Si la souris sort par le haut ou les côtés, on ferme immédiatement
+    if (mouseY < menuRect.top || mouseX < menuRect.left - 50 || mouseX > menuRect.right + 50) {
+      closeMenu();
+    } else {
+      // Sinon, on utilise le délai normal
+      scheduleClose();
+    }
+  };
+
+  const scheduleClose = () => {
+    clearTimeouts();
+    
+    const closeTimer = window.setTimeout(() => {
+      setMenuState({
+        isOpen: false,
+        currentCategory: null,
+        isTransitioning: false
+      });
+    }, TIMING.closeDelay);
+
+    setCloseTimeout(closeTimer);
+  };
+
+  const closeMenu = () => {
+    clearTimeouts();
+    setMenuState({
+      isOpen: false,
+      currentCategory: null,
+      isTransitioning: false
+    });
+  };
 
   const renderCategoryContent = (category: Category) => {
     const highlights = CATEGORY_HIGHLIGHTS[category.name] || {
@@ -247,46 +300,57 @@ export function NavbarCategories({
               <li 
                 key={category.id} 
                 ref={el => categoryRefs.current[category.id] = el}
-                className="relative flex items-center text-[13px] text-gray-700"
-                onMouseEnter={() => handleMouseEnter(category.id)} 
-                onMouseLeave={handleMouseLeave}
+                className={`relative flex items-center text-[13px] ${
+                  menuState.currentCategory === category.id 
+                    ? 'text-primary' 
+                    : 'text-gray-700'
+                }`}
+                onMouseEnter={() => handleCategoryEnter(category.id)}
               >
-                <button className="px-3 py-2 hover:text-primary transition-colors whitespace-nowrap">
+                <button 
+                  className={`px-3 py-2 hover:text-primary transition-colors whitespace-nowrap ${
+                    menuState.currentCategory === category.id ? 'font-medium' : ''
+                  }`}
+                >
                   {category.name}
                 </button>
                 
                 {index < displayedCategories.length - 1 && (
                   <span className="text-gray-400 select-none">•</span>
                 )}
-
-                {hoveredCategory === category.id && (
-                  <>
-                    {/* Backdrop semi-transparent */}
-                    <div 
-                      className="fixed inset-0 bg-black/5 backdrop-blur-[1px] z-40"
-                      onMouseEnter={() => handleMouseEnter(category.id)}
-                      onMouseLeave={handleMouseLeave}
-                    />
-                    
-                    {/* Menu container */}
-                    <div 
-                      ref={menuRef}
-                      className="fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm z-50"
-                      style={{
-                        top: '96px',
-                      }}
-                      onMouseEnter={() => handleMouseEnter(category.id)}
-                      onMouseLeave={handleMouseLeave}
-                    >
-                      {renderCategoryContent(category)}
-                    </div>
-                  </>
-                )}
               </li>
             ))}
           </ul>
         </div>
       </div>
+
+      {menuState.isOpen && (
+        <>
+          {/* Zone tampon et menu */}
+          <div
+            ref={menuZoneRef}
+            className="fixed inset-0 z-40"
+            onMouseEnter={handleMenuZoneEnter}
+            onMouseLeave={handleMenuZoneLeave}
+          >
+            {/* Backdrop avec flou */}
+            <div className="fixed inset-0 bg-black/5 backdrop-blur-[1px]" />
+            
+            {/* Container du menu */}
+            <div 
+              ref={menuRef}
+              className={`fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm transition-opacity duration-200 ${
+                menuState.isTransitioning ? 'opacity-90' : 'opacity-100'
+              }`}
+              style={{ top: '96px' }}
+            >
+              {menuState.currentCategory && renderCategoryContent(
+                displayedCategories.find(cat => cat.id === menuState.currentCategory)!
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </nav>
   );
 }
