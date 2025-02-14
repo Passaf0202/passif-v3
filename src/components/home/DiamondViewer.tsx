@@ -166,36 +166,38 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   }
 
   return (
-    <div className="w-full h-full relative bg-transparent rounded-lg overflow-hidden">
-      <model-viewer
-        ref={modelRef}
-        src={MODEL_PATH}
-        auto-rotate
-        rotation-per-second="8deg"
-        rotation-axis="0 1 0"
-        orientation="0deg 180deg 0deg"
-        interaction-prompt="none"
-        camera-orbit="0deg 90deg 1.2m"
-        min-camera-orbit="0deg 90deg 1.2m"
-        max-camera-orbit="0deg 90deg 1.2m"
-        auto-rotate-delay={0}
-        shadow-intensity="0.75"
-        exposure="1.2"
-        environment-image="legacy"
-        field-of-view="20deg"
-        bounds="tight"
-        scale="1.2 1.2 1.2"
-        loading="eager"
-        style={{
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'transparent',
-          opacity: isLoading ? '0.7' : '1',
-          transition: 'opacity 0.5s ease-in-out'
-        }}
-      >
-        <div slot="poster"></div>
-      </model-viewer>
+    <div className="w-full h-full relative bg-transparent rounded-lg overflow-hidden [perspective:1000px]">
+      <div className="absolute inset-0 [transform-style:preserve-3d] [transform:rotateX(180deg)]">
+        <model-viewer
+          ref={modelRef}
+          src={MODEL_PATH}
+          auto-rotate
+          rotation-per-second="8deg"
+          rotation-axis="0 1 0"
+          orientation="0deg 0deg 0deg"
+          interaction-prompt="none"
+          camera-orbit="0deg 90deg 1.2m"
+          min-camera-orbit="0deg 90deg 1.2m"
+          max-camera-orbit="0deg 90deg 1.2m"
+          auto-rotate-delay={0}
+          shadow-intensity="0.75"
+          exposure="1.2"
+          environment-image="legacy"
+          field-of-view="20deg"
+          bounds="tight"
+          scale="1.2 1.2 1.2"
+          loading="eager"
+          style={{
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'transparent',
+            opacity: isLoading ? '0.7' : '1',
+            transition: 'opacity 0.5s ease-in-out'
+          }}
+        >
+          <div slot="poster"></div>
+        </model-viewer>
+      </div>
     </div>
   );
 }
