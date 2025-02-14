@@ -14,7 +14,7 @@ export function HeroSection() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100/30 rounded-full transform -translate-x-1/3 translate-y-1/3 blur-3xl" />
       </div>
       
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-8 lg:py-12 relative">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 lg:py-8 relative">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-12 items-center">
           {/* Colonne de gauche - Texte */}
           <motion.div 
@@ -82,7 +82,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center min-h-[500px] lg:min-h-[600px] xl:min-h-[700px]"
+            className="relative flex justify-center items-center min-h-[400px] sm:min-h-[450px] md:min-h-[500px] lg:min-h-[550px]"
           >
             {/* Effet de halo derrière l'iPhone */}
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
@@ -100,54 +100,54 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[260px] sm:w-[300px] md:w-[340px] lg:w-[380px] xl:w-[420px] max-w-[40vw] min-w-[260px] transform scale-90 sm:scale-100"
+              className="relative w-[240px] sm:w-[260px] md:w-[280px] lg:w-[300px] xl:w-[320px] max-w-[35vw] min-w-[240px] transform"
             >
               {/* iPhone Frame */}
               <div className="relative rounded-[32px] bg-[#1A1F2C] p-1.5 sm:p-2 shadow-2xl">
                 {/* Dynamic Island */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[60px] sm:w-[70px] h-[18px] sm:h-[20px] bg-black rounded-b-3xl z-20" />
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[50px] sm:w-[55px] h-[16px] sm:h-[18px] bg-black rounded-b-3xl z-20" />
                 
                 {/* Écran */}
-                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/18]">
+                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/16]">
                   {/* Contenu de l'écran */}
                   <div className="absolute inset-0 p-2 sm:p-3 md:p-4 flex flex-col">
                     {/* En-tête de l'app */}
                     <div className="flex justify-between items-center mb-2 sm:mb-3">
                       <div className="space-y-0.5 sm:space-y-1">
-                        <h3 className="text-[10px] sm:text-xs md:text-sm font-semibold">Transaction</h3>
-                        <p className="text-[8px] sm:text-[10px] md:text-xs text-gray-500">#TC-289345</p>
+                        <h3 className="text-[10px] sm:text-xs font-semibold">Transaction</h3>
+                        <p className="text-[8px] sm:text-[10px] text-gray-500">#TC-289345</p>
                       </div>
-                      <div className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 rounded-full bg-green-500 flex items-center justify-center">
-                        <Coins className="h-2 w-2 sm:h-3 sm:w-3 md:h-4 md:w-4 text-white" />
+                      <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-green-500 flex items-center justify-center">
+                        <Coins className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
                       </div>
                     </div>
 
                     {/* Montant */}
-                    <div className="text-center space-y-1 sm:space-y-2 mb-2 sm:mb-4">
-                      <p className="text-[8px] sm:text-xs md:text-sm text-gray-600">Montant total</p>
-                      <div className="text-base sm:text-xl md:text-2xl font-bold">2.45 ETH</div>
-                      <p className="text-[8px] sm:text-xs md:text-sm text-gray-500">≈ 4,892.50 €</p>
+                    <div className="text-center space-y-1 sm:space-y-2 mb-2 sm:mb-3">
+                      <p className="text-[8px] sm:text-xs text-gray-600">Montant total</p>
+                      <div className="text-sm sm:text-base font-bold">2.45 ETH</div>
+                      <p className="text-[8px] sm:text-xs text-gray-500">≈ 4,892.50 €</p>
                     </div>
 
                     {/* Indicateurs de sécurité */}
-                    <div className="bg-gray-50 rounded-lg p-1.5 sm:p-3 md:p-4 space-y-1 sm:space-y-2">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-green-500" />
-                        <span className="text-[8px] sm:text-xs md:text-sm">Transaction sécurisée</span>
+                    <div className="bg-gray-50 rounded-lg p-1.5 sm:p-2 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-1 w-1 rounded-full bg-green-500" />
+                        <span className="text-[8px] sm:text-xs">Transaction sécurisée</span>
                       </div>
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-blue-500" />
-                        <span className="text-[8px] sm:text-xs md:text-sm">Protection acheteur</span>
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-1 w-1 rounded-full bg-blue-500" />
+                        <span className="text-[8px] sm:text-xs">Protection acheteur</span>
                       </div>
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-purple-500" />
-                        <span className="text-[8px] sm:text-xs md:text-sm">Garantie remboursement</span>
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-1 w-1 rounded-full bg-purple-500" />
+                        <span className="text-[8px] sm:text-xs">Garantie remboursement</span>
                       </div>
                     </div>
 
                     {/* Bouton de paiement */}
                     <div className="mt-auto">
-                      <button className="w-full bg-black text-white rounded-lg py-1.5 sm:py-2 md:py-3 text-[8px] sm:text-xs md:text-sm font-medium">
+                      <button className="w-full bg-black text-white rounded-lg py-1.5 text-[8px] sm:text-xs font-medium">
                         Confirmer le paiement
                       </button>
                     </div>
