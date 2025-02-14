@@ -1,4 +1,3 @@
-
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { Loader2 } from "lucide-react";
 import type { SyntheticEvent } from 'react';
@@ -178,12 +177,10 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         ref={modelRef}
         src={MODEL_PATH}
         auto-rotate
-        disable-zoom
-        disable-pan
         rotation-per-second="10deg"
         interaction-prompt="none"
         camera-orbit="0deg 45deg 2.5m"
-        auto-rotate-delay="0"
+        auto-rotate-delay={0}
         shadow-intensity="0.6"
         exposure="0.8"
         environment-image="neutral"
