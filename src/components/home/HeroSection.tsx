@@ -1,8 +1,9 @@
 
-import { Plus, Coins, Diamond, ArrowRight, MapPin } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight, MapPin, Shield, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 export function HeroSection() {
   return (
@@ -86,7 +87,7 @@ export function HeroSection() {
           >
             {/* Container des annonces superposées */}
             <div className="relative w-full max-w-md aspect-[4/3] flex justify-center">
-              {/* Annonce 3 (Arrière-plan) */}
+              {/* Annonce 3 (Arrière-plan) - MacBook */}
               <motion.div
                 animate={{ 
                   y: [0, -2, 0]
@@ -99,19 +100,34 @@ export function HeroSection() {
                 }}
                 className="absolute w-[200px] rounded-lg shadow-sm bg-white border border-black/10 transform -translate-x-8 translate-y-4"
               >
-                {/* Structure de l'annonce */}
-                <div className="h-[120px] bg-gray-100 rounded-t-lg" />
+                <Badge className="absolute top-2 right-2 bg-black/80 hover:bg-black/90">Exemple</Badge>
+                <div className="h-[120px] bg-gray-100 rounded-t-lg flex items-center justify-center">
+                  <svg className="w-16 h-16 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="2" y="4" width="20" height="14" rx="2" />
+                    <path d="M7 19h10" />
+                  </svg>
+                </div>
                 <div className="p-3 space-y-2">
-                  <div className="h-2 w-3/4 bg-gray-200 rounded" />
-                  <div className="h-2 w-1/2 bg-gray-200 rounded" />
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-gray-300" />
-                    <div className="h-2 w-1/3 bg-gray-200 rounded" />
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-sm">MacBook Air M2</h3>
+                    <Shield className="h-3 w-3 text-black" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">1100 €</p>
+                    <p className="text-xs text-gray-500">≈ 0.420 POL</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <MapPin className="h-3 w-3" />
+                    <span>Bordeaux, France</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock3 className="h-3 w-3" />
+                    <span>il y a 4h</span>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Annonce 2 (Milieu) */}
+              {/* Annonce 2 (Milieu) - PS5 */}
               <motion.div
                 animate={{ 
                   y: [0, -4, 0]
@@ -125,19 +141,34 @@ export function HeroSection() {
                 }}
                 className="absolute w-[200px] rounded-lg shadow-sm bg-white border border-black/10 transform translate-x-0 translate-y-2"
               >
-                {/* Structure de l'annonce */}
-                <div className="h-[120px] bg-gray-100 rounded-t-lg" />
+                <Badge className="absolute top-2 right-2 bg-black/80 hover:bg-black/90">Exemple</Badge>
+                <div className="h-[120px] bg-gray-100 rounded-t-lg flex items-center justify-center">
+                  <svg className="w-16 h-16 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
+                    <path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                  </svg>
+                </div>
                 <div className="p-3 space-y-2">
-                  <div className="h-2 w-2/3 bg-gray-200 rounded" />
-                  <div className="h-2 w-1/2 bg-gray-200 rounded" />
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-gray-300" />
-                    <div className="h-2 w-1/3 bg-gray-200 rounded" />
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-sm">PS5 Digital Edition</h3>
+                    <Shield className="h-3 w-3 text-black" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">400 €</p>
+                    <p className="text-xs text-gray-500">≈ 0.153 POL</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <MapPin className="h-3 w-3" />
+                    <span>Lyon, France</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock3 className="h-3 w-3" />
+                    <span>il y a 2h</span>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Annonce 1 (Premier plan) - Plus détaillée */}
+              {/* Annonce 1 (Premier plan) - iPhone */}
               <motion.div
                 animate={{ 
                   y: [0, -6, 0]
@@ -151,16 +182,29 @@ export function HeroSection() {
                 }}
                 className="absolute w-[200px] rounded-lg shadow-md bg-white border border-black/10 transform translate-x-8"
               >
-                {/* Structure de l'annonce */}
+                <Badge className="absolute top-2 right-2 bg-black/80 hover:bg-black/90">Exemple</Badge>
                 <div className="h-[120px] bg-gray-100 rounded-t-lg flex items-center justify-center">
-                  <div className="text-gray-400 text-sm">Image du produit</div>
+                  <svg className="w-16 h-16 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="5" y="2" width="14" height="20" rx="2" />
+                    <path d="M12 18h.01" />
+                  </svg>
                 </div>
                 <div className="p-3 space-y-2">
-                  <div className="h-2 w-3/4 bg-gray-200 rounded" />
-                  <div className="h-2 w-1/2 bg-gray-200 rounded font-semibold" />
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-gray-300" />
-                    <div className="h-2 w-1/3 bg-gray-200 rounded" />
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-sm">iPhone 14 Pro</h3>
+                    <Shield className="h-3 w-3 text-black" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">1200 €</p>
+                    <p className="text-xs text-gray-500">≈ 0.458 POL</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <MapPin className="h-3 w-3" />
+                    <span>Paris, France</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock3 className="h-3 w-3" />
+                    <span>il y a 1h</span>
                   </div>
                 </div>
               </motion.div>
