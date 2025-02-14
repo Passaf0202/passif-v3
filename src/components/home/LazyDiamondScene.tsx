@@ -10,7 +10,7 @@ interface LazyDiamondSceneProps {
 
 export function LazyDiamondScene({ state }: LazyDiamondSceneProps) {
   return (
-    <div className="relative w-32 h-32 mx-auto">
+    <div className="relative w-64 h-64 mx-auto">
       <Suspense fallback={
         <div className="w-full h-full flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />

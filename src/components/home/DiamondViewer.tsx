@@ -170,14 +170,14 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         auto-rotate
         rotation-per-second="12deg"
         interaction-prompt="none"
-        camera-orbit="0deg 180deg 1.8m"
-        min-camera-orbit="0deg 180deg 1.8m"
-        max-camera-orbit="0deg 180deg 1.8m"
+        camera-orbit="0deg 90deg 1m"
+        min-camera-orbit="0deg 90deg 1m"
+        max-camera-orbit="0deg 90deg 1m"
         auto-rotate-delay={0}
         shadow-intensity="0.75"
         exposure="1.2"
         environment-image="legacy"
-        field-of-view="30deg"
+        field-of-view="25deg"
         loading="eager"
         style={{
           width: '100%',
