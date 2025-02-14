@@ -1,19 +1,26 @@
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Group } from 'three';
 
-const MODEL_URL = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/result.gltf';
+// Spécifiez le chemin du dossier contenant le GLTF et ses ressources
+const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models';
 
 export function Diamond3D() {
   const groupRef = useRef<Group>(null);
-  const { scene } = useGLTF(MODEL_URL);
+  const gltf = useGLTF(`${MODEL_PATH}/result.gltf`, true);
 
-  // Ensure scene is loaded
-  if (!scene) {
-    return null;
-  }
+  useEffect(() => {
+    console.log('Model loaded:', gltf);
+    if (gltf.scene) {
+      gltf.scene.traverse((child) => {
+        if (child.isMesh) {
+          console.log('Mesh found:', child);
+        }
+      });
+    }
+  }, [gltf]);
 
   useFrame(() => {
     if (groupRef.current) {
@@ -21,12 +28,16 @@ export function Diamond3D() {
     }
   });
 
+  if (!gltf.scene) {
+    return null;
+  }
+
   return (
     <group ref={groupRef}>
-      <primitive object={scene} scale={1} position={[0, 0, 0]} />
+      <primitive object={gltf.scene} scale={1} position={[0, 0, 0]} />
     </group>
   );
 }
 
-// Pre-load the model
-useGLTF.preload(MODEL_URL);
+// Précharger le modèle
+useGLTF.preload(`${MODEL_PATH}/result.gltf`);

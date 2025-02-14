@@ -18,10 +18,9 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
         <pointLight position={[-10, -10, -10]} />
         <Suspense fallback={
-          <mesh>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshBasicMaterial color="gray" wireframe />
-          </mesh>
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
         }>
           <Diamond3D />
           <Environment preset="city" />
