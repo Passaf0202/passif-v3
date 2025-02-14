@@ -24,7 +24,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         }>
           <Diamond3D />
           <OrbitControls enableZoom={false} />
-          <Environment files="/hdri/studio.hdr" background={false} />
+          <Environment preset="city" background={false} />
         </Suspense>
       </Canvas>
     </div>

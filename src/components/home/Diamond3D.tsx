@@ -4,9 +4,11 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Group } from 'three';
 
+const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models';
+
 export function Diamond3D() {
   const groupRef = useRef<Group>(null);
-  const { scene } = useGLTF('/models/diamond.glb');
+  const { scene } = useGLTF(`${MODEL_PATH}/result.gltf`);
 
   useFrame(() => {
     if (groupRef.current) {
@@ -21,4 +23,4 @@ export function Diamond3D() {
   );
 }
 
-useGLTF.preload('/models/diamond.glb');
+useGLTF.preload(`${MODEL_PATH}/result.gltf`);
