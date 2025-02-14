@@ -10,8 +10,7 @@ const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/p
 export function Diamond3D() {
   const groupRef = useRef<Group>(null);
   const [error, setError] = useState(false);
-  
-  const { scene, isLoading } = useGLTF(`${MODEL_PATH}/result.gltf`, undefined, (error) => {
+  const { scene } = useGLTF(`${MODEL_PATH}/result.gltf`, undefined, undefined, (error) => {
     console.error('Error loading model:', error);
     setError(true);
     toast({
@@ -22,7 +21,7 @@ export function Diamond3D() {
   });
 
   useFrame(() => {
-    if (groupRef.current && !error && !isLoading) {
+    if (groupRef.current && !error) {
       groupRef.current.rotation.y += 0.01;
     }
   });
@@ -32,6 +31,15 @@ export function Diamond3D() {
       <mesh>
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial color="red" wireframe />
+      </mesh>
+    );
+  }
+
+  if (!scene) {
+    return (
+      <mesh>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="gray" wireframe />
       </mesh>
     );
   }
