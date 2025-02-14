@@ -1,4 +1,3 @@
-
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { Loader2 } from "lucide-react";
 import type { SyntheticEvent } from 'react';
@@ -164,23 +163,13 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 
   return (
     <div className="w-full h-full relative bg-transparent rounded-lg overflow-hidden">
-      {isLoading && (
-        <div className="absolute top-0 left-0 right-0 z-10">
-          <div className="h-0.5 bg-gray-100/50">
-            <div 
-              className="h-full bg-primary/30 transition-all duration-300" 
-              style={{ width: `${loadingProgress}%` }}
-            />
-          </div>
-        </div>
-      )}
       <model-viewer
         ref={modelRef}
         src={MODEL_PATH}
         auto-rotate
-        rotation-per-second="15deg"
+        rotation-per-second="12deg"
         interaction-prompt="none"
-        camera-orbit="0deg 65deg 2.2m"
+        camera-orbit="180deg 65deg 2.2m"
         min-camera-orbit="auto 65deg auto"
         max-camera-orbit="auto 65deg auto"
         auto-rotate-delay={0}
@@ -197,7 +186,6 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
           transition: 'opacity 0.5s ease-in-out'
         }}
       >
-        <div slot="progress-bar"></div>
         <div slot="poster"></div>
       </model-viewer>
     </div>
