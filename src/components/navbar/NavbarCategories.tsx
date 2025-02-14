@@ -46,7 +46,7 @@ export function NavbarCategories({
   return (
     <nav className="relative w-full border-b border-gray-200/80">
       {/* Barre de catégories - toujours visible */}
-      <div className="sticky top-0 z-50 bg-white">
+      <div className="sticky top-0 z-51 bg-white border-b border-gray-200/80">
         <div className="max-w-[1440px] h-12 mx-auto px-4 md:px-8">
           <div className="h-full flex items-center justify-center" ref={containerRef}>
             <ul className="inline-flex items-center gap-1">
@@ -95,17 +95,19 @@ export function NavbarCategories({
               <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
             </div>
             
-            {/* Contenu du menu */}
+            {/* Conteneur externe du menu - fond et ombre sur toute la largeur */}
             <div 
               ref={menuRef}
-              className="fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm"
+              className="fixed left-0 right-0 bg-white border-t border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
               style={{ top: '96px' }}
             >
-              {menuState.currentCategory && (
-                <CategoryContent
-                  category={displayedCategories.find(cat => cat.id === menuState.currentCategory)!}
-                />
-              )}
+              <div className="max-w-[1440px] mx-auto">
+                {menuState.currentCategory && (
+                  <CategoryContent
+                    category={displayedCategories.find(cat => cat.id === menuState.currentCategory)!}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </>
