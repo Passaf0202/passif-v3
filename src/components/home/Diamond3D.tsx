@@ -1,21 +1,21 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import type { Mesh } from 'three';
+import { Mesh } from 'three';
 
 export function Diamond3D() {
   const meshRef = useRef<Mesh>(null);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.01;
     }
   });
 
   return (
-    <mesh ref={meshRef} position={[0, 0, 0]}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="white" />
+    <mesh ref={meshRef}>
+      <octahedronGeometry args={[1]} />
+      <meshBasicMaterial color={0xffffff} />
     </mesh>
   );
 }
