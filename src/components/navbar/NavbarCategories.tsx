@@ -20,12 +20,6 @@ interface CategoryHighlight {
   services: string[];
 }
 
-interface MenuPosition {
-  left: string;
-  right: string;
-  transformOrigin: string;
-}
-
 const CATEGORY_HIGHLIGHTS: Record<string, CategoryHighlight> = {
   "Véhicules": {
     brands: ["Peugeot", "Renault", "Volkswagen", "BMW", "Mercedes", "Audi"],
@@ -52,9 +46,11 @@ export function NavbarCategories({
   isMobile
 }: NavbarCategoriesProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState({ left: '0', maxHeight: '80vh' });
   const [closeTimeout, setCloseTimeout] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const categoryRefs = useRef<Record<string, HTMLLIElement | null>>({});
   const organizedCategories = useOrganizedCategories(categories);
   const visibleCategories = useVisibleCategories(organizedCategories, !!isMobile, containerRef);
 
@@ -72,31 +68,47 @@ export function NavbarCategories({
     ? [...visibleCategories, othersCategory]
     : visibleCategories;
 
-  // Fonction pour calculer la position du menu
-  const calculateMenuPosition = (index: number, totalItems: number): MenuPosition => {
-    const position: MenuPosition = {
-      left: '50%',
-      right: 'auto',
-      transformOrigin: 'top center'
-    };
-
-    if (index === 0) {
-      position.left = '0';
-      position.transformOrigin = 'top left';
-    } else if (index === totalItems - 1) {
-      position.left = 'auto';
-      position.right = '0';
-      position.transformOrigin = 'top right';
+  const calculateMenuPosition = (categoryElement: HTMLElement) => {
+    const MENU_WIDTH = 800;
+    const MARGIN = 20;
+    
+    const rect = categoryElement.getBoundingClientRect();
+    const containerRect = containerRef.current?.getBoundingClientRect() || { left: 0, right: window.innerWidth };
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Calcul de la position horizontale
+    let left = rect.left + (rect.width / 2) - (MENU_WIDTH / 2);
+    
+    // Ajustement si le menu dépasse à gauche
+    if (left < containerRect.left + MARGIN) {
+      left = containerRect.left + MARGIN;
     }
-
-    return position;
+    
+    // Ajustement si le menu dépasse à droite
+    if (left + MENU_WIDTH > containerRect.right - MARGIN) {
+      left = containerRect.right - MENU_WIDTH - MARGIN;
+    }
+    
+    // Calcul de la hauteur maximale
+    const maxHeight = viewportHeight - rect.bottom - MARGIN;
+    
+    return {
+      left: `${left}px`,
+      maxHeight: `${maxHeight}px`
+    };
   };
 
-  // Gestion améliorée du survol avec délai
   const handleMouseEnter = (categoryId: string) => {
     if (closeTimeout) {
       window.clearTimeout(closeTimeout);
       setCloseTimeout(null);
+    }
+
+    const categoryElement = categoryRefs.current[categoryId];
+    if (categoryElement) {
+      const newPosition = calculateMenuPosition(categoryElement);
+      setMenuPosition(newPosition);
     }
     setHoveredCategory(categoryId);
   };
@@ -104,11 +116,10 @@ export function NavbarCategories({
   const handleMouseLeave = () => {
     const timeout = window.setTimeout(() => {
       setHoveredCategory(null);
-    }, 150);
+    }, 200); // Augmenté à 200ms pour plus de tolérance
     setCloseTimeout(timeout);
   };
 
-  // Nettoyage du timeout
   useEffect(() => {
     return () => {
       if (closeTimeout) {
@@ -127,47 +138,47 @@ export function NavbarCategories({
     const IconComponent = getCategoryIcon(category.name);
 
     return (
-      <div className="grid grid-cols-[250px_1fr] h-full">
-        {/* Colonne de gauche - Aperçu */}
-        <div className="bg-gray-50 p-6 border-r border-gray-200/80">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 text-primary">
-              <IconComponent className="h-6 w-6" />
-              <h3 className="text-lg font-medium">
-                {category.name}
-              </h3>
-            </div>
-            <Link 
-              to={`/category/${category.name.toLowerCase()}`}
-              className="inline-flex items-center text-sm text-primary hover:underline"
-            >
-              Voir tout {category.name.toLowerCase()}
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Link>
-            
-            {highlights.services.length > 0 && (
-              <div className="mt-8">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Services associés</h4>
-                <ul className="space-y-2">
-                  {highlights.services.map(service => (
-                    <li key={service}>
-                      <Link 
-                        to={`/category/${category.name.toLowerCase()}/${service.toLowerCase()}`}
-                        className="text-sm text-gray-600 hover:text-primary hover:underline"
-                      >
-                        {service}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+      <ScrollArea className="h-full">
+        <div className="flex">
+          {/* Colonne de gauche - Aperçu */}
+          <div className="w-[250px] flex-shrink-0 bg-gray-50 p-6 border-r border-gray-200/80">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-primary">
+                <IconComponent className="h-6 w-6" />
+                <h3 className="text-lg font-medium">
+                  {category.name}
+                </h3>
               </div>
-            )}
+              <Link 
+                to={`/category/${category.name.toLowerCase()}`}
+                className="inline-flex items-center text-sm text-primary hover:underline"
+              >
+                Voir tout {category.name.toLowerCase()}
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Link>
+              
+              {highlights.services.length > 0 && (
+                <div className="mt-8">
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">Services associés</h4>
+                  <ul className="space-y-2">
+                    {highlights.services.map(service => (
+                      <li key={service}>
+                        <Link 
+                          to={`/category/${category.name.toLowerCase()}/${service.toLowerCase()}`}
+                          className="text-sm text-gray-600 hover:text-primary hover:underline"
+                        >
+                          {service}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Colonne de droite - Sous-catégories */}
-        <ScrollArea className="h-[calc(90vh-120px)] min-h-[400px]">
-          <div className="p-6">
+          {/* Colonne de droite - Sous-catégories */}
+          <div className="flex-1 p-6">
             <div className="grid grid-cols-2 gap-x-12 gap-y-8">
               {/* Marques populaires si disponibles */}
               {highlights.brands.length > 0 && (
@@ -226,8 +237,8 @@ export function NavbarCategories({
               )}
             </div>
           </div>
-        </ScrollArea>
-      </div>
+        </div>
+      </ScrollArea>
     );
   };
 
@@ -243,6 +254,7 @@ export function NavbarCategories({
             {displayedCategories.map((category, index) => (
               <li 
                 key={category.id} 
+                ref={el => categoryRefs.current[category.id] = el}
                 className="relative flex items-center text-[13px] text-gray-700"
                 onMouseEnter={() => handleMouseEnter(category.id)} 
                 onMouseLeave={handleMouseLeave}
@@ -258,9 +270,12 @@ export function NavbarCategories({
                 {hoveredCategory === category.id && (
                   <div 
                     ref={menuRef}
-                    className="absolute top-[44px] w-[800px] bg-white shadow-lg rounded-lg border border-gray-200/80 animate-in fade-in slide-in-from-top-1 duration-200 z-50 overscroll-contain"
+                    className="fixed w-[800px] bg-white shadow-lg rounded-lg border border-gray-200/80 animate-in fade-in slide-in-from-top-1 duration-200 z-50"
                     style={{
-                      ...calculateMenuPosition(index, displayedCategories.length)
+                      top: '60px', // Position fixe depuis le haut
+                      left: menuPosition.left,
+                      maxHeight: menuPosition.maxHeight,
+                      overflow: 'hidden'
                     }}
                     onMouseEnter={() => handleMouseEnter(category.id)}
                     onMouseLeave={handleMouseLeave}
