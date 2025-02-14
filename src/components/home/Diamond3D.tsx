@@ -13,11 +13,9 @@ export function Diamond3D() {
   });
 
   return (
-    <group>
-      <mesh ref={meshRef}>
-        <boxGeometry />
-        <meshNormalMaterial />
-      </mesh>
-    </group>
+    <mesh ref={meshRef}>
+      <boxGeometry />
+      <meshBasicMaterial color={0x00ff00} />
+    </mesh>
   );
 }
