@@ -13,9 +13,13 @@ export function Diamond3D() {
   });
 
   return (
-    <mesh ref={meshRef}>
-      <boxGeometry />
-      <meshBasicMaterial color={0x00ff00} />
+    <mesh ref={meshRef} position={[0, 0, 0]}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial 
+        color="#ffffff"
+        metalness={0.7}
+        roughness={0.3}
+      />
     </mesh>
   );
 }

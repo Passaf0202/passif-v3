@@ -1,7 +1,6 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Loader2 } from "lucide-react";
-import { Suspense } from 'react';
 import { DiamondViewer } from "./DiamondViewer";
 
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
@@ -79,15 +78,9 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
         </div>
 
         <div className="flex-1 p-2">
-          <Suspense fallback={
-            <div className="w-32 h-32 mx-auto flex items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-            </div>
-          }>
-            <div className="w-32 h-32 mx-auto">
-              <DiamondViewer state={transactionState} />
-            </div>
-          </Suspense>
+          <div className="w-32 h-32 mx-auto">
+            <DiamondViewer state={transactionState} />
+          </div>
         </div>
 
         {transactionState !== 'initial' && (
