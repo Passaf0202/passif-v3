@@ -1,6 +1,5 @@
 
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import { Diamond3D } from './Diamond3D';
 import { Suspense } from 'react';
 import { Loader2 } from "lucide-react";
@@ -18,18 +17,10 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         </div>
       }>
         <Canvas
-          dpr={[1, 2]}
-          gl={{ alpha: true, antialias: true }}
           camera={{ position: [0, 0, 4], fov: 50 }}
         >
-          <color attach="background" args={['transparent']} />
           <ambientLight intensity={0.5} />
-          <pointLight position={[10, 10, 10]} />
           <Diamond3D />
-          <OrbitControls 
-            enableZoom={false}
-            enablePan={false}
-          />
         </Canvas>
       </Suspense>
     </div>
