@@ -78,7 +78,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
         </div>
 
         <div className="flex-1 p-4 flex items-center justify-center bg-gradient-to-b from-transparent to-gray-50/20">
-          <div className="w-56 h-56">
+          <div className="w-64 h-64">
             <DiamondViewer state={transactionState} />
           </div>
         </div>
