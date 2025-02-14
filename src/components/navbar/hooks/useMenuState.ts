@@ -53,30 +53,28 @@ export function useMenuState() {
     const { clientX, clientY } = e;
 
     const zones = {
-      // Zone active du menu (le contenu lui-même)
+      // Zone active du menu (le contenu lui-même + barre de catégories)
       activeMenuZone: {
-        isInside: 
-          clientX >= menuRect.left && 
-          clientX <= menuRect.right && 
-          clientY >= menuRect.top && 
-          clientY <= menuRect.bottom
-      },
-      
-      // Zone de transition (toute la zone autour du menu)
-      transitionZone: {
-        isInside: 
-          clientX >= menuRect.left - MENU_ZONES.safeZone.sides && 
-          clientX <= menuRect.right + MENU_ZONES.safeZone.sides && 
-          clientY >= MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer && 
-          clientY <= menuRect.bottom + MENU_ZONES.safeZone.bottom
+        isInside: (
+          // Le menu lui-même
+          (clientX >= menuRect.left && 
+           clientX <= menuRect.right && 
+           clientY >= menuRect.top && 
+           clientY <= menuRect.bottom) ||
+          // La barre de catégories
+          (clientX >= menuRect.left && 
+           clientX <= menuRect.right && 
+           clientY >= MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer && 
+           clientY <= MENU_ZONES.safeZone.top + MENU_ZONES.categories.height)
+        )
       }
     };
 
     if (zones.activeMenuZone.isInside) {
-      // Dans le menu = on reste ouvert
+      // Dans le menu ou la barre de catégories = on reste ouvert
       clearTimeouts();
     } else {
-      // En dehors du menu = on programme la fermeture
+      // En dehors = on programme la fermeture progressive
       scheduleClose();
     }
   };
