@@ -1,11 +1,12 @@
 
 import { Category } from "@/types/category";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import { Link } from "react-router-dom";
 import { useOrganizedCategories } from "./categories/useOrganizedCategories";
 import { useVisibleCategories } from "./categories/useVisibleCategories";
 import { ChevronRight } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface NavbarCategoriesProps {
   categories: Category[];
@@ -17,6 +18,12 @@ interface CategoryHighlight {
   sections: string[];
   types: string[];
   services: string[];
+}
+
+interface MenuPosition {
+  left: string;
+  right: string;
+  transformOrigin: string;
 }
 
 const CATEGORY_HIGHLIGHTS: Record<string, CategoryHighlight> = {
@@ -45,7 +52,9 @@ export function NavbarCategories({
   isMobile
 }: NavbarCategoriesProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [closeTimeout, setCloseTimeout] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const organizedCategories = useOrganizedCategories(categories);
   const visibleCategories = useVisibleCategories(organizedCategories, !!isMobile, containerRef);
 
@@ -62,6 +71,51 @@ export function NavbarCategories({
   const displayedCategories = othersCategory 
     ? [...visibleCategories, othersCategory]
     : visibleCategories;
+
+  // Fonction pour calculer la position du menu
+  const calculateMenuPosition = (index: number, totalItems: number): MenuPosition => {
+    const position: MenuPosition = {
+      left: '50%',
+      right: 'auto',
+      transformOrigin: 'top center'
+    };
+
+    if (index === 0) {
+      position.left = '0';
+      position.transformOrigin = 'top left';
+    } else if (index === totalItems - 1) {
+      position.left = 'auto';
+      position.right = '0';
+      position.transformOrigin = 'top right';
+    }
+
+    return position;
+  };
+
+  // Gestion améliorée du survol avec délai
+  const handleMouseEnter = (categoryId: string) => {
+    if (closeTimeout) {
+      window.clearTimeout(closeTimeout);
+      setCloseTimeout(null);
+    }
+    setHoveredCategory(categoryId);
+  };
+
+  const handleMouseLeave = () => {
+    const timeout = window.setTimeout(() => {
+      setHoveredCategory(null);
+    }, 150);
+    setCloseTimeout(timeout);
+  };
+
+  // Nettoyage du timeout
+  useEffect(() => {
+    return () => {
+      if (closeTimeout) {
+        window.clearTimeout(closeTimeout);
+      }
+    };
+  }, [closeTimeout]);
 
   const renderCategoryContent = (category: Category) => {
     const highlights = CATEGORY_HIGHLIGHTS[category.name] || {
@@ -112,65 +166,67 @@ export function NavbarCategories({
         </div>
 
         {/* Colonne de droite - Sous-catégories */}
-        <div className="p-6">
-          <div className="grid grid-cols-2 gap-x-12 gap-y-8">
-            {/* Marques populaires si disponibles */}
-            {highlights.brands.length > 0 && (
-              <div className="col-span-2">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Marques populaires</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  {highlights.brands.map(brand => (
-                    <Link
-                      key={brand}
-                      to={`/category/${category.name.toLowerCase()}/marque/${brand.toLowerCase()}`}
-                      className="text-sm text-gray-600 hover:text-primary hover:underline"
-                    >
-                      {brand}
-                    </Link>
-                  ))}
+        <ScrollArea className="h-[calc(90vh-120px)] min-h-[400px]">
+          <div className="p-6">
+            <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+              {/* Marques populaires si disponibles */}
+              {highlights.brands.length > 0 && (
+                <div className="col-span-2">
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">Marques populaires</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    {highlights.brands.map(brand => (
+                      <Link
+                        key={brand}
+                        to={`/category/${category.name.toLowerCase()}/marque/${brand.toLowerCase()}`}
+                        className="text-sm text-gray-600 hover:text-primary hover:underline"
+                      >
+                        {brand}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Sections principales */}
-            {category.subcategories?.map(subcat => (
-              <div key={subcat.id}>
-                <h4 className="text-sm font-medium text-gray-900 mb-3">{subcat.name}</h4>
-                <ul className="space-y-2">
-                  {subcat.subcategories?.map(subsub => (
-                    <li key={subsub.id}>
-                      <Link
-                        to={`/category/${category.name.toLowerCase()}/${subcat.name.toLowerCase()}/${subsub.name.toLowerCase()}`}
-                        className="text-sm text-gray-600 hover:text-primary hover:underline"
-                      >
-                        {subsub.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+              {/* Sections principales */}
+              {category.subcategories?.map(subcat => (
+                <div key={subcat.id}>
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">{subcat.name}</h4>
+                  <ul className="space-y-2">
+                    {subcat.subcategories?.map(subsub => (
+                      <li key={subsub.id}>
+                        <Link
+                          to={`/category/${category.name.toLowerCase()}/${subcat.name.toLowerCase()}/${subsub.name.toLowerCase()}`}
+                          className="text-sm text-gray-600 hover:text-primary hover:underline"
+                        >
+                          {subsub.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
 
-            {/* Types spécifiques si disponibles */}
-            {highlights.types.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Types</h4>
-                <ul className="space-y-2">
-                  {highlights.types.map(type => (
-                    <li key={type}>
-                      <Link
-                        to={`/category/${category.name.toLowerCase()}/type/${type.toLowerCase()}`}
-                        className="text-sm text-gray-600 hover:text-primary hover:underline"
-                      >
-                        {type}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              {/* Types spécifiques si disponibles */}
+              {highlights.types.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">Types</h4>
+                  <ul className="space-y-2">
+                    {highlights.types.map(type => (
+                      <li key={type}>
+                        <Link
+                          to={`/category/${category.name.toLowerCase()}/type/${type.toLowerCase()}`}
+                          className="text-sm text-gray-600 hover:text-primary hover:underline"
+                        >
+                          {type}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </ScrollArea>
       </div>
     );
   };
@@ -188,8 +244,8 @@ export function NavbarCategories({
               <li 
                 key={category.id} 
                 className="relative flex items-center text-[13px] text-gray-700"
-                onMouseEnter={() => setHoveredCategory(category.id)} 
-                onMouseLeave={() => setHoveredCategory(null)}
+                onMouseEnter={() => handleMouseEnter(category.id)} 
+                onMouseLeave={handleMouseLeave}
               >
                 <button className="px-3 py-2 hover:text-primary transition-colors whitespace-nowrap">
                   {category.name}
@@ -200,10 +256,15 @@ export function NavbarCategories({
                 )}
 
                 {hoveredCategory === category.id && (
-                  <div className={`absolute top-[44px] ${
-                    index === displayedCategories.length - 1 ? 'right-0' : 
-                    index === 0 ? 'left-0' : 'left-1/2 -translate-x-1/2'
-                  } w-[800px] bg-white shadow-lg rounded-lg border border-gray-200/80 animate-in fade-in slide-in-from-top-1 duration-200 z-50`}>
+                  <div 
+                    ref={menuRef}
+                    className="absolute top-[44px] w-[800px] bg-white shadow-lg rounded-lg border border-gray-200/80 animate-in fade-in slide-in-from-top-1 duration-200 z-50 overscroll-contain"
+                    style={{
+                      ...calculateMenuPosition(index, displayedCategories.length)
+                    }}
+                    onMouseEnter={() => handleMouseEnter(category.id)}
+                    onMouseLeave={handleMouseLeave}
+                  >
                     {renderCategoryContent(category)}
                   </div>
                 )}
