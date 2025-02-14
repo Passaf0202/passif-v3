@@ -1,10 +1,28 @@
 
-import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 
 export function HeroSection() {
+  const [transactionState, setTransactionState] = useState<'initial' | 'validating' | 'processing' | 'confirmed'>('initial');
+
+  // Simuler le cycle de transaction
+  useEffect(() => {
+    const runTransactionCycle = () => {
+      setTransactionState('initial');
+      setTimeout(() => setTransactionState('validating'), 1000);
+      setTimeout(() => setTransactionState('processing'), 3000);
+      setTimeout(() => setTransactionState('confirmed'), 6000);
+      setTimeout(() => setTransactionState('initial'), 9000);
+    };
+
+    runTransactionCycle();
+    const interval = setInterval(runTransactionCycle, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
       {/* Cercles décoratifs d'arrière-plan */}
@@ -108,50 +126,120 @@ export function HeroSection() {
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[60px] sm:w-[70px] h-[18px] sm:h-[20px] bg-black rounded-b-3xl z-20" />
                 
                 {/* Écran */}
-                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/18]">
-                  {/* Contenu de l'écran */}
-                  <div className="absolute inset-0 p-2 flex flex-col">
-                    {/* En-tête de l'app */}
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="space-y-0.5">
-                        <h3 className="text-[10px] sm:text-xs font-semibold">Transaction</h3>
-                        <p className="text-[8px] text-gray-500">#TC-289345</p>
+                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/19]">
+                  {/* Contenu de l'écran avec animation */}
+                  <AnimatePresence mode="wait">
+                    <motion.div 
+                      key={transactionState}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="absolute inset-0 p-2 flex flex-col"
+                    >
+                      {/* En-tête de l'app */}
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="space-y-0.5">
+                          <h3 className="text-[10px] sm:text-xs font-semibold">
+                            {transactionState === 'initial' ? "Transaction" : 
+                             transactionState === 'validating' ? "Vérification..." :
+                             transactionState === 'processing' ? "En cours..." : 
+                             "Confirmée !"
+                            }
+                          </h3>
+                          <p className="text-[8px] text-gray-500">#TC-289345</p>
+                        </div>
+                        <motion.div 
+                          className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-gradient-to-r flex items-center justify-center"
+                          animate={{
+                            backgroundColor: transactionState === 'confirmed' ? '#22c55e' : '#6366f1',
+                            scale: transactionState === 'processing' ? [1, 1.1, 1] : 1
+                          }}
+                          transition={{ duration: 0.5, repeat: transactionState === 'processing' ? Infinity : 0 }}
+                        >
+                          {transactionState === 'initial' && <Coins className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
+                          {transactionState === 'validating' && <Loader2 className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white animate-spin" />}
+                          {transactionState === 'processing' && <Coins className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
+                          {transactionState === 'confirmed' && <CheckCircle2 className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
+                        </motion.div>
                       </div>
-                      <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-green-500 flex items-center justify-center">
-                        <Coins className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />
-                      </div>
-                    </div>
 
-                    {/* Montant */}
-                    <div className="text-center space-y-1 mb-2">
-                      <p className="text-[8px] sm:text-[10px] text-gray-600">Montant total</p>
-                      <div className="text-base sm:text-lg font-bold">2.45 ETH</div>
-                      <p className="text-[8px] sm:text-[10px] text-gray-500">≈ 4,892.50 €</p>
-                    </div>
+                      {/* Montant avec animation */}
+                      <motion.div 
+                        className="text-center space-y-1 mb-2"
+                        animate={{
+                          scale: transactionState === 'processing' ? [1, 1.02, 1] : 1
+                        }}
+                        transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
+                      >
+                        <p className="text-[8px] sm:text-[10px] text-gray-600">
+                          {transactionState === 'initial' ? "Montant total" :
+                           transactionState === 'validating' ? "Vérification du montant" :
+                           transactionState === 'processing' ? "Transfert en cours" :
+                           "Paiement confirmé"
+                          }
+                        </p>
+                        <div className="text-base sm:text-lg font-bold">2.45 ETH</div>
+                        <p className="text-[8px] sm:text-[10px] text-gray-500">≈ 4,892.50 €</p>
+                      </motion.div>
 
-                    {/* Indicateurs de sécurité */}
-                    <div className="bg-gray-50 rounded-lg p-1.5 sm:p-2 space-y-1">
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1 w-1 rounded-full bg-green-500" />
-                        <span className="text-[8px] sm:text-[10px]">Transaction sécurisée</span>
+                      {/* Indicateurs de sécurité animés */}
+                      <div className="bg-gray-50 rounded-lg p-1.5 sm:p-2 space-y-1">
+                        <motion.div 
+                          className="flex items-center gap-1.5"
+                          animate={{ opacity: transactionState !== 'initial' ? 1 : 0.5 }}
+                        >
+                          <motion.div 
+                            className="h-1 w-1 rounded-full bg-green-500"
+                            animate={{ scale: transactionState === 'validating' ? [1, 1.5, 1] : 1 }}
+                            transition={{ duration: 1, repeat: transactionState === 'validating' ? Infinity : 0 }}
+                          />
+                          <span className="text-[8px] sm:text-[10px]">Transaction sécurisée</span>
+                        </motion.div>
+                        <motion.div 
+                          className="flex items-center gap-1.5"
+                          animate={{ opacity: transactionState === 'processing' || transactionState === 'confirmed' ? 1 : 0.5 }}
+                        >
+                          <motion.div 
+                            className="h-1 w-1 rounded-full bg-blue-500"
+                            animate={{ scale: transactionState === 'processing' ? [1, 1.5, 1] : 1 }}
+                            transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
+                          />
+                          <span className="text-[8px] sm:text-[10px]">Protection acheteur</span>
+                        </motion.div>
+                        <motion.div 
+                          className="flex items-center gap-1.5"
+                          animate={{ opacity: transactionState === 'confirmed' ? 1 : 0.5 }}
+                        >
+                          <motion.div 
+                            className="h-1 w-1 rounded-full bg-purple-500"
+                            animate={{ scale: transactionState === 'confirmed' ? [1, 1.5, 1] : 1 }}
+                          />
+                          <span className="text-[8px] sm:text-[10px]">Garantie remboursement</span>
+                        </motion.div>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1 w-1 rounded-full bg-blue-500" />
-                        <span className="text-[8px] sm:text-[10px]">Protection acheteur</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1 w-1 rounded-full bg-purple-500" />
-                        <span className="text-[8px] sm:text-[10px]">Garantie remboursement</span>
-                      </div>
-                    </div>
 
-                    {/* Bouton de paiement */}
-                    <div className="mt-auto">
-                      <button className="w-full bg-black text-white rounded-lg py-1 sm:py-1.5 text-[8px] sm:text-[10px] font-medium">
-                        Confirmer le paiement
-                      </button>
-                    </div>
-                  </div>
+                      {/* Bouton avec état */}
+                      <div className="mt-auto">
+                        <motion.button 
+                          className={`w-full rounded-lg py-1 sm:py-1.5 text-[8px] sm:text-[10px] font-medium text-white
+                            ${transactionState === 'initial' ? 'bg-black' :
+                              transactionState === 'validating' ? 'bg-indigo-500' :
+                              transactionState === 'processing' ? 'bg-blue-500' :
+                              'bg-green-500'}`}
+                          animate={{
+                            scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
+                          }}
+                          transition={{ duration: 0.5 }}
+                        >
+                          {transactionState === 'initial' && "Confirmer le paiement"}
+                          {transactionState === 'validating' && "Vérification..."}
+                          {transactionState === 'processing' && "Traitement en cours..."}
+                          {transactionState === 'confirmed' && "Transaction réussie !"}
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </div>
 
