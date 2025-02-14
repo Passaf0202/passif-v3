@@ -1,6 +1,6 @@
 
 import { Canvas } from '@react-three/fiber';
-import { Environment, PresentationControls } from '@react-three/drei';
+import { Environment } from '@react-three/drei';
 import { Diamond3D } from './Diamond3D';
 import { Suspense } from 'react';
 import { motion } from 'framer-motion';
@@ -23,14 +23,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         gl={{ preserveDrawingBuffer: true }}
       >
         <Suspense fallback={null}>
-          <PresentationControls
-            enabled={false}
-            global={false}
-            cursor={false}
-            snap={false}
-          >
-            <Diamond3D state={state} />
-          </PresentationControls>
+          <Diamond3D state={state} />
           <Environment preset="city" />
           <ambientLight intensity={0.5} />
           <directionalLight
