@@ -1,6 +1,7 @@
 
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Loader2 } from "lucide-react";
+import type { SyntheticEvent } from 'react';
 
 interface DiamondViewerProps {
   state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
@@ -62,6 +63,10 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
     return () => observer.disconnect();
   }, []);
 
+  const handleError = (event: SyntheticEvent<HTMLElement, Event>) => {
+    console.error('Model Viewer error:', event);
+  };
+
   if (!isModelViewerReady) {
     return (
       <div className="w-full h-full flex items-center justify-center">
@@ -96,9 +101,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
             minHeight: '200px',
             backgroundColor: 'transparent'
           }}
-          onError={(error: ErrorEvent) => {
-            console.error('Model Viewer error:', error);
-          }}
+          onError={handleError}
         >
           <div slot="progress-bar"></div>
           <div slot="poster"></div>
