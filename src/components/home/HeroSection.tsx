@@ -1,8 +1,8 @@
 
-import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export function HeroSection() {
   return (
@@ -77,7 +77,7 @@ export function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Colonne de droite - Rectangles d'Annonces */}
+          {/* Colonne de droite - Exemples d'Annonces */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -85,12 +85,11 @@ export function HeroSection() {
             className="relative flex justify-center items-center"
           >
             {/* Container des annonces superposées */}
-            <div className="relative w-full max-w-md aspect-[4/3]">
+            <div className="relative w-full max-w-md aspect-[4/3] flex justify-center">
               {/* Annonce 3 (Arrière-plan) */}
               <motion.div
                 animate={{ 
-                  y: [0, -3, 0],
-                  rotate: [-8, -10, -8]
+                  y: [0, -2, 0]
                 }}
                 transition={{ 
                   duration: 5,
@@ -98,20 +97,24 @@ export function HeroSection() {
                   repeatType: "reverse",
                   ease: "easeInOut"
                 }}
-                className="absolute inset-0 bg-white rounded-lg shadow-sm border border-black/10 p-4"
+                className="absolute w-[200px] rounded-lg shadow-sm bg-white border border-black/10 transform -translate-x-8 translate-y-4"
               >
-                <div className="space-y-3">
-                  <div className="h-2 w-2/3 bg-black/10 rounded" />
-                  <div className="h-2 w-1/2 bg-black/10 rounded" />
-                  <div className="h-2 w-3/4 bg-black/10 rounded" />
+                {/* Structure de l'annonce */}
+                <div className="h-[120px] bg-gray-100 rounded-t-lg" />
+                <div className="p-3 space-y-2">
+                  <div className="h-2 w-3/4 bg-gray-200 rounded" />
+                  <div className="h-2 w-1/2 bg-gray-200 rounded" />
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-gray-300" />
+                    <div className="h-2 w-1/3 bg-gray-200 rounded" />
+                  </div>
                 </div>
               </motion.div>
 
               {/* Annonce 2 (Milieu) */}
               <motion.div
                 animate={{ 
-                  y: [0, -5, 0],
-                  rotate: [-4, -6, -4]
+                  y: [0, -4, 0]
                 }}
                 transition={{ 
                   duration: 6,
@@ -120,20 +123,24 @@ export function HeroSection() {
                   ease: "easeInOut",
                   delay: 0.1
                 }}
-                className="absolute inset-0 bg-white rounded-lg shadow-sm border border-black/10 p-4 translate-x-4 -translate-y-4"
+                className="absolute w-[200px] rounded-lg shadow-sm bg-white border border-black/10 transform translate-x-0 translate-y-2"
               >
-                <div className="space-y-3">
-                  <div className="h-2 w-3/4 bg-black/10 rounded" />
-                  <div className="h-2 w-1/2 bg-black/10 rounded" />
-                  <div className="h-2 w-2/3 bg-black/10 rounded" />
+                {/* Structure de l'annonce */}
+                <div className="h-[120px] bg-gray-100 rounded-t-lg" />
+                <div className="p-3 space-y-2">
+                  <div className="h-2 w-2/3 bg-gray-200 rounded" />
+                  <div className="h-2 w-1/2 bg-gray-200 rounded" />
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-gray-300" />
+                    <div className="h-2 w-1/3 bg-gray-200 rounded" />
+                  </div>
                 </div>
               </motion.div>
 
-              {/* Annonce 1 (Premier plan) */}
+              {/* Annonce 1 (Premier plan) - Plus détaillée */}
               <motion.div
                 animate={{ 
-                  y: [0, -7, 0],
-                  rotate: [0, -2, 0]
+                  y: [0, -6, 0]
                 }}
                 transition={{ 
                   duration: 7,
@@ -142,43 +149,21 @@ export function HeroSection() {
                   ease: "easeInOut",
                   delay: 0.2
                 }}
-                className="absolute inset-0 bg-white rounded-lg shadow-sm border border-black/10 p-4 translate-x-8 -translate-y-8"
+                className="absolute w-[200px] rounded-lg shadow-md bg-white border border-black/10 transform translate-x-8"
               >
-                <div className="space-y-3">
-                  <div className="h-2 w-2/3 bg-black/10 rounded" />
-                  <div className="h-2 w-3/4 bg-black/10 rounded" />
-                  <div className="h-2 w-1/2 bg-black/10 rounded" />
+                {/* Structure de l'annonce */}
+                <div className="h-[120px] bg-gray-100 rounded-t-lg flex items-center justify-center">
+                  <div className="text-gray-400 text-sm">Image du produit</div>
+                </div>
+                <div className="p-3 space-y-2">
+                  <div className="h-2 w-3/4 bg-gray-200 rounded" />
+                  <div className="h-2 w-1/2 bg-gray-200 rounded font-semibold" />
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-gray-300" />
+                    <div className="h-2 w-1/3 bg-gray-200 rounded" />
+                  </div>
                 </div>
               </motion.div>
-
-              {/* Particules décoratives */}
-              <AnimatePresence>
-                {[...Array(6)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{
-                      opacity: [0, 1, 0],
-                      scale: [0.5, 1, 0.5],
-                      x: [0, (Math.random() - 0.5) * 50],
-                      y: [0, (Math.random() - 0.5) * 50],
-                    }}
-                    transition={{
-                      duration: 4,
-                      delay: i * 0.2,
-                      repeat: Infinity,
-                      repeatType: "loop",
-                    }}
-                    style={{
-                      left: `${50 + (Math.random() - 0.5) * 50}%`,
-                      top: `${50 + (Math.random() - 0.5) * 50}%`,
-                    }}
-                  >
-                    <div className="w-1 h-1 bg-black/10 rounded-full" />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
             </div>
           </motion.div>
         </div>
