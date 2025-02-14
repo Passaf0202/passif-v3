@@ -32,6 +32,8 @@ declare global {
           'animation-crossfade-duration'?: string;
           'quick-look-browsers'?: string;
           'progress'?: number;
+          'orientation'?: string;
+          'rotation-axis'?: string;
         },
         HTMLElement
       >;
@@ -169,10 +171,12 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         src={MODEL_PATH}
         auto-rotate
         rotation-per-second="12deg"
+        rotation-axis="0 1 0"
+        orientation="0deg 180deg 0deg"
         interaction-prompt="none"
-        camera-orbit="0deg 180deg 1m"
-        min-camera-orbit="0deg 180deg 1m"
-        max-camera-orbit="0deg 180deg 1m"
+        camera-orbit="0deg 90deg 1m"
+        min-camera-orbit="0deg 90deg 1m"
+        max-camera-orbit="0deg 90deg 1m"
         auto-rotate-delay={0}
         shadow-intensity="0.75"
         exposure="1.2"
