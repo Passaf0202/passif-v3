@@ -164,6 +164,60 @@ export function HeroSection() {
                         </motion.div>
                       </div>
 
+                      {/* Image du produit */}
+                      <div className="relative aspect-video mb-2 rounded-lg overflow-hidden bg-gray-100">
+                        <motion.div 
+                          className="absolute inset-0 flex items-center justify-center"
+                          animate={{
+                            scale: transactionState === 'processing' ? [1, 1.02, 1] : 1
+                          }}
+                          transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
+                        >
+                          {/* Illustration de la voiture */}
+                          <div className="relative w-full h-full">
+                            <svg 
+                              className="w-full h-full p-2" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="1.5"
+                            >
+                              <motion.path
+                                d="M3 8l1.5-2h15L21 8M3 8v8a2 2 0 002 2h14a2 2 0 002-2V8M3 8h18"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}
+                              />
+                              <motion.circle 
+                                cx="7" 
+                                cy="14" 
+                                r="2"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.5 }}
+                              />
+                              <motion.circle 
+                                cx="17" 
+                                cy="14" 
+                                r="2"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.7 }}
+                              />
+                            </svg>
+                            {/* Effet de reflet */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20" />
+                          </div>
+                        </motion.div>
+                        <div className="absolute bottom-1 right-1">
+                          <div className="text-[8px] bg-black/80 text-white px-1.5 py-0.5 rounded-full">
+                            Audi A3 2023
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Montant avec animation */}
                       <motion.div 
                         className="text-center space-y-1 mb-2"
