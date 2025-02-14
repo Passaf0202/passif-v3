@@ -1,4 +1,3 @@
-
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { Loader2 } from "lucide-react";
 import type { SyntheticEvent } from 'react';
@@ -51,7 +50,6 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   const modelRef = useRef<HTMLElement>(null);
   const initializeAttempts = useRef(0);
 
-  // Vérifier si le script model-viewer est chargé
   useEffect(() => {
     if (!modelViewerScriptLoaded) {
       const script = document.createElement('script');
@@ -72,7 +70,6 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
     }
   }, []);
 
-  // Initialisation du model-viewer avec retry
   useEffect(() => {
     if (isModelViewerReady && initializeAttempts.current < 3) {
       const checkModelViewer = () => {
@@ -120,7 +117,6 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
     if (modelRef.current) {
       const modelViewer = modelRef.current;
 
-      // Précharger le modèle
       const preloadModel = async () => {
         try {
           const response = await fetch(MODEL_PATH);
@@ -148,30 +144,32 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 
   if (!isModelViewerReady) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-black/5 rounded-lg">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="w-full h-full flex items-center justify-center bg-transparent rounded-lg">
+        <Loader2 className="h-5 w-5 animate-spin text-primary/50" />
       </div>
     );
   }
 
   if (hasError) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-black/5 rounded-lg">
-        <div className="text-center text-red-500">
-          <p>Error loading model</p>
-          <p className="text-sm">Please try refreshing the page</p>
+      <div className="w-full h-full flex items-center justify-center bg-transparent rounded-lg">
+        <div className="text-center text-red-500/80 text-sm">
+          <p>Erreur de chargement</p>
+          <p className="text-xs">Veuillez rafraîchir la page</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full relative bg-black/5 rounded-lg">
+    <div className="w-full h-full relative bg-transparent rounded-lg overflow-hidden">
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-2" />
-            <div className="text-sm text-gray-500">{Math.round(loadingProgress)}%</div>
+        <div className="absolute top-0 left-0 right-0 z-10">
+          <div className="h-0.5 bg-gray-100/50">
+            <div 
+              className="h-full bg-primary/30 transition-all duration-300" 
+              style={{ width: `${loadingProgress}%` }}
+            />
           </div>
         </div>
       )}
@@ -180,34 +178,25 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         src={MODEL_PATH}
         auto-rotate
         camera-controls
-        rotation-per-second="30deg"
+        rotation-per-second="15deg"
         interaction-prompt="none"
-        min-camera-orbit="45deg 45deg 2m"
-        max-camera-orbit="135deg 135deg 4m"
-        shadow-intensity="1"
-        exposure="0.7"
-        bounds="tight"
+        min-camera-orbit="45deg 60deg 1.5m"
+        max-camera-orbit="45deg 75deg 2.5m"
+        camera-orbit="45deg 65deg 2m"
+        shadow-intensity="0.4"
+        exposure="0.6"
         environment-image="neutral"
         loading="eager"
         style={{
           width: '100%',
           height: '100%',
-          minHeight: '256px',
           backgroundColor: 'transparent',
-          opacity: isLoading ? '0.5' : '1',
-          transition: 'opacity 0.3s ease-in-out'
+          opacity: isLoading ? '0.7' : '1',
+          transition: 'opacity 0.5s ease-in-out'
         }}
       >
         <div slot="progress-bar"></div>
         <div slot="poster"></div>
-        <div className="absolute inset-0 pointer-events-none" slot="progress-bar">
-          <div className="w-full h-1 bg-gray-200">
-            <div 
-              className="h-full bg-primary transition-all duration-300" 
-              style={{ width: `${loadingProgress}%` }}
-            />
-          </div>
-        </div>
       </model-viewer>
     </div>
   );

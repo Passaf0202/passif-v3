@@ -16,12 +16,12 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
 
   return (
     <div className="absolute inset-0 p-2 flex flex-col">
-      <div className="relative h-12 px-2 flex items-center justify-between border-b border-gray-200/80 bg-white/80 backdrop-blur-md">
+      <div className="relative h-12 px-3 flex items-center justify-between border-b border-gray-200/80 bg-white/90 backdrop-blur-md">
         <div className="flex items-center">
           <img 
             src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg"
             alt="TRADECOINER"
-            className="h-5 w-auto"
+            className="h-6 w-auto"
           />
         </div>
         
@@ -47,24 +47,24 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
               repeat: showWalletSpotlight ? Infinity : 0,
               repeatType: "reverse"
             }}
-            className={`h-6 px-2 rounded-full whitespace-nowrap flex items-center gap-1.5 text-[8px] 
+            className={`h-7 px-2.5 rounded-full whitespace-nowrap flex items-center gap-1.5 text-[10px] 
               ${transactionState === 'initial' ? 'bg-primary text-white' : 
                 transactionState === 'wallet-connecting' ? 'bg-primary text-white' :
                 'bg-muted text-primary border border-input'}`}
           >
             {transactionState === 'wallet-connecting' ? (
               <>
-                <Loader2 className="h-2 w-2 animate-spin" />
+                <Loader2 className="h-3 w-3 animate-spin" />
                 Connexion...
               </>
             ) : transactionState === 'initial' ? (
               <>
-                <Wallet className="h-2 w-2" />
+                <Wallet className="h-3 w-3" />
                 Connecter Wallet
               </>
             ) : (
               <>
-                <Wallet className="h-2 w-2" />
+                <Wallet className="h-3 w-3" />
                 0x12...89ab
               </>
             )}
@@ -72,11 +72,11 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
         </div>
       </div>
 
-      <div className="flex-1 p-4 flex items-center justify-center bg-gradient-to-b from-transparent to-gray-50/20">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-b from-transparent via-white/50 to-gray-50/20">
         <div 
           ref={modelContainerRef} 
-          className="w-64 h-64 fixed-size-container"
-          style={{ perspective: '1000px' }}
+          className="w-48 h-48 relative"
+          style={{ perspective: '800px' }}
         >
           <DiamondViewer state={transactionState} />
         </div>
