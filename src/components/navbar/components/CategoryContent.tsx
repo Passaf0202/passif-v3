@@ -22,7 +22,7 @@ export function CategoryContent({ category }: CategoryContentProps) {
   const IconComponent = getCategoryIcon(category.name);
 
   return (
-    <div className="h-full overflow-hidden">
+    <div className="h-full">
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-6">
         <div className="flex">
           {/* Colonne de gauche - Aperçu */}
@@ -63,10 +63,10 @@ export function CategoryContent({ category }: CategoryContentProps) {
           </div>
 
           {/* Séparateur vertical */}
-          <div className="w-px bg-gray-200 mx-4" />
+          <div className="w-px bg-gray-200/50 mx-4" />
 
           {/* Colonne de droite - Sous-catégories */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1">
             <ScrollArea className="h-[calc(70vh-120px)] min-h-[300px] pr-4">
               <div className="grid grid-cols-3 gap-8">
                 {/* Marques populaires si disponibles */}
