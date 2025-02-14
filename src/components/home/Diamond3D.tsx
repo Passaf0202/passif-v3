@@ -5,26 +5,56 @@ import { useGLTF } from '@react-three/drei';
 import { Group } from 'three';
 import { toast } from '@/components/ui/use-toast';
 
-// Using a simple cube mesh if model is not available
+const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/Logo%20Tradecoiner%20-%203D.glb';
+
 export function Diamond3D() {
   const groupRef = useRef<Group>(null);
+  const [error, setError] = useState(false);
+
+  const { scene } = useGLTF(MODEL_PATH, undefined, undefined, (error) => {
+    console.error('Error loading model:', error);
+    setError(true);
+    toast({
+      variant: "destructive",
+      title: "Error loading 3D model",
+      description: "Please try refreshing the page",
+    });
+  });
 
   useFrame(() => {
-    if (groupRef.current) {
+    if (groupRef.current && !error) {
       groupRef.current.rotation.y += 0.01;
     }
   });
 
-  return (
-    <group ref={groupRef}>
+  if (error) {
+    return (
       <mesh>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial 
-          color="#4F46E5"
-          roughness={0.3}
-          metalness={0.7}
-        />
+        <meshStandardMaterial color="red" wireframe />
       </mesh>
+    );
+  }
+
+  if (!scene) {
+    return (
+      <mesh>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="gray" wireframe />
+      </mesh>
+    );
+  }
+
+  return (
+    <group ref={groupRef}>
+      <primitive 
+        object={scene} 
+        scale={0.5} 
+        position={[0, -0.5, 0]}
+        rotation={[0, 0, 0]} 
+      />
     </group>
   );
 }
+
+useGLTF.preload(MODEL_PATH);
