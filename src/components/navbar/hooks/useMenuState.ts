@@ -52,43 +52,32 @@ export function useMenuState() {
 
     const { clientX, clientY } = e;
 
-    // Définition des trois zones distinctes
     const zones = {
-      // Zone active du menu (contenu réel)
+      // Zone active du menu (le contenu lui-même)
       activeMenuZone: {
         isInside: 
           clientX >= menuRect.left && 
           clientX <= menuRect.right && 
-          clientY >= MENU_ZONES.safeZone.top && 
+          clientY >= menuRect.top && 
           clientY <= menuRect.bottom
       },
       
-      // Zone des catégories (barre du haut)
-      categoryZone: {
-        isInside: 
-          clientY > MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer && 
-          clientY < MENU_ZONES.safeZone.top + MENU_ZONES.categories.height
-      },
-      
-      // Zone de transition (petite marge autour du menu)
+      // Zone de transition (toute la zone autour du menu)
       transitionZone: {
         isInside: 
-          clientX >= menuRect.left - 20 && 
-          clientX <= menuRect.right + 20 && 
-          clientY >= MENU_ZONES.safeZone.top - 10 && 
-          clientY <= menuRect.bottom + 10
+          clientX >= menuRect.left - MENU_ZONES.safeZone.sides && 
+          clientX <= menuRect.right + MENU_ZONES.safeZone.sides && 
+          clientY >= MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer && 
+          clientY <= menuRect.bottom + MENU_ZONES.safeZone.bottom
       }
     };
 
-    if (zones.activeMenuZone.isInside || zones.categoryZone.isInside) {
-      // Si on est dans la zone active du menu ou la zone des catégories
+    if (zones.activeMenuZone.isInside) {
+      // Dans le menu = on reste ouvert
       clearTimeouts();
-    } else if (zones.transitionZone.isInside) {
-      // Si on est dans la zone de transition, on programme la fermeture
-      scheduleClose();
     } else {
-      // Si on est complètement en dehors, fermeture immédiate
-      closeMenu();
+      // En dehors du menu = on programme la fermeture
+      scheduleClose();
     }
   };
 
