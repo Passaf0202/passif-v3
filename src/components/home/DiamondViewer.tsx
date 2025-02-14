@@ -171,7 +171,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         src={MODEL_PATH}
         auto-rotate
         rotation-per-second="8deg"
-        rotation-axis="1 0 0"
+        rotation-axis="0 1 0"
         interaction-prompt="none"
         camera-orbit="0deg 180deg 1.2m"
         min-camera-orbit="0deg 180deg 1.2m"
