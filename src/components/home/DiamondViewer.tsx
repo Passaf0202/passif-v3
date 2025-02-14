@@ -1,6 +1,7 @@
 
 import { Canvas } from '@react-three/fiber';
 import { Diamond3D } from './Diamond3D';
+import { Suspense } from 'react';
 
 interface DiamondViewerProps {
   state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
@@ -8,14 +9,18 @@ interface DiamondViewerProps {
 
 export function DiamondViewer({ state }: DiamondViewerProps) {
   return (
-    <div style={{ width: '200px', height: '200px' }}>
+    <div className="w-[200px] h-[200px]">
       <Canvas 
-        camera={{ position: [0, 0, 4], fov: 50 }}
-        style={{ background: 'transparent' }}
+        frameloop="demand"
+        camera={{ 
+          position: [0, 0, 4],
+          fov: 50
+        }}
       >
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
-        <Diamond3D />
+        <Suspense fallback={null}>
+          <ambientLight />
+          <Diamond3D />
+        </Suspense>
       </Canvas>
     </div>
   );
