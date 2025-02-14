@@ -170,7 +170,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         auto-rotate
         rotation-per-second="12deg"
         interaction-prompt="none"
-        camera-orbit="90deg 90deg 2.2m"
+        camera-orbit="0deg 90deg 2.2m"
         min-camera-orbit="auto 90deg auto"
         max-camera-orbit="auto 90deg auto"
         auto-rotate-delay={0}
