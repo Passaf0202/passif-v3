@@ -6,16 +6,18 @@ import { Mesh } from 'three';
 export function Diamond3D() {
   const meshRef = useRef<Mesh>(null);
 
-  useFrame((_, delta) => {
+  useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.5;
+      meshRef.current.rotation.y += state.clock.getElapsedTime() * 0.1;
     }
   });
 
   return (
-    <mesh ref={meshRef}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshNormalMaterial />
-    </mesh>
+    <group position={[0, 0, 0]}>
+      <mesh ref={meshRef}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="white" />
+      </mesh>
+    </group>
   );
 }
