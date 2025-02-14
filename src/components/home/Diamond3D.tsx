@@ -5,50 +5,26 @@ import { useGLTF } from '@react-three/drei';
 import { Group } from 'three';
 import { toast } from '@/components/ui/use-toast';
 
-const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models';
-
+// Using a simple cube mesh if model is not available
 export function Diamond3D() {
   const groupRef = useRef<Group>(null);
-  const [error, setError] = useState(false);
-  const { scene } = useGLTF(`${MODEL_PATH}/result.gltf`, undefined, undefined, (error) => {
-    console.error('Error loading model:', error);
-    setError(true);
-    toast({
-      variant: "destructive",
-      title: "Error loading 3D model",
-      description: "Please try refreshing the page",
-    });
-  });
 
   useFrame(() => {
-    if (groupRef.current && !error) {
+    if (groupRef.current) {
       groupRef.current.rotation.y += 0.01;
     }
   });
 
-  if (error) {
-    return (
-      <mesh>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="red" wireframe />
-      </mesh>
-    );
-  }
-
-  if (!scene) {
-    return (
-      <mesh>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="gray" wireframe />
-      </mesh>
-    );
-  }
-
   return (
     <group ref={groupRef}>
-      <primitive object={scene} scale={1} position={[0, 0, 0]} />
+      <mesh>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial 
+          color="#4F46E5"
+          roughness={0.3}
+          metalness={0.7}
+        />
+      </mesh>
     </group>
   );
 }
-
-useGLTF.preload(`${MODEL_PATH}/result.gltf`);
