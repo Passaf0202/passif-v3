@@ -46,8 +46,10 @@ export function useMenuState() {
     clearTimeouts();
   };
 
-  const handleMenuZoneLeave = () => {
-    scheduleClose();
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      closeMenu();
+    }
   };
 
   const scheduleClose = () => {
@@ -85,7 +87,7 @@ export function useMenuState() {
     menuZoneRef,
     handleCategoryEnter,
     handleMenuZoneEnter,
-    handleMenuZoneLeave,
+    handleBackdropClick,
     closeMenu
   };
 }

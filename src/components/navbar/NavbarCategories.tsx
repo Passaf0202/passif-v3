@@ -20,7 +20,7 @@ export function NavbarCategories({
     menuZoneRef,
     handleCategoryEnter,
     handleMenuZoneEnter,
-    handleMenuZoneLeave,
+    handleBackdropClick,
     closeMenu
   } = useMenuState();
 
@@ -85,37 +85,35 @@ export function NavbarCategories({
 
       {/* Menu et backdrop */}
       {menuState.isOpen && (
-        <>
-          {/* Backdrop flou sur toute la largeur */}
-          <div 
-            ref={menuRef}
-            className="fixed inset-0 z-40"
-            style={{ top: '96px' }}
-            onMouseLeave={handleMenuZoneLeave}
-          >
-            <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
-            
-            {/* Container pour centrer le menu */}
-            <div className="relative max-w-[1440px] mx-auto px-4 md:px-8">
-              {/* Menu avec largeur limitée */}
-              <div 
-                ref={menuZoneRef}
-                className="bg-white border-x border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)] rounded-b-lg"
-                style={{ 
-                  width: menuContainerRef.current?.offsetWidth,
-                  marginLeft: menuContainerRef.current?.offsetLeft ? menuContainerRef.current.offsetLeft - 32 : 0 // 32px pour compenser le padding du container
-                }}
-                onMouseEnter={handleMenuZoneEnter}
-              >
-                {menuState.currentCategory && (
-                  <CategoryContent
-                    category={displayedCategories.find(cat => cat.id === menuState.currentCategory)!}
-                  />
-                )}
-              </div>
+        <div 
+          ref={menuRef}
+          className="fixed inset-0 z-40"
+          style={{ top: '96px' }}
+          onClick={handleBackdropClick}
+        >
+          <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
+          
+          {/* Container pour centrer le menu */}
+          <div className="relative max-w-[1440px] mx-auto px-4 md:px-8">
+            {/* Menu avec largeur limitée */}
+            <div 
+              ref={menuZoneRef}
+              className="bg-white border-x border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)] rounded-b-lg"
+              style={{ 
+                width: menuContainerRef.current?.offsetWidth,
+                marginLeft: menuContainerRef.current?.offsetLeft ? menuContainerRef.current.offsetLeft - 32 : 0
+              }}
+              onMouseEnter={handleMenuZoneEnter}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {menuState.currentCategory && (
+                <CategoryContent
+                  category={displayedCategories.find(cat => cat.id === menuState.currentCategory)!}
+                />
+              )}
             </div>
           </div>
-        </>
+        </div>
       )}
     </nav>
   );
