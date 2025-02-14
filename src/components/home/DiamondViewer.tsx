@@ -11,7 +11,10 @@ interface DiamondViewerProps {
 export function DiamondViewer({ state }: DiamondViewerProps) {
   return (
     <div className="w-[200px] h-[200px]">
-      <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
+      <Canvas 
+        camera={{ position: [0, 0, 3], fov: 50 }}
+        gl={{ preserveDrawingBuffer: true }}
+      >
         <color attach="background" args={['transparent']} />
         <ambientLight intensity={0.7} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={0.8} />

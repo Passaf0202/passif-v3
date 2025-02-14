@@ -11,15 +11,8 @@ export function Diamond3D() {
   const groupRef = useRef<Group>(null);
   const [error, setError] = useState(false);
 
-  const { scene } = useGLTF(MODEL_PATH, undefined, undefined, (error) => {
-    console.error('Error loading model:', error);
-    setError(true);
-    toast({
-      variant: "destructive",
-      title: "Error loading 3D model",
-      description: "Please try refreshing the page",
-    });
-  });
+  // Simplify the useGLTF call and handle errors
+  const model = useGLTF(MODEL_PATH);
 
   useFrame(() => {
     if (groupRef.current && !error) {
@@ -27,7 +20,7 @@ export function Diamond3D() {
     }
   });
 
-  if (error) {
+  if (!model || error) {
     return (
       <mesh>
         <boxGeometry args={[1, 1, 1]} />
@@ -36,19 +29,10 @@ export function Diamond3D() {
     );
   }
 
-  if (!scene) {
-    return (
-      <mesh>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="gray" wireframe />
-      </mesh>
-    );
-  }
-
   return (
     <group ref={groupRef}>
       <primitive 
-        object={scene} 
+        object={model.scene} 
         scale={0.5} 
         position={[0, -0.5, 0]}
         rotation={[0, 0, 0]} 
@@ -57,4 +41,5 @@ export function Diamond3D() {
   );
 }
 
+// Preload the model
 useGLTF.preload(MODEL_PATH);
