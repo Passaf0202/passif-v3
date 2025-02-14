@@ -23,7 +23,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
           </mesh>
         }>
           <Diamond3D />
-          <OrbitControls enableZoom={false} />
+          <OrbitControls enableZoom={false} makeDefault />
           <Environment preset="city" background={false} />
         </Suspense>
       </Canvas>
