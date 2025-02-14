@@ -23,19 +23,19 @@ export const CATEGORY_HIGHLIGHTS: Record<string, CategoryHighlight> = {
 };
 
 export const TIMING = {
-  closeDelay: 300,    // Délai plus long pour éviter les fermetures accidentelles
-  openDelay: 0,       // Pas de délai pour plus de réactivité
+  closeDelay: 800,    // Augmenté à 800ms pour plus de fluidité
+  openDelay: 0,       // Pas de délai pour l'ouverture
   transitionDelay: 150 // Transition douce
 };
 
 export const MENU_ZONES = {
   safeZone: {
     top: 96,      // Hauteur de la navbar
-    bottom: 300,  // Large zone en bas pour faciliter la sortie
-    sides: 100    // Zone latérale raisonnable
+    bottom: 100,  // Réduit de 300 à 100
+    sides: 50     // Réduit de 100 à 50
   },
   categories: {
     height: 48,   // Hauteur de la barre de catégories
-    buffer: 40    // Zone tampon plus grande au-dessus des catégories
+    buffer: 20    // Réduit de 40 à 20
   }
 };

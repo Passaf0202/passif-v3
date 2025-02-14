@@ -52,22 +52,34 @@ export function useMenuState() {
 
     const { clientX, clientY } = e;
     
-    // Zone de sécurité calculée à partir du bas de la navbar
-    const isInSafeZone = 
-      clientY < MENU_ZONES.safeZone.top || // Au-dessus de la navbar
-      clientY > menuRect.bottom + MENU_ZONES.safeZone.bottom || // Large zone en bas
-      clientX < menuRect.left - MENU_ZONES.safeZone.sides ||
-      clientX > menuRect.right + MENU_ZONES.safeZone.sides;
-
-    // Zone des catégories inclut maintenant une zone tampon plus grande
+    // Zone de sécurité pour les catégories (en haut)
     const isCategoryZone = 
-      clientY > MENU_ZONES.safeZone.top && 
-      clientY < MENU_ZONES.safeZone.top + MENU_ZONES.categories.height + MENU_ZONES.categories.buffer;
+      clientY > MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer && 
+      clientY < MENU_ZONES.safeZone.top + MENU_ZONES.categories.height;
 
-    if (isInSafeZone) {
-      closeMenu();
-    } else if (!isCategoryZone) {
-      scheduleClose();
+    // Zone de sécurité pour le menu principal
+    const isInMenuZone = 
+      clientX >= menuRect.left - MENU_ZONES.safeZone.sides &&
+      clientX <= menuRect.right + MENU_ZONES.safeZone.sides &&
+      clientY >= MENU_ZONES.safeZone.top &&
+      clientY <= menuRect.bottom + MENU_ZONES.safeZone.bottom;
+
+    if (isCategoryZone) {
+      clearTimeouts();
+    } else if (!isInMenuZone) {
+      // Si on est complètement en dehors des zones sécurisées
+      const isFarFromMenu = 
+        clientX < menuRect.left - MENU_ZONES.safeZone.sides * 2 ||
+        clientX > menuRect.right + MENU_ZONES.safeZone.sides * 2 ||
+        clientY < MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer * 2;
+
+      if (isFarFromMenu) {
+        // Fermeture immédiate si on est très loin
+        closeMenu();
+      } else {
+        // Sinon, fermeture progressive
+        scheduleClose();
+      }
     }
   };
 
