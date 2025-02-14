@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { DiamondViewer } from "./DiamondViewer";
 
 export function HeroSection() {
   const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed'>('initial');
@@ -195,12 +196,21 @@ export function HeroSection() {
                       <div className="flex-1 p-2">
                         {transactionState === 'initial' || transactionState === 'wallet-connecting' ? (
                           <div className="h-full flex flex-col items-center justify-center space-y-3">
-                            <img 
-                              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg"
-                              alt="TRADECOINER"
-                              className="w-16 h-16 opacity-20"
-                            />
+                            <div className="relative w-32 h-32">
+                              <DiamondViewer state={transactionState} />
+                            </div>
                             
+                            <div className="space-y-2">
+                              <div className="text-center">
+                                <h3 className="text-sm font-semibold">Diamant Noir Certifié</h3>
+                                <p className="text-xs text-gray-500">2.5 Carats - Pureté VS1</p>
+                                <div className="mt-2">
+                                  <p className="text-sm font-bold">2.45 ETH</p>
+                                  <p className="text-xs text-gray-500">≈ 4,892.50 €</p>
+                                </div>
+                              </div>
+                            </div>
+
                             <div className="space-y-2 mb-4">
                               <div className="flex items-center gap-2">
                                 <div className="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center text-[8px]">1</div>
@@ -208,11 +218,11 @@ export function HeroSection() {
                               </div>
                               <div className="flex items-center gap-2 opacity-50">
                                 <div className="w-4 h-4 rounded-full bg-gray-400 text-white flex items-center justify-center text-[8px]">2</div>
-                                <p className="text-[8px] text-gray-600">Trouvez le produit qui vous intéresse</p>
+                                <p className="text-[8px] text-gray-600">Validez la transaction</p>
                               </div>
                               <div className="flex items-center gap-2 opacity-50">
                                 <div className="w-4 h-4 rounded-full bg-gray-400 text-white flex items-center justify-center text-[8px]">3</div>
-                                <p className="text-[8px] text-gray-600">Payez en crypto de manière sécurisée</p>
+                                <p className="text-[8px] text-gray-600">Recevez votre certificat NFT</p>
                               </div>
                             </div>
 
@@ -224,74 +234,43 @@ export function HeroSection() {
                           </div>
                         ) : transactionState === 'search' ? (
                           <div className="flex-1 flex flex-col space-y-2">
-                            <div className="flex items-center gap-2 bg-white/90 px-2 py-1 rounded-full shadow-sm text-[8px]">
-                              <Search className="h-2 w-2 text-gray-400" />
-                              <span className="font-medium">Rechercher une annonce...</span>
+                            <div className="relative w-32 h-32 mx-auto">
+                              <DiamondViewer state={transactionState} />
                             </div>
 
-                            <div className="flex-1 flex flex-col">
-                              <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 mb-3">
-                                <img 
-                                  src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//file.svg"
-                                  alt="Audi A3"
-                                  className="w-full h-full object-cover"
-                                />
+                            <div className="space-y-2 px-1">
+                              <div className="space-y-0.5">
+                                <div className="h-[1px] bg-gray-200" />
+                                <p className="text-[8px] text-gray-400">Produit</p>
+                                <p className="text-[10px] font-medium">Diamant Noir Certifié</p>
                               </div>
 
-                              <div className="space-y-2 px-1">
-                                <div className="space-y-0.5">
-                                  <div className="h-[1px] bg-gray-200" />
-                                  <p className="text-[8px] text-gray-400">Marque & Modèle</p>
-                                  <p className="text-[10px] font-medium">Audi A3 2023</p>
-                                </div>
+                              <div className="space-y-0.5">
+                                <div className="h-[1px] bg-gray-200" />
+                                <p className="text-[8px] text-gray-400">Caractéristiques</p>
+                                <p className="text-[10px]">2.5 Carats - Pureté VS1</p>
+                              </div>
 
-                                <div className="space-y-0.5">
-                                  <div className="h-[1px] bg-gray-200" />
-                                  <p className="text-[8px] text-gray-400">Kilométrage</p>
-                                  <p className="text-[10px]">15 000 km</p>
+                              <div className="space-y-0.5">
+                                <div className="h-[1px] bg-gray-200" />
+                                <p className="text-[8px] text-gray-400">Prix</p>
+                                <div>
+                                  <p className="text-[10px] font-medium">2.45 ETH</p>
+                                  <p className="text-[8px] text-gray-500">≈ 4,892.50 €</p>
                                 </div>
+                              </div>
 
-                                <div className="space-y-0.5">
-                                  <div className="h-[1px] bg-gray-200" />
-                                  <p className="text-[8px] text-gray-400">Prix</p>
-                                  <div>
-                                    <p className="text-[10px] font-medium">2.45 ETH</p>
-                                    <p className="text-[8px] text-gray-500">≈ 4,892.50 €</p>
-                                  </div>
-                                </div>
-
-                                <div className="space-y-0.5">
-                                  <div className="h-[1px] bg-gray-200" />
-                                  <p className="text-[8px] text-gray-400">État</p>
-                                  <p className="text-[10px]">Excellent état</p>
-                                </div>
+                              <div className="space-y-0.5">
+                                <div className="h-[1px] bg-gray-200" />
+                                <p className="text-[8px] text-gray-400">Certification</p>
+                                <p className="text-[10px]">GIA - #123456789</p>
                               </div>
                             </div>
                           </div>
                         ) : (
                           <>
-                            <div className="relative aspect-video mb-2 rounded-lg overflow-hidden bg-gray-100">
-                              <motion.div 
-                                className="absolute inset-0 flex items-center justify-center"
-                                animate={{
-                                  scale: transactionState === 'processing' ? [1, 1.02, 1] : 1
-                                }}
-                                transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
-                              >
-                                <div className="relative w-full h-full">
-                                  <img 
-                                    src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg"
-                                    alt="TRADECOINER"
-                                    className="absolute inset-0 w-full h-full object-contain p-4 opacity-10"
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20" />
-                                </div>
-                              </motion.div>
-                              <div className="absolute bottom-1 right-1">
-                                <div className="text-[8px] bg-black/80 text-white px-1.5 py-0.5 rounded-full">
-                                  Audi A3 2023
-                                </div>
-                              </div>
+                            <div className="relative w-32 h-32 mx-auto mb-2">
+                              <DiamondViewer state={transactionState} />
                             </div>
 
                             <motion.div 
@@ -342,7 +321,7 @@ export function HeroSection() {
                                   className="h-1 w-1 rounded-full bg-purple-500"
                                   animate={{ scale: transactionState === 'confirmed' ? [1, 1.5, 1] : 1 }}
                                 />
-                                <span className="text-[8px] sm:text-[10px]">Garantie remboursement</span>
+                                <span className="text-[8px] sm:text-[10px]">Certificat NFT émis</span>
                               </motion.div>
                             </div>
 
