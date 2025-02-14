@@ -1,21 +1,25 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Mesh } from 'three';
+import { useGLTF } from '@react-three/drei';
+import { Group } from 'three';
 
 export function Diamond3D() {
-  const meshRef = useRef<Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const { scene } = useGLTF('https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/result.gltf');
 
   useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.01;
+    if (groupRef.current) {
+      groupRef.current.rotation.y += 0.01;
     }
   });
 
   return (
-    <mesh ref={meshRef}>
-      <octahedronGeometry args={[1]} />
-      <meshBasicMaterial color={0xffffff} />
-    </mesh>
+    <group ref={groupRef}>
+      <primitive object={scene} scale={1} position={[0, 0, 0]} />
+    </group>
   );
 }
+
+// Pre-charge le modèle pour de meilleures performances
+useGLTF.preload('https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/result.gltf');
