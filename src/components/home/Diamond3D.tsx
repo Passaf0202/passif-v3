@@ -4,9 +4,16 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Group } from 'three';
 
+const MODEL_URL = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/result.gltf';
+
 export function Diamond3D() {
   const groupRef = useRef<Group>(null);
-  const { scene } = useGLTF('https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/result.gltf');
+  const { scene } = useGLTF(MODEL_URL);
+
+  // Ensure scene is loaded
+  if (!scene) {
+    return null;
+  }
 
   useFrame(() => {
     if (groupRef.current) {
@@ -21,5 +28,5 @@ export function Diamond3D() {
   );
 }
 
-// Pre-charge le modèle pour de meilleures performances
-useGLTF.preload('https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/result.gltf');
+// Pre-load the model
+useGLTF.preload(MODEL_URL);
