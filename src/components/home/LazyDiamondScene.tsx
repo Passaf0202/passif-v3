@@ -2,7 +2,9 @@
 import { Suspense, lazy } from 'react';
 import { Loader2 } from "lucide-react";
 
-const DiamondViewer = lazy(() => import('./DiamondViewer').then(module => ({ default: module.DiamondViewer })));
+const DiamondViewer = lazy(() => import('./DiamondViewer').then(module => ({
+  default: module.DiamondViewer
+})));
 
 interface LazyDiamondSceneProps {
   state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
