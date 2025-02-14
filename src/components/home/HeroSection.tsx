@@ -1,28 +1,10 @@
 
-import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2 } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
 
 export function HeroSection() {
-  const [transactionState, setTransactionState] = useState<'initial' | 'validating' | 'processing' | 'confirmed'>('initial');
-
-  // Simuler le cycle de transaction
-  useEffect(() => {
-    const runTransactionCycle = () => {
-      setTransactionState('initial');
-      setTimeout(() => setTransactionState('validating'), 1000);
-      setTimeout(() => setTransactionState('processing'), 3000);
-      setTimeout(() => setTransactionState('confirmed'), 6000);
-      setTimeout(() => setTransactionState('initial'), 9000);
-    };
-
-    runTransactionCycle();
-    const interval = setInterval(runTransactionCycle, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
       {/* Cercles décoratifs d'arrière-plan */}
@@ -95,22 +77,21 @@ export function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Colonne de droite - iPhone */}
+          {/* Colonne de droite - Nouvelle Illustration */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="relative flex justify-center items-center"
           >
-            {/* Effet de halo derrière l'iPhone */}
+            {/* Effet de halo derrière l'illustration */}
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
-            {/* Container de l'iPhone avec effet de flottement */}
+            {/* Container de l'illustration avec effet de flottement */}
             <motion.div
               animate={{ 
                 y: [0, -10, 0],
-                rotateY: [0, 2, 0],
-                rotateX: [0, 1, 0]
+                rotate: [0, 1, 0]
               }}
               transition={{ 
                 duration: 5, 
@@ -118,133 +99,84 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] xl:w-[240px] transform scale-90 sm:scale-100"
+              className="relative"
             >
-              {/* iPhone Frame */}
-              <div className="relative rounded-[32px] bg-[#1A1F2C] p-1.5 sm:p-2 shadow-2xl">
-                {/* Dynamic Island */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[60px] sm:w-[70px] h-[18px] sm:h-[20px] bg-black rounded-b-3xl z-20" />
-                
-                {/* Écran */}
-                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/19]">
-                  {/* Contenu de l'écran avec animation */}
-                  <AnimatePresence mode="wait">
-                    <motion.div 
-                      key={transactionState}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                      className="absolute inset-0 p-2 flex flex-col"
+              {/* Main qui claque des doigts */}
+              <motion.div className="w-[300px] h-[300px] relative">
+                {/* SVG de la main */}
+                <svg
+                  viewBox="0 0 100 100"
+                  className="w-full h-full"
+                  style={{ filter: "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))" }}
+                >
+                  <path
+                    d="M30 70 Q35 65, 40 70 T50 70 Q55 65, 60 70 T70 70"
+                    fill="none"
+                    stroke="#000000"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M45 50 C50 45, 55 45, 60 50 S65 55, 70 50"
+                    fill="none"
+                    stroke="#000000"
+                    strokeWidth="2"
+                  />
+                </svg>
+
+                {/* Diamants animés */}
+                <AnimatePresence>
+                  {[...Array(12)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute"
+                      style={{
+                        top: "50%",
+                        left: "50%",
+                      }}
+                      initial={{
+                        scale: 0,
+                        x: 0,
+                        y: 0,
+                        opacity: 0,
+                      }}
+                      animate={{
+                        scale: [0, 1, 0.8],
+                        x: Math.cos(i * (Math.PI * 2) / 12) * 100,
+                        y: Math.sin(i * (Math.PI * 2) / 12) * 100,
+                        opacity: [0, 1, 0],
+                      }}
+                      transition={{
+                        duration: 2,
+                        delay: i * 0.1,
+                        repeat: Infinity,
+                        repeatDelay: 1,
+                      }}
                     >
-                      {/* En-tête de l'app */}
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="space-y-0.5">
-                          <h3 className="text-[10px] sm:text-xs font-semibold">
-                            {transactionState === 'initial' ? "Transaction" : 
-                             transactionState === 'validating' ? "Vérification..." :
-                             transactionState === 'processing' ? "En cours..." : 
-                             "Confirmée !"
-                            }
-                          </h3>
-                          <p className="text-[8px] text-gray-500">#TC-289345</p>
-                        </div>
-                        <motion.div 
-                          className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-gradient-to-r flex items-center justify-center"
-                          animate={{
-                            backgroundColor: transactionState === 'confirmed' ? '#22c55e' : '#6366f1',
-                            scale: transactionState === 'processing' ? [1, 1.1, 1] : 1
-                          }}
-                          transition={{ duration: 0.5, repeat: transactionState === 'processing' ? Infinity : 0 }}
-                        >
-                          {transactionState === 'initial' && <Coins className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
-                          {transactionState === 'validating' && <Loader2 className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white animate-spin" />}
-                          {transactionState === 'processing' && <Coins className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
-                          {transactionState === 'confirmed' && <CheckCircle2 className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" />}
-                        </motion.div>
-                      </div>
-
-                      {/* Montant avec animation */}
-                      <motion.div 
-                        className="text-center space-y-1 mb-2"
-                        animate={{
-                          scale: transactionState === 'processing' ? [1, 1.02, 1] : 1
-                        }}
-                        transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
-                      >
-                        <p className="text-[8px] sm:text-[10px] text-gray-600">
-                          {transactionState === 'initial' ? "Montant total" :
-                           transactionState === 'validating' ? "Vérification du montant" :
-                           transactionState === 'processing' ? "Transfert en cours" :
-                           "Paiement confirmé"
-                          }
-                        </p>
-                        <div className="text-base sm:text-lg font-bold">2.45 ETH</div>
-                        <p className="text-[8px] sm:text-[10px] text-gray-500">≈ 4,892.50 €</p>
-                      </motion.div>
-
-                      {/* Indicateurs de sécurité animés */}
-                      <div className="bg-gray-50 rounded-lg p-1.5 sm:p-2 space-y-1">
-                        <motion.div 
-                          className="flex items-center gap-1.5"
-                          animate={{ opacity: transactionState !== 'initial' ? 1 : 0.5 }}
-                        >
-                          <motion.div 
-                            className="h-1 w-1 rounded-full bg-green-500"
-                            animate={{ scale: transactionState === 'validating' ? [1, 1.5, 1] : 1 }}
-                            transition={{ duration: 1, repeat: transactionState === 'validating' ? Infinity : 0 }}
-                          />
-                          <span className="text-[8px] sm:text-[10px]">Transaction sécurisée</span>
-                        </motion.div>
-                        <motion.div 
-                          className="flex items-center gap-1.5"
-                          animate={{ opacity: transactionState === 'processing' || transactionState === 'confirmed' ? 1 : 0.5 }}
-                        >
-                          <motion.div 
-                            className="h-1 w-1 rounded-full bg-blue-500"
-                            animate={{ scale: transactionState === 'processing' ? [1, 1.5, 1] : 1 }}
-                            transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
-                          />
-                          <span className="text-[8px] sm:text-[10px]">Protection acheteur</span>
-                        </motion.div>
-                        <motion.div 
-                          className="flex items-center gap-1.5"
-                          animate={{ opacity: transactionState === 'confirmed' ? 1 : 0.5 }}
-                        >
-                          <motion.div 
-                            className="h-1 w-1 rounded-full bg-purple-500"
-                            animate={{ scale: transactionState === 'confirmed' ? [1, 1.5, 1] : 1 }}
-                          />
-                          <span className="text-[8px] sm:text-[10px]">Garantie remboursement</span>
-                        </motion.div>
-                      </div>
-
-                      {/* Bouton avec état */}
-                      <div className="mt-auto">
-                        <motion.button 
-                          className={`w-full rounded-lg py-1 sm:py-1.5 text-[8px] sm:text-[10px] font-medium text-white
-                            ${transactionState === 'initial' ? 'bg-black' :
-                              transactionState === 'validating' ? 'bg-indigo-500' :
-                              transactionState === 'processing' ? 'bg-blue-500' :
-                              'bg-green-500'}`}
-                          animate={{
-                            scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
-                          }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          {transactionState === 'initial' && "Confirmer le paiement"}
-                          {transactionState === 'validating' && "Vérification..."}
-                          {transactionState === 'processing' && "Traitement en cours..."}
-                          {transactionState === 'confirmed' && "Transaction réussie !"}
-                        </motion.button>
-                      </div>
+                      <Diamond 
+                        className={`text-black transform -translate-x-1/2 -translate-y-1/2`}
+                        size={i % 3 === 0 ? 24 : i % 3 === 1 ? 16 : 12}
+                        strokeWidth={1}
+                      />
                     </motion.div>
-                  </AnimatePresence>
-                </div>
-              </div>
+                  ))}
+                </AnimatePresence>
 
-              {/* Reflets sur l'iPhone */}
-              <div className="absolute inset-0 rounded-[32px] bg-gradient-to-tr from-white/5 via-white/10 to-transparent pointer-events-none" />
+                {/* Effet d'onde de choc */}
+                <motion.div
+                  className="absolute top-1/2 left-1/2 w-4 h-4 -translate-x-1/2 -translate-y-1/2"
+                  animate={{
+                    scale: [1, 4],
+                    opacity: [0.5, 0],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    repeatDelay: 1,
+                  }}
+                >
+                  <div className="w-full h-full rounded-full bg-black/10" />
+                </motion.div>
+              </motion.div>
             </motion.div>
           </motion.div>
         </div>
