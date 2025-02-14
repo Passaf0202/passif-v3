@@ -12,16 +12,29 @@ interface NavbarCategoriesProps {
   isMobile?: boolean;
 }
 
-const CATEGORY_HIGHLIGHTS = {
+interface CategoryHighlight {
+  brands: string[];
+  sections: string[];
+  types: string[];
+  services: string[];
+}
+
+const CATEGORY_HIGHLIGHTS: Record<string, CategoryHighlight> = {
   "Véhicules": {
     brands: ["Peugeot", "Renault", "Volkswagen", "BMW", "Mercedes", "Audi"],
-    sections: ["Voitures", "Motos", "Caravaning", "Utilitaires"]
+    sections: ["Voitures", "Motos", "Caravaning", "Utilitaires"],
+    types: [],
+    services: []
   },
   "Mode": {
+    brands: [],
     sections: ["Vêtements", "Chaussures", "Accessoires", "Montres & Bijoux"],
-    types: ["Femme", "Homme", "Enfant"]
+    types: ["Femme", "Homme", "Enfant"],
+    services: []
   },
   "Immobilier": {
+    brands: [],
+    sections: [],
     types: ["Vente", "Location", "Colocation", "Bureaux & Commerces"],
     services: ["Évaluation immobilière", "Diagnostic"]
   }
@@ -51,7 +64,12 @@ export function NavbarCategories({
     : visibleCategories;
 
   const renderCategoryContent = (category: Category) => {
-    const highlights = CATEGORY_HIGHLIGHTS[category.name as keyof typeof CATEGORY_HIGHLIGHTS];
+    const highlights = CATEGORY_HIGHLIGHTS[category.name] || {
+      brands: [],
+      sections: [],
+      types: [],
+      services: []
+    };
     const IconComponent = getCategoryIcon(category.name);
 
     return (
@@ -73,7 +91,7 @@ export function NavbarCategories({
               <ChevronRight className="h-4 w-4 ml-1" />
             </Link>
             
-            {highlights && highlights.services && (
+            {highlights.services.length > 0 && (
               <div className="mt-8">
                 <h4 className="text-sm font-medium text-gray-900 mb-3">Services associés</h4>
                 <ul className="space-y-2">
@@ -97,7 +115,7 @@ export function NavbarCategories({
         <div className="p-6">
           <div className="grid grid-cols-2 gap-x-12 gap-y-8">
             {/* Marques populaires si disponibles */}
-            {highlights?.brands && (
+            {highlights.brands.length > 0 && (
               <div className="col-span-2">
                 <h4 className="text-sm font-medium text-gray-900 mb-3">Marques populaires</h4>
                 <div className="grid grid-cols-3 gap-3">
@@ -134,7 +152,7 @@ export function NavbarCategories({
             ))}
 
             {/* Types spécifiques si disponibles */}
-            {highlights?.types && (
+            {highlights.types.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-gray-900 mb-3">Types</h4>
                 <ul className="space-y-2">
