@@ -1,3 +1,4 @@
+
 import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2, Wallet, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -9,27 +10,32 @@ export function HeroSection() {
   const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed'>('initial');
   const [showWalletSpotlight, setShowWalletSpotlight] = useState(true);
 
-  // Simuler le cycle de transaction complet
+  // Ralentissement des transitions d'état
   useEffect(() => {
     const runTransactionCycle = () => {
       setTransactionState('initial');
       setShowWalletSpotlight(true);
-      setTimeout(() => setShowWalletSpotlight(false), 2000);
-      setTimeout(() => setTransactionState('wallet-connecting'), 2500);
-      setTimeout(() => setTransactionState('wallet-connect'), 4000);
-      setTimeout(() => setTransactionState('search'), 6000);
-      setTimeout(() => setTransactionState('validating'), 8000);
-      setTimeout(() => setTransactionState('processing'), 10000);
-      setTimeout(() => setTransactionState('confirmed'), 12000);
+      setTimeout(() => setShowWalletSpotlight(false), 5000);
+      setTimeout(() => setTransactionState('wallet-connecting'), 6000);
+      setTimeout(() => setTransactionState('wallet-connect'), 8000);
+      setTimeout(() => setTransactionState('search'), 12000);
+      setTimeout(() => setTransactionState('validating'), 15000);
+      setTimeout(() => setTransactionState('processing'), 18000);
+      setTimeout(() => setTransactionState('confirmed'), 20000);
       setTimeout(() => {
         setTransactionState('initial');
         setShowWalletSpotlight(true);
-      }, 15000);
+      }, 25000);
     };
 
-    runTransactionCycle();
-    const interval = setInterval(runTransactionCycle, 15000);
-    return () => clearInterval(interval);
+    // Délai initial pour laisser le modèle 3D se charger
+    const initialTimeout = setTimeout(() => {
+      runTransactionCycle();
+      const interval = setInterval(runTransactionCycle, 25000);
+      return () => clearInterval(interval);
+    }, 2000);
+
+    return () => clearTimeout(initialTimeout);
   }, []);
 
   return (

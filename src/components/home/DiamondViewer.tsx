@@ -41,23 +41,62 @@ declare global {
 
 const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/Logo%20Tradecoiner%20-%203D.glb';
 
+let modelViewerScriptLoaded = false;
+
 export function DiamondViewer({ state }: DiamondViewerProps) {
   const [isModelViewerReady, setModelViewerReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [hasError, setHasError] = useState(false);
   const modelRef = useRef<HTMLElement>(null);
+  const initializeAttempts = useRef(0);
 
+  // Vérifier si le script model-viewer est chargé
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (customElements.get('model-viewer')) {
-        console.log('Model Viewer is ready');
+    if (!modelViewerScriptLoaded) {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+      script.onload = () => {
+        console.log('Model Viewer script loaded successfully');
+        modelViewerScriptLoaded = true;
         setModelViewerReady(true);
-      }
-    }, 1000);
-
-    return () => clearTimeout(timeout);
+      };
+      script.onerror = (error) => {
+        console.error('Error loading Model Viewer script:', error);
+        setHasError(true);
+      };
+      document.head.appendChild(script);
+    } else {
+      setModelViewerReady(true);
+    }
   }, []);
+
+  // Initialisation du model-viewer avec retry
+  useEffect(() => {
+    if (isModelViewerReady && initializeAttempts.current < 3) {
+      const checkModelViewer = () => {
+        if (customElements.get('model-viewer')) {
+          console.log('Model Viewer component is ready');
+          return true;
+        }
+        initializeAttempts.current++;
+        return false;
+      };
+
+      const interval = setInterval(() => {
+        if (checkModelViewer()) {
+          clearInterval(interval);
+        } else if (initializeAttempts.current >= 3) {
+          clearInterval(interval);
+          setHasError(true);
+          console.error('Failed to initialize Model Viewer after 3 attempts');
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isModelViewerReady]);
 
   const handleError = useCallback((event: SyntheticEvent<HTMLElement, Event>) => {
     console.error('Model Viewer error:', event);
@@ -80,6 +119,21 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   useEffect(() => {
     if (modelRef.current) {
       const modelViewer = modelRef.current;
+
+      // Précharger le modèle
+      const preloadModel = async () => {
+        try {
+          const response = await fetch(MODEL_PATH);
+          if (!response.ok) throw new Error('Failed to preload model');
+          const blob = await response.blob();
+          console.log('Model preloaded successfully');
+        } catch (error) {
+          console.error('Error preloading model:', error);
+        }
+      };
+
+      preloadModel();
+
       modelViewer.addEventListener('error', handleError as any);
       modelViewer.addEventListener('load', handleLoad as any);
       modelViewer.addEventListener('progress', handleProgress as any);
