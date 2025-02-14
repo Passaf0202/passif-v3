@@ -55,9 +55,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
             width: '100%',
             height: '100%',
             minHeight: '200px',
-            backgroundColor: 'transparent',
-            '--progress-bar-height': '3px',
-            '--progress-bar-color': '#000',
+            backgroundColor: 'transparent'
           }}
         >
           <div slot="progress-bar"></div>
