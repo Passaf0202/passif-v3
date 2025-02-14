@@ -139,11 +139,12 @@ export function HeroSection() {
                       <div className="relative h-12 px-2 flex items-center justify-between border-b border-gray-200/80 bg-white/80 backdrop-blur-md">
                         <div className="flex items-center">
                           <img 
-                            src="/placeholder.svg"
+                            src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg"
                             alt="TRADECOINER"
                             className="h-5 w-auto"
                           />
                         </div>
+                        
                         <div className="relative">
                           {showWalletSpotlight && (
                             <motion.div
@@ -195,13 +196,29 @@ export function HeroSection() {
                         {transactionState === 'initial' || transactionState === 'wallet-connecting' ? (
                           <div className="h-full flex flex-col items-center justify-center space-y-3">
                             <img 
-                              src="/placeholder.svg"
+                              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg"
                               alt="TRADECOINER"
                               className="w-16 h-16 opacity-20"
                             />
+                            
+                            <div className="space-y-2 mb-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center text-[8px]">1</div>
+                                <p className="text-[8px] text-gray-600">Connectez votre wallet pour commencer</p>
+                              </div>
+                              <div className="flex items-center gap-2 opacity-50">
+                                <div className="w-4 h-4 rounded-full bg-gray-400 text-white flex items-center justify-center text-[8px]">2</div>
+                                <p className="text-[8px] text-gray-600">Trouvez le produit qui vous intéresse</p>
+                              </div>
+                              <div className="flex items-center gap-2 opacity-50">
+                                <div className="w-4 h-4 rounded-full bg-gray-400 text-white flex items-center justify-center text-[8px]">3</div>
+                                <p className="text-[8px] text-gray-600">Payez en crypto de manière sécurisée</p>
+                              </div>
+                            </div>
+
                             <p className="text-[8px] text-center text-gray-500">
                               {transactionState === 'initial' 
-                                ? "Connectez votre wallet pour commencer" 
+                                ? "👆 Cliquez sur le bouton en haut à droite" 
                                 : "Connexion en cours..."}
                             </p>
                           </div>
@@ -265,38 +282,11 @@ export function HeroSection() {
                                 transition={{ duration: 1, repeat: transactionState === 'processing' ? Infinity : 0 }}
                               >
                                 <div className="relative w-full h-full">
-                                  <svg 
-                                    className="w-full h-full p-2" 
-                                    viewBox="0 0 24 24" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    strokeWidth="1.5"
-                                  >
-                                    <motion.path
-                                      d="M3 8l1.5-2h15L21 8M3 8v8a2 2 0 002 2h14a2 2 0 002-2V8M3 8h18"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      initial={{ pathLength: 0 }}
-                                      animate={{ pathLength: 1 }}
-                                      transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}
-                                    />
-                                    <motion.circle 
-                                      cx="7" 
-                                      cy="14" 
-                                      r="2"
-                                      initial={{ scale: 0 }}
-                                      animate={{ scale: 1 }}
-                                      transition={{ delay: 0.5 }}
-                                    />
-                                    <motion.circle 
-                                      cx="17" 
-                                      cy="14" 
-                                      r="2"
-                                      initial={{ scale: 0 }}
-                                      animate={{ scale: 1 }}
-                                      transition={{ delay: 0.7 }}
-                                    />
-                                  </svg>
+                                  <img 
+                                    src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg"
+                                    alt="TRADECOINER"
+                                    className="absolute inset-0 w-full h-full object-contain p-4 opacity-10"
+                                  />
                                   <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20" />
                                 </div>
                               </motion.div>
