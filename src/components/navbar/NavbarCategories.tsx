@@ -5,11 +5,27 @@ import { getCategoryIcon } from "@/utils/categoryIcons";
 import { Link } from "react-router-dom";
 import { useOrganizedCategories } from "./categories/useOrganizedCategories";
 import { useVisibleCategories } from "./categories/useVisibleCategories";
+import { ChevronRight } from "lucide-react";
 
 interface NavbarCategoriesProps {
   categories: Category[];
   isMobile?: boolean;
 }
+
+const CATEGORY_HIGHLIGHTS = {
+  "Véhicules": {
+    brands: ["Peugeot", "Renault", "Volkswagen", "BMW", "Mercedes", "Audi"],
+    sections: ["Voitures", "Motos", "Caravaning", "Utilitaires"]
+  },
+  "Mode": {
+    sections: ["Vêtements", "Chaussures", "Accessoires", "Montres & Bijoux"],
+    types: ["Femme", "Homme", "Enfant"]
+  },
+  "Immobilier": {
+    types: ["Vente", "Location", "Colocation", "Bureaux & Commerces"],
+    services: ["Évaluation immobilière", "Diagnostic"]
+  }
+};
 
 export function NavbarCategories({
   categories,
@@ -33,6 +49,113 @@ export function NavbarCategories({
   const displayedCategories = othersCategory 
     ? [...visibleCategories, othersCategory]
     : visibleCategories;
+
+  const renderCategoryContent = (category: Category) => {
+    const highlights = CATEGORY_HIGHLIGHTS[category.name as keyof typeof CATEGORY_HIGHLIGHTS];
+    const IconComponent = getCategoryIcon(category.name);
+
+    return (
+      <div className="grid grid-cols-[250px_1fr] h-full">
+        {/* Colonne de gauche - Aperçu */}
+        <div className="bg-gray-50 p-6 border-r border-gray-200/80">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 text-primary">
+              <IconComponent className="h-6 w-6" />
+              <h3 className="text-lg font-medium">
+                {category.name}
+              </h3>
+            </div>
+            <Link 
+              to={`/category/${category.name.toLowerCase()}`}
+              className="inline-flex items-center text-sm text-primary hover:underline"
+            >
+              Voir tout {category.name.toLowerCase()}
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Link>
+            
+            {highlights && highlights.services && (
+              <div className="mt-8">
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Services associés</h4>
+                <ul className="space-y-2">
+                  {highlights.services.map(service => (
+                    <li key={service}>
+                      <Link 
+                        to={`/category/${category.name.toLowerCase()}/${service.toLowerCase()}`}
+                        className="text-sm text-gray-600 hover:text-primary hover:underline"
+                      >
+                        {service}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Colonne de droite - Sous-catégories */}
+        <div className="p-6">
+          <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+            {/* Marques populaires si disponibles */}
+            {highlights?.brands && (
+              <div className="col-span-2">
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Marques populaires</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  {highlights.brands.map(brand => (
+                    <Link
+                      key={brand}
+                      to={`/category/${category.name.toLowerCase()}/marque/${brand.toLowerCase()}`}
+                      className="text-sm text-gray-600 hover:text-primary hover:underline"
+                    >
+                      {brand}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sections principales */}
+            {category.subcategories?.map(subcat => (
+              <div key={subcat.id}>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">{subcat.name}</h4>
+                <ul className="space-y-2">
+                  {subcat.subcategories?.map(subsub => (
+                    <li key={subsub.id}>
+                      <Link
+                        to={`/category/${category.name.toLowerCase()}/${subcat.name.toLowerCase()}/${subsub.name.toLowerCase()}`}
+                        className="text-sm text-gray-600 hover:text-primary hover:underline"
+                      >
+                        {subsub.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+
+            {/* Types spécifiques si disponibles */}
+            {highlights?.types && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Types</h4>
+                <ul className="space-y-2">
+                  {highlights.types.map(type => (
+                    <li key={type}>
+                      <Link
+                        to={`/category/${category.name.toLowerCase()}/type/${type.toLowerCase()}`}
+                        className="text-sm text-gray-600 hover:text-primary hover:underline"
+                      >
+                        {type}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   if (isMobile) {
     return null;
@@ -58,25 +181,12 @@ export function NavbarCategories({
                   <span className="text-gray-400 select-none">•</span>
                 )}
 
-                {hoveredCategory === category.id && category.subcategories && (
-                  <div className={`absolute top-[44px] ${index === displayedCategories.length - 1 ? 'right-0' : index === 0 ? 'left-0' : 'left-1/2 -translate-x-1/2'} w-[300px] bg-white shadow-lg rounded-b-lg border border-gray-200/80 animate-in fade-in slide-in-from-top-1 duration-200 z-50`}>
-                    <div className="p-4">
-                      <div className="grid gap-1">
-                        {category.subcategories.map(sub => {
-                          const IconComponent = getCategoryIcon(category.name === "Autres" ? sub.name : category.name);
-                          return (
-                            <Link 
-                              key={sub.id} 
-                              to={`/category/${category.name === "Autres" ? sub.name.toLowerCase() : category.name.toLowerCase()}/${sub.name.toLowerCase()}`} 
-                              className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                            >
-                              <IconComponent className="h-5 w-5 text-primary" />
-                              <span className="text-sm">{sub.name}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
+                {hoveredCategory === category.id && (
+                  <div className={`absolute top-[44px] ${
+                    index === displayedCategories.length - 1 ? 'right-0' : 
+                    index === 0 ? 'left-0' : 'left-1/2 -translate-x-1/2'
+                  } w-[800px] bg-white shadow-lg rounded-lg border border-gray-200/80 animate-in fade-in slide-in-from-top-1 duration-200 z-50`}>
+                    {renderCategoryContent(category)}
                   </div>
                 )}
               </li>
