@@ -1,3 +1,4 @@
+
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { Loader2 } from "lucide-react";
 import type { SyntheticEvent } from 'react';
@@ -169,9 +170,9 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         auto-rotate
         rotation-per-second="12deg"
         interaction-prompt="none"
-        camera-orbit="180deg 65deg 2.2m"
-        min-camera-orbit="auto 65deg auto"
-        max-camera-orbit="auto 65deg auto"
+        camera-orbit="90deg 90deg 2.2m"
+        min-camera-orbit="auto 90deg auto"
+        max-camera-orbit="auto 90deg auto"
         auto-rotate-delay={0}
         shadow-intensity="0.75"
         exposure="1"
