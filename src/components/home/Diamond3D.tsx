@@ -1,6 +1,7 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Box } from '@react-three/drei';
 import * as THREE from 'three';
 
 export function Diamond3D() {
@@ -13,9 +14,8 @@ export function Diamond3D() {
   });
 
   return (
-    <mesh ref={meshRef}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#ffffff" />
-    </mesh>
+    <Box ref={meshRef} args={[1, 1, 1]}>
+      <meshStandardMaterial color="#ffffff" metalness={0.1} roughness={0.1} />
+    </Box>
   );
 }
