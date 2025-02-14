@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { MenuState } from '../types/categories';
 import { TIMING } from '../constants/categoryHighlights';
@@ -45,29 +46,8 @@ export function useMenuState() {
     clearTimeouts();
   };
 
-  const isMouseInMenuZone = (x: number, y: number) => {
-    const menuRect = menuZoneRef.current?.getBoundingClientRect();
-    if (!menuRect) return false;
-
-    const buffer = 20;
-    return (
-      x >= menuRect.left - buffer &&
-      x <= menuRect.right + buffer &&
-      y >= menuRect.top - buffer &&
-      y <= menuRect.bottom + buffer
-    );
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isMouseInMenuZone(e.clientX, e.clientY)) {
-      scheduleClose();
-    } else {
-      clearTimeouts();
-    }
-  };
-
-  const handleBackdropClick = () => {
-    closeMenu();
+  const handleMenuZoneLeave = () => {
+    scheduleClose();
   };
 
   const scheduleClose = () => {
@@ -105,8 +85,7 @@ export function useMenuState() {
     menuZoneRef,
     handleCategoryEnter,
     handleMenuZoneEnter,
-    handleMouseMove,
-    handleBackdropClick,
+    handleMenuZoneLeave,
     closeMenu
   };
 }
