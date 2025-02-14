@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MenuState } from '../types/categories';
-import { TIMING } from '../constants/categoryHighlights';
+import { TIMING, MENU_ZONES } from '../constants/categoryHighlights';
 
 export function useMenuState() {
   const [menuState, setMenuState] = useState<MenuState>({
@@ -59,12 +59,20 @@ export function useMenuState() {
     const menuRect = menuZoneRef.current?.getBoundingClientRect();
     if (!menuRect) return;
 
-    const mouseY = e.clientY;
-    const mouseX = e.clientX;
+    const { clientX, clientY } = e;
+    
+    // Vérifier si la souris est dans une zone sécurisée
+    const isInSafeZone = 
+      clientY < menuRect.top - MENU_ZONES.safeZone.top ||
+      clientY > menuRect.bottom + MENU_ZONES.safeZone.bottom ||
+      clientX < menuRect.left - MENU_ZONES.safeZone.sides ||
+      clientX > menuRect.right + MENU_ZONES.safeZone.sides;
 
-    if (mouseY < menuRect.top || mouseX < menuRect.left - 50 || mouseX > menuRect.right + 50) {
+    // Si en dehors de la zone sécurisée, fermer immédiatement
+    if (isInSafeZone) {
       closeMenu();
-    } else {
+    } else if (clientY < menuRect.bottom - MENU_ZONES.categories.height) {
+      // Si au-dessus de la zone des catégories, programmer la fermeture
       scheduleClose();
     }
   };

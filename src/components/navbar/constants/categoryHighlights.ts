@@ -23,7 +23,18 @@ export const CATEGORY_HIGHLIGHTS: Record<string, CategoryHighlight> = {
 };
 
 export const TIMING = {
-  closeDelay: 400,    // Délai plus long avant la fermeture
+  closeDelay: 300,    // Délai réduit pour une meilleure réactivité
   openDelay: 50,      // Petit délai à l'ouverture
   transitionDelay: 50 // Délai pour le changement de catégorie
+};
+
+export const MENU_ZONES = {
+  safeZone: {
+    top: 100,    // Plus d'espace en haut
+    bottom: 150, // Plus d'espace en bas
+    sides: 100   // Plus d'espace sur les côtés
+  },
+  categories: {
+    height: 48  // Hauteur de la barre de catégories
+  }
 };

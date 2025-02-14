@@ -85,11 +85,15 @@ export function NavbarCategories({
             onMouseEnter={handleMenuZoneEnter}
             onMouseLeave={handleMenuZoneLeave}
           >
-            <div className="fixed inset-0 bg-black/5 backdrop-blur-[1px]" />
+            {/* Backdrop avec flou uniquement au-dessus de la zone des catégories */}
+            <div className="fixed inset-0">
+              <div className="absolute inset-0 bottom-12 bg-black/5 backdrop-blur-[1px]" />
+              <div className="absolute bottom-0 left-0 right-0 h-12 bg-white/80" />
+            </div>
             
             <div 
               ref={menuRef}
-              className={`fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm transition-opacity duration-200 ${
+              className={`fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm transition-all duration-300 ease-in-out ${
                 menuState.isTransitioning ? 'opacity-90' : 'opacity-100'
               }`}
               style={{ top: '96px' }}
