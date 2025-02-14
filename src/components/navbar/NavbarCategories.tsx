@@ -45,7 +45,6 @@ export function NavbarCategories({
   isMobile
 }: NavbarCategoriesProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
-  const [menuPosition, setMenuPosition] = useState({ left: '0' });
   const [closeTimeout, setCloseTimeout] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -67,35 +66,10 @@ export function NavbarCategories({
     ? [...visibleCategories, othersCategory]
     : visibleCategories;
 
-  const calculateMenuPosition = (categoryElement: HTMLElement) => {
-    const MENU_WIDTH = 800;
-    const MARGIN = 20;
-    
-    const rect = categoryElement.getBoundingClientRect();
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    if (!containerRect) return { left: '0' };
-    
-    // Calcul de la position horizontale par rapport à l'élément parent
-    let left = rect.left - containerRect.left;
-    left = left + (rect.width / 2) - (MENU_WIDTH / 2);
-    
-    // Ajustements aux bords
-    const maxLeft = containerRect.width - MENU_WIDTH - MARGIN;
-    left = Math.max(MARGIN, Math.min(left, maxLeft));
-    
-    return { left: `${left}px` };
-  };
-
   const handleMouseEnter = (categoryId: string) => {
     if (closeTimeout) {
       window.clearTimeout(closeTimeout);
       setCloseTimeout(null);
-    }
-
-    const categoryElement = categoryRefs.current[categoryId];
-    if (categoryElement) {
-      const newPosition = calculateMenuPosition(categoryElement);
-      setMenuPosition(newPosition);
     }
     setHoveredCategory(categoryId);
   };
@@ -125,8 +99,8 @@ export function NavbarCategories({
     const IconComponent = getCategoryIcon(category.name);
 
     return (
-      <ScrollArea className="h-full max-h-[calc(90vh-var(--navbar-height)-2rem)]">
-        <div className="flex">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-8">
+        <div className="flex min-h-[400px] max-h-[600px]">
           {/* Colonne de gauche - Aperçu */}
           <div className="w-[250px] flex-shrink-0 bg-gray-50 p-6 border-r border-gray-200/80">
             <div className="space-y-4">
@@ -165,7 +139,7 @@ export function NavbarCategories({
           </div>
 
           {/* Colonne de droite - Sous-catégories */}
-          <div className="flex-1 p-6">
+          <ScrollArea className="flex-1 p-6">
             <div className="grid grid-cols-2 gap-x-12 gap-y-8">
               {/* Marques populaires si disponibles */}
               {highlights.brands.length > 0 && (
@@ -223,9 +197,9 @@ export function NavbarCategories({
                 </div>
               )}
             </div>
-          </div>
+          </ScrollArea>
         </div>
-      </ScrollArea>
+      </div>
     );
   };
 
@@ -234,7 +208,7 @@ export function NavbarCategories({
   }
 
   return (
-    <nav className="w-full border-b border-gray-200/80" style={{ '--navbar-height': '48px' } as React.CSSProperties}>
+    <nav className="w-full border-b border-gray-200/80">
       <div className="max-w-[1440px] h-12 mx-auto px-4 md:px-8">
         <div className="h-full flex items-center justify-center" ref={containerRef}>
           <ul className="inline-flex items-center gap-1">
@@ -257,25 +231,17 @@ export function NavbarCategories({
                 {hoveredCategory === category.id && (
                   <div 
                     ref={menuRef}
-                    className="absolute left-0 w-[800px] bg-white shadow-lg rounded-lg border border-gray-200/80 mt-1 animate-in fade-in-0 duration-200 z-50"
+                    className="absolute left-0 w-screen bg-white shadow-md border-b border-gray-200/80 animate-in fade-in-0 duration-200 z-50"
                     style={{
                       top: '100%',
-                      left: menuPosition.left,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      marginLeft: '0'
                     }}
                     onMouseEnter={() => handleMouseEnter(category.id)}
                     onMouseLeave={handleMouseLeave}
                   >
-                    <div className="relative">
-                      {/* Flèche pointant vers le haut */}
-                      <div 
-                        className="absolute -top-2 left-1/2 w-4 h-4 bg-white transform rotate-45 border-t border-l border-gray-200/80 -translate-x-1/2"
-                        style={{
-                          left: '50%',
-                          marginLeft: '-6px'
-                        }}
-                      />
-                      {renderCategoryContent(category)}
-                    </div>
+                    {renderCategoryContent(category)}
                   </div>
                 )}
               </li>
