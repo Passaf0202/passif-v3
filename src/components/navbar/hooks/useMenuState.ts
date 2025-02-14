@@ -9,7 +9,6 @@ export function useMenuState() {
     currentCategory: null,
     isTransitioning: false
   });
-  const [closeTimeout, setCloseTimeout] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuZoneRef = useRef<HTMLDivElement>(null);
 
@@ -25,16 +24,7 @@ export function useMenuState() {
     };
   }, [menuState.isOpen]);
 
-  const clearTimeouts = () => {
-    if (closeTimeout) {
-      window.clearTimeout(closeTimeout);
-      setCloseTimeout(null);
-    }
-  };
-
   const handleCategoryEnter = (categoryId: string) => {
-    clearTimeouts();
-    
     setMenuState(prev => ({
       isOpen: true,
       currentCategory: categoryId,
@@ -43,11 +33,11 @@ export function useMenuState() {
   };
 
   const handleMenuZoneEnter = () => {
-    clearTimeouts();
+    // Rien à faire quand on entre dans la zone du menu
   };
 
   const handleMenuZoneLeave = () => {
-    scheduleClose();
+    closeMenu();
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -56,34 +46,13 @@ export function useMenuState() {
     }
   };
 
-  const scheduleClose = () => {
-    clearTimeouts();
-    
-    const closeTimer = window.setTimeout(() => {
-      setMenuState({
-        isOpen: false,
-        currentCategory: null,
-        isTransitioning: false
-      });
-    }, TIMING.closeDelay);
-
-    setCloseTimeout(closeTimer);
-  };
-
   const closeMenu = () => {
-    clearTimeouts();
     setMenuState({
       isOpen: false,
       currentCategory: null,
       isTransitioning: false
     });
   };
-
-  useEffect(() => {
-    return () => {
-      clearTimeouts();
-    };
-  }, [closeTimeout]);
 
   return {
     menuState,
