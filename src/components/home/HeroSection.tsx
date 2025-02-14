@@ -1,5 +1,5 @@
 
-import { Plus, Coins, Diamond, ArrowRight, Sparkles } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -77,67 +77,63 @@ export function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Colonne de droite - Nouvelle Illustration en Noir et Blanc */}
+          {/* Colonne de droite - Rectangles d'Annonces */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="relative flex justify-center items-center"
           >
-            {/* Container des trois rectangles avec effet de superposition */}
-            <div className="relative w-full max-w-md aspect-square">
-              {/* Rectangle 1 - Montre Connectée */}
+            {/* Container des annonces superposées */}
+            <div className="relative w-full max-w-md aspect-[4/3]">
+              {/* Annonce 3 (Arrière-plan) */}
+              <motion.div
+                animate={{ 
+                  y: [0, -3, 0],
+                  rotate: [-8, -10, -8]
+                }}
+                transition={{ 
+                  duration: 5,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "easeInOut"
+                }}
+                className="absolute inset-0 bg-white rounded-lg shadow-sm border border-black/10 p-4"
+              >
+                <div className="space-y-3">
+                  <div className="h-2 w-2/3 bg-black/10 rounded" />
+                  <div className="h-2 w-1/2 bg-black/10 rounded" />
+                  <div className="h-2 w-3/4 bg-black/10 rounded" />
+                </div>
+              </motion.div>
+
+              {/* Annonce 2 (Milieu) */}
               <motion.div
                 animate={{ 
                   y: [0, -5, 0],
-                  rotate: [-2, 0, -2]
+                  rotate: [-4, -6, -4]
                 }}
                 transition={{ 
                   duration: 6,
                   repeat: Infinity,
                   repeatType: "reverse",
-                  ease: "easeInOut"
+                  ease: "easeInOut",
+                  delay: 0.1
                 }}
-                className="absolute top-[15%] left-[10%] w-[45%] aspect-square bg-white rounded-lg shadow-sm border border-black/10 overflow-hidden"
+                className="absolute inset-0 bg-white rounded-lg shadow-sm border border-black/10 p-4 translate-x-4 -translate-y-4"
               >
-                <div className="relative w-full h-full p-4">
-                  {/* Continuous Line Art de la montre */}
-                  <motion.svg
-                    viewBox="0 0 100 100"
-                    className="w-full h-full"
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    <motion.path
-                      d="M30 50 C30 30, 70 30, 70 50 C70 70, 30 70, 30 50"
-                      stroke="black"
-                      strokeWidth="1"
-                      fill="none"
-                      variants={{
-                        hidden: { pathLength: 0 },
-                        visible: { 
-                          pathLength: 1,
-                          transition: { duration: 2, ease: "easeInOut" }
-                        }
-                      }}
-                    />
-                    <motion.circle
-                      cx="50"
-                      cy="50"
-                      r="15"
-                      stroke="black"
-                      strokeWidth="0.5"
-                      fill="none"
-                    />
-                  </motion.svg>
+                <div className="space-y-3">
+                  <div className="h-2 w-3/4 bg-black/10 rounded" />
+                  <div className="h-2 w-1/2 bg-black/10 rounded" />
+                  <div className="h-2 w-2/3 bg-black/10 rounded" />
                 </div>
               </motion.div>
 
-              {/* Rectangle 2 - Smartphone (Plus grand et centré) */}
+              {/* Annonce 1 (Premier plan) */}
               <motion.div
                 animate={{ 
-                  y: [0, -8, 0],
-                  rotate: [2, 0, 2]
+                  y: [0, -7, 0],
+                  rotate: [0, -2, 0]
                 }}
                 transition={{ 
                   duration: 7,
@@ -146,109 +142,18 @@ export function HeroSection() {
                   ease: "easeInOut",
                   delay: 0.2
                 }}
-                className="absolute top-[25%] left-[25%] w-[50%] aspect-[3/4] bg-white rounded-lg shadow-md border border-black/10 z-10"
+                className="absolute inset-0 bg-white rounded-lg shadow-sm border border-black/10 p-4 translate-x-8 -translate-y-8"
               >
-                <div className="relative w-full h-full p-4">
-                  {/* Interface UI minimaliste */}
-                  <motion.svg
-                    viewBox="0 0 100 140"
-                    className="w-full h-full"
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    <motion.rect
-                      x="20"
-                      y="20"
-                      width="60"
-                      height="100"
-                      rx="8"
-                      stroke="black"
-                      strokeWidth="1"
-                      fill="none"
-                      variants={{
-                        hidden: { pathLength: 0 },
-                        visible: { 
-                          pathLength: 1,
-                          transition: { duration: 2, ease: "easeInOut" }
-                        }
-                      }}
-                    />
-                    {/* Détails de l'interface */}
-                    <motion.path
-                      d="M30 40 L70 40 M30 60 L70 60 M30 80 L70 80"
-                      stroke="black"
-                      strokeWidth="0.5"
-                      strokeDasharray="2 2"
-                      variants={{
-                        hidden: { pathLength: 0 },
-                        visible: { 
-                          pathLength: 1,
-                          transition: { duration: 1.5, delay: 0.5 }
-                        }
-                      }}
-                    />
-                  </motion.svg>
+                <div className="space-y-3">
+                  <div className="h-2 w-2/3 bg-black/10 rounded" />
+                  <div className="h-2 w-3/4 bg-black/10 rounded" />
+                  <div className="h-2 w-1/2 bg-black/10 rounded" />
                 </div>
               </motion.div>
 
-              {/* Rectangle 3 - Écouteurs Wireless */}
-              <motion.div
-                animate={{ 
-                  y: [0, -3, 0],
-                  rotate: [-1, 1, -1]
-                }}
-                transition={{ 
-                  duration: 5,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                  ease: "easeInOut",
-                  delay: 0.4
-                }}
-                className="absolute top-[35%] right-[10%] w-[45%] aspect-square bg-white rounded-lg shadow-sm border border-black/10"
-              >
-                <div className="relative w-full h-full p-4">
-                  {/* Écouteurs en Line Art */}
-                  <motion.svg
-                    viewBox="0 0 100 100"
-                    className="w-full h-full"
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    {/* Écouteur gauche */}
-                    <motion.path
-                      d="M30 50 C30 40, 40 30, 50 30 C60 30, 70 40, 70 50"
-                      stroke="black"
-                      strokeWidth="1"
-                      fill="none"
-                      variants={{
-                        hidden: { pathLength: 0 },
-                        visible: { 
-                          pathLength: 1,
-                          transition: { duration: 2, ease: "easeInOut" }
-                        }
-                      }}
-                    />
-                    {/* Ondes sonores stylisées */}
-                    <motion.path
-                      d="M40 60 C45 60, 45 55, 50 55 M50 65 C55 65, 55 60, 60 60"
-                      stroke="black"
-                      strokeWidth="0.5"
-                      strokeDasharray="2 2"
-                      variants={{
-                        hidden: { pathLength: 0 },
-                        visible: { 
-                          pathLength: 1,
-                          transition: { duration: 1.5, delay: 0.5 }
-                        }
-                      }}
-                    />
-                  </motion.svg>
-                </div>
-              </motion.div>
-
-              {/* Particules d'ornement */}
+              {/* Particules décoratives */}
               <AnimatePresence>
-                {[...Array(10)].map((_, i) => (
+                {[...Array(6)].map((_, i) => (
                   <motion.div
                     key={i}
                     className="absolute"
@@ -256,8 +161,8 @@ export function HeroSection() {
                     animate={{
                       opacity: [0, 1, 0],
                       scale: [0.5, 1, 0.5],
-                      x: [0, (Math.random() - 0.5) * 100],
-                      y: [0, (Math.random() - 0.5) * 100],
+                      x: [0, (Math.random() - 0.5) * 50],
+                      y: [0, (Math.random() - 0.5) * 50],
                     }}
                     transition={{
                       duration: 4,
