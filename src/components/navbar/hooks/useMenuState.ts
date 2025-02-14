@@ -46,8 +46,31 @@ export function useMenuState() {
     clearTimeouts();
   };
 
-  const handleMenuZoneLeave = () => {
-    scheduleClose();
+  const isMouseInMenuZone = (x: number, y: number) => {
+    const menuRect = menuZoneRef.current?.getBoundingClientRect();
+    if (!menuRect) return false;
+
+    const buffer = 20; // Zone tampon pour éviter une fermeture trop sensible
+    return (
+      x >= menuRect.left - buffer &&
+      x <= menuRect.right + buffer &&
+      y >= menuRect.top - buffer &&
+      y <= menuRect.bottom + buffer
+    );
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseInMenuZone(e.clientX, e.clientY)) {
+      scheduleClose();
+    } else {
+      clearTimeouts();
+    }
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('bg-black/5')) {
+      closeMenu();
+    }
   };
 
   const scheduleClose = () => {
@@ -85,7 +108,8 @@ export function useMenuState() {
     menuZoneRef,
     handleCategoryEnter,
     handleMenuZoneEnter,
-    handleMenuZoneLeave,
+    handleMouseMove,
+    handleBackdropClick,
     closeMenu
   };
 }

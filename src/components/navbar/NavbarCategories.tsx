@@ -20,8 +20,8 @@ export function NavbarCategories({
     menuZoneRef,
     handleCategoryEnter,
     handleMenuZoneEnter,
-    handleMenuZoneLeave,
-    closeMenu
+    handleMouseMove,
+    handleBackdropClick
   } = useMenuState();
 
   const organizedCategories = useOrganizedCategories(categories);
@@ -91,7 +91,8 @@ export function NavbarCategories({
             ref={menuRef}
             className="fixed inset-0 z-40"
             style={{ top: '96px' }}
-            onMouseLeave={handleMenuZoneLeave}
+            onMouseMove={handleMouseMove}
+            onClick={handleBackdropClick}
           >
             <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
             
