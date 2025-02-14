@@ -10,16 +10,15 @@ interface DiamondViewerProps {
 
 export function DiamondViewer({ state }: DiamondViewerProps) {
   return (
-    <div className="w-[200px] h-[200px] relative">
+    <div className="w-[200px] h-[200px]">
       <Suspense fallback={
         <div className="w-full h-full flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
         </div>
       }>
         <Canvas
-          camera={{ position: [0, 0, 4], fov: 50 }}
+          style={{ background: 'transparent' }}
         >
-          <ambientLight intensity={0.5} />
           <Diamond3D />
         </Canvas>
       </Suspense>

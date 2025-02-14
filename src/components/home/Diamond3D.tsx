@@ -1,10 +1,10 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import type { Mesh } from 'three';
 
 export function Diamond3D() {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   useFrame(() => {
     if (meshRef.current) {
@@ -13,15 +13,9 @@ export function Diamond3D() {
   });
 
   return (
-    <group>
-      <mesh ref={meshRef}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial 
-          color="#ffffff"
-          metalness={0.5}
-          roughness={0.2}
-        />
-      </mesh>
-    </group>
+    <mesh ref={meshRef}>
+      <boxGeometry />
+      <meshNormalMaterial />
+    </mesh>
   );
 }
