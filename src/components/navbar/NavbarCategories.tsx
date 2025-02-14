@@ -21,7 +21,8 @@ export function NavbarCategories({
     handleCategoryEnter,
     handleMenuZoneEnter,
     handleMouseMove,
-    handleBackdropClick
+    handleBackdropClick,
+    closeMenu
   } = useMenuState();
 
   const organizedCategories = useOrganizedCategories(categories);
@@ -92,9 +93,11 @@ export function NavbarCategories({
             className="fixed inset-0 z-40"
             style={{ top: '96px' }}
             onMouseMove={handleMouseMove}
-            onClick={handleBackdropClick}
           >
-            <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
+            <div 
+              className="absolute inset-0 bg-black/5 backdrop-blur-[1px]"
+              onClick={handleBackdropClick}
+            />
             
             {/* Container pour centrer le menu */}
             <div className="relative max-w-[1440px] mx-auto px-4 md:px-8">
@@ -104,9 +107,10 @@ export function NavbarCategories({
                 className="bg-white border-x border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)] rounded-b-lg"
                 style={{ 
                   width: menuContainerRef.current?.offsetWidth,
-                  marginLeft: menuContainerRef.current?.offsetLeft ? menuContainerRef.current.offsetLeft - 32 : 0 // 32px pour compenser le padding du container
+                  marginLeft: menuContainerRef.current?.offsetLeft ? menuContainerRef.current.offsetLeft - 32 : 0
                 }}
                 onMouseEnter={handleMenuZoneEnter}
+                onClick={(e) => e.stopPropagation()}
               >
                 {menuState.currentCategory && (
                   <CategoryContent

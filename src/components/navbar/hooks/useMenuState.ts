@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { MenuState } from '../types/categories';
 import { TIMING } from '../constants/categoryHighlights';
@@ -50,7 +49,7 @@ export function useMenuState() {
     const menuRect = menuZoneRef.current?.getBoundingClientRect();
     if (!menuRect) return false;
 
-    const buffer = 20; // Zone tampon pour éviter une fermeture trop sensible
+    const buffer = 20;
     return (
       x >= menuRect.left - buffer &&
       x <= menuRect.right + buffer &&
@@ -67,10 +66,8 @@ export function useMenuState() {
     }
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('bg-black/5')) {
-      closeMenu();
-    }
+  const handleBackdropClick = () => {
+    closeMenu();
   };
 
   const scheduleClose = () => {
