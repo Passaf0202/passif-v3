@@ -82,7 +82,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center min-h-[400px] sm:min-h-[450px] md:min-h-[500px] lg:min-h-[550px]"
+            className="relative flex justify-center items-center min-h-[400px] sm:min-h-[450px] md:min-h-[500px]"
           >
             {/* Effet de halo derrière l'iPhone */}
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
@@ -100,63 +100,76 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[240px] sm:w-[260px] md:w-[280px] lg:w-[300px] xl:w-[320px] max-w-[35vw] min-w-[240px] transform"
+              className="relative w-[260px] sm:w-[280px] md:w-[280px] lg:w-[300px] xl:w-[320px] max-w-[30vw] min-w-[260px]"
             >
               {/* iPhone Frame */}
-              <div className="relative rounded-[32px] bg-[#1A1F2C] p-1.5 sm:p-2 shadow-2xl">
-                {/* Dynamic Island */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[50px] sm:w-[55px] h-[16px] sm:h-[18px] bg-black rounded-b-3xl z-20" />
+              <div className="relative rounded-[48px] bg-gradient-to-b from-[#2A2F3C] to-[#1A1F2C] p-[1px] shadow-2xl">
+                {/* Bordure métallique */}
+                <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-white/10 via-white/5 to-transparent opacity-50" />
                 
-                {/* Écran */}
-                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/16]">
-                  {/* Contenu de l'écran */}
-                  <div className="absolute inset-0 p-2 sm:p-3 md:p-4 flex flex-col">
-                    {/* En-tête de l'app */}
-                    <div className="flex justify-between items-center mb-2 sm:mb-3">
-                      <div className="space-y-0.5 sm:space-y-1">
-                        <h3 className="text-[10px] sm:text-xs font-semibold">Transaction</h3>
-                        <p className="text-[8px] sm:text-[10px] text-gray-500">#TC-289345</p>
+                {/* Corps principal */}
+                <div className="relative rounded-[48px] bg-[#1A1F2C] overflow-hidden">
+                  {/* Dynamic Island */}
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[90px] h-[12px] bg-black rounded-b-[20px] z-20" />
+                  
+                  {/* Écran */}
+                  <div className="relative bg-white rounded-[44px] overflow-hidden" style={{ aspectRatio: '19.5/9' }}>
+                    {/* Contenu de l'écran */}
+                    <div className="absolute inset-0 p-3 sm:p-4 flex flex-col">
+                      {/* En-tête de l'app */}
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="space-y-0.5">
+                          <h3 className="text-[11px] font-semibold">Transaction</h3>
+                          <p className="text-[9px] text-gray-500">#TC-289345</p>
+                        </div>
+                        <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center">
+                          <Coins className="h-3 w-3 text-white" />
+                        </div>
                       </div>
-                      <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-green-500 flex items-center justify-center">
-                        <Coins className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
-                      </div>
-                    </div>
 
-                    {/* Montant */}
-                    <div className="text-center space-y-1 sm:space-y-2 mb-2 sm:mb-3">
-                      <p className="text-[8px] sm:text-xs text-gray-600">Montant total</p>
-                      <div className="text-sm sm:text-base font-bold">2.45 ETH</div>
-                      <p className="text-[8px] sm:text-xs text-gray-500">≈ 4,892.50 €</p>
-                    </div>
+                      {/* Montant */}
+                      <div className="text-center space-y-1.5 mb-3">
+                        <p className="text-[10px] text-gray-600">Montant total</p>
+                        <div className="text-base font-bold">2.45 ETH</div>
+                        <p className="text-[10px] text-gray-500">≈ 4,892.50 €</p>
+                      </div>
 
-                    {/* Indicateurs de sécurité */}
-                    <div className="bg-gray-50 rounded-lg p-1.5 sm:p-2 space-y-1">
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1 w-1 rounded-full bg-green-500" />
-                        <span className="text-[8px] sm:text-xs">Transaction sécurisée</span>
+                      {/* Indicateurs de sécurité */}
+                      <div className="bg-gray-50 rounded-xl p-2.5 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                          <span className="text-[10px]">Transaction sécurisée</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                          <span className="text-[10px]">Protection acheteur</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                          <span className="text-[10px]">Garantie remboursement</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1 w-1 rounded-full bg-blue-500" />
-                        <span className="text-[8px] sm:text-xs">Protection acheteur</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-1 w-1 rounded-full bg-purple-500" />
-                        <span className="text-[8px] sm:text-xs">Garantie remboursement</span>
-                      </div>
-                    </div>
 
-                    {/* Bouton de paiement */}
-                    <div className="mt-auto">
-                      <button className="w-full bg-black text-white rounded-lg py-1.5 text-[8px] sm:text-xs font-medium">
-                        Confirmer le paiement
-                      </button>
+                      {/* Bouton de paiement */}
+                      <div className="mt-auto">
+                        <button className="w-full bg-black text-white rounded-xl py-2 text-[10px] font-medium">
+                          Confirmer le paiement
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Reflets sur l'iPhone */}
-              <div className="absolute inset-0 rounded-[32px] bg-gradient-to-tr from-white/5 via-white/10 to-transparent pointer-events-none" />
+              {/* Reflets et ombres */}
+              <div className="absolute inset-0 rounded-[48px]">
+                {/* Reflet supérieur */}
+                <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/20 to-transparent rounded-t-[48px]" />
+                {/* Reflet latéral */}
+                <div className="absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-white/10 to-transparent" />
+                {/* Ombre portée */}
+                <div className="absolute -bottom-8 inset-x-4 h-12 bg-black/20 blur-xl rounded-full" />
+              </div>
             </motion.div>
           </motion.div>
         </div>
