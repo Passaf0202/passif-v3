@@ -84,24 +84,24 @@ export function NavbarCategories({
       {/* Menu et backdrop */}
       {menuState.isOpen && (
         <>
-          <div
+          {/* La barre de catégories reste au-dessus du flou */}
+          <div 
             ref={menuZoneRef}
-            className="fixed inset-0 z-40 pt-[96px]"
+            className="fixed inset-0 z-40"
+            style={{ top: '96px' }}
             onMouseEnter={handleMenuZoneEnter}
             onMouseLeave={handleMenuZoneLeave}
           >
-            {/* Backdrop avec flou */}
-            <div className="fixed inset-0 pt-[96px]">
-              <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
-            </div>
+            {/* Backdrop avec flou en dessous de la barre de catégories */}
+            <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
             
-            {/* Conteneur externe du menu - fond et ombre sur toute la largeur */}
+            {/* Conteneur externe du menu */}
             <div 
               ref={menuRef}
-              className="fixed left-0 right-0 bg-white border-t border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
-              style={{ top: '96px' }}
+              className="relative bg-white border-t border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
             >
-              <div className="max-w-[1440px] mx-auto">
+              {/* Conteneur interne aligné avec les catégories */}
+              <div className="container mx-auto px-4 md:px-8" style={{ maxWidth: containerRef.current?.offsetWidth }}>
                 {menuState.currentCategory && (
                   <CategoryContent
                     category={displayedCategories.find(cat => cat.id === menuState.currentCategory)!}
