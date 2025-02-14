@@ -47,34 +47,31 @@ export function useMenuState() {
   };
 
   const handleMenuZoneLeave = (e: React.MouseEvent) => {
-    const menuRect = menuZoneRef.current?.getBoundingClientRect();
-    if (!menuRect) return;
+    // Utiliser menuRef pour obtenir les dimensions exactes du menu actif
+    const menuElement = menuRef.current;
+    if (!menuElement) return;
 
+    const menuRect = menuElement.getBoundingClientRect();
     const { clientX, clientY } = e;
 
-    const zones = {
-      // Zone active du menu (le contenu lui-même + barre de catégories)
-      activeMenuZone: {
-        isInside: (
-          // Le menu lui-même
-          (clientX >= menuRect.left && 
-           clientX <= menuRect.right && 
-           clientY >= menuRect.top && 
-           clientY <= menuRect.bottom) ||
-          // La barre de catégories
-          (clientX >= menuRect.left && 
-           clientX <= menuRect.right && 
-           clientY >= MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer && 
-           clientY <= MENU_ZONES.safeZone.top + MENU_ZONES.categories.height)
-        )
-      }
-    };
+    // Définir les zones de manière plus précise
+    const isCategoryBarZone = 
+      clientX >= menuRect.left && 
+      clientX <= menuRect.right && 
+      clientY >= MENU_ZONES.safeZone.top - MENU_ZONES.categories.buffer && 
+      clientY <= MENU_ZONES.safeZone.top + MENU_ZONES.categories.height;
 
-    if (zones.activeMenuZone.isInside) {
-      // Dans le menu ou la barre de catégories = on reste ouvert
+    const isMenuContentZone = 
+      clientX >= menuRect.left && 
+      clientX <= menuRect.right && 
+      clientY >= menuRect.top && 
+      clientY <= menuRect.bottom;
+
+    // Si on est dans l'une des zones actives, on reste ouvert
+    if (isCategoryBarZone || isMenuContentZone) {
       clearTimeouts();
     } else {
-      // En dehors = on programme la fermeture progressive
+      // Sinon, on programme la fermeture progressive
       scheduleClose();
     }
   };
@@ -114,6 +111,7 @@ export function useMenuState() {
     menuZoneRef,
     handleCategoryEnter,
     handleMenuZoneEnter,
-    handleMenuZoneLeave
+    handleMenuZoneLeave,
+    closeMenu
   };
 }
