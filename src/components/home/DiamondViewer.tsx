@@ -35,7 +35,7 @@ const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/p
 
 export function DiamondViewer({ state }: DiamondViewerProps) {
   return (
-    <div className="w-[200px] h-[200px] relative">
+    <div className="w-full h-full relative" style={{ minHeight: '200px' }}>
       <Suspense fallback={
         <div className="w-full h-full flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -51,12 +51,17 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
           max-camera-orbit="135deg 135deg 4m"
           shadow-intensity="1"
           exposure="0.7"
-          className="w-full h-full"
-          style={{ backgroundColor: 'transparent' }}
+          style={{
+            width: '100%',
+            height: '100%',
+            minHeight: '200px',
+            backgroundColor: 'transparent',
+            '--progress-bar-height': '3px',
+            '--progress-bar-color': '#000',
+          }}
         >
-          <div slot="progress-bar" className="w-full h-1 bg-gray-200 rounded">
-            <div className="h-full bg-primary rounded animate-pulse" style={{ width: '100%' }}></div>
-          </div>
+          <div slot="progress-bar"></div>
+          <div slot="poster"></div>
         </model-viewer>
       </Suspense>
     </div>
