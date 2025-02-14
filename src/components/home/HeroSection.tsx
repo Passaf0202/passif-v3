@@ -225,50 +225,47 @@ export function HeroSection() {
                         ) : transactionState === 'search' ? (
                           <div className="flex-1 flex flex-col space-y-2">
                             <div className="flex items-center gap-2 bg-white/90 px-2 py-1 rounded-full shadow-sm text-[8px]">
-                              <Diamond className="h-2 w-2 text-black" />
-                              <span className="font-medium">La marketplace crypto #1 en France</span>
-                            </div>
-                            <motion.div 
-                              className="bg-muted rounded-lg p-2 flex items-center gap-2"
-                              animate={{ scale: [1, 1.02, 1] }}
-                              transition={{ duration: 1, repeat: Infinity }}
-                            >
                               <Search className="h-2 w-2 text-gray-400" />
-                              <motion.div 
-                                className="text-[8px] text-black"
-                                animate={{ opacity: [1, 0, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                              >
-                                Audi A3...
-                              </motion.div>
-                            </motion.div>
-                            <div className="flex-1 flex items-center justify-center">
-                              <motion.div
-                                initial={{ scale: 0.8, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="text-center space-y-2"
-                              >
-                                <svg 
-                                  className="w-12 h-12 mx-auto text-gray-400" 
-                                  viewBox="0 0 24 24" 
-                                  fill="none" 
-                                  stroke="currentColor" 
-                                  strokeWidth="1.5"
-                                >
-                                  <motion.path
-                                    d="M3 8l1.5-2h15L21 8M3 8v8a2 2 0 002 2h14a2 2 0 002-2V8M3 8h18"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    initial={{ pathLength: 0 }}
-                                    animate={{ pathLength: 1 }}
-                                    transition={{ duration: 1 }}
-                                  />
-                                </svg>
-                                <div>
+                              <span className="font-medium">Rechercher une annonce...</span>
+                            </div>
+
+                            <div className="flex-1 flex flex-col">
+                              <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 mb-3">
+                                <img 
+                                  src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//file.svg"
+                                  alt="Audi A3"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+
+                              <div className="space-y-2 px-1">
+                                <div className="space-y-0.5">
+                                  <div className="h-[1px] bg-gray-200" />
+                                  <p className="text-[8px] text-gray-400">Marque & Modèle</p>
                                   <p className="text-[10px] font-medium">Audi A3 2023</p>
-                                  <p className="text-[8px] text-gray-500">2.45 ETH • Disponible</p>
                                 </div>
-                              </motion.div>
+
+                                <div className="space-y-0.5">
+                                  <div className="h-[1px] bg-gray-200" />
+                                  <p className="text-[8px] text-gray-400">Kilométrage</p>
+                                  <p className="text-[10px]">15 000 km</p>
+                                </div>
+
+                                <div className="space-y-0.5">
+                                  <div className="h-[1px] bg-gray-200" />
+                                  <p className="text-[8px] text-gray-400">Prix</p>
+                                  <div>
+                                    <p className="text-[10px] font-medium">2.45 ETH</p>
+                                    <p className="text-[8px] text-gray-500">≈ 4,892.50 €</p>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-0.5">
+                                  <div className="h-[1px] bg-gray-200" />
+                                  <p className="text-[8px] text-gray-400">État</p>
+                                  <p className="text-[10px]">Excellent état</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ) : (
