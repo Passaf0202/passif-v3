@@ -12,7 +12,7 @@ export function NavbarCategories({
 }: NavbarCategoriesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const categoryRefs = useRef<Record<string, HTMLLIElement | null>>({});
-  const menuContainerRef = useRef<HTMLDivElement>(null);
+  const menuContainerRef = useRef<HTMLUListElement>(null);
   
   const {
     menuState,
