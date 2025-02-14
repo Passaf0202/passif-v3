@@ -35,7 +35,6 @@ export function useMenuState() {
   const handleCategoryEnter = (categoryId: string) => {
     clearTimeouts();
     
-    // Changement immédiat de catégorie
     setMenuState(prev => ({
       isOpen: true,
       currentCategory: categoryId,
@@ -53,15 +52,17 @@ export function useMenuState() {
 
     const { clientX, clientY } = e;
     
-    // Zone de sécurité plus large
+    // Zone de sécurité calculée à partir du bas de la navbar
     const isInSafeZone = 
-      clientY < menuRect.top - MENU_ZONES.safeZone.top ||
-      clientY > menuRect.bottom + MENU_ZONES.safeZone.bottom ||
+      clientY < MENU_ZONES.safeZone.top || // Au-dessus de la navbar
+      clientY > menuRect.bottom + MENU_ZONES.safeZone.bottom || // Large zone en bas
       clientX < menuRect.left - MENU_ZONES.safeZone.sides ||
       clientX > menuRect.right + MENU_ZONES.safeZone.sides;
 
-    // Zone tampon au-dessus des catégories
-    const isCategoryZone = clientY > menuRect.bottom - MENU_ZONES.categories.height - MENU_ZONES.categories.buffer;
+    // Zone des catégories inclut maintenant une zone tampon plus grande
+    const isCategoryZone = 
+      clientY > MENU_ZONES.safeZone.top && 
+      clientY < MENU_ZONES.safeZone.top + MENU_ZONES.categories.height + MENU_ZONES.categories.buffer;
 
     if (isInSafeZone) {
       closeMenu();

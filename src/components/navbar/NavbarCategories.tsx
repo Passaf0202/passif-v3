@@ -45,53 +45,57 @@ export function NavbarCategories({
 
   return (
     <nav className="relative w-full border-b border-gray-200/80">
-      <div className="max-w-[1440px] h-12 mx-auto px-4 md:px-8">
-        <div className="h-full flex items-center justify-center" ref={containerRef}>
-          <ul className="inline-flex items-center gap-1">
-            {displayedCategories.map((category, index) => (
-              <li 
-                key={category.id} 
-                ref={el => categoryRefs.current[category.id] = el}
-                className={`relative flex items-center text-[13px] ${
-                  menuState.currentCategory === category.id 
-                    ? 'text-primary font-medium' 
-                    : 'text-gray-700 hover:text-primary'
-                }`}
-                onMouseEnter={() => handleCategoryEnter(category.id)}
-              >
-                <button 
-                  className={`px-3 py-2 transition-colors whitespace-nowrap ${
+      {/* Barre de catégories - toujours visible */}
+      <div className="sticky top-0 z-50 bg-white">
+        <div className="max-w-[1440px] h-12 mx-auto px-4 md:px-8">
+          <div className="h-full flex items-center justify-center" ref={containerRef}>
+            <ul className="inline-flex items-center gap-1">
+              {displayedCategories.map((category, index) => (
+                <li 
+                  key={category.id} 
+                  ref={el => categoryRefs.current[category.id] = el}
+                  className={`relative flex items-center text-[13px] ${
                     menuState.currentCategory === category.id 
-                      ? 'bg-primary/5 rounded-md' 
-                      : ''
+                      ? 'text-primary font-medium' 
+                      : 'text-gray-700 hover:text-primary'
                   }`}
+                  onMouseEnter={() => handleCategoryEnter(category.id)}
                 >
-                  {category.name}
-                </button>
-                
-                {index < displayedCategories.length - 1 && (
-                  <span className="text-gray-400 select-none">•</span>
-                )}
-              </li>
-            ))}
-          </ul>
+                  <button 
+                    className={`px-3 py-2 transition-colors whitespace-nowrap ${
+                      menuState.currentCategory === category.id 
+                        ? 'bg-primary/5 rounded-md' 
+                        : ''
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+                  
+                  {index < displayedCategories.length - 1 && (
+                    <span className="text-gray-400 select-none">•</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 
+      {/* Menu et backdrop */}
       {menuState.isOpen && (
         <>
           <div
             ref={menuZoneRef}
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-40 pt-[96px]" // Commence sous la navbar
             onMouseEnter={handleMenuZoneEnter}
             onMouseLeave={handleMenuZoneLeave}
           >
-            {/* Fond avec flou uniquement au-dessus de la zone des catégories */}
-            <div className="fixed inset-0">
-              <div className="absolute inset-0 bottom-12 bg-black/5 backdrop-blur-[1px]" />
-              <div className="absolute bottom-0 left-0 right-0 h-12 bg-white" />
+            {/* Backdrop avec flou */}
+            <div className="fixed inset-0 pt-[96px]">
+              <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
             </div>
             
+            {/* Contenu du menu */}
             <div 
               ref={menuRef}
               className={`fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm transition-all duration-200 ease-out ${
