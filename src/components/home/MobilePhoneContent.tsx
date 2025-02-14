@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Loader2 } from "lucide-react";
 import { DiamondViewer } from "./DiamondViewer";
+import { useRef } from "react";
 
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
 
@@ -11,17 +12,19 @@ interface MobilePhoneContentProps {
 }
 
 export function MobilePhoneContent({ transactionState, showWalletSpotlight }: MobilePhoneContentProps) {
+  const modelContainerRef = useRef<HTMLDivElement>(null);
+
   return (
-    <AnimatePresence mode="wait">
-      <motion.div 
-        key={transactionState}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.3 }}
-        className="absolute inset-0 p-2 flex flex-col"
-      >
-        <div className="relative h-12 px-2 flex items-center justify-between border-b border-gray-200/80 bg-white/80 backdrop-blur-md">
+    <div className="absolute inset-0 p-2 flex flex-col">
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={transactionState}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="relative h-12 px-2 flex items-center justify-between border-b border-gray-200/80 bg-white/80 backdrop-blur-md"
+        >
           <div className="flex items-center">
             <img 
               src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg"
@@ -75,25 +78,32 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
               )}
             </motion.button>
           </div>
-        </div>
+        </motion.div>
+      </AnimatePresence>
 
-        <div className="flex-1 p-4 flex items-center justify-center bg-gradient-to-b from-transparent to-gray-50/20">
-          <div className="w-64 h-64">
-            <DiamondViewer state={transactionState} />
-          </div>
+      <div className="flex-1 p-4 flex items-center justify-center bg-gradient-to-b from-transparent to-gray-50/20">
+        <div ref={modelContainerRef} className="w-64 h-64 fixed-size-container">
+          <DiamondViewer state={transactionState} />
         </div>
+      </div>
 
+      <AnimatePresence>
         {transactionState !== 'initial' && (
-          <div className="h-0.5 bg-gray-100">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="h-0.5 bg-gray-100"
+          >
             <motion.div 
               className="h-full bg-primary"
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{ duration: 2 }}
             />
-          </div>
+          </motion.div>
         )}
-      </motion.div>
-    </AnimatePresence>
+      </AnimatePresence>
+    </div>
   );
 }
