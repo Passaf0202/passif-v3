@@ -1,9 +1,8 @@
 
-import { Plus, Coins, Diamond, ArrowRight, MapPin, Shield, Clock3 } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 
 export function HeroSection() {
   return (
@@ -78,136 +77,119 @@ export function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Colonne de droite - Exemples d'Annonces */}
+          {/* Colonne de droite - Illustration iPhone avec transaction */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="relative flex justify-center items-center"
           >
-            {/* Container des annonces superposées */}
-            <div className="relative w-full max-w-md aspect-[4/3] flex justify-center">
-              {/* Annonce 3 (Arrière-plan) - MacBook */}
+            <div className="relative w-full max-w-md aspect-[4/3]">
+              {/* Éléments flottants */}
               <motion.div
-                animate={{ 
-                  y: [0, -2, 0]
+                animate={{
+                  rotate: [0, 360],
                 }}
-                transition={{ 
-                  duration: 5,
+                transition={{
+                  duration: 20,
                   repeat: Infinity,
-                  repeatType: "reverse",
-                  ease: "easeInOut"
+                  ease: "linear",
                 }}
-                className="absolute w-[200px] rounded-lg shadow-sm bg-white border border-black/10 transform -translate-x-8 translate-y-4"
+                className="absolute inset-0"
               >
-                <Badge className="absolute top-2 right-2 bg-black/80 hover:bg-black/90">Exemple</Badge>
-                <div className="h-[120px] bg-gray-100 rounded-t-lg flex items-center justify-center">
-                  <svg className="w-16 h-16 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="2" y="4" width="20" height="14" rx="2" />
-                    <path d="M7 19h10" />
-                  </svg>
-                </div>
-                <div className="p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-sm">MacBook Air M2</h3>
-                    <Shield className="h-3 w-3 text-black" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold">1100 €</p>
-                    <p className="text-xs text-gray-500">≈ 0.420 POL</p>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <MapPin className="h-3 w-3" />
-                    <span>Bordeaux, France</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Clock3 className="h-3 w-3" />
-                    <span>il y a 4h</span>
-                  </div>
-                </div>
+                <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-black rounded-full" />
+                <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-black rounded-full" />
+                <div className="absolute bottom-1/4 right-1/4 w-2 h-2 bg-black rounded-full" />
               </motion.div>
 
-              {/* Annonce 2 (Milieu) - PS5 */}
+              {/* iPhone Frame */}
               <motion.div
-                animate={{ 
-                  y: [0, -4, 0]
+                animate={{
+                  y: [-5, 5, -5],
                 }}
-                transition={{ 
+                transition={{
                   duration: 6,
                   repeat: Infinity,
-                  repeatType: "reverse",
                   ease: "easeInOut",
-                  delay: 0.1
                 }}
-                className="absolute w-[200px] rounded-lg shadow-sm bg-white border border-black/10 transform translate-x-0 translate-y-2"
+                className="relative z-10 w-[280px] h-[560px] mx-auto bg-white rounded-[45px] border-[10px] border-black shadow-xl"
               >
-                <Badge className="absolute top-2 right-2 bg-black/80 hover:bg-black/90">Exemple</Badge>
-                <div className="h-[120px] bg-gray-100 rounded-t-lg flex items-center justify-center">
-                  <svg className="w-16 h-16 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
-                    <path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-                  </svg>
-                </div>
-                <div className="p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-sm">PS5 Digital Edition</h3>
-                    <Shield className="h-3 w-3 text-black" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold">400 €</p>
-                    <p className="text-xs text-gray-500">≈ 0.153 POL</p>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <MapPin className="h-3 w-3" />
-                    <span>Lyon, France</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Clock3 className="h-3 w-3" />
-                    <span>il y a 2h</span>
+                {/* iPhone Notch */}
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-black rounded-b-2xl" />
+
+                {/* Screen Content */}
+                <div className="p-4 h-full flex flex-col">
+                  {/* Progress Bar */}
+                  <motion.div 
+                    className="h-2 bg-gray-200 rounded-full overflow-hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <motion.div
+                      className="h-full bg-black"
+                      initial={{ width: "0%" }}
+                      animate={{ width: "75%" }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                      }}
+                    />
+                  </motion.div>
+
+                  {/* Transaction Details */}
+                  <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+                    <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-xl">POL</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">1200 €</div>
+                      <div className="text-gray-500">≈ 0.458 POL</div>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-6 py-3 bg-black text-white rounded-full font-medium"
+                    >
+                      Confirmer le paiement
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Annonce 1 (Premier plan) - iPhone */}
-              <motion.div
-                animate={{ 
-                  y: [0, -6, 0]
-                }}
-                transition={{ 
-                  duration: 7,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                  ease: "easeInOut",
-                  delay: 0.2
-                }}
-                className="absolute w-[200px] rounded-lg shadow-md bg-white border border-black/10 transform translate-x-8"
-              >
-                <Badge className="absolute top-2 right-2 bg-black/80 hover:bg-black/90">Exemple</Badge>
-                <div className="h-[120px] bg-gray-100 rounded-t-lg flex items-center justify-center">
-                  <svg className="w-16 h-16 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="5" y="2" width="14" height="20" rx="2" />
-                    <path d="M12 18h.01" />
-                  </svg>
-                </div>
-                <div className="p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-sm">iPhone 14 Pro</h3>
-                    <Shield className="h-3 w-3 text-black" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold">1200 €</p>
-                    <p className="text-xs text-gray-500">≈ 0.458 POL</p>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <MapPin className="h-3 w-3" />
-                    <span>Paris, France</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Clock3 className="h-3 w-3" />
-                    <span>il y a 1h</span>
-                  </div>
-                </div>
-              </motion.div>
+              {/* Connection Lines */}
+              <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
+                <motion.path
+                  d="M 100,100 C 150,150 200,150 250,100"
+                  stroke="black"
+                  strokeWidth="1"
+                  fill="none"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    ease: "easeInOut",
+                  }}
+                />
+                <motion.path
+                  d="M 250,300 C 200,250 150,250 100,300"
+                  stroke="black"
+                  strokeWidth="1"
+                  fill="none"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{
+                    duration: 2,
+                    delay: 1,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    ease: "easeInOut",
+                  }}
+                />
+              </svg>
             </div>
           </motion.div>
         </div>
