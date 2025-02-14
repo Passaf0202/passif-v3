@@ -11,17 +11,14 @@ interface DiamondViewerProps {
 export function DiamondViewer({ state }: DiamondViewerProps) {
   return (
     <div className="w-[200px] h-[200px]">
-      <Suspense fallback={
-        <div className="w-full h-full flex items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        </div>
-      }>
-        <Canvas
-          style={{ background: 'transparent' }}
-        >
+      <Canvas>
+        <color attach="background" args={['transparent']} />
+        <ambientLight intensity={0.5} />
+        <pointLight position={[10, 10, 10]} />
+        <Suspense fallback={null}>
           <Diamond3D />
-        </Canvas>
-      </Suspense>
+        </Suspense>
+      </Canvas>
     </div>
   );
 }
