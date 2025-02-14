@@ -95,17 +95,19 @@ export function NavbarCategories({
               <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]" />
             </div>
             
-            {/* Contenu du menu */}
+            {/* Conteneur externe du menu - fond et ombre sur toute la largeur */}
             <div 
               ref={menuRef}
-              className="fixed left-0 right-0 bg-white/97 border-t border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
+              className="fixed left-0 right-0 bg-white border-t border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
               style={{ top: '96px' }}
             >
-              {menuState.currentCategory && (
-                <CategoryContent
-                  category={displayedCategories.find(cat => cat.id === menuState.currentCategory)!}
-                />
-              )}
+              <div className="max-w-[1440px] mx-auto">
+                {menuState.currentCategory && (
+                  <CategoryContent
+                    category={displayedCategories.find(cat => cat.id === menuState.currentCategory)!}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </>

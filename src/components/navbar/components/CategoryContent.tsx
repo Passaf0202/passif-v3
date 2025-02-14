@@ -23,7 +23,7 @@ export function CategoryContent({ category }: CategoryContentProps) {
 
   return (
     <div className="h-full">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-6">
+      <div className="px-4 md:px-8 py-6">
         <div className="flex">
           {/* Colonne de gauche - Aperçu */}
           <div className="w-[250px] flex-shrink-0 pr-8">
