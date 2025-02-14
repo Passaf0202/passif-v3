@@ -1,6 +1,5 @@
 
 import { useRef } from "react";
-import { Link } from "react-router-dom";
 import { useOrganizedCategories } from "./categories/useOrganizedCategories";
 import { useVisibleCategories } from "./categories/useVisibleCategories";
 import { useMenuState } from "./hooks/useMenuState";
@@ -55,14 +54,16 @@ export function NavbarCategories({
                 ref={el => categoryRefs.current[category.id] = el}
                 className={`relative flex items-center text-[13px] ${
                   menuState.currentCategory === category.id 
-                    ? 'text-primary' 
-                    : 'text-gray-700'
+                    ? 'text-primary font-medium' 
+                    : 'text-gray-700 hover:text-primary'
                 }`}
                 onMouseEnter={() => handleCategoryEnter(category.id)}
               >
                 <button 
-                  className={`px-3 py-2 hover:text-primary transition-colors whitespace-nowrap ${
-                    menuState.currentCategory === category.id ? 'font-medium' : ''
+                  className={`px-3 py-2 transition-colors whitespace-nowrap ${
+                    menuState.currentCategory === category.id 
+                      ? 'bg-primary/5 rounded-md' 
+                      : ''
                   }`}
                 >
                   {category.name}
@@ -85,16 +86,16 @@ export function NavbarCategories({
             onMouseEnter={handleMenuZoneEnter}
             onMouseLeave={handleMenuZoneLeave}
           >
-            {/* Backdrop avec flou uniquement au-dessus de la zone des catégories */}
+            {/* Fond avec flou uniquement au-dessus de la zone des catégories */}
             <div className="fixed inset-0">
               <div className="absolute inset-0 bottom-12 bg-black/5 backdrop-blur-[1px]" />
-              <div className="absolute bottom-0 left-0 right-0 h-12 bg-white/80" />
+              <div className="absolute bottom-0 left-0 right-0 h-12 bg-white" />
             </div>
             
             <div 
               ref={menuRef}
-              className={`fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm transition-all duration-300 ease-in-out ${
-                menuState.isTransitioning ? 'opacity-90' : 'opacity-100'
+              className={`fixed left-0 right-0 bg-white border-b border-gray-200/80 shadow-sm transition-all duration-200 ease-out ${
+                menuState.isTransitioning ? 'opacity-95' : 'opacity-100'
               }`}
               style={{ top: '96px' }}
             >

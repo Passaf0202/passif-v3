@@ -10,7 +10,6 @@ export function useMenuState() {
     isTransitioning: false
   });
   const [closeTimeout, setCloseTimeout] = useState<number | null>(null);
-  const [openTimeout, setOpenTimeout] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuZoneRef = useRef<HTMLDivElement>(null);
 
@@ -31,24 +30,17 @@ export function useMenuState() {
       window.clearTimeout(closeTimeout);
       setCloseTimeout(null);
     }
-    if (openTimeout) {
-      window.clearTimeout(openTimeout);
-      setOpenTimeout(null);
-    }
   };
 
   const handleCategoryEnter = (categoryId: string) => {
     clearTimeouts();
-
-    const openTimer = window.setTimeout(() => {
-      setMenuState(prev => ({
-        isOpen: true,
-        currentCategory: categoryId,
-        isTransitioning: prev.currentCategory !== null && prev.currentCategory !== categoryId
-      }));
-    }, menuState.isOpen ? 0 : TIMING.openDelay);
-
-    setOpenTimeout(openTimer);
+    
+    // Changement immédiat de catégorie
+    setMenuState(prev => ({
+      isOpen: true,
+      currentCategory: categoryId,
+      isTransitioning: prev.currentCategory !== null && prev.currentCategory !== categoryId
+    }));
   };
 
   const handleMenuZoneEnter = () => {
@@ -61,18 +53,19 @@ export function useMenuState() {
 
     const { clientX, clientY } = e;
     
-    // Vérifier si la souris est dans une zone sécurisée
+    // Zone de sécurité plus large
     const isInSafeZone = 
       clientY < menuRect.top - MENU_ZONES.safeZone.top ||
       clientY > menuRect.bottom + MENU_ZONES.safeZone.bottom ||
       clientX < menuRect.left - MENU_ZONES.safeZone.sides ||
       clientX > menuRect.right + MENU_ZONES.safeZone.sides;
 
-    // Si en dehors de la zone sécurisée, fermer immédiatement
+    // Zone tampon au-dessus des catégories
+    const isCategoryZone = clientY > menuRect.bottom - MENU_ZONES.categories.height - MENU_ZONES.categories.buffer;
+
     if (isInSafeZone) {
       closeMenu();
-    } else if (clientY < menuRect.bottom - MENU_ZONES.categories.height) {
-      // Si au-dessus de la zone des catégories, programmer la fermeture
+    } else if (!isCategoryZone) {
       scheduleClose();
     }
   };
@@ -102,14 +95,9 @@ export function useMenuState() {
 
   useEffect(() => {
     return () => {
-      if (closeTimeout) {
-        window.clearTimeout(closeTimeout);
-      }
-      if (openTimeout) {
-        window.clearTimeout(openTimeout);
-      }
+      clearTimeouts();
     };
-  }, [closeTimeout, openTimeout]);
+  }, [closeTimeout]);
 
   return {
     menuState,
