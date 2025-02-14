@@ -2,7 +2,7 @@
 import { Canvas } from '@react-three/fiber';
 import { Diamond3D } from './Diamond3D';
 import { Suspense } from 'react';
-import { Environment } from '@react-three/drei';
+import { Environment, OrbitControls } from '@react-three/drei';
 
 interface DiamondViewerProps {
   state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
@@ -23,7 +23,8 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
           </mesh>
         }>
           <Diamond3D />
-          <Environment preset="city" />
+          <OrbitControls enableZoom={false} />
+          <Environment files="/hdri/studio.hdr" background={false} />
         </Suspense>
       </Canvas>
     </div>
