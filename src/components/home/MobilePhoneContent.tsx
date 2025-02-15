@@ -54,7 +54,7 @@ export function MobilePhoneContent({
           {/* Informations produit */}
           <div className="space-y-3 px-4 -mt-8">
             <div>
-              <h2 className="leading-tight text-black text-lg font-bold">Diamant 4 carats</h2>
+              <h2 className="leading-tight text-black text-lg font-semibold">Diamant</h2>
             </div>
 
             <div className="w-full bg-black text-white px-3 py-2 text-sm font-medium rounded-full">19.25 ETH</div>
