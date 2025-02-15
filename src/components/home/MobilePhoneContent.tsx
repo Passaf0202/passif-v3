@@ -76,7 +76,7 @@ export function MobilePhoneContent({
             repeat: showWalletSpotlight ? Infinity : 0,
             repeatType: "reverse"
           }}>
-              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[6px]">
+              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[4px]">
                 {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
               </Button>
             </motion.div>
