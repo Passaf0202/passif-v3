@@ -57,10 +57,10 @@ export function HeroSection() {
               <Link to="/create">
                 <Button 
                   size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-primary hover:bg-primary/90 w-full sm:w-auto"
+                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-primary hover:bg-primary/90 w-full sm:w-auto rounded-[20px]"
                 >
                   <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-current">
-                    <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <Plus className="h-3 w-3 sm:h-4 sm:w-4" strokeWidth={2} />
                   </span>
                   Déposer une annonce
                   <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2 opacity-0 group-hover:opacity-100 transition-all" />
@@ -70,12 +70,12 @@ export function HeroSection() {
                 <Button 
                   variant="outline" 
                   size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-primary text-white hover:bg-primary/90 w-full sm:w-auto"
+                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-white text-primary hover:bg-white/90 w-full sm:w-auto rounded-[20px] border-2 border-primary"
                 >
                   <img 
                     src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                     alt="Tradecoiner"
-                    className="h-3 w-3 sm:h-4 sm:w-4 mr-2 fill-white"
+                    className="h-3 w-3 sm:h-4 sm:w-4 mr-2 fill-primary"
                   />
                   Explorer les annonces
                 </Button>
