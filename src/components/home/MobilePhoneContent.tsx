@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -9,31 +8,34 @@ import { useAccount, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/react';
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
-
 interface MobilePhoneContentProps {
   transactionState: TransactionState;
   showWalletSpotlight: boolean;
 }
-
 export function MobilePhoneContent({
   transactionState,
   showWalletSpotlight
 }: MobilePhoneContentProps) {
   const modelContainerRef = useRef<HTMLDivElement>(null);
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
-  const { open, isOpen } = useWeb3Modal();
-  const { toast } = useToast();
-  const { user } = useAuth();
-
+  const {
+    address,
+    isConnected
+  } = useAccount();
+  const {
+    disconnect
+  } = useDisconnect();
+  const {
+    open,
+    isOpen
+  } = useWeb3Modal();
+  const {
+    toast
+  } = useToast();
+  const {
+    user
+  } = useAuth();
   const handleConnect = async () => {
     try {
       if (!user) {
@@ -43,7 +45,6 @@ export function MobilePhoneContent({
         });
         return;
       }
-
       if (isConnected) {
         await disconnect();
         toast({
@@ -63,31 +64,19 @@ export function MobilePhoneContent({
       });
     }
   };
-
-  return (
-    <TooltipProvider>
+  return <TooltipProvider>
       <div className="absolute inset-0 flex flex-col bg-white">
         <div className="h-16 flex items-center">
-          <div className="w-full max-w-[360px] mx-auto px-5 flex items-center justify-between">
-            <img 
-              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
-              alt="Tradecoiner" 
-              className="h-4 w-auto" 
-            />
+          <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[12px]">
+            <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto" />
             <motion.div animate={{
-              scale: showWalletSpotlight ? [1, 1.05, 1] : 1
-            }} transition={{
-              duration: 1,
-              repeat: showWalletSpotlight ? Infinity : 0,
-              repeatType: "reverse"
-            }}>
-              <Button 
-                onClick={handleConnect} 
-                disabled={isOpen}
-                variant="default" 
-                size="sm"
-                className="h-8 w-8 rounded-full p-0"
-              >
+            scale: showWalletSpotlight ? [1, 1.05, 1] : 1
+          }} transition={{
+            duration: 1,
+            repeat: showWalletSpotlight ? Infinity : 0,
+            repeatType: "reverse"
+          }}>
+              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0">
                 {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
               </Button>
             </motion.div>
@@ -112,11 +101,11 @@ export function MobilePhoneContent({
               </div>
 
               <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
-                scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
-              }} transition={{
-                duration: 0.5,
-                ease: "easeInOut"
-              }}>
+              scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
+            }} transition={{
+              duration: 0.5,
+              ease: "easeInOut"
+            }}>
                 <DiamondViewer state={transactionState} />
               </motion.div>
             </div>
@@ -132,11 +121,7 @@ export function MobilePhoneContent({
                   <div className="w-full h-[2px] bg-gray-200/80" />
                 </div>
 
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200"
-                >
+                <Button variant="default" size="sm" className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200">
                   Payer 20 ETH
                 </Button>
                 
@@ -150,6 +135,5 @@ export function MobilePhoneContent({
           </div>
         </div>
       </div>
-    </TooltipProvider>
-  );
+    </TooltipProvider>;
 }
