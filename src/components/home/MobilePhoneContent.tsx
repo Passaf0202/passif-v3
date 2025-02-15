@@ -61,25 +61,31 @@ export function MobilePhoneContent({
 
   return <div className="absolute inset-0 flex flex-col bg-white">
       {/* Header avec logo et wallet */}
-      <div className="relative h-16 px-5 flex items-center">
-        <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-5 w-auto mr-auto" />
-        <motion.div animate={{
-          scale: showWalletSpotlight ? [1, 1.05, 1] : 1
-        }} transition={{
-          duration: 1,
-          repeat: showWalletSpotlight ? Infinity : 0,
-          repeatType: "reverse"
-        }}>
-          <Button 
-            onClick={handleConnect} 
-            disabled={isOpen}
-            variant="default" 
-            size="sm"
-            className="h-8 w-8 rounded-full p-0"
-          >
-            {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
-          </Button>
-        </motion.div>
+      <div className="relative h-16 flex items-center">
+        <img 
+          src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
+          alt="Tradecoiner" 
+          className="h-4 w-auto ml-5" 
+        />
+        <div className="ml-auto mr-5">
+          <motion.div animate={{
+            scale: showWalletSpotlight ? [1, 1.05, 1] : 1
+          }} transition={{
+            duration: 1,
+            repeat: showWalletSpotlight ? Infinity : 0,
+            repeatType: "reverse"
+          }}>
+            <Button 
+              onClick={handleConnect} 
+              disabled={isOpen}
+              variant="default" 
+              size="sm"
+              className="h-8 w-8 rounded-full p-0"
+            >
+              {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
+            </Button>
+          </motion.div>
+        </div>
       </div>
 
       {/* Contenu principal */}
@@ -121,7 +127,11 @@ export function MobilePhoneContent({
                 <div className="w-full h-[2px] bg-gray-200/80" />
               </div>
 
-              <Button variant="default" size="sm" className="w-full h-8 bg-primary/90 hover:bg-primary/80 text-white rounded-full px-3 text-sm transition-colors duration-200">
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200"
+              >
                 Payer 20 ETH
               </Button>
               
