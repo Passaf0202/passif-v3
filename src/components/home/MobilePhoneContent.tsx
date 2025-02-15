@@ -1,10 +1,10 @@
 
 import { motion } from "framer-motion";
-import { WalletCards, BadgeCheck } from "lucide-react";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
+import { CustomWallet, DiamondCheck } from "@/components/icons/CustomIcons";
 
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
 
@@ -24,7 +24,7 @@ export function MobilePhoneContent({
       {/* Header avec logo et wallet */}
       <div className="relative h-12 px-4 flex items-center justify-between">
         <img 
-          src="/Tradecoiner (texte).svg" 
+          src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).svg"
           alt="Tradecoiner" 
           className="h-6 w-auto"
         />
@@ -39,7 +39,7 @@ export function MobilePhoneContent({
           }}
           className="h-6 w-6 rounded-full flex items-center justify-center bg-black text-white"
         >
-          <WalletCards className="h-3 w-3" />
+          <CustomWallet className="h-3 w-3" />
         </motion.button>
       </div>
 
@@ -69,7 +69,7 @@ export function MobilePhoneContent({
               variant="outline" 
               className="h-4 inline-flex items-center gap-1 text-[9px] font-medium border-gray-200/80 whitespace-nowrap px-2"
             >
-              <BadgeCheck className="h-2.5 w-2.5" />
+              <DiamondCheck className="h-2.5 w-2.5" />
               Acheteur vérifié
             </Badge>
 
