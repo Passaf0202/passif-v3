@@ -4,7 +4,7 @@ import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
-import { BadgeCheck, Wallet, User, Loader2 } from "lucide-react";
+import { BadgeCheck, Wallet, Loader2 } from "lucide-react";
 import { useAccount, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/react';
 import { useToast } from "@/components/ui/use-toast";
@@ -68,12 +68,14 @@ export function MobilePhoneContent({
     <TooltipProvider>
       <div className="absolute inset-0 flex flex-col bg-white">
         {/* Header avec logo et wallet */}
-        <div className="relative h-16 flex items-center justify-between px-5">
-          <img 
-            src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
-            alt="Tradecoiner" 
-            className="h-4 w-auto" 
-          />
+        <div className="flex items-center justify-between px-5 h-16">
+          <div className="flex-shrink-0">
+            <img 
+              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
+              alt="Tradecoiner" 
+              className="h-4 w-auto" 
+            />
+          </div>
           <motion.div animate={{
             scale: showWalletSpotlight ? [1, 1.05, 1] : 1
           }} transition={{
@@ -101,16 +103,15 @@ export function MobilePhoneContent({
               {/* Badge utilisateur avec tooltip */}
               <div className="absolute top-4 left-2 z-10 flex items-center space-x-2">
                 <div className="flex items-center bg-muted/50 px-2 py-0.5 rounded-full h-4">
-                  <User className="h-2.5 w-2.5 text-muted-foreground mr-1" />
-                  <span className="text-[9px] font-medium">Saphire</span>
                   <Tooltip>
                     <TooltipTrigger>
-                      <BadgeCheck className="h-3 w-3 ml-1 text-primary" />
+                      <BadgeCheck className="h-2.5 w-2.5 text-primary mr-1" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-xs">Profil vérifié</p>
                     </TooltipContent>
                   </Tooltip>
+                  <span className="text-[9px] font-medium">Saphire</span>
                 </div>
               </div>
 
