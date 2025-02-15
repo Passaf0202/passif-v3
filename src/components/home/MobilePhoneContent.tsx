@@ -4,7 +4,7 @@ import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef, useState, useEffect } from "react";
-import { BadgeCheck, WalletCards, Loader2, Check, ArrowUp, RotateCcw } from "lucide-react";
+import { BadgeCheck, Wallet, Loader2, Check, ArrowUp, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TransactionState } from "./HeroSection";
@@ -116,7 +116,7 @@ export function MobilePhoneContent({
               ) : transactionState === 'wallet-connect' ? (
                 <Check className="h-3.5 w-3.5 text-white" strokeWidth={2} />
               ) : (
-                <WalletCards className="h-3.5 w-3.5 text-white" strokeWidth={2} />
+                <Wallet className="h-3.5 w-3.5 text-white" strokeWidth={2} />
               )}
             </Button>
           </div>
