@@ -30,8 +30,8 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
     switch (transactionState) {
       case 'initial':
         return (
-          <div className="w-full space-y-6">
-            <div className="space-y-3">
+          <div className="w-full space-y-4">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold">Diamant Tradecoiner</h1>
                 <Badge variant="outline" className="font-medium">
@@ -43,7 +43,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
               </p>
             </div>
 
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col space-y-1.5">
               <div className="text-2xl font-bold">2 500 €</div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Diamond className="h-4 w-4" />
@@ -51,13 +51,13 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 py-3 px-4 bg-primary/5 rounded-lg">
+            <div className="flex items-center space-x-2 py-2 px-3 bg-primary/5 rounded-lg">
               <Shield className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Protection acheteur garantie</span>
             </div>
 
             <Button 
-              className="w-full" 
+              className="w-full mt-2" 
               size="lg"
             >
               <Wallet className="mr-2 h-4 w-4" />
@@ -68,13 +68,13 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
       
       case 'payment':
         return (
-          <div className="w-full space-y-6">
-            <div className="space-y-3">
+          <div className="w-full space-y-4">
+            <div className="space-y-2">
               <h2 className="text-lg font-semibold">Achat sécurisé</h2>
               <div className="text-sm text-gray-600">Diamant Tradecoiner - Édition limitée</div>
             </div>
 
-            <div className="p-5 bg-gray-50 rounded-lg space-y-4">
+            <div className="p-4 bg-gray-50 rounded-lg space-y-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Prix du produit</span>
                 <span className="font-bold">2 500 €</span>
@@ -83,7 +83,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
                 <span>Équivalent en POL</span>
                 <span>0.92 POL</span>
               </div>
-              <div className="flex justify-between text-sm text-primary border-t pt-3">
+              <div className="flex justify-between text-sm text-primary border-t pt-2">
                 <span className="flex items-center">
                   <Shield className="h-4 w-4 mr-1.5" />
                   Protection acheteur
@@ -104,10 +104,10 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
       
       case 'confirmed':
         return (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="flex flex-col items-center space-y-4 py-6">
-              <div className="h-14 w-14 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle2 className="h-7 w-7 text-green-600" />
+          <div className="w-full space-y-4">
+            <div className="flex flex-col items-center justify-center space-y-3">
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
               <span className="text-lg font-medium text-green-600">Achat réussi !</span>
               <div className="space-y-2 text-center">
@@ -128,7 +128,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
   return (
     <div className="absolute inset-0 flex flex-col bg-white">
       {/* Header */}
-      <div className="relative h-14 px-4 flex items-center justify-between border-b border-gray-200/80 bg-white/90 backdrop-blur-md">
+      <div className="relative h-12 px-3 flex items-center justify-between border-b border-gray-200/80 bg-white/90 backdrop-blur-md">
         <div className="flex items-center">
           <img 
             src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg"
@@ -147,29 +147,27 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col justify-between p-4">
         {/* Product Viewer */}
-        <div className="relative flex-1 min-h-[45%] max-h-[50%]">
-          <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative pb-4 -mt-6">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white" />
+          <div className="w-64 h-64 mx-auto">
             <LazyDiamondScene state={getDiamondState(transactionState)} />
           </div>
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none" />
         </div>
 
         {/* Transaction Content */}
-        <div className="flex-1 p-6">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={transactionState}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="h-full"
-            >
-              {renderContent()}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={transactionState}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full bg-white rounded-lg"
+          >
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Progress Bar */}
