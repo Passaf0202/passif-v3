@@ -3,7 +3,7 @@ import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
 import { StatusBar } from "./StatusBar";
 import { DynamicIsland } from "./DynamicIsland";
@@ -19,18 +19,6 @@ export type TransactionState =
 
 export function HeroSection() {
   const [transactionState, setTransactionState] = useState<TransactionState>('initial');
-  const [showWalletSpotlight, setShowWalletSpotlight] = useState(() => {
-    const hasSeenGuide = localStorage.getItem('hasSeenTransactionGuide');
-    return !hasSeenGuide;
-  });
-
-  const autoPlay = false;
-
-  useEffect(() => {
-    if (showWalletSpotlight) {
-      localStorage.setItem('hasSeenTransactionGuide', 'true');
-    }
-  }, [showWalletSpotlight]);
 
   return (
     <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
@@ -50,7 +38,7 @@ export function HeroSection() {
           >
             <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm">
               <Diamond className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-              <span className="text-xs sm:text-sm font-medium">La marketplace crypto #1 en France</span>
+              <span className="text-xs sm:text-sm font-medium">La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !</span>
             </div>
             
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
@@ -163,7 +151,6 @@ export function HeroSection() {
                         <div className="relative w-full h-full pt-20 pointer-events-auto">
                           <MobilePhoneContent 
                             transactionState={transactionState}
-                            showWalletSpotlight={showWalletSpotlight}
                             onStateChange={setTransactionState}
                           />
                         </div>
