@@ -128,13 +128,15 @@ export function HeroSection() {
             >
               <div className="relative w-full">
                 <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2">
-                  <div className="absolute top-8 left-8 w-24 h-24 bg-[#1A1B1E] rounded-[24px] flex items-center justify-center">
+                  <div className="absolute top-8 left-8 w-24 h-24 bg-black rounded-[24px] flex items-center justify-center">
                     <div className="relative w-20 h-20">
-                      <div className="absolute inset-0 bg-[#222] rounded-full" />
-                      <div className="absolute inset-2 bg-[#1A1B1E] rounded-full" />
-                      <div className="absolute inset-3 bg-[#000] rounded-full" />
-                      <div className="absolute inset-4 bg-[#111] rounded-full ring-2 ring-[#222]/20">
-                        <div className="absolute inset-2 bg-[#000] rounded-full" />
+                      <div className="absolute inset-0 bg-black/90 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]" />
+                      <div className="absolute inset-2 bg-black rounded-full shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)]" />
+                      <div className="absolute inset-3 bg-black/95 rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)]" />
+                      <div className="absolute inset-4 bg-black rounded-full ring-2 ring-black/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
+                        <div className="absolute inset-2 bg-black rounded-full shadow-[inset_0_-1px_2px_rgba(255,255,255,0.05)]" />
+                        <div className="absolute inset-[40%] bg-black/40 rounded-full blur-[1px]" />
+                        <div className="absolute top-[15%] left-[15%] w-[2px] h-[2px] bg-white/10 rounded-full blur-[0.5px]" />
                       </div>
                     </div>
                   </div>
@@ -172,26 +174,26 @@ export function HeroSection() {
                     </div>
                     
                     <div className="absolute inset-[3px] rounded-[45px] overflow-hidden">
-                      <div className="absolute inset-0 border-[2px] border-black/60 rounded-[45px] z-20 shadow-[inset_0_0_1px_rgba(0,0,0,0.3)]" />
+                      <div className="absolute inset-0 border-[2.5px] border-black rounded-[45px] z-20 shadow-[inset_0_0_2px_rgba(0,0,0,0.4)]" />
                       <div className="absolute inset-0 bg-white">
-                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] bg-black rounded-[25px] z-30 overflow-hidden">
-                          <div className="absolute inset-0 bg-[#1A1B1E]" />
-                          <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0B] via-[#0B0B0B]/95 to-[#0B0B0B]/90" />
+                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] bg-black rounded-[25px] z-30 overflow-hidden shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
+                          <div className="absolute inset-0 bg-black" />
+                          <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-black/95" />
                           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-black/40 to-white/5" />
                           
                           <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[4px] h-[4px] rounded-full">
-                            <div className="absolute inset-0 bg-[#0A0A0A] rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]" />
-                            <div className="absolute inset-[0.75px] bg-[#090909] rounded-full" />
-                            <div className="absolute inset-[1.25px] bg-[#080808] rounded-full" />
+                            <div className="absolute inset-0 bg-black rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]" />
+                            <div className="absolute inset-[0.75px] bg-black rounded-full" />
+                            <div className="absolute inset-[1.25px] bg-black rounded-full" />
                             <div className="absolute top-[25%] left-[25%] w-[0.5px] h-[0.5px] bg-white/15 rounded-full" />
                           </div>
                         </div>
 
                         <div className="absolute top-0 left-0 right-0 h-[44px] px-8 flex items-center justify-between z-10">
-                          <span className="font-medium text-[8px] tracking-wide text-black translate-y-[1px]">9:41</span>
+                          <span className="font-medium text-[7px] tracking-wide text-black translate-y-[1px]">9:41</span>
                           <div className="flex items-center gap-[1px] translate-y-[1px]">
                             {/* Signal icon */}
-                            <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="scale-[0.7]">
+                            <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="scale-[0.65]">
                               <rect x="14" y="1" width="2" height="9" rx="0.7" fill="black"/>
                               <rect x="10.5" y="3" width="2" height="7" rx="0.7" fill="black"/>
                               <rect x="7" y="5" width="2" height="5" rx="0.7" fill="black"/>
@@ -200,11 +202,11 @@ export function HeroSection() {
                             </svg>
 
                             {/* 5G text */}
-                            <span className="text-[7px] font-normal text-black translate-y-[0px]">5G</span>
+                            <span className="text-[6.5px] font-normal text-black translate-y-[0px]">5G</span>
 
                             {/* Battery icon */}
                             <div className="relative h-[13px] w-[24px] translate-y-[0px]">
-                              <svg width="24" height="13" viewBox="0 0 24 13" fill="none" className="scale-[0.7]">
+                              <svg width="24" height="13" viewBox="0 0 24 13" fill="none" className="scale-[0.65]">
                                 <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" stroke="black" strokeWidth="0.75"/>
                                 <rect x="2" y="2" width="18" height="8" rx="1.5" fill="black"/>
                                 <rect x="22.5" y="3.5" width="1" height="5" rx="0.5" fill="black"/>
@@ -222,7 +224,7 @@ export function HeroSection() {
                       </div>
                     </div>
 
-                    <div className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[80px] h-[4px] bg-[#000000e6] rounded-full" />
+                    <div className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[80px] h-[4px] bg-black rounded-full shadow-[inset_0_1px_1px_rgba(0,0,0,0.2)]" />
                     <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-white/20 via-transparent to-black/10 pointer-events-none" />
                   </div>
                 </div>
