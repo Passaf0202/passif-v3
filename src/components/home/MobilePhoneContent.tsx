@@ -62,7 +62,7 @@ export function MobilePhoneContent({
           <div className="space-y-2 px-4 -mt-8">
             <Badge 
               variant="outline" 
-              className="h-4 inline-flex items-center gap-1 text-[9px] font-medium border-gray-200 whitespace-nowrap px-2"
+              className="h-4 inline-flex items-center gap-1 text-[9px] font-medium border-gray-200/80 whitespace-nowrap px-2"
             >
               <CheckCircle className="h-2.5 w-2.5" />
               Acheteur vérifié
@@ -72,25 +72,25 @@ export function MobilePhoneContent({
               <h2 className="text-lg leading-tight font-semibold text-black">Diamant 4 carats</h2>
             </div>
 
-            <div className="w-full bg-black text-white px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+            <div className="w-full h-8 bg-black text-white rounded-full px-3 flex items-center justify-center text-xs font-medium whitespace-nowrap transition-colors duration-200">
               19.25 ETH = 50.000 EUR
             </div>
 
-            <div className="w-full h-[1px] bg-gray-200 my-2" />
+            <div className="w-full h-[1px] bg-gray-200/80 my-2" />
 
             <div className="space-y-2">
               <Button 
                 variant="default"
                 size="sm"
-                className="w-full bg-black hover:bg-black/90 text-white text-sm"
+                className="w-full h-8 bg-primary/90 hover:bg-primary/80 text-white rounded-full px-3 text-sm transition-colors duration-200"
               >
                 Payer
               </Button>
               
               <div className="space-y-1.5">
-                <div className="w-full h-[1px] bg-gray-200" />
-                <div className="w-full h-[1px] bg-gray-200" />
-                <div className="w-full h-[1px] bg-gray-200" />
+                <div className="w-full h-[1px] bg-gray-200/80" />
+                <div className="w-full h-[1px] bg-gray-200/80" />
+                <div className="w-full h-[1px] bg-gray-200/80" />
               </div>
             </div>
           </div>

@@ -184,18 +184,18 @@ export function DiamondViewer({
         auto-rotate
         rotation-per-second={getRotationSpeed()}
         rotation-axis="0 1 0"
-        orientation="0deg 270deg 0deg"
+        orientation="0deg 275deg 0deg"
         interaction-prompt="none"
-        camera-orbit="45deg 85deg 1.2m"
-        min-camera-orbit="45deg 85deg 1.2m"
-        max-camera-orbit="45deg 85deg 1.2m"
+        camera-orbit="55deg 85deg 1.2m"
+        min-camera-orbit="55deg 85deg 1.2m"
+        max-camera-orbit="55deg 85deg 1.2m"
         auto-rotate-delay={0}
         shadow-intensity="0"
         exposure="0.8"
         environment-image="neutral"
         field-of-view="18deg"
         bounds="tight"
-        scale="2.5 2.5 2.5"
+        scale="2.3 2.3 2.3"
         loading="eager"
         style={{
           width: '100%',
