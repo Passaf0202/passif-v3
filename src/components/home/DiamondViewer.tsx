@@ -119,17 +119,17 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   const getRotationSpeed = useCallback(() => {
     switch (state) {
       case 'wallet-connect':
-        return "6deg"; // Plus lent pour une meilleure visibilité
+        return "8deg"; // Vitesse normale
       case 'wallet-connecting':
-        return "4deg"; // Encore plus lent pendant la validation
+        return "4deg"; // Plus lent pendant la validation
       case 'payment':
-        return "8deg"; // Un peu plus rapide pour l'attention
+        return "12deg"; // Plus rapide pendant la recherche
       case 'processing':
-        return "4deg"; // Retour à lent pendant le traitement
+        return "4deg"; // Plus lent pendant la validation
       case 'confirmed':
-        return "12deg"; // Rotation rapide pour la confirmation
+        return "16deg"; // Rotation triomphante
       default:
-        return "6deg"; // Vitesse par défaut modérée
+        return "8deg"; // Vitesse normale
     }
   }, [state]);
 
@@ -164,15 +164,15 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 
   if (!isModelViewerReady) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-transparent">
-        <Loader2 className="h-5 w-5 animate-spin text-black/30" />
+      <div className="w-full h-full flex items-center justify-center bg-transparent rounded-lg">
+        <Loader2 className="h-5 w-5 animate-spin text-primary/50" />
       </div>
     );
   }
 
   if (hasError) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-transparent">
+      <div className="w-full h-full flex items-center justify-center bg-transparent rounded-lg">
         <div className="text-center text-red-500/80 text-sm">
           <p>Erreur de chargement</p>
           <p className="text-xs">Veuillez rafraîchir la page</p>
@@ -182,7 +182,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   }
 
   return (
-    <div className="w-full h-full relative bg-transparent">
+    <div className="w-full h-full relative bg-transparent rounded-lg overflow-hidden">
       <model-viewer
         ref={modelRef}
         src={MODEL_PATH}
@@ -200,7 +200,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         environment-image="neutral"
         field-of-view="18deg"
         bounds="tight"
-        scale="2.5 2.5 2.5"
+        scale="2.2 2.2 2.2"
         loading="eager"
         style={{
           width: '100%',
