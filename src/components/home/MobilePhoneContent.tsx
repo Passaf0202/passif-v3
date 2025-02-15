@@ -1,14 +1,16 @@
+
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
-import { BadgeCheck, Wallet, Loader2 } from "lucide-react";
+import { Wallet, Loader2 } from "lucide-react";
 import { useAccount, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/react';
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { StatusBar } from "./StatusBar";
+import { DynamicIsland } from "./DynamicIsland";
 
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
 
@@ -22,23 +24,11 @@ export function MobilePhoneContent({
   showWalletSpotlight
 }: MobilePhoneContentProps) {
   const modelContainerRef = useRef<HTMLDivElement>(null);
-  const {
-    address,
-    isConnected
-  } = useAccount();
-  const {
-    disconnect
-  } = useDisconnect();
-  const {
-    open,
-    isOpen
-  } = useWeb3Modal();
-  const {
-    toast
-  } = useToast();
-  const {
-    user
-  } = useAuth();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { open, isOpen } = useWeb3Modal();
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleConnect = async () => {
     try {
