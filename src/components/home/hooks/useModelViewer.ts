@@ -38,7 +38,7 @@ export function useModelViewer(state: DiamondViewerState) {
       case 'awaiting-confirmation':
         return "6deg";
       case 'confirmed':
-        return "16deg";
+        return "32deg"; // Augmenté pour une rotation rapide lors de la confirmation
       default:
         return "8deg";
     }
