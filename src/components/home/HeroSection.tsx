@@ -174,7 +174,7 @@ export function HeroSection() {
                     <div className="absolute inset-[3px] rounded-[45px] overflow-hidden">
                       <div className="absolute inset-0 border-[2px] border-black/60 rounded-[45px] z-20 shadow-[inset_0_0_1px_rgba(0,0,0,0.3)]" />
                       <div className="absolute inset-0 bg-white">
-                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[60px] h-[22px] bg-black rounded-[25px] z-30 overflow-hidden">
+                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] bg-black rounded-[25px] z-30 overflow-hidden">
                           <div className="absolute inset-0 bg-[#1A1B1E]" />
                           <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0B] via-[#0B0B0B]/95 to-[#0B0B0B]/90" />
                           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-black/40 to-white/5" />
@@ -187,11 +187,11 @@ export function HeroSection() {
                           </div>
                         </div>
 
-                        <div className="absolute top-0 left-0 right-0 h-[44px] px-6 flex items-center justify-between z-10">
-                          <span className="font-normal text-[9px] tracking-[-0.01em] text-black translate-y-[2px]">9:41</span>
-                          <div className="flex items-center gap-[2px] translate-y-[2px]">
+                        <div className="absolute top-0 left-0 right-0 h-[44px] px-8 flex items-center justify-between z-10">
+                          <span className="font-medium text-[8px] tracking-wide text-black translate-y-[1px]">9:41</span>
+                          <div className="flex items-center gap-[1px] translate-y-[1px]">
                             {/* Signal icon */}
-                            <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="scale-[0.75]">
+                            <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="scale-[0.7]">
                               <rect x="14" y="1" width="2" height="9" rx="0.7" fill="black"/>
                               <rect x="10.5" y="3" width="2" height="7" rx="0.7" fill="black"/>
                               <rect x="7" y="5" width="2" height="5" rx="0.7" fill="black"/>
@@ -199,12 +199,12 @@ export function HeroSection() {
                               <rect x="0" y="9" width="2" height="1" rx="0.5" fill="black" fillOpacity="0.3"/>
                             </svg>
 
-                            {/* 5G text instead of WiFi icon */}
-                            <span className="text-[8px] font-medium text-black -translate-y-[1px]">5G</span>
+                            {/* 5G text */}
+                            <span className="text-[7px] font-normal text-black translate-y-[0px]">5G</span>
 
                             {/* Battery icon */}
-                            <div className="relative h-[13px] w-[24px] -translate-y-[1px]">
-                              <svg width="24" height="13" viewBox="0 0 24 13" fill="none" className="scale-[0.75]">
+                            <div className="relative h-[13px] w-[24px] translate-y-[0px]">
+                              <svg width="24" height="13" viewBox="0 0 24 13" fill="none" className="scale-[0.7]">
                                 <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" stroke="black" strokeWidth="0.75"/>
                                 <rect x="2" y="2" width="18" height="8" rx="1.5" fill="black"/>
                                 <rect x="22.5" y="3.5" width="1" height="5" rx="0.5" fill="black"/>
