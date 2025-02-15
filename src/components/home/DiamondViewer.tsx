@@ -1,3 +1,4 @@
+
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { Loader2 } from "lucide-react";
 import type { SyntheticEvent } from 'react';
@@ -50,21 +51,8 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [hasError, setHasError] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const modelRef = useRef<HTMLElement>(null);
   const initializeAttempts = useRef(0);
-  const previousState = useRef(state);
-
-  useEffect(() => {
-    if (previousState.current !== state) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-      }, 1000);
-      previousState.current = state;
-      return () => clearTimeout(timer);
-    }
-  }, [state]);
 
   useEffect(() => {
     if (!modelViewerScriptLoaded) {
@@ -130,35 +118,18 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   }, []);
 
   const getRotationSpeed = useCallback(() => {
-    if (isTransitioning) {
-      return "16deg"; // Rotation rapide pendant les transitions
-    }
     switch (state) {
       case 'wallet-connecting':
       case 'processing':
-        return "8deg"; // Rotation modérée pendant le traitement
+        return "4deg"; // Plus lent pendant la validation
       case 'confirmed':
-        return "12deg"; // Rotation dynamique à la confirmation
+        return "16deg"; // Rotation triomphante à la fin
       case 'payment':
-        return "8deg"; // Rotation modérée pendant le paiement
+        return "12deg"; // Plus rapide pendant le paiement
       default:
-        return "6deg"; // Rotation douce par défaut
+        return "8deg"; // Vitesse normale
     }
-  }, [state, isTransitioning]);
-
-  const getScale = useCallback(() => {
-    if (isTransitioning) {
-      return "2 2 2"; // Scale plus grand pendant les transitions
-    }
-    return "1.8 1.8 1.8"; // Scale normal
-  }, [isTransitioning]);
-
-  const getExposure = useCallback(() => {
-    if (isTransitioning) {
-      return "1.2"; // Plus lumineux pendant les transitions
-    }
-    return "0.9"; // Exposition normale
-  }, [isTransitioning]);
+  }, [state]);
 
   useEffect(() => {
     if (modelRef.current) {
@@ -191,15 +162,15 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 
   if (!isModelViewerReady) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-transparent">
-        <Loader2 className="h-6 w-6 animate-spin text-primary/50" />
+      <div className="w-full h-full flex items-center justify-center bg-transparent rounded-lg">
+        <Loader2 className="h-5 w-5 animate-spin text-primary/50" />
       </div>
     );
   }
 
   if (hasError) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-transparent">
+      <div className="w-full h-full flex items-center justify-center bg-transparent rounded-lg">
         <div className="text-center text-red-500/80 text-sm">
           <p>Erreur de chargement</p>
           <p className="text-xs">Veuillez rafraîchir la page</p>
@@ -209,53 +180,36 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   }
 
   return (
-    <div className="w-full h-full relative bg-transparent overflow-hidden rounded-2xl">
-      <div 
-        className={`absolute inset-0 transition-opacity duration-500 ${
-          isTransitioning ? 'opacity-30' : 'opacity-0'
-        }`}
-      >
-        <div className="absolute inset-0 bg-primary/5 animate-pulse" />
-      </div>
+    <div className="w-full h-full relative bg-transparent rounded-lg overflow-hidden">
       <model-viewer
         ref={modelRef}
         src={MODEL_PATH}
         auto-rotate
         rotation-per-second={getRotationSpeed()}
         rotation-axis="0 1 0"
-        orientation="0deg 75deg 0deg"
+        orientation="0deg 270deg 0deg"
         interaction-prompt="none"
-        camera-orbit="55deg 75deg 1.5m"
-        min-camera-orbit="55deg 75deg 1.5m"
-        max-camera-orbit="55deg 75deg 1.5m"
+        camera-orbit="65deg 90deg 1.2m"
+        min-camera-orbit="65deg 90deg 1.2m"
+        max-camera-orbit="65deg 90deg 1.2m"
         auto-rotate-delay={0}
         shadow-intensity="0"
-        exposure={getExposure()}
+        exposure="0.8"
         environment-image="neutral"
-        field-of-view="20deg"
+        field-of-view="18deg"
         bounds="tight"
-        scale={getScale()}
+        scale="2.2 2.2 2.2"
         loading="eager"
         style={{
           width: '100%',
           height: '100%',
           backgroundColor: 'transparent',
           opacity: isLoading ? '0.7' : '1',
-          transition: 'all 0.5s ease-in-out',
+          transition: 'opacity 0.5s ease-in-out',
           '--model-color': 'black'
         } as any}
       >
-        <div slot="poster" />
-        {isLoading && (
-          <div slot="poster" className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center space-y-2">
-              <Loader2 className="h-6 w-6 animate-spin text-primary/50" />
-              <div className="text-sm text-primary/50">
-                {Math.round(loadingProgress)}%
-              </div>
-            </div>
-          </div>
-        )}
+        <div slot="poster"></div>
       </model-viewer>
     </div>
   );
