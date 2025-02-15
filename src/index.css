@@ -61,19 +61,26 @@
 }
 
 /* Pure Black Elements */
-.pure-black {
-  color: #000000 !important;
-  fill: #000000 !important;
-  stroke: #000000 !important;
-  mix-blend-mode: multiply;
-  isolation: isolate;
-  background-color: #000000 !important;
+.pure-black-bg {
+  background-color: #000000;
+}
+
+.pure-black-text {
+  color: #000000;
+}
+
+.pure-black-fill {
+  fill: #000000;
+}
+
+.pure-black-stroke {
+  stroke: #000000;
 }
 
 .pure-black * {
-  color: #000000 !important;
-  fill: #000000 !important;
-  stroke: #000000 !important;
+  color: #000000;
+  fill: #000000;
+  stroke: #000000;
 }
 
 /* Model Viewer Styles */
