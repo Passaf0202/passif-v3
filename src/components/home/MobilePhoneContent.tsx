@@ -1,41 +1,34 @@
+
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
-import { CheckCircle, Wallet } from "lucide-react";
+import { CheckCircle, Wallet, User } from "lucide-react";
 import { useAccount, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/react';
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
+
 interface MobilePhoneContentProps {
   transactionState: TransactionState;
   showWalletSpotlight: boolean;
 }
+
 export function MobilePhoneContent({
   transactionState,
   showWalletSpotlight
 }: MobilePhoneContentProps) {
   const modelContainerRef = useRef<HTMLDivElement>(null);
-  const {
-    address,
-    isConnected
-  } = useAccount();
-  const {
-    disconnect
-  } = useDisconnect();
-  const {
-    open,
-    isOpen
-  } = useWeb3Modal();
-  const {
-    toast
-  } = useToast();
-  const {
-    user
-  } = useAuth();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { open, isOpen } = useWeb3Modal();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
   const handleConnect = async () => {
     try {
       if (!user) {
@@ -45,6 +38,7 @@ export function MobilePhoneContent({
         });
         return;
       }
+
       if (isConnected) {
         await disconnect();
         toast({
@@ -64,17 +58,18 @@ export function MobilePhoneContent({
       });
     }
   };
+
   return <div className="absolute inset-0 flex flex-col bg-white">
       {/* Header avec logo et wallet */}
       <div className="relative h-12 pl-2 pr-3 flex items-center">
         <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-5 w-auto mr-auto" />
         <motion.button onClick={handleConnect} disabled={isOpen} animate={{
-        scale: showWalletSpotlight ? [1, 1.05, 1] : 1
-      }} transition={{
-        duration: 1,
-        repeat: showWalletSpotlight ? Infinity : 0,
-        repeatType: "reverse"
-      }} className="h-8 w-8 rounded-full flex items-center justify-center bg-black text-white ml-2">
+          scale: showWalletSpotlight ? [1, 1.05, 1] : 1
+        }} transition={{
+          duration: 1,
+          repeat: showWalletSpotlight ? Infinity : 0,
+          repeatType: "reverse"
+        }} className="h-8 w-8 rounded-full flex items-center justify-center bg-black text-white ml-2">
           {isOpen ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
         </motion.button>
       </div>
@@ -82,6 +77,18 @@ export function MobilePhoneContent({
       {/* Contenu principal */}
       <div className="flex-1 flex flex-col relative">
         <div className="w-full max-w-[360px] mx-auto px-4">
+          {/* Section profil acheteur */}
+          <div className="mb-4 flex items-center space-x-2">
+            <div className="flex items-center bg-muted/50 px-2 py-1 rounded-full">
+              <User className="h-4 w-4 text-muted-foreground mr-1" />
+              <span className="text-sm font-medium">Pierre</span>
+            </div>
+            <Badge variant="default" className="h-4 inline-flex items-center gap-1 text-[9px] font-medium whitespace-nowrap px-2">
+              <CheckCircle className="h-2.5 w-2.5" />
+              Acheteur vérifié
+            </Badge>
+          </div>
+
           {/* Section modèle 3D */}
           <div className="h-[160px] w-full relative">
             <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
@@ -96,11 +103,6 @@ export function MobilePhoneContent({
 
           {/* Informations produit */}
           <div className="space-y-2 -mt-8">
-            <Badge variant="default" className="h-4 inline-flex items-center gap-1 text-[9px] font-medium whitespace-nowrap px-2">
-              <CheckCircle className="h-2.5 w-2.5" />
-              Acheteur vérifié
-            </Badge>
-
             <div>
               <h2 className="text-lg leading-tight font-semibold text-black">Diamant</h2>
             </div>
