@@ -70,7 +70,7 @@ export function MobilePhoneContent({
           repeat: showWalletSpotlight ? Infinity : 0,
           repeatType: "reverse"
         }} className="h-8 w-8 rounded-full flex items-center justify-center bg-black text-white ml-2">
-          {isOpen ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+          {isOpen ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" strokeWidth={2} />}
         </motion.button>
       </div>
 
@@ -85,7 +85,7 @@ export function MobilePhoneContent({
               duration: 0.5,
               ease: "easeInOut"
             }}>
-              <div className="absolute top-8 left-2 z-10 flex items-center space-x-2">
+              <div className="absolute top-6 left-2 z-10 flex items-center space-x-2">
                 <div className="flex items-center bg-muted/50 px-2 py-0.5 rounded-full h-4">
                   <User className="h-2.5 w-2.5 text-muted-foreground mr-1" />
                   <span className="text-[9px] font-medium">Saphire</span>
@@ -100,26 +100,27 @@ export function MobilePhoneContent({
           </div>
 
           {/* Informations produit */}
-          <div className="space-y-2 -mt-8 px-5">
+          <div className="space-y-3 -mt-8 px-5">
             <div>
               <h2 className="text-lg leading-tight font-semibold text-black">Diamant</h2>
             </div>
 
-            <div className="w-full h-8 bg-black text-white rounded-full px-3 flex items-center justify-center text-xs font-medium whitespace-nowrap transition-colors duration-200">
-              19.25 ETH = 50.000 EUR
-            </div>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <div className="w-full h-[2px] bg-gray-200/80" />
+                <div className="w-full h-[2px] bg-gray-200/80" />
+                <div className="w-full h-[2px] bg-gray-200/80" />
+              </div>
 
-            <div className="w-full h-[1px] bg-gray-200/80 my-2" />
-
-            <div className="space-y-2">
               <Button variant="default" size="sm" className="w-full h-8 bg-primary/90 hover:bg-primary/80 text-white rounded-full px-3 text-sm transition-colors duration-200">
-                Payer
+                Payer 20 ETH
               </Button>
               
-              <div className="space-y-1.5">
-                <div className="w-full h-[1px] bg-gray-200/80" />
-                <div className="w-full h-[1px] bg-gray-200/80" />
-                <div className="w-full h-[1px] bg-gray-200/80" />
+              <div className="space-y-2">
+                <div className="w-full h-[2px] bg-gray-200/80" />
+                <div className="w-full h-[2px] bg-gray-200/80" />
+                <div className="w-full h-[2px] bg-gray-200/80" />
+                <div className="w-full h-[2px] bg-gray-200/80" />
               </div>
             </div>
           </div>
