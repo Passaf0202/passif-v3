@@ -1,4 +1,3 @@
-
 import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -125,55 +124,63 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[220px] sm:w-[240px] md:w-[260px] lg:w-[280px] xl:w-[300px] transform scale-100"
+              className="relative w-[200px] sm:w-[220px] md:w-[240px] lg:w-[260px] xl:w-[280px] transform scale-100"
             >
               <div className="relative w-full">
-                {/* iPhone Back */}
                 <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2">
-                  {/* Camera Module */}
                   <div className="absolute top-8 left-8 w-24 h-24 bg-[#1A1B1E] rounded-[24px] flex items-center justify-center">
                     <div className="relative w-20 h-20">
                       <div className="absolute inset-0 bg-[#222] rounded-full" />
                       <div className="absolute inset-2 bg-[#1A1B1E] rounded-full" />
                       <div className="absolute inset-3 bg-[#000] rounded-full" />
-                      {/* Camera lens details */}
                       <div className="absolute inset-4 bg-[#111] rounded-full ring-2 ring-[#222]/20">
                         <div className="absolute inset-2 bg-[#000] rounded-full" />
                       </div>
                     </div>
                   </div>
-                  {/* Apple Logo */}
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8">
                     <div className="w-full h-full bg-[#1A1B1E] mask-apple-logo" />
                   </div>
                 </div>
 
-                {/* iPhone Frame */}
                 <div className="relative aspect-[19.5/42] w-full">
-                  {/* Outer frame with metallic effect */}
                   <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-lg overflow-hidden">
-                    {/* Inner frame shadow */}
                     <div className="absolute inset-[1px] rounded-[47px] bg-gradient-to-tr from-black/5 via-transparent to-white/10" />
-                    
-                    {/* Side Buttons */}
                     <div className="absolute left-[-2px] top-[120px] w-[4px] h-16 flex flex-col gap-4">
-                      <div className="h-8 w-full bg-[#222] rounded-r-sm" />
-                      <div className="h-8 w-full bg-[#222] rounded-r-sm" />
+                      <div className="h-8 w-full bg-gradient-to-r from-[#1A1B1E] to-[#222] rounded-r-sm shadow-[2px_2px_4px_rgba(0,0,0,0.2)] before:content-[''] before:absolute before:inset-0 before:bg-black/10" />
+                      <div className="h-8 w-full bg-gradient-to-r from-[#1A1B1E] to-[#222] rounded-r-sm shadow-[2px_2px_4px_rgba(0,0,0,0.2)] before:content-[''] before:absolute before:inset-0 before:bg-black/10" />
                     </div>
                     <div className="absolute right-[-2px] top-[100px] w-[4px] h-12">
-                      <div className="h-12 w-full bg-[#222] rounded-l-sm" />
+                      <div className="h-12 w-full bg-gradient-to-l from-[#1A1B1E] to-[#222] rounded-l-sm shadow-[-2px_2px_4px_rgba(0,0,0,0.2)] before:content-[''] before:absolute before:inset-0 before:bg-black/10" />
                     </div>
-                    
-                    {/* Dynamic Island */}
-                    <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[100px] h-[28px] bg-black rounded-[14px] z-20 overflow-hidden">
-                      {/* Inner components of Dynamic Island */}
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60px] h-[6px] bg-[#1A1B1E] rounded-full" />
-                      <div className="absolute top-1/2 right-[10px] -translate-y-1/2 w-[6px] h-[6px] bg-[#1A1B1E] rounded-full" />
+                    <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[120px] h-[25px] bg-black rounded-[20px] z-20 overflow-hidden shadow-[inset_0_0_5px_rgba(255,255,255,0.1)]">
+                      <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-black/95" />
+                      <div className="absolute top-1/2 left-[20%] -translate-y-1/2 w-[8px] h-[8px] bg-[#1A1B1E] rounded-full" />
+                      <div className="absolute top-1/2 right-[20%] -translate-y-1/2 w-[8px] h-[8px] bg-[#1A1B1E] rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" />
                     </div>
-
-                    {/* Screen Content */}
                     <div className="absolute inset-[3px] rounded-[45px] bg-white overflow-hidden">
-                      {/* Screen Content Area */}
+                      <div className="absolute top-0 left-0 right-0 h-6 px-6 flex items-center justify-between text-xs font-medium z-10">
+                        <span>9:41</span>
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex gap-0.5 items-center">
+                            <div className="w-4 h-2.5 flex items-end gap-px">
+                              <div className="w-0.5 h-1.5 bg-black rounded-sm" />
+                              <div className="w-0.5 h-2 bg-black rounded-sm" />
+                              <div className="w-0.5 h-2.5 bg-black rounded-sm" />
+                              <div className="w-0.5 h-1.5 bg-black/30 rounded-sm" />
+                            </div>
+                            <div className="h-3 w-3 -mt-px">
+                              <svg viewBox="0 0 24 24" className="w-full h-full fill-current">
+                                <path d="M1.999 5.001A1 1 0 013 4h18a1 1 0 011 1.001V19a1 1 0 01-1 1.001H3a1 1 0 01-1-1.001V5.001zM4 6v12h16V6H4z" />
+                              </svg>
+                            </div>
+                            <div className="h-3 w-6 relative">
+                              <div className="absolute inset-0 border-2 border-black rounded-sm" />
+                              <div className="absolute inset-0.5 bg-black rounded-sm" style={{ width: '66%' }} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div className="relative h-full w-full bg-white">
                         <MobilePhoneContent 
                           transactionState={transactionState}
@@ -181,22 +188,13 @@ export function HeroSection() {
                         />
                       </div>
                     </div>
-
-                    {/* Bottom Port and Speakers */}
-                    <div className="absolute bottom-[12px] left-1/2 -translate-x-1/2 w-[80px] flex justify-between items-center">
-                      <div className="w-[25px] h-[4px] bg-[#222] rounded-full" />
-                      <div className="w-[12px] h-[6px] bg-[#222] rounded-[3px]" />
-                      <div className="w-[25px] h-[4px] bg-[#222] rounded-full" />
-                    </div>
-
-                    {/* Edge Highlights */}
+                    <div className="absolute bottom-[12px] left-1/2 -translate-x-1/2 w-[100px] h-[4px] bg-black rounded-full" />
                     <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-white/20 via-transparent to-black/10 pointer-events-none" />
                   </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Additional reflections and shadows */}
             <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-black/5 pointer-events-none rounded-[48px] blur-sm" />
           </motion.div>
         </div>
