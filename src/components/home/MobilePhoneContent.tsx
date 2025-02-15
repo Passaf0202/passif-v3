@@ -1,4 +1,3 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -136,12 +135,12 @@ export function MobilePhoneContent({
                 <TooltipTrigger asChild>
                   <Button 
                     onClick={handleConnect} 
-                    disabled={isConnecting} 
+                    disabled={isConnecting || transactionState === 'wallet-connecting'} 
                     variant="default" 
                     size="sm" 
                     className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] mobile-wallet-button relative pointer-events-auto z-50"
                   >
-                    {isConnecting ? (
+                    {isConnecting || transactionState === 'wallet-connecting' ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
                     ) : transactionState === 'wallet-connect' ? (
                       <Check className="h-3.5 w-3.5 text-white" strokeWidth={2} />
