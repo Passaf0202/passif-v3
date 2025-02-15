@@ -1,5 +1,5 @@
 
-import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
+import { Plus, Coins, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,7 +37,7 @@ export function HeroSection() {
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
             <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm">
-              <Diamond className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+              <Coins className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
               <span className="text-xs sm:text-sm font-medium">La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !</span>
             </div>
             
