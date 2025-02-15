@@ -65,7 +65,7 @@ export function MobilePhoneContent({
         <header className="phone-header">
           <StatusBar />
           <DynamicIsland />
-          <nav className="nav-header">
+          <nav className="nav-header mt-4">
             <img 
               src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
               alt="Tradecoiner" 
@@ -96,29 +96,15 @@ export function MobilePhoneContent({
           </nav>
         </header>
 
-        <main className="flex-1 flex flex-col relative mt-16">
+        <main className="flex-1 flex flex-col relative mt-8">
           <div className="w-full max-w-[360px] mx-auto">
             <div className="h-[160px] w-full relative px-5">
-              <div className="absolute top-4 left-[13px] z-10 flex items-center space-x-2">
-                <div className="flex items-center bg-gray-600 px-2 py-0.5 rounded-full h-4">
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <BadgeCheck className="h-2.5 w-2.5 text-white mr-1" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">Profil vérifié</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <span className="text-[9px] font-medium text-white">Saphire</span>
-                </div>
-              </div>
-
               <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
-              scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
-            }} transition={{
-              duration: 0.5,
-              ease: "easeInOut"
-            }}>
+                scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
+              }} transition={{
+                duration: 0.5,
+                ease: "easeInOut"
+              }}>
                 <DiamondViewer state={transactionState} />
               </motion.div>
             </div>

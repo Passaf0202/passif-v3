@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 export const DynamicIsland = () => {
   return (
     <motion.div 
-      className="dynamic-island dynamic-island-default"
+      className="dynamic-island dynamic-island-default bg-[#000000]"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
