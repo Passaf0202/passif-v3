@@ -1,4 +1,3 @@
-
 import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -7,6 +6,7 @@ import { useState, useEffect } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
 import { StatusBar } from "./StatusBar";
 import { DynamicIsland } from "./DynamicIsland";
+import { supabase } from "@/integrations/supabase/client";
 
 export type TransactionState = 
   | 'initial'               
@@ -23,8 +23,29 @@ export function HeroSection() {
     const hasSeenGuide = localStorage.getItem('hasSeenTransactionGuide');
     return !hasSeenGuide;
   });
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const autoPlay = false;
+
+  useEffect(() => {
+    const uploadImage = async () => {
+      const { data, error } = await supabase.storage
+        .from('assets')
+        .upload('diamond-icon.png', '/lovable-uploads/5c2be094-f495-4f5f-956c-bd18edf2bf13.png', {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (!error) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('assets')
+          .getPublicUrl('diamond-icon.png');
+        setImageUrl(publicUrl);
+      }
+    };
+
+    uploadImage();
+  }, []);
 
   useEffect(() => {
     if (showWalletSpotlight) {
@@ -49,16 +70,22 @@ export function HeroSection() {
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
             <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm">
-              <img 
-                src="public/lovable-uploads/5c2be094-f495-4f5f-956c-bd18edf2bf13.png"
-                alt="Diamond icon"
-                className="h-3 w-3 sm:h-4 sm:w-4 object-contain"
-                style={{
-                  filter: 'brightness(0)',
-                  opacity: 0.87
-                }}
-              />
-              <span className="text-xs sm:text-sm font-medium">La marketplace crypto #1 en France</span>
+              {imageUrl ? (
+                <img 
+                  src={imageUrl}
+                  alt="Diamond icon"
+                  className="h-3 w-3 sm:h-4 sm:w-4 object-contain"
+                  style={{
+                    filter: 'brightness(0)',
+                    opacity: 0.87
+                  }}
+                />
+              ) : (
+                <Diamond className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+              )}
+              <span className="text-xs sm:text-sm font-medium">
+                La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !
+              </span>
             </div>
             
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
