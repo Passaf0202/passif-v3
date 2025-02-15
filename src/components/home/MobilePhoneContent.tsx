@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -117,62 +116,75 @@ export function MobilePhoneContent({
   };
 
   const getActionButton = () => {
-    if (transactionState === 'payment' || transactionState === 'initial') {
-      return (
-        <Button 
-          variant="default" 
-          size="sm" 
-          disabled={transactionState !== 'wallet-connect' || isPaymentLoading}
-          onClick={handlePayment}
-          className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white"
-        >
-          {isPaymentLoading ? (
-            <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-              Transaction en cours...
-            </>
-          ) : (
-            'Payer 20 ETH'
-          )}
-        </Button>
-      );
-    }
+    switch (transactionState) {
+      case 'initial':
+      case 'wallet-connect':
+        return (
+          <Button 
+            variant="default" 
+            size="sm" 
+            disabled={transactionState === 'initial' || isPaymentLoading}
+            onClick={handlePayment}
+            className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white"
+          >
+            {isPaymentLoading ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+                Transaction en cours...
+              </>
+            ) : (
+              'Payer 20 ETH'
+            )}
+          </Button>
+        );
 
-    if (transactionState === 'funds-locked') {
-      return (
-        <Button 
-          variant="default" 
-          size="sm" 
-          onClick={handleReleaseFunds}
-          disabled={isReleaseLoading}
-          className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white"
-        >
-          {isReleaseLoading ? (
-            <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-              Libération en cours...
-            </>
-          ) : (
-            <>
-              <LockKeyhole className="h-3.5 w-3.5 mr-2" />
-              Libérer les fonds
-            </>
-          )}
-        </Button>
-      );
-    }
+      case 'payment':
+        return (
+          <Button 
+            variant="default" 
+            size="sm" 
+            disabled
+            className="w-full h-8 rounded-full px-3 text-sm bg-[#000000] text-white"
+          >
+            <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+            Transaction en cours...
+          </Button>
+        );
 
-    if (transactionState === 'confirmed') {
-      return (
-        <Button 
-          variant="default" 
-          size="sm" 
-          disabled
-          className="w-full h-8 rounded-full px-3 text-sm bg-[#000000] opacity-50 text-white"
-        >
-          Transaction terminée
-        </Button>
-      );
+      case 'funds-locked':
+        return (
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={handleReleaseFunds}
+            disabled={isReleaseLoading}
+            className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white"
+          >
+            {isReleaseLoading ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+                Libération en cours...
+              </>
+            ) : (
+              <>
+                <LockKeyhole className="h-3.5 w-3.5 mr-2" />
+                Libérer les fonds
+              </>
+            )}
+          </Button>
+        );
+
+      case 'confirmed':
+        return (
+          <Button 
+            variant="default" 
+            size="sm" 
+            disabled
+            className="w-full h-8 rounded-full px-3 text-sm bg-[#000000] opacity-50 text-white"
+          >
+            Transaction terminée
+          </Button>
+        );
     }
   };
 
