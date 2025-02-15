@@ -61,7 +61,7 @@ export function MobilePhoneContent({
 
   return <div className="absolute inset-0 flex flex-col bg-white">
       {/* Header avec logo et wallet */}
-      <div className="relative h-12 pl-2 pr-3 flex items-center">
+      <div className="relative h-16 px-5 flex items-center">
         <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-5 w-auto mr-auto" />
         <motion.button onClick={handleConnect} disabled={isOpen} animate={{
           scale: showWalletSpotlight ? [1, 1.05, 1] : 1
@@ -76,16 +76,16 @@ export function MobilePhoneContent({
 
       {/* Contenu principal */}
       <div className="flex-1 flex flex-col relative">
-        <div className="w-full max-w-[360px] mx-auto px-5">
+        <div className="w-full max-w-[360px] mx-auto">
           {/* Section modèle 3D */}
-          <div className="h-[160px] w-full relative">
+          <div className="h-[160px] w-full relative px-5">
             <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
               scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
             }} transition={{
               duration: 0.5,
               ease: "easeInOut"
             }}>
-              <div className="absolute top-4 left-1 z-10 flex items-center space-x-2">
+              <div className="absolute top-8 left-2 z-10 flex items-center space-x-2">
                 <div className="flex items-center bg-muted/50 px-2 py-0.5 rounded-full h-4">
                   <User className="h-2.5 w-2.5 text-muted-foreground mr-1" />
                   <span className="text-[9px] font-medium">Saphire</span>
@@ -100,7 +100,7 @@ export function MobilePhoneContent({
           </div>
 
           {/* Informations produit */}
-          <div className="space-y-2 -mt-8">
+          <div className="space-y-2 -mt-8 px-5">
             <div>
               <h2 className="text-lg leading-tight font-semibold text-black">Diamant</h2>
             </div>
