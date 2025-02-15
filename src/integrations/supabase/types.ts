@@ -166,6 +166,7 @@ export type Database = {
           status: string | null
           subcategory: string | null
           subsubcategory: string | null
+          test: string | null
           title: string
           type: string | null
           updated_at: string | null
@@ -196,6 +197,7 @@ export type Database = {
           status?: string | null
           subcategory?: string | null
           subsubcategory?: string | null
+          test?: string | null
           title: string
           type?: string | null
           updated_at?: string | null
@@ -226,6 +228,7 @@ export type Database = {
           status?: string | null
           subcategory?: string | null
           subsubcategory?: string | null
+          test?: string | null
           title?: string
           type?: string | null
           updated_at?: string | null
