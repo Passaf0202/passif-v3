@@ -1,11 +1,14 @@
 
 import { Suspense, lazy } from 'react';
 import { Loader2 } from "lucide-react";
+import type { TransactionState } from './HeroSection';
 
-const DiamondViewer = lazy(() => import('./DiamondViewer'));
+const DiamondViewer = lazy(() => import('./DiamondViewer').then(mod => ({ 
+  default: mod.DiamondViewer 
+})));
 
 interface LazyDiamondSceneProps {
-  state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
+  state: TransactionState;
 }
 
 export function LazyDiamondScene({ state }: LazyDiamondSceneProps) {
