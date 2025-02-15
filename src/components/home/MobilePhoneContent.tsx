@@ -70,7 +70,7 @@ export function MobilePhoneContent({
       onStateChange('processing');
       // Simuler un délai de traitement
       await new Promise(resolve => setTimeout(resolve, 2000));
-      onStateChange('awaiting-confirmation');
+      onStateChange('awaiting-confirmation' as TransactionState);
     } catch (error) {
       console.error('Payment error:', error);
       onStateChange('payment');
