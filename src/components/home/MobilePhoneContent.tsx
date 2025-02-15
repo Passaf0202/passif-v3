@@ -36,7 +36,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
       </div>
 
       {/* Contenu principal */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col relative">
         <div className="w-full max-w-[360px] mx-auto">
           {/* Badge acheteur vérifié */}
           <div className="flex justify-center mb-1">
@@ -47,7 +47,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
           </div>
 
           {/* Section modèle 3D */}
-          <div className="h-[200px] w-[220px] mx-auto mb-3">
+          <div className="h-[180px] w-[220px] mx-auto">
             <motion.div 
               ref={modelContainerRef}
               className="w-full h-full"
@@ -64,7 +64,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
           </div>
 
           {/* Informations produit */}
-          <div className="space-y-3 px-4">
+          <div className="space-y-3 px-4 -mt-4">
             <div>
               <h2 className="text-2xl leading-tight font-semibold text-black">Diamant 4 carats</h2>
             </div>
