@@ -1,5 +1,5 @@
 
-import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2, Wallet, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,30 +7,31 @@ import { useState, useEffect } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
 
 export function HeroSection() {
-  const [transactionState, setTransactionState] = useState<'initial' | 'payment' | 'confirmed'>('initial');
+  const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed'>('initial');
+  const [showWalletSpotlight, setShowWalletSpotlight] = useState(true);
 
+  // Ralentissement des transitions d'état
   useEffect(() => {
     const runTransactionCycle = () => {
-      // Démarrage du cycle
       setTransactionState('initial');
-      
-      // Phase de paiement après 7 secondes
-      setTimeout(() => setTransactionState('payment'), 7000);
-      
-      // Phase de confirmation après 14 secondes
-      setTimeout(() => setTransactionState('confirmed'), 14000);
-      
-      // Réinitialisation après 21 secondes
+      setShowWalletSpotlight(true);
+      setTimeout(() => setShowWalletSpotlight(false), 5000);
+      setTimeout(() => setTransactionState('wallet-connecting'), 6000);
+      setTimeout(() => setTransactionState('wallet-connect'), 8000);
+      setTimeout(() => setTransactionState('search'), 12000);
+      setTimeout(() => setTransactionState('validating'), 15000);
+      setTimeout(() => setTransactionState('processing'), 18000);
+      setTimeout(() => setTransactionState('confirmed'), 20000);
       setTimeout(() => {
         setTransactionState('initial');
-      }, 21000);
+        setShowWalletSpotlight(true);
+      }, 25000);
     };
 
     // Délai initial pour laisser le modèle 3D se charger
     const initialTimeout = setTimeout(() => {
       runTransactionCycle();
-      // Répétition toutes les 22 secondes
-      const interval = setInterval(runTransactionCycle, 22000);
+      const interval = setInterval(runTransactionCycle, 25000);
       return () => clearInterval(interval);
     }, 2000);
 
@@ -65,7 +66,7 @@ export function HeroSection() {
             </h1>
             
             <p className="text-sm sm:text-base md:text-lg text-gray-600">
-              Achetez et vendez vos produits en toute sécurité grâce à notre système de paiement crypto protégé par smart contract.
+              TRADECOINER révolutionne les transactions en ligne en combinant la sécurité de la blockchain avec la simplicité d'une marketplace moderne.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
@@ -135,7 +136,7 @@ export function HeroSection() {
                 <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/19]">
                   <MobilePhoneContent 
                     transactionState={transactionState}
-                    showWalletSpotlight={transactionState === 'initial'}
+                    showWalletSpotlight={showWalletSpotlight}
                   />
                 </div>
               </div>

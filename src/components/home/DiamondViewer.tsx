@@ -1,10 +1,9 @@
-
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { Loader2 } from "lucide-react";
 import type { SyntheticEvent } from 'react';
 
 interface DiamondViewerProps {
-  state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
+  state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
 }
 
 declare global {
@@ -119,13 +118,13 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 
   const getRotationSpeed = useCallback(() => {
     switch (state) {
-      case 'wallet-connecting':
+      case 'search':
+        return "12deg"; // Plus rapide pendant la recherche
+      case 'validating':
       case 'processing':
         return "4deg"; // Plus lent pendant la validation
       case 'confirmed':
-        return "16deg"; // Rotation triomphante à la fin
-      case 'payment':
-        return "12deg"; // Plus rapide pendant le paiement
+        return "16deg"; // Rotation triomphante
       default:
         return "8deg"; // Vitesse normale
     }
@@ -180,25 +179,25 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   }
 
   return (
-    <div className="w-full h-full relative bg-transparent rounded-lg p-4">
+    <div className="w-full h-full relative bg-transparent rounded-lg overflow-hidden">
       <model-viewer
         ref={modelRef}
         src={MODEL_PATH}
         auto-rotate
         rotation-per-second={getRotationSpeed()}
         rotation-axis="0 1 0"
-        orientation="0deg 75deg 0deg"
+        orientation="0deg 270deg 0deg"
         interaction-prompt="none"
-        camera-orbit="55deg 75deg 1.5m"
-        min-camera-orbit="55deg 75deg 1.5m"
-        max-camera-orbit="55deg 75deg 1.5m"
+        camera-orbit="65deg 90deg 1.2m"
+        min-camera-orbit="65deg 90deg 1.2m"
+        max-camera-orbit="65deg 90deg 1.2m"
         auto-rotate-delay={0}
         shadow-intensity="0"
         exposure="0.8"
         environment-image="neutral"
-        field-of-view="20deg"
+        field-of-view="18deg"
         bounds="tight"
-        scale="1.8 1.8 1.8"
+        scale="2.2 2.2 2.2"
         loading="eager"
         style={{
           width: '100%',
@@ -216,4 +215,3 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 }
 
 export default DiamondViewer;
-
