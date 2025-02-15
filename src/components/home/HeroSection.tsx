@@ -126,15 +126,15 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] xl:w-[240px] transform scale-90 sm:scale-100"
+              className="relative w-[260px] sm:w-[280px] md:w-[300px] lg:w-[320px] xl:w-[340px] transform scale-100"
             >
               <div className="relative w-full">
                 <img 
                   src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Design%20sans%20titre.svg"
                   alt="iPhone frame"
-                  className="absolute -inset-7 w-[calc(100%+56px)] h-[calc(100%+56px)] object-contain z-10"
+                  className="absolute -inset-6 w-[calc(100%+48px)] h-[calc(100%+48px)] object-contain z-10"
                 />
-                <div className="relative bg-white/98 overflow-hidden aspect-[10/21] scale-[0.78] mx-[9%] mt-[10%] mb-[10%] rounded-[32px] shadow-sm">
+                <div className="relative bg-white/98 overflow-hidden aspect-[10/21] mx-[7%] mt-[9%] mb-[9%] rounded-[32px] shadow-sm">
                   <MobilePhoneContent 
                     transactionState={transactionState}
                     showWalletSpotlight={showWalletSpotlight}
