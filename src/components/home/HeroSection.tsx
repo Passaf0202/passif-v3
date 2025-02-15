@@ -174,45 +174,45 @@ export function HeroSection() {
                     <div className="absolute inset-[3px] rounded-[45px] overflow-hidden">
                       <div className="absolute inset-0 border-[2px] border-black/60 rounded-[45px] z-20 shadow-[inset_0_0_1px_rgba(0,0,0,0.3)]" />
                       <div className="absolute inset-0 bg-white">
-                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[110px] h-[18px] bg-black rounded-[20px] z-30 overflow-hidden">
-                          <div className="absolute inset-0 bg-[#0B0B0B]" />
-                          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/95 to-black/90" />
+                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[95px] h-[12px] bg-black rounded-[20px] z-30 overflow-hidden">
+                          <div className="absolute inset-0 bg-[#0A0A0A]" />
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0B] via-[#0B0B0B]/95 to-[#0B0B0B]/90" />
                           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-black/40 to-white/5" />
                           
-                          <div className="absolute top-1/2 left-[22%] -translate-y-1/2 w-[8px] h-[8px] rounded-full">
-                            <div className="absolute inset-0 bg-black rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.15)]" />
-                            <div className="absolute inset-[1px] bg-[#0A0A0A] rounded-full" />
-                            <div className="absolute inset-[2px] bg-black rounded-full" />
-                            <div className="absolute inset-[2.5px] bg-[#1A1A1A] rounded-full" />
-                            <div className="absolute top-[20%] left-[20%] w-[1.5px] h-[1.5px] bg-white/15 rounded-full" />
+                          <div className="absolute top-1/2 left-[22%] -translate-y-1/2 w-[6px] h-[6px] rounded-full">
+                            <div className="absolute inset-0 bg-[#0A0A0A] rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]" />
+                            <div className="absolute inset-[1px] bg-[#090909] rounded-full" />
+                            <div className="absolute inset-[1.5px] bg-[#080808] rounded-full" />
+                            <div className="absolute inset-[2px] bg-[#0A0A0A] rounded-full" />
+                            <div className="absolute top-[20%] left-[20%] w-[1px] h-[1px] bg-white/10 rounded-full" />
                           </div>
                           
-                          <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[10px] h-[10px] rounded-full">
-                            <div className="absolute inset-0 bg-[#1A1A1A] rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]" />
-                            <div className="absolute inset-[1.5px] bg-black rounded-full" />
-                            <div className="absolute inset-[2.5px] bg-gradient-to-br from-[#1A1A1A] to-black rounded-full" />
-                            <div className="absolute top-[25%] left-[25%] w-[1.5px] h-[1.5px] bg-white/20 rounded-full" />
+                          <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[7px] h-[7px] rounded-full">
+                            <div className="absolute inset-0 bg-[#0A0A0A] rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]" />
+                            <div className="absolute inset-[1px] bg-[#090909] rounded-full" />
+                            <div className="absolute inset-[1.5px] bg-[#080808] rounded-full" />
+                            <div className="absolute top-[25%] left-[25%] w-[1px] h-[1px] bg-white/15 rounded-full" />
                           </div>
                         </div>
 
-                        <div className="absolute top-0 left-0 right-0 h-6 px-4 flex items-center justify-between z-10">
-                          <span className="font-['SF_Pro_Text'] text-[9px] font-medium tracking-tight text-black pl-1">9:41</span>
-                          <div className="flex items-center gap-[6px]">
-                            <div className="w-[14px] h-[8px] flex items-end gap-[0.5px]">
-                              <div className="w-[1.5px] h-[6px] bg-black rounded-sm" />
-                              <div className="w-[1.5px] h-[5px] bg-black rounded-sm" />
-                              <div className="w-[1.5px] h-[4px] bg-black rounded-sm" />
-                              <div className="w-[1.5px] h-[3px] bg-black/30 rounded-sm" />
+                        <div className="absolute top-0 left-0 right-0 h-[44px] px-5 flex items-center justify-between z-10">
+                          <span className="font-['SF_Pro_Text'] text-[12px] font-medium tracking-[-0.01em] text-black translate-y-[2px]">9:41</span>
+                          <div className="flex items-center gap-[4px] translate-y-[2px]">
+                            <div className="w-[15px] h-[10px] flex items-end gap-[0.75px] pt-[2px]">
+                              <div className="w-[2px] h-[6px] bg-black rounded-[0.5px]" />
+                              <div className="w-[2px] h-[4.5px] bg-black rounded-[0.5px]" />
+                              <div className="w-[2px] h-[3px] bg-black rounded-[0.5px]" />
+                              <div className="w-[2px] h-[1.5px] bg-black/30 rounded-[0.5px]" />
                             </div>
-                            <div className="h-[9px] w-[9px] flex items-center">
-                              <svg viewBox="0 0 24 24" className="w-full h-full fill-current">
-                                <path d="M12 21a9 9 0 0 0 9-9 9 9 0 0 0-9-9 9 9 0 0 0-9 9 9 9 0 0 0 9 9m7.5-15.6C17.3 3.2 14.7 2 12 2S6.7 3.2 4.5 5.4C2.3 7.6 1 10.3 1 13s1.3 5.4 3.5 7.6C6.7 22.8 9.3 24 12 24s5.3-1.2 7.5-3.4c2.2-2.2 3.5-4.9 3.5-7.6s-1.3-5.4-3.5-7.6z"/>
+                            <div className="h-[11px] w-[14px] flex items-center justify-center">
+                              <svg viewBox="0 0 24 24" className="w-full h-full scale-[0.85]">
+                                <path fill="currentColor" d="M12 21a9 9 0 0 0 9-9 9 9 0 0 0-9-9 9 9 0 0 0-9 9 9 9 0 0 0 9 9m7.5-15.6C17.3 3.2 14.7 2 12 2S6.7 3.2 4.5 5.4C2.3 7.6 1 10.3 1 13s1.3 5.4 3.5 7.6C6.7 22.8 9.3 24 12 24s5.3-1.2 7.5-3.4c2.2-2.2 3.5-4.9 3.5-7.6s-1.3-5.4-3.5-7.6z"/>
                               </svg>
                             </div>
-                            <div className="h-[10px] w-[22px] relative">
-                              <div className="absolute inset-0 border-[1.25px] border-black rounded-[3px]" />
-                              <div className="absolute inset-[1.5px] bg-black rounded-[1px]" style={{ width: '66%' }} />
-                              <div className="absolute -right-[1.5px] top-1/2 -translate-y-1/2 h-[6px] w-[1.25px] bg-black rounded-r-sm" />
+                            <div className="h-[11px] w-[24px] relative">
+                              <div className="absolute inset-0 border-[1px] border-black rounded-[2px]" />
+                              <div className="absolute inset-[2px] bg-black rounded-[1px]" style={{ width: '90%' }} />
+                              <div className="absolute -right-[1.5px] top-1/2 -translate-y-1/2 h-[4px] w-[1px] bg-black rounded-r-[0.5px]" />
                             </div>
                           </div>
                         </div>
