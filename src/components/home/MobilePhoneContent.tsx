@@ -1,10 +1,11 @@
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, Loader2, Search, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Wallet, Loader2, CheckCircle2, ShieldCheck } from "lucide-react";
 import { DiamondViewer } from "./DiamondViewer";
+import { Button } from "@/components/ui/button";
 import { useRef } from "react";
 
-type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
+type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
 
 interface MobilePhoneContentProps {
   transactionState: TransactionState;
@@ -14,70 +15,110 @@ interface MobilePhoneContentProps {
 export function MobilePhoneContent({ transactionState, showWalletSpotlight }: MobilePhoneContentProps) {
   const modelContainerRef = useRef<HTMLDivElement>(null);
 
-  const getStatusIcon = () => {
-    switch (transactionState) {
-      case 'search':
-        return <Search className="h-3 w-3 animate-pulse" />;
-      case 'validating':
-        return <ShieldCheck className="h-3 w-3 animate-bounce" />;
-      case 'confirmed':
-        return <CheckCircle2 className="h-3 w-3 text-green-500" />;
-      case 'wallet-connecting':
-        return <Loader2 className="h-3 w-3 animate-spin" />;
-      default:
-        return <Wallet className="h-3 w-3" />;
-    }
-  };
-
-  const getButtonText = () => {
-    switch (transactionState) {
-      case 'wallet-connecting':
-        return "Connexion...";
-      case 'wallet-connect':
-        return "0x12...89ab";
-      case 'search':
-        return "Recherche...";
-      case 'validating':
-        return "Validation...";
-      case 'processing':
-        return "Traitement...";
-      case 'confirmed':
-        return "Confirmé !";
-      default:
-        return "Connecter Wallet";
-    }
-  };
-
-  const getExplanationText = () => {
+  const renderContent = () => {
     switch (transactionState) {
       case 'initial':
-        return "Connectez-vous avec votre wallet";
+        return (
+          <div className="w-full space-y-4">
+            <div className="text-lg font-semibold">Diamant Noir Tradecoiner</div>
+            <div className="text-2xl font-bold">2 500 €</div>
+            <div className="text-sm text-gray-600">≈ 0.92 POL</div>
+            <div className="text-sm text-gray-600 mt-2">
+              Diamant noir certifié, taille brillant, 1 carat
+            </div>
+            <Button 
+              className="w-full mt-4 animate-pulse" 
+              size="lg"
+            >
+              <Wallet className="mr-2 h-4 w-4" />
+              Connecter Wallet
+            </Button>
+          </div>
+        );
+      
       case 'wallet-connecting':
+        return (
+          <div className="w-full space-y-4">
+            <div className="flex items-center justify-center space-x-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Connexion en cours...</span>
+            </div>
+          </div>
+        );
+      
       case 'wallet-connect':
-        return "Sécurisation de votre identité";
-      case 'search':
-        return "Trouvez le produit qui vous intéresse";
-      case 'validating':
-        return "Transaction sécurisée par smart contract";
+      case 'payment':
+        return (
+          <div className="w-full space-y-4">
+            <div className="text-lg font-semibold">Paiement sécurisé</div>
+            <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+              <div className="flex justify-between">
+                <span>Prix du produit</span>
+                <span>2 500 €</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Équivalent en POL</span>
+                <span>0.92 POL</span>
+              </div>
+              <div className="flex justify-between text-sm text-primary">
+                <span>Protection acheteur</span>
+                <span>Incluse</span>
+              </div>
+            </div>
+            <Button 
+              className="w-full" 
+              size="lg"
+              variant={transactionState === 'payment' ? 'outline' : 'default'}
+            >
+              {transactionState === 'payment' ? (
+                <>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Smart Contract activé
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Payer maintenant
+                </>
+              )}
+            </Button>
+          </div>
+        );
+      
       case 'processing':
-        return "Paiement en cours";
+        return (
+          <div className="w-full space-y-4">
+            <div className="flex flex-col items-center justify-center space-y-2">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="text-lg font-medium">Transaction en cours...</span>
+              <span className="text-sm text-gray-600">Les fonds sont sécurisés</span>
+            </div>
+          </div>
+        );
+      
       case 'confirmed':
-        return "Transaction réussie !";
+        return (
+          <div className="w-full space-y-4">
+            <div className="flex flex-col items-center justify-center space-y-2">
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6 text-green-600" />
+              </div>
+              <span className="text-lg font-medium text-green-600">Transaction réussie !</span>
+              <span className="text-sm text-gray-600 text-center">
+                Les fonds seront libérés au vendeur après confirmation de la réception
+              </span>
+            </div>
+          </div>
+        );
+      
       default:
-        return "";
+        return null;
     }
-  };
-
-  const getButtonStyle = () => {
-    if (transactionState === 'confirmed') return 'bg-green-500 text-white';
-    if (transactionState === 'initial') return 'bg-primary text-white';
-    if (transactionState === 'wallet-connecting') return 'bg-primary text-white';
-    return 'bg-muted text-primary border border-input';
   };
 
   return (
-    <div className="absolute inset-0 p-2 flex flex-col">
-      <div className="relative h-12 px-3 flex items-center justify-between border-b border-gray-200/80 bg-white/90 backdrop-blur-md">
+    <div className="absolute inset-0 p-4 flex flex-col">
+      <div className="relative h-12 px-3 flex items-center justify-between border-b border-gray-200/80 bg-white/90 backdrop-blur-md mb-4">
         <div className="flex items-center">
           <img 
             src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg"
@@ -86,59 +127,18 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
           />
         </div>
         
-        <div className="relative">
-          <AnimatePresence>
-            {showWalletSpotlight && (
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1.5, opacity: 0.2 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  repeatType: "reverse"
-                }}
-                className="absolute inset-0 bg-primary/20 rounded-full"
-              />
-            )}
-          </AnimatePresence>
-          
-          <motion.button
-            animate={{
-              scale: showWalletSpotlight ? [1, 1.05, 1] : 1,
-              y: transactionState === 'confirmed' ? [0, -2, 0] : 0
-            }}
-            transition={{
-              duration: transactionState === 'confirmed' ? 0.3 : 1,
-              repeat: showWalletSpotlight || transactionState === 'confirmed' ? Infinity : 0,
-              repeatType: "reverse"
-            }}
-            className={`h-7 px-2.5 rounded-full whitespace-nowrap flex items-center gap-1.5 text-[10px] 
-              ${getButtonStyle()} transition-colors duration-300`}
-          >
-            {getStatusIcon()}
-            {getButtonText()}
-          </motion.button>
+        <div className="flex items-center space-x-2">
+          {transactionState !== 'initial' && (
+            <span className="text-xs font-medium px-2 py-1 bg-gray-100 rounded-full">
+              0x1234...5678
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center relative">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={transactionState}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-4 text-center px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm"
-          >
-            <span className="text-sm font-medium text-gray-900">
-              {getExplanationText()}
-            </span>
-          </motion.div>
-        </AnimatePresence>
-
+      <div className="flex-1 flex flex-col items-center justify-between relative">
         <motion.div 
-          className="flex-1 flex items-center justify-center bg-gradient-to-b from-transparent via-white/50 to-gray-50/20 w-full"
+          className="w-48 h-48 relative"
           animate={{
             scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1,
           }}
@@ -147,21 +147,27 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
             ease: "easeInOut"
           }}
         >
-          <div 
-            ref={modelContainerRef} 
-            className="w-[30rem] h-[30rem] relative flex items-center justify-center"
-          >
-            <DiamondViewer state={transactionState} />
-          </div>
+          <DiamondViewer state={transactionState} />
         </motion.div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={transactionState}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full bg-white rounded-lg p-4"
+          >
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {transactionState !== 'initial' && (
         <motion.div 
-          className="h-0.5 bg-gray-100"
+          className="h-1 bg-gray-100 mt-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
         >
           <motion.div 
             className={`h-full ${
@@ -169,10 +175,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
             }`}
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
-            transition={{ 
-              duration: 2,
-              ease: "easeInOut"
-            }}
+            transition={{ duration: 2 }}
           />
         </motion.div>
       )}

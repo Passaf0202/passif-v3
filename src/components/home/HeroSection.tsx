@@ -1,5 +1,5 @@
 
-import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2, Wallet, Search } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
 
 export function HeroSection() {
-  const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed'>('initial');
+  const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed'>('initial');
   const [showWalletSpotlight, setShowWalletSpotlight] = useState(true);
 
   useEffect(() => {
@@ -17,39 +17,54 @@ export function HeroSection() {
       setShowWalletSpotlight(true);
       
       // Phase de connexion wallet
-      setTimeout(() => setShowWalletSpotlight(false), 5000);
-      setTimeout(() => setTransactionState('wallet-connecting'), 6000);
-      setTimeout(() => setTransactionState('wallet-connect'), 8000);
+      setTimeout(() => setShowWalletSpotlight(false), 3000);
+      setTimeout(() => setTransactionState('wallet-connecting'), 4000);
+      setTimeout(() => setTransactionState('wallet-connect'), 6000);
       
-      // Phase de recherche
-      setTimeout(() => setTransactionState('search'), 10000);
-      
-      // Phase de validation
-      setTimeout(() => setTransactionState('validating'), 13000);
+      // Phase de paiement
+      setTimeout(() => setTransactionState('payment'), 9000);
       
       // Phase de traitement
-      setTimeout(() => setTransactionState('processing'), 16000);
+      setTimeout(() => setTransactionState('processing'), 12000);
       
       // Confirmation
-      setTimeout(() => setTransactionState('confirmed'), 19000);
+      setTimeout(() => setTransactionState('confirmed'), 15000);
       
       // Réinitialisation
       setTimeout(() => {
         setTransactionState('initial');
         setShowWalletSpotlight(true);
-      }, 23000);
+      }, 20000);
     };
 
     // Délai initial pour laisser le modèle 3D se charger
     const initialTimeout = setTimeout(() => {
       runTransactionCycle();
-      // Répétition toutes les 25 secondes
-      const interval = setInterval(runTransactionCycle, 25000);
+      // Répétition toutes les 22 secondes
+      const interval = setInterval(runTransactionCycle, 22000);
       return () => clearInterval(interval);
     }, 2000);
 
     return () => clearTimeout(initialTimeout);
   }, []);
+
+  const getStepDescription = () => {
+    switch (transactionState) {
+      case 'initial':
+        return "Trouvez des produits uniques et connectez votre wallet en toute sécurité";
+      case 'wallet-connecting':
+      case 'wallet-connect':
+        return "Connexion sécurisée avec votre portefeuille numérique";
+      case 'payment':
+        return "Payez en crypto avec la protection de notre smart contract";
+      case 'processing':
+        return "Transaction sécurisée, les fonds sont bloqués jusqu'à la réception";
+      case 'confirmed':
+        return "Confirmez la réception et libérez les fonds. Simple et sécurisé";
+      default:
+        return "";
+    }
+  };
 
   return (
     <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
@@ -78,9 +93,17 @@ export function HeroSection() {
               <br /> en toute confiance
             </h1>
             
-            <p className="text-sm sm:text-base md:text-lg text-gray-600">
-              TRADECOINER révolutionne les transactions en ligne en combinant la sécurité de la blockchain avec la simplicité d'une marketplace moderne.
-            </p>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={transactionState}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-sm sm:text-base md:text-lg text-gray-600"
+              >
+                {getStepDescription()}
+              </motion.p>
+            </AnimatePresence>
             
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <Link to="/create">
