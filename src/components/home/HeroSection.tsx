@@ -189,22 +189,25 @@ export function HeroSection() {
 
                         <div className="absolute top-0 left-0 right-0 h-[44px] px-4 flex items-center justify-between z-10">
                           <span className="font-normal text-[10px] tracking-[-0.01em] text-black translate-y-[2px]">9:41</span>
-                          <div className="flex items-center gap-[3px] translate-y-[2px]">
-                            <div className="w-[13px] h-[8px] flex items-end gap-[0.5px] pt-[1px]">
-                              <div className="w-[1.5px] h-[5px] bg-black rounded-[0.25px]" />
-                              <div className="w-[1.5px] h-[3.75px] bg-black rounded-[0.25px]" />
-                              <div className="w-[1.5px] h-[2.5px] bg-black rounded-[0.25px]" />
-                              <div className="w-[1.5px] h-[1.25px] bg-black/30 rounded-[0.25px]" />
-                            </div>
-                            <div className="h-[9px] w-[12px] flex items-center justify-center">
-                              <svg viewBox="0 0 24 24" className="w-full h-full scale-[0.75]" strokeWidth="1">
-                                <path fill="currentColor" d="M12 21a9 9 0 0 0 9-9 9 9 0 0 0-9-9 9 9 0 0 0-9 9 9 9 0 0 0 9 9m7.5-15.6C17.3 3.2 14.7 2 12 2S6.7 3.2 4.5 5.4C2.3 7.6 1 10.3 1 13s1.3 5.4 3.5 7.6C6.7 22.8 9.3 24 12 24s5.3-1.2 7.5-3.4c2.2-2.2 3.5-4.9 3.5-7.6s-1.3-5.4-3.5-7.6z"/>
+                          <div className="flex items-center gap-[2px] translate-y-[2px]">
+                            <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="scale-[0.85]">
+                              <rect x="14" y="1" width="2" height="9" rx="0.7" fill="black"/>
+                              <rect x="10.5" y="3" width="2" height="7" rx="0.7" fill="black"/>
+                              <rect x="7" y="5" width="2" height="5" rx="0.7" fill="black"/>
+                              <rect x="3.5" y="7" width="2" height="3" rx="0.7" fill="black"/>
+                              <rect x="0" y="9" width="2" height="1" rx="0.5" fill="black" fillOpacity="0.3"/>
+                            </svg>
+
+                            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="scale-[0.85] -translate-y-[1px]">
+                              <path fillRule="evenodd" clipRule="evenodd" d="M8 9.7c.56 0 1.01.45 1.01 1S8.56 11.7 8 11.7s-1.01-.45-1.01-1S7.44 9.7 8 9.7zm2.54-2.76c-.27-.36-.63-.64-1.03-.84-.81-.42-1.74-.42-2.55-.01-.4.2-.75.48-1.02.84-.23.31-.17.75.14.98.31.23.75.17.98-.14.36-.47 1-.48 1.36 0 .23.31.67.37.98.14.31-.23.37-.67.14-.97zM8 3.92c1.22 0 2.4.41 3.35 1.16.31.24.76.19 1-.12.24-.31.19-.76-.12-1C11.05 3 9.55 2.45 8 2.45c-1.55 0-3.05.55-4.23 1.51-.31.24-.36.69-.12 1 .24.31.69.36 1 .12A5.545 5.545 0 018 3.92zm5.39-1.5c.31-.24.36-.69.12-1C11.87.5 9.97 0 8 0 6.03 0 4.13.5 2.49 1.42c-.31.24-.36.69-.12 1 .24.31.69.36 1 .12C4.71 1.89 6.33 1.47 8 1.47c1.67 0 3.29.42 4.63 1.07.31.24.76.19 1-.12h-.24z" fill="black"/>
+                            </svg>
+
+                            <div className="relative h-[13px] w-[24px] -translate-y-[1px]">
+                              <svg width="24" height="13" viewBox="0 0 24 13" fill="none" className="scale-[0.85]">
+                                <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" stroke="black" strokeWidth="0.75"/>
+                                <rect x="2" y="2" width="18" height="8" rx="1.5" fill="black"/>
+                                <rect x="22.5" y="3.5" width="1" height="5" rx="0.5" fill="black"/>
                               </svg>
-                            </div>
-                            <div className="h-[9px] w-[20px] relative">
-                              <div className="absolute inset-0 border-[0.75px] border-black rounded-[1.5px]" />
-                              <div className="absolute inset-[1.5px] bg-black rounded-[0.75px]" style={{ width: '90%' }} />
-                              <div className="absolute -right-[1px] top-1/2 -translate-y-1/2 h-[3px] w-[0.75px] bg-black rounded-r-[0.25px]" />
                             </div>
                           </div>
                         </div>
