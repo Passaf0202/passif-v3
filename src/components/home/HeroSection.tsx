@@ -1,3 +1,4 @@
+
 import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2, Wallet, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -25,7 +26,6 @@ export function HeroSection() {
       }, 25000);
     };
 
-    // Délai initial pour laisser le modèle 3D se charger
     const initialTimeout = setTimeout(() => {
       runTransactionCycle();
       const interval = setInterval(runTransactionCycle, 25000);
@@ -125,21 +125,43 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] xl:w-[240px] transform scale-90 sm:scale-100"
+              className="relative w-[220px] sm:w-[240px] md:w-[260px] lg:w-[280px] xl:w-[300px] transform scale-100"
             >
-              <div className="relative rounded-[32px] bg-[#1A1F2C] p-1.5 sm:p-2 shadow-2xl">
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[60px] sm:w-[70px] h-[18px] sm:h-[20px] bg-black rounded-b-3xl z-20" />
-                
-                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/19]">
-                  <MobilePhoneContent 
-                    transactionState={transactionState}
-                    showWalletSpotlight={showWalletSpotlight}
-                  />
+              <div className="relative w-full">
+                {/* iPhone Frame */}
+                <div className="relative aspect-[19.5/42] w-full">
+                  {/* Outer frame with metallic effect */}
+                  <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-lg overflow-hidden">
+                    {/* Inner frame shadow */}
+                    <div className="absolute inset-[1px] rounded-[47px] bg-gradient-to-tr from-black/5 via-transparent to-white/10" />
+                    
+                    {/* Dynamic Island */}
+                    <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-[20px] z-20">
+                      {/* Inner components of Dynamic Island */}
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80px] h-[8px] bg-[#1A1B1E] rounded-full" />
+                      <div className="absolute top-1/2 right-[12px] -translate-y-1/2 w-[8px] h-[8px] bg-[#1A1B1E] rounded-full" />
+                    </div>
+
+                    {/* Screen Content */}
+                    <div className="absolute inset-[4px] rounded-[44px] bg-white overflow-hidden">
+                      {/* Screen Content Area */}
+                      <div className="relative h-full w-full bg-white">
+                        <MobilePhoneContent 
+                          transactionState={transactionState}
+                          showWalletSpotlight={showWalletSpotlight}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Edge Highlights */}
+                    <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-white/20 via-transparent to-black/10 pointer-events-none" />
+                  </div>
                 </div>
               </div>
-
-              <div className="absolute inset-0 rounded-[32px] bg-gradient-to-tr from-white/5 via-white/10 to-transparent pointer-events-none" />
             </motion.div>
+
+            {/* Additional reflections and shadows */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-black/5 pointer-events-none rounded-[48px] blur-sm" />
           </motion.div>
         </div>
       </div>
