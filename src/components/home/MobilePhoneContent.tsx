@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { DiamondViewer } from "./DiamondViewer";
-import { Badge } from "@/components/ui/badge";
+import DiamondViewer from "./DiamondViewer";
 import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
 import { BadgeCheck, Wallet, Loader2, Check, LockKeyhole } from "lucide-react";
