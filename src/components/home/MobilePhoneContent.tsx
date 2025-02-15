@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { Wallet, CheckCircle } from "lucide-react";
+import { WalletCards, BadgeCheck } from "lucide-react";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,13 @@ export function MobilePhoneContent({
 
   return (
     <div className="absolute inset-0 flex flex-col bg-white">
-      {/* Header simple */}
-      <div className="relative h-12 px-4 flex items-center justify-end">
+      {/* Header avec logo et wallet */}
+      <div className="relative h-12 px-4 flex items-center justify-between">
+        <img 
+          src="/Tradecoiner (texte).svg" 
+          alt="Tradecoiner" 
+          className="h-6 w-auto"
+        />
         <motion.button
           animate={{
             scale: showWalletSpotlight ? [1, 1.05, 1] : 1
@@ -34,7 +39,7 @@ export function MobilePhoneContent({
           }}
           className="h-6 w-6 rounded-full flex items-center justify-center bg-black text-white"
         >
-          <Wallet className="h-3 w-3" />
+          <WalletCards className="h-3 w-3" />
         </motion.button>
       </div>
 
@@ -64,7 +69,7 @@ export function MobilePhoneContent({
               variant="outline" 
               className="h-4 inline-flex items-center gap-1 text-[9px] font-medium border-gray-200/80 whitespace-nowrap px-2"
             >
-              <CheckCircle className="h-2.5 w-2.5" />
+              <BadgeCheck className="h-2.5 w-2.5" />
               Acheteur vérifié
             </Badge>
 
