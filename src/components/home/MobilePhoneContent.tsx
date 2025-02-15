@@ -1,3 +1,4 @@
+
 import { motion, AnimatePresence } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -254,6 +255,11 @@ export function MobilePhoneContent({
                           'Transaction terminée'
                         ) : transactionState === 'wallet-connect' ? (
                           'Payer 20 ETH'
+                        ) : isConnecting || transactionState === 'wallet-connecting' ? (
+                          <div className="flex items-center justify-center w-full">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+                            <span className="truncate">Connexion en cours...</span>
+                          </div>
                         ) : (
                           'Connecter le portefeuille'
                         )}
