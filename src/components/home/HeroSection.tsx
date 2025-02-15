@@ -1,3 +1,4 @@
+
 import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -28,23 +29,35 @@ export function HeroSection() {
   const autoPlay = false;
 
   useEffect(() => {
-    const uploadImage = async () => {
-      const { data, error } = await supabase.storage
-        .from('assets')
-        .upload('diamond-icon.png', '/lovable-uploads/5c2be094-f495-4f5f-956c-bd18edf2bf13.png', {
-          cacheControl: '3600',
-          upsert: true,
-        });
+    const fetchImage = async () => {
+      try {
+        const response = await fetch('/lovable-uploads/5c2be094-f495-4f5f-956c-bd18edf2bf13.png');
+        const blob = await response.blob();
+        
+        const { data, error } = await supabase.storage
+          .from('assets')
+          .upload('diamond-icon.png', blob, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: 'image/png'
+          });
 
-      if (!error) {
+        if (error) {
+          console.error('Upload error:', error);
+          return;
+        }
+
         const { data: { publicUrl } } = supabase.storage
           .from('assets')
           .getPublicUrl('diamond-icon.png');
+        
         setImageUrl(publicUrl);
+      } catch (error) {
+        console.error('Fetch error:', error);
       }
     };
 
-    uploadImage();
+    fetchImage();
   }, []);
 
   useEffect(() => {
