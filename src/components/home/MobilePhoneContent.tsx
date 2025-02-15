@@ -82,8 +82,8 @@ export function MobilePhoneContent({
             repeat: showWalletSpotlight ? Infinity : 0,
             repeatType: "reverse"
           }}>
-              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] bg-primary hover:bg-primary/90">
-                {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
+              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] bg-[#000000] hover:bg-[#000000]/90">
+                {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin text-white" /> : <Wallet className="h-3.5 w-3.5 text-white" strokeWidth={2} />}
               </Button>
             </motion.div>
           </div>
@@ -93,16 +93,16 @@ export function MobilePhoneContent({
           <div className="w-full max-w-[360px] mx-auto">
             <div className="h-[140px] w-full relative px-5">
               <div className="absolute top-4 left-2 z-10 flex items-center space-x-2">
-                <div className="flex items-center bg-muted/50 px-2 py-0.5 rounded-full h-4">
+                <div className="flex items-center bg-[#000000] px-2 py-0.5 rounded-full h-4">
                   <Tooltip>
                     <TooltipTrigger>
-                      <BadgeCheck className="h-2.5 w-2.5 text-primary mr-1" />
+                      <BadgeCheck className="h-2.5 w-2.5 text-white mr-1" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-xs">Profil vérifié</p>
                     </TooltipContent>
                   </Tooltip>
-                  <span className="text-[9px] font-medium">Saphire</span>
+                  <span className="text-[9px] font-medium text-white">Saphire</span>
                 </div>
               </div>
 
@@ -118,7 +118,7 @@ export function MobilePhoneContent({
 
             <div className="space-y-3 -mt-8 px-5">
               <div>
-                <h2 className="text-lg leading-tight font-semibold text-primary">Diamant</h2>
+                <h2 className="text-lg leading-tight font-semibold text-[#000000]">Diamant</h2>
               </div>
 
               <div className="space-y-3">
@@ -127,7 +127,7 @@ export function MobilePhoneContent({
                   <div className="w-full h-[2px] bg-gray-200/80" />
                 </div>
 
-                <Button variant="default" size="sm" className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200">
+                <Button variant="default" size="sm" className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white">
                   Payer 20 ETH
                 </Button>
                 
