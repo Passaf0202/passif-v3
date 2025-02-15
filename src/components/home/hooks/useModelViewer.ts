@@ -13,6 +13,13 @@ export function useModelViewer(state: DiamondViewerState) {
   const spinTimeout = useRef<NodeJS.Timeout>();
   const previousStateRef = useRef<DiamondViewerState>(state);
 
+  const getRotationSpeed = useCallback(() => {
+    if (isSpinningFast) {
+      return "90deg";
+    }
+    return "8deg";
+  }, [isSpinningFast]);
+
   useEffect(() => {
     // Ne déclencher l'effet que si l'état passe à 'confirmed' depuis un autre état
     if (state === 'confirmed' && previousStateRef.current !== 'confirmed') {
@@ -54,13 +61,6 @@ export function useModelViewer(state: DiamondViewerState) {
       setModelViewerReady(true);
     }
   }, []);
-
-  const getRotationSpeed = useCallback(() => {
-    if (isSpinningFast) {
-      return "90deg";
-    }
-    return "8deg";
-  }, [isSpinningFast]);
 
   return {
     modelRef,
