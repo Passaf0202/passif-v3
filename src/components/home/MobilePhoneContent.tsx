@@ -123,7 +123,7 @@ export function MobilePhoneContent({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col relative pointer-events-auto">
+      <div className="flex-1 flex flex-col relative pointer-events-auto z-40">
         <div className="w-full max-w-[360px] mx-auto pointer-events-auto">
           <div className="h-[180px] w-full relative px-5">
             <motion.div 
@@ -134,7 +134,7 @@ export function MobilePhoneContent({
             </motion.div>
           </div>
 
-          <div className="space-y-3 -mt-6 px-5 pointer-events-auto">
+          <div className="space-y-3 -mt-6 px-5 pointer-events-auto relative z-50">
             <div className="space-y-2">
               <h2 className="text-lg leading-tight font-semibold text-[#000000]">Diamant</h2>
               <div className="flex items-center gap-2">
@@ -175,14 +175,21 @@ export function MobilePhoneContent({
                   transition={{ duration: 0.3 }}
                   className="pointer-events-auto z-50"
                 >
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    onClick={handleConfirmDelivery}
-                    className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto z-50"
-                  >
-                    Confirmer la réception
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={handleConfirmDelivery}
+                        className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto"
+                      >
+                        Confirmer la réception
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Confirmer la réception du produit</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </motion.div>
               ) : (
                 <motion.div
@@ -196,26 +203,33 @@ export function MobilePhoneContent({
                   }}
                   className="pointer-events-auto z-50"
                 >
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    onClick={transactionState === 'wallet-connect' ? handlePayment : handleConnect}
-                    disabled={transactionState === 'processing' || transactionState === 'confirmed'}
-                    className={`w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto z-50 ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
-                  >
-                    {transactionState === 'processing' ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-                        Transaction en cours...
-                      </>
-                    ) : transactionState === 'confirmed' ? (
-                      'Transaction terminée'
-                    ) : transactionState === 'wallet-connect' ? (
-                      'Payer 20 ETH'
-                    ) : (
-                      'Connecter le portefeuille'
-                    )}
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={transactionState === 'wallet-connect' ? handlePayment : handleConnect}
+                        disabled={transactionState === 'processing' || transactionState === 'confirmed'}
+                        className={`w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
+                      >
+                        {transactionState === 'processing' ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+                            Transaction en cours...
+                          </>
+                        ) : transactionState === 'confirmed' ? (
+                          'Transaction terminée'
+                        ) : transactionState === 'wallet-connect' ? (
+                          'Payer 20 ETH'
+                        ) : (
+                          'Connecter le portefeuille'
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">{getTransactionMessage()}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </motion.div>
               )}
               
