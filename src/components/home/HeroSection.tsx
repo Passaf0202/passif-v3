@@ -1,3 +1,4 @@
+
 import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -106,7 +107,6 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="relative flex justify-center items-center"
-            onClick={() => setShowWalletSpotlight(false)}
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
@@ -160,7 +160,7 @@ export function HeroSection() {
                       <div className="absolute inset-0 bg-white">
                         <StatusBar />
                         <DynamicIsland />
-                        <div className="relative w-full h-full pt-20">
+                        <div className="relative w-full h-full pt-20 pointer-events-auto">
                           <MobilePhoneContent 
                             transactionState={transactionState}
                             showWalletSpotlight={showWalletSpotlight}

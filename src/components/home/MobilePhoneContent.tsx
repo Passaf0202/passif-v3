@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +25,6 @@ export function MobilePhoneContent({
 
   const handleConnect = async () => {
     if (transactionState === 'wallet-connect') {
-      // Si déjà connecté, déconnecter
       toast({
         title: "Déconnecté",
         description: "Votre portefeuille a été déconnecté"
@@ -35,11 +33,9 @@ export function MobilePhoneContent({
       return;
     }
 
-    // Simuler la connexion
     setIsConnecting(true);
     onStateChange('wallet-connecting');
     
-    // Attendre 1.5 secondes pour simuler la connexion
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     setIsConnecting(false);
@@ -52,13 +48,11 @@ export function MobilePhoneContent({
 
   const handlePayment = async () => {
     onStateChange('processing');
-    // Simuler un délai de traitement
     await new Promise(resolve => setTimeout(resolve, 2000));
     onStateChange('awaiting-confirmation');
   };
 
   const handleConfirmDelivery = async () => {
-    // Simuler la libération des fonds
     await new Promise(resolve => setTimeout(resolve, 1500));
     onStateChange('confirmed');
     toast({
@@ -100,15 +94,16 @@ export function MobilePhoneContent({
               repeat: showWalletSpotlight ? Infinity : 0,
               repeatType: "reverse"
             }}
+            className="pointer-events-auto"
           >
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger asChild>
                 <Button 
                   onClick={handleConnect} 
                   disabled={isConnecting} 
                   variant="default" 
                   size="sm" 
-                  className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] mobile-wallet-button relative"
+                  className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] mobile-wallet-button relative pointer-events-auto z-50"
                 >
                   {isConnecting ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
@@ -127,7 +122,7 @@ export function MobilePhoneContent({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col relative">
+      <div className="flex-1 flex flex-col relative pointer-events-auto">
         <div className="w-full max-w-[360px] mx-auto">
           <div className="h-[180px] w-full relative px-5">
             <motion.div 
@@ -177,12 +172,13 @@ export function MobilePhoneContent({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
+                  className="pointer-events-auto"
                 >
                   <Button 
                     variant="default" 
                     size="sm" 
                     onClick={handleConfirmDelivery}
-                    className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto"
                   >
                     Confirmer la réception
                   </Button>
@@ -197,13 +193,14 @@ export function MobilePhoneContent({
                     repeat: transactionState === 'wallet-connect' ? Infinity : 0,
                     repeatType: "reverse"
                   }}
+                  className="pointer-events-auto"
                 >
                   <Button 
                     variant="default" 
                     size="sm" 
                     onClick={transactionState === 'wallet-connect' ? handlePayment : handleConnect}
                     disabled={transactionState === 'processing' || transactionState === 'confirmed'}
-                    className={`w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
+                    className={`w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
                   >
                     {transactionState === 'processing' ? (
                       <>
