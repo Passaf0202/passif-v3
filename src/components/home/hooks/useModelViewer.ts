@@ -6,40 +6,40 @@ import { DiamondViewerState } from '../types/diamond-viewer';
 const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/Logo%20Tradecoiner%20-%203D.glb';
 let modelViewerScriptLoaded = false;
 
+const FAST_SPEED = "90deg";
+const NORMAL_SPEED = "8deg";
+const TRANSITION_DURATION = 1500;
+
 export function useModelViewer(state: DiamondViewerState) {
   const [isModelViewerReady, setModelViewerReady] = useState(false);
   const [isSpinningFast, setIsSpinningFast] = useState(false);
+  const [currentSpeed, setCurrentSpeed] = useState(NORMAL_SPEED);
   const modelRef = useRef<HTMLElement>(null);
   const spinTimeout = useRef<NodeJS.Timeout>();
   const previousStateRef = useRef<DiamondViewerState>(state);
 
   const getRotationSpeed = useCallback(() => {
-    if (isSpinningFast) {
-      return "90deg";
-    }
-    return "8deg";
-  }, [isSpinningFast]);
+    return currentSpeed;
+  }, [currentSpeed]);
 
   useEffect(() => {
-    // Ne déclencher l'effet que si l'état passe à 'confirmed' depuis un autre état
     if (state === 'confirmed' && previousStateRef.current !== 'confirmed') {
       setIsSpinningFast(true);
+      setCurrentSpeed(FAST_SPEED);
       
-      // Nettoyer tout timeout existant
       if (spinTimeout.current) {
         clearTimeout(spinTimeout.current);
       }
       
-      // Revenir à la vitesse normale après 1 seconde
+      // Transition progressive vers la vitesse normale
       spinTimeout.current = setTimeout(() => {
         setIsSpinningFast(false);
-      }, 1000);
+        setCurrentSpeed(NORMAL_SPEED);
+      }, TRANSITION_DURATION);
     }
 
-    // Mettre à jour la référence de l'état précédent
     previousStateRef.current = state;
 
-    // Nettoyage du timeout lors du démontage
     return () => {
       if (spinTimeout.current) {
         clearTimeout(spinTimeout.current);

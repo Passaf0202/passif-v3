@@ -4,7 +4,7 @@ import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef, useState, useEffect } from "react";
-import { BadgeCheck, Wallet, Loader2, Check, ArrowUp } from "lucide-react";
+import { BadgeCheck, Wallet, Loader2, Check, ArrowUp, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TransactionState } from "./HeroSection";
@@ -23,6 +23,7 @@ export function MobilePhoneContent({
   const modelContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const [showGuide, setShowGuide] = useState(true);
 
   useEffect(() => {
@@ -65,12 +66,19 @@ export function MobilePhoneContent({
   };
 
   const handleConfirmDelivery = async () => {
+    setIsConfirming(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
     onStateChange('confirmed');
+    setIsConfirming(false);
     toast({
       title: "Succès !",
       description: "Les fonds ont été libérés au vendeur."
     });
+  };
+
+  const handleRetry = () => {
+    onStateChange('initial');
+    setIsConfirming(false);
   };
 
   const getTransactionMessage = () => {
@@ -142,7 +150,7 @@ export function MobilePhoneContent({
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="tooltip-content">
+                <TooltipContent side="bottom" align="center" className="tooltip-content">
                   <p className="text-xs">{getTransactionMessage()}</p>
                 </TooltipContent>
               </Tooltip>
@@ -171,7 +179,7 @@ export function MobilePhoneContent({
                     <TooltipTrigger>
                       <BadgeCheck className="h-2.5 w-2.5 text-black mr-1" />
                     </TooltipTrigger>
-                    <TooltipContent className="tooltip-content">
+                    <TooltipContent side="bottom" align="center" className="tooltip-content">
                       <p className="text-xs">Certifié</p>
                     </TooltipContent>
                   </Tooltip>
@@ -199,12 +207,20 @@ export function MobilePhoneContent({
                         variant="default" 
                         size="sm" 
                         onClick={handleConfirmDelivery}
+                        disabled={isConfirming}
                         className="w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto"
                       >
-                        Confirmer la réception
+                        {isConfirming ? (
+                          <div className="flex items-center justify-center">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+                            <span>Confirmation en cours...</span>
+                          </div>
+                        ) : (
+                          "Confirmer la réception"
+                        )}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent className="tooltip-content">
+                    <TooltipContent side="bottom" align="center" className="tooltip-content">
                       <p className="text-xs">Confirmer la réception du produit</p>
                     </TooltipContent>
                   </Tooltip>
@@ -244,7 +260,7 @@ export function MobilePhoneContent({
                         )}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent className="tooltip-content">
+                    <TooltipContent side="bottom" align="center" className="tooltip-content">
                       <p className="text-xs">{getTransactionMessage()}</p>
                     </TooltipContent>
                   </Tooltip>
@@ -256,14 +272,24 @@ export function MobilePhoneContent({
                 <div className="w-full h-[2px] bg-gray-200/80" />
                 <div className="w-full h-[2px] bg-gray-200/80" />
                 {transactionState === 'confirmed' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center bg-green-100 px-2 py-0.5 rounded-full h-4 w-fit mt-2"
-                  >
-                    <Check className="h-2.5 w-2.5 text-green-600 mr-1" />
-                    <span className="text-[9px] font-medium text-green-600">Produit reçu</span>
-                  </motion.div>
+                  <div className="flex items-center justify-between">
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center bg-green-100 px-2 py-0.5 rounded-full h-4 w-fit mt-2"
+                    >
+                      <Check className="h-2.5 w-2.5 text-green-600 mr-1" />
+                      <span className="text-[9px] font-medium text-green-600">Produit reçu</span>
+                    </motion.div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRetry}
+                      className="h-6 w-6 p-0"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 text-gray-500" />
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
