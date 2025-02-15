@@ -4,8 +4,12 @@ import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
-import { CheckCircle } from "lucide-react";
-import { WalletConnectButton } from "@/components/WalletConnectButton";
+import { CheckCircle, Wallet } from "lucide-react";
+import { useAccount, useDisconnect } from 'wagmi';
+import { useWeb3Modal } from '@web3modal/react';
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
 
@@ -19,17 +23,54 @@ export function MobilePhoneContent({
   showWalletSpotlight
 }: MobilePhoneContentProps) {
   const modelContainerRef = useRef<HTMLDivElement>(null);
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { open, isOpen } = useWeb3Modal();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  const handleConnect = async () => {
+    try {
+      if (!user) {
+        toast({
+          title: "Connexion requise 😊",
+          description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille",
+        });
+        return;
+      }
+
+      if (isConnected) {
+        await disconnect();
+        toast({
+          title: "Déconnecté",
+          description: "Votre portefeuille a été déconnecté",
+        });
+      } else {
+        console.log('Tentative de connexion au wallet...');
+        await open();
+      }
+    } catch (error) {
+      console.error('Connection error:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de se connecter au portefeuille. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="absolute inset-0 flex flex-col bg-white">
       {/* Header avec logo et wallet */}
-      <div className="relative h-12 px-4 flex items-center">
+      <div className="relative h-12 pl-2 pr-3 flex items-center">
         <img 
           src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png"
           alt="Tradecoiner" 
-          className="h-6 w-auto mr-auto"
+          className="h-5 w-auto mr-auto"
         />
-        <motion.div
+        <motion.button
+          onClick={handleConnect}
+          disabled={isOpen}
           animate={{
             scale: showWalletSpotlight ? [1, 1.05, 1] : 1
           }}
@@ -38,9 +79,14 @@ export function MobilePhoneContent({
             repeat: showWalletSpotlight ? Infinity : 0,
             repeatType: "reverse"
           }}
+          className="h-8 w-8 rounded-full flex items-center justify-center bg-black text-white ml-2"
         >
-          <WalletConnectButton />
-        </motion.div>
+          {isOpen ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Wallet className="h-4 w-4" />
+          )}
+        </motion.button>
       </div>
 
       {/* Contenu principal */}
