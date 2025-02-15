@@ -1,9 +1,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Loader2, CheckCircle2, ShieldCheck } from "lucide-react";
-import { DiamondViewer } from "./DiamondViewer";
+import { LogoViewer } from "./LogoViewer";
 import { Button } from "@/components/ui/button";
-import { useRef } from "react";
 
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
 
@@ -13,19 +12,14 @@ interface MobilePhoneContentProps {
 }
 
 export function MobilePhoneContent({ transactionState, showWalletSpotlight }: MobilePhoneContentProps) {
-  const modelContainerRef = useRef<HTMLDivElement>(null);
-
   const renderContent = () => {
     switch (transactionState) {
       case 'initial':
         return (
           <div className="w-full space-y-4">
-            <div className="text-lg font-semibold">Diamant Noir Tradecoiner</div>
+            <div className="text-lg font-semibold">TRADECOINER</div>
             <div className="text-2xl font-bold">2 500 €</div>
             <div className="text-sm text-gray-600">≈ 0.92 POL</div>
-            <div className="text-sm text-gray-600 mt-2">
-              Diamant noir certifié, taille brillant, 1 carat
-            </div>
             <Button 
               className="w-full mt-4 animate-pulse" 
               size="lg"
@@ -38,11 +32,8 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
       
       case 'wallet-connecting':
         return (
-          <div className="w-full space-y-4">
-            <div className="flex items-center justify-center space-x-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Connexion en cours...</span>
-            </div>
+          <div className="w-full flex items-center justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         );
       
@@ -53,16 +44,12 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
             <div className="text-lg font-semibold">Paiement sécurisé</div>
             <div className="p-4 bg-gray-50 rounded-lg space-y-2">
               <div className="flex justify-between">
-                <span>Prix du produit</span>
+                <span>Montant</span>
                 <span>2 500 €</span>
               </div>
               <div className="flex justify-between text-sm text-gray-600">
-                <span>Équivalent en POL</span>
+                <span>En POL</span>
                 <span>0.92 POL</span>
-              </div>
-              <div className="flex justify-between text-sm text-primary">
-                <span>Protection acheteur</span>
-                <span>Incluse</span>
               </div>
             </div>
             <Button 
@@ -70,28 +57,17 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
               size="lg"
               variant={transactionState === 'payment' ? 'outline' : 'default'}
             >
-              {transactionState === 'payment' ? (
-                <>
-                  <ShieldCheck className="mr-2 h-4 w-4" />
-                  Smart Contract activé
-                </>
-              ) : (
-                <>
-                  <ShieldCheck className="mr-2 h-4 w-4" />
-                  Payer maintenant
-                </>
-              )}
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              {transactionState === 'payment' ? 'Smart Contract activé' : 'Payer maintenant'}
             </Button>
           </div>
         );
       
       case 'processing':
         return (
-          <div className="w-full space-y-4">
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <span className="text-lg font-medium">Transaction en cours...</span>
-              <span className="text-sm text-gray-600">Les fonds sont sécurisés</span>
+          <div className="w-full flex items-center justify-center py-4">
+            <div className="text-center space-y-2">
+              <span className="text-sm text-gray-600">Transaction en cours...</span>
             </div>
           </div>
         );
@@ -100,13 +76,8 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
         return (
           <div className="w-full space-y-4">
             <div className="flex flex-col items-center justify-center space-y-2">
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
-              </div>
-              <span className="text-lg font-medium text-green-600">Transaction réussie !</span>
-              <span className="text-sm text-gray-600 text-center">
-                Les fonds seront libérés au vendeur après confirmation de la réception
-              </span>
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <span className="text-green-600 font-medium">Transaction réussie</span>
             </div>
           </div>
         );
@@ -137,18 +108,9 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-between relative">
-        <motion.div 
-          className="w-48 h-48 relative"
-          animate={{
-            scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1,
-          }}
-          transition={{
-            duration: 0.5,
-            ease: "easeInOut"
-          }}
-        >
-          <DiamondViewer state={transactionState} />
-        </motion.div>
+        <div className="w-48 h-48 relative">
+          <LogoViewer state={transactionState} />
+        </div>
 
         <AnimatePresence mode="wait">
           <motion.div
