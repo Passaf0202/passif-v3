@@ -1,8 +1,6 @@
 
 import { Canvas } from '@react-three/fiber';
-import { Suspense } from 'react';
 import { OrbitControls } from '@react-three/drei';
-import { Loader2 } from "lucide-react";
 
 export type DiamondViewerState = 
   | 'initial'               
@@ -20,12 +18,12 @@ interface DiamondViewerProps {
 export function DiamondViewer({ state }: DiamondViewerProps) {
   return (
     <div className="w-full h-full">
-      <Canvas>
+      <Canvas camera={{ position: [0, 0, 3] }}>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
         <OrbitControls enableZoom={false} />
         <mesh>
-          <boxGeometry args={[1, 1, 1]} />
+          <boxGeometry />
           <meshStandardMaterial 
             color={
               state === 'confirmed' ? '#22c55e' : 
