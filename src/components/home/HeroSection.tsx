@@ -126,7 +126,7 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[200px] sm:w-[240px] md:w-[280px] lg:w-[320px] xl:w-[360px] transform scale-90 sm:scale-100"
+              className="relative w-[240px] sm:w-[280px] md:w-[320px] lg:w-[360px] xl:w-[400px] transform scale-90 sm:scale-100"
             >
               <div className="relative w-full">
                 <img 
