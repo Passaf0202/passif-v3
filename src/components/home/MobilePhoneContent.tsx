@@ -43,14 +43,6 @@ export function MobilePhoneContent({
         <div className="w-full max-w-[360px] mx-auto">
           {/* Section modèle 3D */}
           <div className="h-[160px] w-[220px] mx-auto relative">
-            {/* Badge acheteur vérifié */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-              <Badge variant="outline" className="h-5 flex items-center gap-1 text-[10px] font-medium border-gray-200">
-                <CheckCircle className="h-3 w-3" />
-                Acheteur vérifié
-              </Badge>
-            </div>
-
             <motion.div 
               ref={modelContainerRef}
               className="w-full h-full"
@@ -67,16 +59,26 @@ export function MobilePhoneContent({
           </div>
 
           {/* Informations produit */}
-          <div className="space-y-3 px-4 -mt-8">
+          <div className="space-y-2 px-4 -mt-8">
+            <Badge 
+              variant="outline" 
+              className="h-4 inline-flex items-center gap-1 text-[9px] font-medium border-gray-200 whitespace-nowrap px-2"
+            >
+              <CheckCircle className="h-2.5 w-2.5" />
+              Acheteur vérifié
+            </Badge>
+
             <div>
-              <h2 className="text-2xl leading-tight font-semibold text-black">Diamant 4 carats</h2>
+              <h2 className="text-lg leading-tight font-semibold text-black">Diamant 4 carats</h2>
             </div>
 
-            <div className="w-full bg-black text-white px-3 py-2 rounded-lg text-sm font-medium">
+            <div className="w-full bg-black text-white px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
               19.25 ETH = 50.000 EUR
             </div>
 
-            <div className="space-y-2 pt-1">
+            <div className="w-full h-[1px] bg-gray-200 my-2" />
+
+            <div className="space-y-2">
               <Button 
                 variant="default"
                 size="sm"
@@ -84,7 +86,12 @@ export function MobilePhoneContent({
               >
                 Payer
               </Button>
-              <div className="w-full h-[1px] bg-gray-200" />
+              
+              <div className="space-y-1.5">
+                <div className="w-full h-[1px] bg-gray-200" />
+                <div className="w-full h-[1px] bg-gray-200" />
+                <div className="w-full h-[1px] bg-gray-200" />
+              </div>
             </div>
           </div>
         </div>
