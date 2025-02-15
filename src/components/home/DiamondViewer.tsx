@@ -180,25 +180,25 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   }
 
   return (
-    <div className="w-full h-full relative bg-transparent rounded-lg overflow-hidden">
+    <div className="w-full h-full relative bg-transparent rounded-lg p-4">
       <model-viewer
         ref={modelRef}
         src={MODEL_PATH}
         auto-rotate
         rotation-per-second={getRotationSpeed()}
         rotation-axis="0 1 0"
-        orientation="0deg 270deg 0deg"
+        orientation="0deg 75deg 0deg"
         interaction-prompt="none"
-        camera-orbit="65deg 90deg 1.2m"
-        min-camera-orbit="65deg 90deg 1.2m"
-        max-camera-orbit="65deg 90deg 1.2m"
+        camera-orbit="55deg 75deg 1.5m"
+        min-camera-orbit="55deg 75deg 1.5m"
+        max-camera-orbit="55deg 75deg 1.5m"
         auto-rotate-delay={0}
         shadow-intensity="0"
         exposure="0.8"
         environment-image="neutral"
-        field-of-view="18deg"
+        field-of-view="20deg"
         bounds="tight"
-        scale="2.2 2.2 2.2"
+        scale="1.8 1.8 1.8"
         loading="eager"
         style={{
           width: '100%',
@@ -216,3 +216,4 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 }
 
 export default DiamondViewer;
+
