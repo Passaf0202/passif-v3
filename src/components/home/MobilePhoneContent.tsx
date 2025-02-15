@@ -39,7 +39,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
       <div className="flex-1 flex flex-col">
         <div className="w-full max-w-[360px] mx-auto">
           {/* Badge acheteur vérifié */}
-          <div className="flex justify-center mb-2">
+          <div className="flex justify-center mb-1">
             <Badge variant="outline" className="h-5 flex items-center gap-1 text-[10px] font-medium border-gray-200">
               <CheckCircle className="h-3 w-3" />
               Acheteur vérifié
@@ -47,10 +47,10 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
           </div>
 
           {/* Section modèle 3D */}
-          <div className="relative aspect-square w-full max-w-[280px] mx-auto mb-4">
+          <div className="h-[200px] w-[220px] mx-auto mb-3">
             <motion.div 
               ref={modelContainerRef}
-              className="absolute inset-0 flex items-center justify-center"
+              className="w-full h-full"
               animate={{
                 scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1,
               }}
