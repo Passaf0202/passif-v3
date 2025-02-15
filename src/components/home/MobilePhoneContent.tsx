@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,7 @@ import { useRef, useState } from "react";
 import { BadgeCheck, Wallet, Loader2, Check } from "lucide-react";
 import { useAccount, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/react';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TransactionState } from "./HeroSection";
@@ -70,7 +71,7 @@ export function MobilePhoneContent({
       onStateChange('processing');
       // Simuler un délai de traitement
       await new Promise(resolve => setTimeout(resolve, 2000));
-      onStateChange('awaiting-confirmation' as TransactionState);
+      onStateChange('awaiting-confirmation');  // Sans type assertion, car le type est maintenant correctement importé
     } catch (error) {
       console.error('Payment error:', error);
       onStateChange('payment');
