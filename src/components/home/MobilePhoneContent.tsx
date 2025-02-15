@@ -1,9 +1,9 @@
+
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
-import { Wallet, Loader2 } from "lucide-react";
+import { Wallet, Loader2, BadgeCheck } from "lucide-react";
 import { useAccount, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/react';
 import { useToast } from "@/components/ui/use-toast";
