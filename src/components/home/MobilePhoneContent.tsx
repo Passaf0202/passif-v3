@@ -112,7 +112,7 @@ export function MobilePhoneContent({
 
             <div className="space-y-3 -mt-8 px-5">
               <div>
-                <h2 className="text-lg leading-tight font-semibold text-black">Diamant brut</h2>
+                <h2 className="text-lg leading-tight font-semibold text-black">Diamant</h2>
               </div>
 
               <div className="space-y-3">
