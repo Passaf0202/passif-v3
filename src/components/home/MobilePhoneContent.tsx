@@ -57,7 +57,7 @@ export function MobilePhoneContent({
               <h2 className="leading-tight text-black text-lg font-semibold">Diamant</h2>
             </div>
 
-            <div className="w-full text-black px-3 py-2 text-sm font-medium rounded-full bg-neutral-300 hover:bg-neutral-200">19.25 ETH</div>
+            <div className="w-full text-black py-2 text-sm font-medium rounded-full bg-neutral-300 hover:bg-neutral-200 px-[10px]">19.25 ETH</div>
 
             <div className="space-y-2 pt-1">
               <Button variant="default" size="sm" className="w-full bg-black hover:bg-black/90 text-white text-sm rounded-full">
