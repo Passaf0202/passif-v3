@@ -59,8 +59,8 @@ export function MobilePhoneContent({
   };
 
   return <TooltipProvider>
-      <div className="absolute inset-0 flex flex-col bg-white pt-4">
-        <div className="h-12 flex items-center">
+      <div className="absolute inset-0 flex flex-col bg-white pt-2">
+        <div className="h-8 flex items-center">
           <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px]">
             <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto mobile-logo" />
             <motion.div animate={{
@@ -79,7 +79,7 @@ export function MobilePhoneContent({
 
         <div className="flex-1 flex flex-col relative">
           <div className="w-full max-w-[360px] mx-auto">
-            <div className="h-[160px] w-full relative px-5">
+            <div className="h-[120px] w-full relative px-5">
               <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
               scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
             }} transition={{
