@@ -4,7 +4,7 @@ import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
-import { CustomWallet, DiamondCheck } from "@/components/icons/CustomIcons";
+import { User, CheckCircle } from "lucide-react";
 
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
 
@@ -39,7 +39,7 @@ export function MobilePhoneContent({
           }}
           className="h-6 w-6 rounded-full flex items-center justify-center bg-black text-white"
         >
-          <CustomWallet className="h-3 w-3" />
+          <User className="h-3 w-3" />
         </motion.button>
       </div>
 
@@ -66,10 +66,10 @@ export function MobilePhoneContent({
           {/* Informations produit */}
           <div className="space-y-2 -mt-8">
             <Badge 
-              variant="outline" 
-              className="h-4 inline-flex items-center gap-1 text-[9px] font-medium border-gray-200/80 whitespace-nowrap px-2"
+              variant="default" 
+              className="h-4 inline-flex items-center gap-1 text-[9px] font-medium whitespace-nowrap px-2"
             >
-              <DiamondCheck className="h-2.5 w-2.5" />
+              <CheckCircle className="h-2.5 w-2.5" />
               Acheteur vérifié
             </Badge>
 
