@@ -5,8 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
 import { BadgeCheck, Wallet, Loader2, Check } from "lucide-react";
-import { useAccount, useDisconnect } from 'wagmi';
-import { useWeb3Modal } from '@web3modal/react';
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TransactionState } from "./HeroSection";
@@ -23,73 +21,50 @@ export function MobilePhoneContent({
   onStateChange
 }: MobilePhoneContentProps) {
   const modelContainerRef = useRef<HTMLDivElement>(null);
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
-  const { open, isOpen } = useWeb3Modal();
   const { toast } = useToast();
-  const [isPaymentButtonActive, setIsPaymentButtonActive] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = async () => {
-    try {
-      if (isConnected) {
-        await disconnect();
-        toast({
-          title: "Déconnecté",
-          description: "Votre portefeuille a été déconnecté"
-        });
-        onStateChange('initial');
-      } else {
-        onStateChange('wallet-connecting');
-        console.log('Tentative de connexion au wallet...');
-        await open();
-        onStateChange('wallet-connect');
-        setIsPaymentButtonActive(true);
-      }
-    } catch (error) {
-      console.error('Connection error:', error);
-      onStateChange('initial');
+    if (transactionState === 'wallet-connect') {
+      // Si déjà connecté, déconnecter
       toast({
-        title: "Erreur",
-        description: "Impossible de se connecter au portefeuille. Veuillez réessayer.",
-        variant: "destructive"
+        title: "Déconnecté",
+        description: "Votre portefeuille a été déconnecté"
       });
+      onStateChange('initial');
+      return;
     }
+
+    // Simuler la connexion
+    setIsConnecting(true);
+    onStateChange('wallet-connecting');
+    
+    // Attendre 1.5 secondes pour simuler la connexion
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setIsConnecting(false);
+    onStateChange('wallet-connect');
+    toast({
+      title: "Connecté",
+      description: "Votre portefeuille est maintenant connecté"
+    });
   };
 
   const handlePayment = async () => {
-    try {
-      onStateChange('processing');
-      // Simuler un délai de traitement
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      onStateChange('awaiting-confirmation');
-    } catch (error) {
-      console.error('Payment error:', error);
-      onStateChange('payment');
-      toast({
-        title: "Erreur",
-        description: "Le paiement a échoué. Veuillez réessayer.",
-        variant: "destructive"
-      });
-    }
+    onStateChange('processing');
+    // Simuler un délai de traitement
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    onStateChange('awaiting-confirmation');
   };
 
   const handleConfirmDelivery = async () => {
-    try {
-      // Ici nous simulerons la libération des fonds
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      onStateChange('confirmed');
-      toast({
-        title: "Succès !",
-        description: "Les fonds ont été libérés au vendeur."
-      });
-    } catch (error) {
-      console.error('Confirmation error:', error);
-      toast({
-        title: "Erreur",
-        description: "La confirmation a échoué. Veuillez réessayer.",
-        variant: "destructive"
-      });
-    }
+    // Simuler la libération des fonds
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    onStateChange('confirmed');
+    toast({
+      title: "Succès !",
+      description: "Les fonds ont été libérés au vendeur."
+    });
   };
 
   const getTransactionMessage = () => {
@@ -130,12 +105,12 @@ export function MobilePhoneContent({
               <TooltipTrigger>
                 <Button 
                   onClick={handleConnect} 
-                  disabled={isOpen} 
+                  disabled={isConnecting} 
                   variant="default" 
                   size="sm" 
                   className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] mobile-wallet-button relative"
                 >
-                  {isOpen ? (
+                  {isConnecting ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
                   ) : transactionState === 'wallet-connect' ? (
                     <Check className="h-3.5 w-3.5 text-white" strokeWidth={2} />
@@ -215,11 +190,11 @@ export function MobilePhoneContent({
               ) : (
                 <motion.div
                   animate={{
-                    scale: transactionState === 'wallet-connect' && !isPaymentButtonActive ? [1, 1.02, 1] : 1
+                    scale: transactionState === 'wallet-connect' ? [1, 1.02, 1] : 1
                   }}
                   transition={{
                     duration: 1,
-                    repeat: transactionState === 'wallet-connect' && !isPaymentButtonActive ? Infinity : 0,
+                    repeat: transactionState === 'wallet-connect' ? Infinity : 0,
                     repeatType: "reverse"
                   }}
                 >
