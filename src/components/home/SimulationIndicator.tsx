@@ -16,7 +16,7 @@ export function SimulationIndicator() {
         repeat: Infinity,
         ease: "easeInOut"
       }}
-      className="absolute right-[8px] top-[50%] -translate-y-1/2 pointer-events-none z-50"
+      className="absolute right-[12px] top-[50%] -translate-y-1/2 pointer-events-none z-50"
     >
       <div className="bg-white/90 rounded-full p-1 shadow-sm">
         <MousePointer size={16} className="text-primary" />
