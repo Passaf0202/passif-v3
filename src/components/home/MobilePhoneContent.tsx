@@ -77,26 +77,24 @@ export function MobilePhoneContent({
       {/* Contenu principal */}
       <div className="flex-1 flex flex-col relative">
         <div className="w-full max-w-[360px] mx-auto pl-2">
-          {/* Section profil acheteur */}
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center bg-muted/50 px-2 py-0.5 rounded-full h-4">
-              <User className="h-2.5 w-2.5 text-muted-foreground mr-1" />
-              <span className="text-[9px] font-medium">Saphire</span>
-            </div>
-            <Badge variant="default" className="h-4 inline-flex items-center gap-1 text-[9px] font-medium whitespace-nowrap px-2">
-              <CheckCircle className="h-2.5 w-2.5" />
-              Profil vérifié
-            </Badge>
-          </div>
-
           {/* Section modèle 3D */}
           <div className="h-[160px] w-full relative">
             <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
-            scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
-          }} transition={{
-            duration: 0.5,
-            ease: "easeInOut"
-          }}>
+              scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
+            }} transition={{
+              duration: 0.5,
+              ease: "easeInOut"
+            }}>
+              <div className="absolute top-0 left-0 z-10 flex items-center space-x-2">
+                <div className="flex items-center bg-muted/50 px-2 py-0.5 rounded-full h-4">
+                  <User className="h-2.5 w-2.5 text-muted-foreground mr-1" />
+                  <span className="text-[9px] font-medium">Saphire</span>
+                </div>
+                <Badge variant="default" className="h-4 inline-flex items-center gap-1 text-[9px] font-medium whitespace-nowrap px-2">
+                  <CheckCircle className="h-2.5 w-2.5" />
+                  Profil vérifié
+                </Badge>
+              </div>
               <DiamondViewer state={transactionState} />
             </motion.div>
           </div>
