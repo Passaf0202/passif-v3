@@ -176,38 +176,38 @@ export function HeroSection() {
                     <div className="absolute inset-[3px] rounded-[45px] overflow-hidden">
                       <div className="absolute inset-0 border-[2.5px] border-black rounded-[45px] z-20 shadow-[inset_0_0_2px_rgba(0,0,0,0.4)]" />
                       <div className="absolute inset-0 bg-white">
-                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] bg-black rounded-[25px] z-30 overflow-hidden shadow-[inset_0_1px_1px_rgba(0,0,0,0.8)]">
-                          <div className="absolute inset-0 bg-black shadow-[inset_0_1px_1px_rgba(0,0,0,0.8)]" />
+                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] bg-primary rounded-[25px] z-30 overflow-hidden shadow-[inset_0_1px_1px_rgba(0,0,0,0.8)]">
+                          <div className="absolute inset-0 bg-primary shadow-[inset_0_1px_1px_rgba(0,0,0,0.8)]" />
                           
                           <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[4px] h-[4px] rounded-full">
-                            <div className="absolute inset-0 bg-black rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]" />
-                            <div className="absolute inset-[0.75px] bg-black rounded-full" />
-                            <div className="absolute inset-[1.25px] bg-black rounded-full" />
+                            <div className="absolute inset-0 bg-primary rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]" />
+                            <div className="absolute inset-[0.75px] bg-primary rounded-full" />
+                            <div className="absolute inset-[1.25px] bg-primary rounded-full" />
                             <div className="absolute top-[25%] left-[25%] w-[0.5px] h-[0.5px] bg-white/15 rounded-full" />
                           </div>
                         </div>
 
                         <div className="absolute top-0 left-0 right-0 h-[44px] px-8 flex items-center justify-between z-10">
-                          <span className="font-semibold text-[9px] tracking-wide text-[#000000] translate-y-[1px]">9:41</span>
+                          <span className="font-semibold text-[9px] tracking-wide text-primary translate-y-[1px]">9:41</span>
                           <div className="flex items-center gap-[1px] translate-y-[1px] mr-[-8px]">
                             {/* Signal icon */}
                             <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="scale-[0.65]">
-                              <rect x="14" y="1" width="2" height="9" rx="0.7" fill="#000000"/>
-                              <rect x="10.5" y="3" width="2" height="7" rx="0.7" fill="#000000"/>
-                              <rect x="7" y="5" width="2" height="5" rx="0.7" fill="#000000"/>
-                              <rect x="3.5" y="7" width="2" height="3" rx="0.7" fill="#000000"/>
-                              <rect x="0" y="9" width="2" height="1" rx="0.5" fill="#000000" fillOpacity="0.3"/>
+                              <rect x="14" y="1" width="2" height="9" rx="0.7" fill="currentColor" className="text-primary"/>
+                              <rect x="10.5" y="3" width="2" height="7" rx="0.7" fill="currentColor" className="text-primary"/>
+                              <rect x="7" y="5" width="2" height="5" rx="0.7" fill="currentColor" className="text-primary"/>
+                              <rect x="3.5" y="7" width="2" height="3" rx="0.7" fill="currentColor" className="text-primary"/>
+                              <rect x="0" y="9" width="2" height="1" rx="0.5" fill="currentColor" className="text-primary opacity-30"/>
                             </svg>
 
                             {/* 5G text */}
-                            <span className="text-[6.5px] font-semibold text-[#000000] translate-y-[0px] ml-[1px]">5G</span>
+                            <span className="text-[6.5px] font-semibold text-primary translate-y-[0px] ml-[1px]">5G</span>
 
                             {/* Battery icon */}
                             <div className="relative h-[13px] w-[24px] translate-y-[0px] ml-[1px]">
                               <svg width="24" height="13" viewBox="0 0 24 13" fill="none" className="scale-[0.65]">
-                                <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" stroke="#000000" strokeWidth="0.75"/>
-                                <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#000000"/>
-                                <rect x="22.5" y="3.5" width="1" height="5" rx="0.5" fill="#000000"/>
+                                <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" className="stroke-primary" strokeWidth="0.75"/>
+                                <rect x="2" y="2" width="18" height="8" rx="1.5" className="fill-primary"/>
+                                <rect x="22.5" y="3.5" width="1" height="5" rx="0.5" className="fill-primary"/>
                               </svg>
                             </div>
                           </div>
