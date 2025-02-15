@@ -46,13 +46,11 @@ export function HeroSection() {
             </div>
             
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
-              Achetez et vendez avec
-              <span className="text-primary"> crypto</span>
-              <br /> en toute confiance
+              Achetez et vendez vos biens avec des cryptomonnaies.
             </h1>
             
             <p className="text-sm sm:text-base md:text-lg text-gray-600">
-              TRADECOINER révolutionne les transactions en ligne en combinant la sécurité de la blockchain avec la simplicité d'une marketplace moderne.
+              Bénéficiez d'un paiement ultra sécurisé, instantané et avec des frais minimes grâce à la technologie blockchain.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
@@ -61,7 +59,9 @@ export function HeroSection() {
                   size="default"
                   className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-primary hover:bg-primary/90 w-full sm:w-auto"
                 >
-                  <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                  <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-current">
+                    <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </span>
                   Déposer une annonce
                   <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2 opacity-0 group-hover:opacity-100 transition-all" />
                 </Button>
@@ -70,12 +70,12 @@ export function HeroSection() {
                 <Button 
                   variant="outline" 
                   size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 border-2 border-primary text-primary hover:bg-primary/5 w-full sm:w-auto"
+                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-primary text-white hover:bg-primary/90 w-full sm:w-auto"
                 >
                   <img 
                     src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                     alt="Tradecoiner"
-                    className="h-3 w-3 sm:h-4 sm:w-4 mr-2 fill-primary"
+                    className="h-3 w-3 sm:h-4 sm:w-4 mr-2 fill-white"
                   />
                   Explorer les annonces
                 </Button>
@@ -84,12 +84,12 @@ export function HeroSection() {
             
             <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-3 sm:pt-4">
               <div className="text-center">
-                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">100K+</div>
-                <div className="text-xs sm:text-sm text-gray-600">Utilisateurs actifs</div>
+                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">2X</div>
+                <div className="text-xs sm:text-sm text-gray-600">Moins cher que nos concurrents</div>
               </div>
               <div className="text-center">
-                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">50K+</div>
-                <div className="text-xs sm:text-sm text-gray-600">Annonces publiées</div>
+                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">2-5 secondes</div>
+                <div className="text-xs sm:text-sm text-gray-600">Temps moyen d'une transaction</div>
               </div>
               <div className="text-center">
                 <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">24/7</div>
