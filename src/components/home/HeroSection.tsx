@@ -1,4 +1,5 @@
-import { Plus, Bitcoin, ArrowRight } from "lucide-react";
+
+import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,7 +37,11 @@ export function HeroSection() {
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
             <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm">
-              <Bitcoin className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+              <img 
+                src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
+                alt="Tradecoiner"
+                className="h-3 w-3 sm:h-4 sm:w-4 [&>path]:fill-primary"
+              />
               <span className="text-xs sm:text-sm font-medium">La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !</span>
             </div>
             
@@ -67,7 +72,11 @@ export function HeroSection() {
                   size="default"
                   className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 border-2 border-primary text-primary hover:bg-primary/5 w-full sm:w-auto"
                 >
-                  <Bitcoin className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                  <img 
+                    src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
+                    alt="Tradecoiner"
+                    className="h-3 w-3 sm:h-4 sm:w-4 mr-2 [&>path]:fill-primary"
+                  />
                   Explorer les annonces
                 </Button>
               </Link>
