@@ -24,7 +24,7 @@ export function MobilePhoneContent({
       {/* Header avec logo et wallet */}
       <div className="relative h-12 px-4 flex items-center justify-between">
         <img 
-          src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).svg"
+          src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png"
           alt="Tradecoiner" 
           className="h-6 w-auto"
         />
