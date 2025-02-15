@@ -1,8 +1,9 @@
+
 import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
 import { StatusBar } from "./StatusBar";
 import { DynamicIsland } from "./DynamicIsland";
@@ -19,35 +20,6 @@ export type TransactionState =
 
 export function HeroSection() {
   const [transactionState, setTransactionState] = useState<TransactionState>('initial');
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    const initializeImage = async () => {
-      try {
-        const { data: { publicUrl } } = supabase.storage
-          .from('assets')
-          .getPublicUrl('diamond-icon.png');
-        
-        const fileResponse = await fetch('/lovable-uploads/5c2be094-f495-4f5f-956c-bd18edf2bf13.png');
-        const blob = await fileResponse.blob();
-        
-        await supabase.storage
-          .from('assets')
-          .upload('diamond-icon.png', blob, {
-            cacheControl: '3600',
-            upsert: true,
-            contentType: 'image/png'
-          });
-
-        setImageUrl(publicUrl);
-      } catch (error) {
-        console.error('Image handling error:', error);
-        setImageUrl(null);
-      }
-    };
-
-    initializeImage();
-  }, []);
 
   return (
     <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
@@ -66,19 +38,11 @@ export function HeroSection() {
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
             <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm">
-              {imageUrl ? (
-                <img 
-                  src={imageUrl}
-                  alt="Diamond icon"
-                  className="h-3 w-3 sm:h-4 sm:w-4 object-contain"
-                  style={{
-                    filter: 'brightness(0)',
-                    opacity: 0.87
-                  }}
-                />
-              ) : (
-                <Diamond className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-              )}
+              <img 
+                src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Design%20sans%20titre-30.png"
+                alt="Logo"
+                className="h-3 w-3 sm:h-4 sm:w-4 object-contain"
+              />
               <span className="text-xs sm:text-sm font-medium">
                 La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !
               </span>
