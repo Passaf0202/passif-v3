@@ -1,4 +1,3 @@
-
 import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -8,7 +7,6 @@ import { MobilePhoneContent } from "./MobilePhoneContent";
 import { StatusBar } from "./StatusBar";
 import { DynamicIsland } from "./DynamicIsland";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 
 export type TransactionState = 
   | 'initial'               
@@ -26,54 +24,36 @@ export function HeroSection() {
     return !hasSeenGuide;
   });
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const { user } = useAuth();
 
   useEffect(() => {
-    const fetchImage = async () => {
+    const initializeImage = async () => {
       try {
-        // First try to get the existing image
+        // Try to get the public URL first
         const { data: { publicUrl } } = supabase.storage
           .from('assets')
           .getPublicUrl('diamond-icon.png');
         
-        // Try to fetch the image to see if it exists
-        const response = await fetch(publicUrl);
-        if (response.ok) {
-          setImageUrl(publicUrl);
-          return;
-        }
+        // Try uploading the image if it doesn't exist
+        const fileResponse = await fetch('/lovable-uploads/5c2be094-f495-4f5f-956c-bd18edf2bf13.png');
+        const blob = await fileResponse.blob();
+        
+        await supabase.storage
+          .from('assets')
+          .upload('diamond-icon.png', blob, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: 'image/png'
+          });
 
-        // If image doesn't exist and user is authenticated, upload it
-        if (user) {
-          const fileResponse = await fetch('/lovable-uploads/5c2be094-f495-4f5f-956c-bd18edf2bf13.png');
-          const blob = await fileResponse.blob();
-          
-          const { data, error } = await supabase.storage
-            .from('assets')
-            .upload('diamond-icon.png', blob, {
-              cacheControl: '3600',
-              upsert: true,
-              contentType: 'image/png'
-            });
-
-          if (error) {
-            console.error('Upload error:', error);
-            return;
-          }
-
-          const { data: { publicUrl: newUrl } } = supabase.storage
-            .from('assets')
-            .getPublicUrl('diamond-icon.png');
-          
-          setImageUrl(newUrl);
-        }
+        setImageUrl(publicUrl);
       } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('Image handling error:', error);
+        setImageUrl(null);
       }
     };
 
-    fetchImage();
-  }, [user]);
+    initializeImage();
+  }, []);
 
   useEffect(() => {
     if (showWalletSpotlight) {
