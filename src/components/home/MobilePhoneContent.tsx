@@ -40,9 +40,9 @@ export function MobilePhoneContent({
 
       {/* Contenu principal */}
       <div className="flex-1 flex flex-col relative">
-        <div className="w-full max-w-[360px] mx-auto">
+        <div className="w-full max-w-[360px] mx-auto px-4">
           {/* Section modèle 3D */}
-          <div className="h-[160px] w-[220px] mx-auto relative">
+          <div className="h-[160px] w-full relative">
             <motion.div 
               ref={modelContainerRef}
               className="w-full h-full"
@@ -59,7 +59,7 @@ export function MobilePhoneContent({
           </div>
 
           {/* Informations produit */}
-          <div className="space-y-2 px-4 -mt-8">
+          <div className="space-y-2 -mt-8">
             <Badge 
               variant="outline" 
               className="h-4 inline-flex items-center gap-1 text-[9px] font-medium border-gray-200/80 whitespace-nowrap px-2"
