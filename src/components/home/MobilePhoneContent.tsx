@@ -60,7 +60,7 @@ export function MobilePhoneContent({
 
   return <TooltipProvider>
       <div className="absolute inset-0 flex flex-col bg-white pt-10">
-        <div className="h-12 flex items-center mb-[-25px]">
+        <div className="h-12 flex items-center mb-[-35px]">
           <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px]">
             <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto mobile-logo" />
             <motion.div animate={{
