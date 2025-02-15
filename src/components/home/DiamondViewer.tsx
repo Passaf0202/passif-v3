@@ -1,10 +1,10 @@
 
-import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Loader2 } from "lucide-react";
 import type { SyntheticEvent } from 'react';
 
 interface DiamondViewerProps {
-  state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
+  state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'awaiting-confirmation' | 'confirmed';
 }
 
 declare global {
@@ -125,6 +125,8 @@ export function DiamondViewer({
         return "12deg";
       case 'processing':
         return "4deg";
+      case 'awaiting-confirmation':
+        return "6deg";
       case 'confirmed':
         return "16deg";
       default:
@@ -203,13 +205,29 @@ export function DiamondViewer({
           backgroundColor: 'transparent',
           opacity: isLoading ? '0.7' : '1',
           transition: 'opacity 0.5s ease-in-out',
-          '--model-color': 'black',
+          '--model-color': state === 'confirmed' ? '#22c55e' : 
+                          state === 'processing' ? '#3b82f6' :
+                          state === 'awaiting-confirmation' ? '#eab308' :
+                          '#000000',
           padding: 0,
           margin: 0
         } as any}
       >
         <div slot="poster"></div>
       </model-viewer>
+      
+      {isLoading && loadingProgress < 100 && (
+        <div className="absolute inset-0 flex items-center justify-center bg-transparent">
+          <div className="bg-white/80 px-4 py-2 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary/70" />
+              <span className="text-xs text-primary/70">
+                Chargement {Math.round(loadingProgress)}%
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

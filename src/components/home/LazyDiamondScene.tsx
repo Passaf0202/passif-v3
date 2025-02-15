@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 const DiamondViewer = lazy(() => import('./DiamondViewer'));
 
 interface LazyDiamondSceneProps {
-  state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
+  state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'awaiting-confirmation' | 'confirmed';
 }
 
 export function LazyDiamondScene({ state }: LazyDiamondSceneProps) {
