@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -66,29 +67,31 @@ export function MobilePhoneContent({
   return (
     <TooltipProvider>
       <div className="absolute inset-0 flex flex-col bg-white">
-        <div className="relative h-16 flex items-center justify-between px-5">
-          <img 
-            src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
-            alt="Tradecoiner" 
-            className="h-4 w-auto" 
-          />
-          <motion.div animate={{
-            scale: showWalletSpotlight ? [1, 1.05, 1] : 1
-          }} transition={{
-            duration: 1,
-            repeat: showWalletSpotlight ? Infinity : 0,
-            repeatType: "reverse"
-          }}>
-            <Button 
-              onClick={handleConnect} 
-              disabled={isOpen}
-              variant="default" 
-              size="sm"
-              className="h-8 w-8 rounded-full p-0"
-            >
-              {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
-            </Button>
-          </motion.div>
+        <div className="h-16 flex items-center">
+          <div className="w-full max-w-[360px] mx-auto px-5 flex items-center justify-between">
+            <img 
+              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
+              alt="Tradecoiner" 
+              className="h-4 w-auto" 
+            />
+            <motion.div animate={{
+              scale: showWalletSpotlight ? [1, 1.05, 1] : 1
+            }} transition={{
+              duration: 1,
+              repeat: showWalletSpotlight ? Infinity : 0,
+              repeatType: "reverse"
+            }}>
+              <Button 
+                onClick={handleConnect} 
+                disabled={isOpen}
+                variant="default" 
+                size="sm"
+                className="h-8 w-8 rounded-full p-0"
+              >
+                {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
+              </Button>
+            </motion.div>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col relative">
