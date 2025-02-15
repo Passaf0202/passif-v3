@@ -1,6 +1,6 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import type { TransactionState } from "./HeroSection";
 import * as THREE from "three";
 
@@ -12,19 +12,20 @@ function Diamond({ state }: { state: TransactionState }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (meshRef.current) {
       meshRef.current.rotation.y += delta * 0.5;
       meshRef.current.rotation.x += delta * 0.2;
     }
   });
 
-  // Update material color based on state
-  if (materialRef.current) {
-    materialRef.current.color = new THREE.Color(
-      state === 'confirmed' ? '#22c55e' : '#6366f1'
-    );
-  }
+  useEffect(() => {
+    if (materialRef.current) {
+      materialRef.current.color = new THREE.Color(
+        state === 'confirmed' ? '#22c55e' : '#6366f1'
+      );
+    }
+  }, [state]);
 
   return (
     <mesh
@@ -47,23 +48,19 @@ function Diamond({ state }: { state: TransactionState }) {
 
 export function DiamondViewer({ state }: DiamondViewerProps) {
   return (
-    <Canvas
-      shadows
-      dpr={[1, 2]}
-      camera={{ position: [0, 0, 4], fov: 25 }}
-      gl={{ alpha: true, antialias: true }}
-      className="rounded-xl"
-    >
-      <color attach="background" args={['transparent']} />
-      <ambientLight intensity={0.5} />
-      <directionalLight
-        castShadow
-        position={[2.5, 8, 5]}
-        intensity={1.5}
-        shadow-mapSize={1024}
-        shadow-bias={-0.0004}
-      />
-      <Diamond state={state} />
-    </Canvas>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <Canvas
+        style={{ background: 'transparent' }}
+        camera={{ position: [0, 0, 4], fov: 25 }}
+      >
+        <ambientLight intensity={0.5} />
+        <directionalLight
+          position={[2.5, 8, 5]}
+          intensity={1.5}
+          castShadow
+        />
+        <Diamond state={state} />
+      </Canvas>
+    </div>
   );
 }
