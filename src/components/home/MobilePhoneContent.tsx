@@ -9,11 +9,14 @@ import { useWeb3Modal } from '@web3modal/react';
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
+
 interface MobilePhoneContentProps {
   transactionState: TransactionState;
   showWalletSpotlight: boolean;
 }
+
 export function MobilePhoneContent({
   transactionState,
   showWalletSpotlight
@@ -36,6 +39,7 @@ export function MobilePhoneContent({
   const {
     user
   } = useAuth();
+
   const handleConnect = async () => {
     try {
       if (!user) {
@@ -64,8 +68,9 @@ export function MobilePhoneContent({
       });
     }
   };
+
   return <TooltipProvider>
-      <div className="absolute inset-0 flex flex-col bg-white my-[41px]">
+      <div className="absolute inset-0 flex flex-col bg-white my-[32px]">
         <div className="h-16 flex items-center py-0 my-[3px]">
           <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px] py-0 my-0">
             <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto" />
@@ -76,7 +81,7 @@ export function MobilePhoneContent({
             repeat: showWalletSpotlight ? Infinity : 0,
             repeatType: "reverse"
           }}>
-              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[4px]">
+              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] bg-black hover:bg-black/90">
                 {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
               </Button>
             </motion.div>

@@ -1,5 +1,5 @@
 
-import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2, Wallet, Search } from "lucide-react";
+import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -128,6 +128,26 @@ export function HeroSection() {
               className="relative w-[220px] sm:w-[240px] md:w-[260px] lg:w-[280px] xl:w-[300px] transform scale-100"
             >
               <div className="relative w-full">
+                {/* iPhone Back */}
+                <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2">
+                  {/* Camera Module */}
+                  <div className="absolute top-8 left-8 w-24 h-24 bg-[#1A1B1E] rounded-[24px] flex items-center justify-center">
+                    <div className="relative w-20 h-20">
+                      <div className="absolute inset-0 bg-[#222] rounded-full" />
+                      <div className="absolute inset-2 bg-[#1A1B1E] rounded-full" />
+                      <div className="absolute inset-3 bg-[#000] rounded-full" />
+                      {/* Camera lens details */}
+                      <div className="absolute inset-4 bg-[#111] rounded-full ring-2 ring-[#222]/20">
+                        <div className="absolute inset-2 bg-[#000] rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                  {/* Apple Logo */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8">
+                    <div className="w-full h-full bg-[#1A1B1E] mask-apple-logo" />
+                  </div>
+                </div>
+
                 {/* iPhone Frame */}
                 <div className="relative aspect-[19.5/42] w-full">
                   {/* Outer frame with metallic effect */}
@@ -135,15 +155,24 @@ export function HeroSection() {
                     {/* Inner frame shadow */}
                     <div className="absolute inset-[1px] rounded-[47px] bg-gradient-to-tr from-black/5 via-transparent to-white/10" />
                     
+                    {/* Side Buttons */}
+                    <div className="absolute left-[-2px] top-[120px] w-[4px] h-16 flex flex-col gap-4">
+                      <div className="h-8 w-full bg-[#222] rounded-r-sm" />
+                      <div className="h-8 w-full bg-[#222] rounded-r-sm" />
+                    </div>
+                    <div className="absolute right-[-2px] top-[100px] w-[4px] h-12">
+                      <div className="h-12 w-full bg-[#222] rounded-l-sm" />
+                    </div>
+                    
                     {/* Dynamic Island */}
-                    <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-[20px] z-20">
+                    <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[100px] h-[28px] bg-black rounded-[14px] z-20 overflow-hidden">
                       {/* Inner components of Dynamic Island */}
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80px] h-[8px] bg-[#1A1B1E] rounded-full" />
-                      <div className="absolute top-1/2 right-[12px] -translate-y-1/2 w-[8px] h-[8px] bg-[#1A1B1E] rounded-full" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60px] h-[6px] bg-[#1A1B1E] rounded-full" />
+                      <div className="absolute top-1/2 right-[10px] -translate-y-1/2 w-[6px] h-[6px] bg-[#1A1B1E] rounded-full" />
                     </div>
 
                     {/* Screen Content */}
-                    <div className="absolute inset-[4px] rounded-[44px] bg-white overflow-hidden">
+                    <div className="absolute inset-[3px] rounded-[45px] bg-white overflow-hidden">
                       {/* Screen Content Area */}
                       <div className="relative h-full w-full bg-white">
                         <MobilePhoneContent 
@@ -151,6 +180,13 @@ export function HeroSection() {
                           showWalletSpotlight={showWalletSpotlight}
                         />
                       </div>
+                    </div>
+
+                    {/* Bottom Port and Speakers */}
+                    <div className="absolute bottom-[12px] left-1/2 -translate-x-1/2 w-[80px] flex justify-between items-center">
+                      <div className="w-[25px] h-[4px] bg-[#222] rounded-full" />
+                      <div className="w-[12px] h-[6px] bg-[#222] rounded-[3px]" />
+                      <div className="w-[25px] h-[4px] bg-[#222] rounded-full" />
                     </div>
 
                     {/* Edge Highlights */}
