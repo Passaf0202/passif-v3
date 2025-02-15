@@ -8,7 +8,6 @@ import { BadgeCheck, Wallet, Loader2, Check } from "lucide-react";
 import { useAccount, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/react';
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TransactionState } from "./HeroSection";
 
@@ -28,19 +27,10 @@ export function MobilePhoneContent({
   const { disconnect } = useDisconnect();
   const { open, isOpen } = useWeb3Modal();
   const { toast } = useToast();
-  const { user } = useAuth();
   const [isPaymentButtonActive, setIsPaymentButtonActive] = useState(false);
 
   const handleConnect = async () => {
     try {
-      if (!user) {
-        toast({
-          title: "Connexion requise 😊",
-          description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille"
-        });
-        return;
-      }
-
       if (isConnected) {
         await disconnect();
         toast({
@@ -71,7 +61,7 @@ export function MobilePhoneContent({
       onStateChange('processing');
       // Simuler un délai de traitement
       await new Promise(resolve => setTimeout(resolve, 2000));
-      onStateChange('awaiting-confirmation');  // Sans type assertion, car le type est maintenant correctement importé
+      onStateChange('awaiting-confirmation');
     } catch (error) {
       console.error('Payment error:', error);
       onStateChange('payment');
