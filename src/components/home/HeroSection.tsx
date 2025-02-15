@@ -1,3 +1,4 @@
+
 import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -127,23 +128,7 @@ export function HeroSection() {
               className="relative w-[180px] sm:w-[200px] md:w-[220px] lg:w-[240px] xl:w-[260px] transform scale-100"
             >
               <div className="relative w-full">
-                <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2">
-                  <div className="absolute top-8 left-8 w-24 h-24 bg-black rounded-[24px] flex items-center justify-center">
-                    <div className="relative w-20 h-20">
-                      <div className="absolute inset-0 bg-black/90 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]" />
-                      <div className="absolute inset-2 bg-black rounded-full shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)]" />
-                      <div className="absolute inset-3 bg-black/95 rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)]" />
-                      <div className="absolute inset-4 bg-black rounded-full ring-2 ring-black/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
-                        <div className="absolute inset-2 bg-black rounded-full shadow-[inset_0_-1px_2px_rgba(255,255,255,0.05)]" />
-                        <div className="absolute inset-[40%] bg-black/40 rounded-full blur-[1px]" />
-                        <div className="absolute top-[15%] left-[15%] w-[2px] h-[2px] bg-white/10 rounded-full blur-[0.5px]" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8">
-                    <div className="w-full h-full bg-[#1A1B1E] mask-apple-logo" />
-                  </div>
-                </div>
+                <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
 
                 <div className="relative aspect-[19.5/38] w-full">
                   <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-lg overflow-hidden">
@@ -152,13 +137,13 @@ export function HeroSection() {
                     <div className="absolute left-[-2px] top-[120px] w-[5px] h-16 flex flex-col gap-4">
                       <div className="h-8 w-full relative group">
                         <div className="absolute inset-[-1px] right-[2px] bg-gradient-to-l from-black/40 to-transparent rounded-l-md blur-[0.5px]" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#D1D2D3] to-[#E3E4E5] rounded-l-md shadow-[inset_-1px_0_3px_rgba(255,255,255,0.6)]" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#D1D2D3] to-[#E3E4E5] rounded-l-md" />
                         <div className="absolute inset-[0.5px] bg-gradient-to-br from-[#E8E9EA] to-[#D8D9DA] rounded-l-md opacity-95 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute inset-x-0 top-0 h-[1px] bg-white/50" />
                       </div>
                       <div className="h-8 w-full relative group">
                         <div className="absolute inset-[-1px] right-[2px] bg-gradient-to-l from-black/40 to-transparent rounded-l-md blur-[0.5px]" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#D1D2D3] to-[#E3E4E5] rounded-l-md shadow-[inset_-1px_0_3px_rgba(255,255,255,0.6)]" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#D1D2D3] to-[#E3E4E5] rounded-l-md" />
                         <div className="absolute inset-[0.5px] bg-gradient-to-br from-[#E8E9EA] to-[#D8D9DA] rounded-l-md opacity-95 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute inset-x-0 top-0 h-[1px] bg-white/50" />
                       </div>
@@ -167,53 +152,50 @@ export function HeroSection() {
                     <div className="absolute right-[-2px] top-[100px] w-[5px] h-12">
                       <div className="h-12 w-full relative group">
                         <div className="absolute inset-[-1px] left-[2px] bg-gradient-to-r from-black/40 to-transparent rounded-r-md blur-[0.5px]" />
-                        <div className="absolute inset-0 bg-gradient-to-l from-[#D1D2D3] to-[#E3E4E5] rounded-r-md shadow-[inset_1px_0_3px_rgba(255,255,255,0.6)]" />
+                        <div className="absolute inset-0 bg-gradient-to-l from-[#D1D2D3] to-[#E3E4E5] rounded-r-md" />
                         <div className="absolute inset-[0.5px] bg-gradient-to-bl from-[#E8E9EA] to-[#D8D9DA] rounded-r-md opacity-95 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute inset-x-0 top-0 h-[1px] bg-white/50" />
                       </div>
                     </div>
                     
                     <div className="absolute inset-[3px] rounded-[45px] overflow-hidden">
-                      <div className="absolute inset-0 border-[2.5px] border-black rounded-[45px] z-20 shadow-[inset_0_0_2px_rgba(0,0,0,0.4)]" />
+                      <div className="absolute inset-0 border-[2.5px] border-black rounded-[45px] z-20" />
                       <div className="absolute inset-0 bg-white">
-                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] bg-primary rounded-[25px] z-30 overflow-hidden shadow-[inset_0_1px_1px_rgba(0,0,0,0.8)]">
-                          <div className="absolute inset-0 bg-primary shadow-[inset_0_1px_1px_rgba(0,0,0,0.8)]" />
+                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] bg-black rounded-[25px] z-30 overflow-hidden">
+                          <div className="absolute inset-0 bg-black" />
                           
                           <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[4px] h-[4px] rounded-full">
-                            <div className="absolute inset-0 bg-primary rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]" />
-                            <div className="absolute inset-[0.75px] bg-primary rounded-full" />
-                            <div className="absolute inset-[1.25px] bg-primary rounded-full" />
+                            <div className="absolute inset-0 bg-black rounded-full" />
+                            <div className="absolute inset-[0.75px] bg-black rounded-full" />
+                            <div className="absolute inset-[1.25px] bg-black rounded-full" />
                             <div className="absolute top-[25%] left-[25%] w-[0.5px] h-[0.5px] bg-white/15 rounded-full" />
                           </div>
                         </div>
 
                         <div className="absolute top-0 left-0 right-0 h-[44px] px-8 flex items-center justify-between z-10">
-                          <span className="font-semibold text-[9px] tracking-wide text-primary translate-y-[1px]">9:41</span>
+                          <span className="font-semibold text-[9px] tracking-wide text-black translate-y-[1px]">9:41</span>
                           <div className="flex items-center gap-[1px] translate-y-[1px] mr-[-8px]">
-                            {/* Signal icon */}
                             <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="scale-[0.65]">
-                              <rect x="14" y="1" width="2" height="9" rx="0.7" fill="currentColor" className="text-primary"/>
-                              <rect x="10.5" y="3" width="2" height="7" rx="0.7" fill="currentColor" className="text-primary"/>
-                              <rect x="7" y="5" width="2" height="5" rx="0.7" fill="currentColor" className="text-primary"/>
-                              <rect x="3.5" y="7" width="2" height="3" rx="0.7" fill="currentColor" className="text-primary"/>
-                              <rect x="0" y="9" width="2" height="1" rx="0.5" fill="currentColor" className="text-primary opacity-30"/>
+                              <rect x="14" y="1" width="2" height="9" rx="0.7" fill="currentColor" className="text-black"/>
+                              <rect x="10.5" y="3" width="2" height="7" rx="0.7" fill="currentColor" className="text-black"/>
+                              <rect x="7" y="5" width="2" height="5" rx="0.7" fill="currentColor" className="text-black"/>
+                              <rect x="3.5" y="7" width="2" height="3" rx="0.7" fill="currentColor" className="text-black"/>
+                              <rect x="0" y="9" width="2" height="1" rx="0.5" fill="currentColor" className="text-black opacity-30"/>
                             </svg>
 
-                            {/* 5G text */}
-                            <span className="text-[6.5px] font-semibold text-primary translate-y-[0px] ml-[1px]">5G</span>
+                            <span className="text-[6.5px] font-semibold text-black translate-y-[0px] ml-[1px]">5G</span>
 
-                            {/* Battery icon */}
                             <div className="relative h-[13px] w-[24px] translate-y-[0px] ml-[1px]">
                               <svg width="24" height="13" viewBox="0 0 24 13" fill="none" className="scale-[0.65]">
-                                <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" className="stroke-primary" strokeWidth="0.75"/>
-                                <rect x="2" y="2" width="18" height="8" rx="1.5" className="fill-primary"/>
-                                <rect x="22.5" y="3.5" width="1" height="5" rx="0.5" className="fill-primary"/>
+                                <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" className="stroke-black" strokeWidth="0.75"/>
+                                <rect x="2" y="2" width="18" height="8" rx="1.5" className="fill-black"/>
+                                <rect x="22.5" y="3.5" width="1" height="5" rx="0.5" className="fill-black"/>
                               </svg>
                             </div>
                           </div>
                         </div>
 
-                        <div className="relative h-full w-full bg-white">
+                        <div className="relative w-full h-full pt-20">
                           <MobilePhoneContent 
                             transactionState={transactionState}
                             showWalletSpotlight={showWalletSpotlight}
@@ -222,8 +204,7 @@ export function HeroSection() {
                       </div>
                     </div>
 
-                    <div className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[80px] h-[4px] bg-black rounded-full shadow-[inset_0_1px_1px_rgba(0,0,0,0.2)]" />
-                    <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-white/20 via-transparent to-black/10 pointer-events-none" />
+                    <div className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[80px] h-[4px] bg-black rounded-full" />
                   </div>
                 </div>
               </div>
