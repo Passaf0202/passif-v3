@@ -57,7 +57,7 @@ export function MobilePhoneContent({
               <h2 className="leading-tight text-black text-lg font-bold">Diamant 4 carats</h2>
             </div>
 
-            <div className="w-full bg-black text-white px-3 py-2 rounded-lg text-sm font-medium">
+            <div className="w-full bg-black text-white px-3 py-2 text-sm font-medium rounded-full">
               19.25 ETH = 50.000 EUR
             </div>
 
