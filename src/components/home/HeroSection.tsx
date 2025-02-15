@@ -1,3 +1,4 @@
+
 import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2, Wallet, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -125,20 +126,21 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] xl:w-[240px] transform scale-90 sm:scale-100"
+              className="relative w-[220px] sm:w-[260px] md:w-[300px] lg:w-[340px] xl:w-[380px] transform scale-90 sm:scale-100"
             >
-              <div className="relative rounded-[32px] bg-[#1A1F2C] p-1.5 sm:p-2 shadow-2xl">
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[60px] sm:w-[70px] h-[18px] sm:h-[20px] bg-black rounded-b-3xl z-20" />
-                
-                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/19]">
+              <div className="relative w-full">
+                <img 
+                  src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//iPhone%20dessin.png"
+                  alt="iPhone frame"
+                  className="absolute -inset-8 w-[calc(100%+64px)] h-[calc(100%+64px)] object-contain z-10"
+                />
+                <div className="relative bg-transparent overflow-hidden aspect-[10/21] scale-[0.62] mx-[12%] mt-[13%] mb-[13%]">
                   <MobilePhoneContent 
                     transactionState={transactionState}
                     showWalletSpotlight={showWalletSpotlight}
                   />
                 </div>
               </div>
-
-              <div className="absolute inset-0 rounded-[32px] bg-gradient-to-tr from-white/5 via-white/10 to-transparent pointer-events-none" />
             </motion.div>
           </motion.div>
         </div>
