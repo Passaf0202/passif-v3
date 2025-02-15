@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,10 +50,10 @@ export const NavbarActions = () => {
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2 md:gap-3">
       <Button 
         onClick={handleCreateListing}
-        className="bg-[#000000] hover:bg-[#000000]/90 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200"
+        className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200"
       >
         <Plus className="h-4 w-4 mr-1" />
         Déposer une annonce
@@ -62,13 +61,13 @@ export const NavbarActions = () => {
 
       {user ? (
         <>
-          <div className="flex-shrink-0 ml-1">
+          <div className="flex-shrink-0">
             <WalletConnectButton />
           </div>
           <AdminLink />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full ml-1">
+              <Button variant="ghost" size="icon" className="rounded-full">
                 <UserRound className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
@@ -120,13 +119,13 @@ export const NavbarActions = () => {
           </DropdownMenu>
         </>
       ) : (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <div className="flex-shrink-0">
             <WalletConnectButton />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full ml-1">
+              <Button variant="ghost" size="icon" className="rounded-full">
                 <UserRound className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
