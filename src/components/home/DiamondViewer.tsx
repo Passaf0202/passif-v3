@@ -8,26 +8,26 @@ interface DiamondViewerProps {
   state: TransactionState;
 }
 
-function Diamond({ state }: { state: TransactionState }) {
+const Diamond = ({ state }: { state: TransactionState }) => {
   const meshRef = useRef<THREE.Mesh>(null);
 
   return (
     <mesh ref={meshRef}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial 
-        color={state === 'confirmed' ? '#22c55e' : '#6366f1'} 
-      />
+      <boxGeometry />
+      <meshBasicMaterial color={state === 'confirmed' ? '#22c55e' : '#6366f1'} />
     </mesh>
   );
-}
+};
 
-export function DiamondViewer({ state }: DiamondViewerProps) {
+const DiamondViewer = ({ state }: DiamondViewerProps) => {
   return (
     <div className="w-full h-full">
-      <Canvas>
+      <Canvas camera={{ position: [0, 0, 5] }}>
         <ambientLight />
         <Diamond state={state} />
       </Canvas>
     </div>
   );
-}
+};
+
+export default DiamondViewer;
