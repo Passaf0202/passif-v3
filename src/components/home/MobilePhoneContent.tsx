@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { BadgeCheck, Wallet, Loader2, Check, ArrowUp, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -22,19 +22,8 @@ export function MobilePhoneContent({
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [showGuide, setShowGuide] = useState(true);
-
-  useEffect(() => {
-    const hasVisited = localStorage.getItem('hasVisitedBefore');
-    if (hasVisited) {
-      setShowGuide(false);
-    }
-  }, []);
 
   const handleConnect = async () => {
-    setShowGuide(false);
-    localStorage.setItem('hasVisitedBefore', 'true');
-    
     if (transactionState === 'wallet-connect') {
       toast({
         title: "Déconnecté",
@@ -104,7 +93,7 @@ export function MobilePhoneContent({
         <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px] pointer-events-auto relative">
           <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto mobile-logo" />
           <div className="relative">
-            {(!isConnecting && transactionState !== 'wallet-connect' && showGuide) && <SimulationIndicator />}
+            {transactionState !== 'wallet-connect' && <SimulationIndicator />}
             <Button 
               onClick={handleConnect} 
               disabled={isConnecting || transactionState === 'wallet-connecting'} 
