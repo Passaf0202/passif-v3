@@ -26,7 +26,6 @@ export function MobilePhoneContent({
   const [showGuide, setShowGuide] = useState(true);
 
   useEffect(() => {
-    // Vérifier si c'est la première visite
     const hasVisited = localStorage.getItem('hasVisitedBefore');
     if (hasVisited) {
       setShowGuide(false);
@@ -185,16 +184,6 @@ export function MobilePhoneContent({
               <div className="space-y-2">
                 <div className="w-full h-[2px] bg-gray-200/80" />
                 <div className="w-full h-[2px] bg-gray-200/80" />
-                {transactionState === 'confirmed' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center bg-green-100 px-2 py-0.5 rounded-full h-4 w-fit"
-                  >
-                    <Check className="h-2.5 w-2.5 text-green-600 mr-1" />
-                    <span className="text-[9px] font-medium text-green-600">Produit reçu</span>
-                  </motion.div>
-                )}
               </div>
 
               {transactionState === 'awaiting-confirmation' ? (
@@ -210,7 +199,7 @@ export function MobilePhoneContent({
                         variant="default" 
                         size="sm" 
                         onClick={handleConfirmDelivery}
-                        className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto"
+                        className="w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto"
                       >
                         Confirmer la réception
                       </Button>
@@ -239,13 +228,13 @@ export function MobilePhoneContent({
                         size="sm" 
                         onClick={transactionState === 'wallet-connect' ? handlePayment : handleConnect}
                         disabled={transactionState === 'processing' || transactionState === 'confirmed'}
-                        className={`w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
+                        className={`w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
                       >
                         {transactionState === 'processing' ? (
-                          <>
+                          <div className="flex items-center justify-center w-full">
                             <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-                            Transaction en cours...
-                          </>
+                            <span className="truncate">Transaction en cours...</span>
+                          </div>
                         ) : transactionState === 'confirmed' ? (
                           'Transaction terminée'
                         ) : transactionState === 'wallet-connect' ? (
@@ -266,6 +255,16 @@ export function MobilePhoneContent({
                 <div className="w-full h-[2px] bg-gray-200/80" />
                 <div className="w-full h-[2px] bg-gray-200/80" />
                 <div className="w-full h-[2px] bg-gray-200/80" />
+                {transactionState === 'confirmed' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center bg-green-100 px-2 py-0.5 rounded-full h-4 w-fit mt-2"
+                  >
+                    <Check className="h-2.5 w-2.5 text-green-600 mr-1" />
+                    <span className="text-[9px] font-medium text-green-600">Produit reçu</span>
+                  </motion.div>
+                )}
               </div>
             </div>
           </div>
