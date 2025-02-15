@@ -1,4 +1,3 @@
-
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { Loader2 } from "lucide-react";
 import type { SyntheticEvent } from 'react';
@@ -117,6 +116,20 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
     setLoadingProgress(Math.min(progress, 100));
   }, []);
 
+  const getRotationSpeed = useCallback(() => {
+    switch (state) {
+      case 'search':
+        return "12deg"; // Plus rapide pendant la recherche
+      case 'validating':
+      case 'processing':
+        return "4deg"; // Plus lent pendant la validation
+      case 'confirmed':
+        return "16deg"; // Rotation triomphante
+      default:
+        return "8deg"; // Vitesse normale
+    }
+  }, [state]);
+
   useEffect(() => {
     if (modelRef.current) {
       const modelViewer = modelRef.current;
@@ -171,7 +184,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         ref={modelRef}
         src={MODEL_PATH}
         auto-rotate
-        rotation-per-second="8deg"
+        rotation-per-second={getRotationSpeed()}
         rotation-axis="0 1 0"
         orientation="0deg 270deg 0deg"
         interaction-prompt="none"
