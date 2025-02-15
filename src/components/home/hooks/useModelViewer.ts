@@ -8,7 +8,33 @@ let modelViewerScriptLoaded = false;
 
 export function useModelViewer(state: DiamondViewerState) {
   const [isModelViewerReady, setModelViewerReady] = useState(false);
+  const [isSpinningFast, setIsSpinningFast] = useState(false);
   const modelRef = useRef<HTMLElement>(null);
+  const spinTimeout = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    // Déclencher la rotation rapide quand l'état passe à 'confirmed'
+    if (state === 'confirmed' && !isSpinningFast) {
+      setIsSpinningFast(true);
+      
+      // Nettoyer tout timeout existant
+      if (spinTimeout.current) {
+        clearTimeout(spinTimeout.current);
+      }
+      
+      // Revenir à la vitesse normale après 1 seconde
+      spinTimeout.current = setTimeout(() => {
+        setIsSpinningFast(false);
+      }, 1000);
+    }
+
+    // Nettoyage du timeout lors du démontage
+    return () => {
+      if (spinTimeout.current) {
+        clearTimeout(spinTimeout.current);
+      }
+    };
+  }, [state]);
 
   useEffect(() => {
     if (!modelViewerScriptLoaded) {
@@ -26,23 +52,11 @@ export function useModelViewer(state: DiamondViewerState) {
   }, []);
 
   const getRotationSpeed = useCallback(() => {
-    switch (state) {
-      case 'wallet-connect':
-        return "8deg";
-      case 'wallet-connecting':
-        return "4deg";
-      case 'payment':
-        return "12deg";
-      case 'processing':
-        return "4deg";
-      case 'awaiting-confirmation':
-        return "6deg";
-      case 'confirmed':
-        return "32deg"; // Augmenté pour une rotation rapide lors de la confirmation
-      default:
-        return "8deg";
+    if (isSpinningFast) {
+      return "90deg";
     }
-  }, [state]);
+    return "8deg";
+  }, [isSpinningFast]);
 
   return {
     modelRef,
