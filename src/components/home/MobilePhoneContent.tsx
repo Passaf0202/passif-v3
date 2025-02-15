@@ -23,23 +23,11 @@ export function MobilePhoneContent({
   showWalletSpotlight
 }: MobilePhoneContentProps) {
   const modelContainerRef = useRef<HTMLDivElement>(null);
-  const {
-    address,
-    isConnected
-  } = useAccount();
-  const {
-    disconnect
-  } = useDisconnect();
-  const {
-    open,
-    isOpen
-  } = useWeb3Modal();
-  const {
-    toast
-  } = useToast();
-  const {
-    user
-  } = useAuth();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { open, isOpen } = useWeb3Modal();
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleConnect = async () => {
     try {
@@ -93,16 +81,16 @@ export function MobilePhoneContent({
           <div className="w-full max-w-[360px] mx-auto">
             <div className="h-[160px] w-full relative px-5">
               <div className="absolute top-4 left-[13px] z-10 flex items-center space-x-2">
-                <div className="flex items-center bg-gray-600 px-2 py-0.5 rounded-full h-4">
+                <div className="flex items-center bg-[#F6F6F7] px-2 py-0.5 rounded-full h-4">
                   <Tooltip>
                     <TooltipTrigger>
-                      <BadgeCheck className="h-2.5 w-2.5 text-white mr-1" />
+                      <BadgeCheck className="h-2.5 w-2.5 text-black mr-1" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-xs">Profil vérifié</p>
                     </TooltipContent>
                   </Tooltip>
-                  <span className="text-[9px] font-medium text-white">Saphire</span>
+                  <span className="text-[9px] font-medium text-black">Saphire</span>
                 </div>
               </div>
 
