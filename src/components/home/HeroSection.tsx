@@ -1,3 +1,4 @@
+
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -71,7 +72,7 @@ export function HeroSection() {
                 <Button 
                   variant="outline" 
                   size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-white text-primary hover:bg-white/90 w-full sm:w-auto rounded-[25px] border-2 border-primary"
+                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-white text-primary hover:bg-gray-50 w-full sm:w-auto rounded-[25px] border-2 border-primary"
                 >
                   <img 
                     src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
