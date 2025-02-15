@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -62,15 +63,23 @@ export function MobilePhoneContent({
       {/* Header avec logo et wallet */}
       <div className="relative h-16 px-5 flex items-center">
         <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-5 w-auto mr-auto" />
-        <motion.button onClick={handleConnect} disabled={isOpen} animate={{
+        <motion.div animate={{
           scale: showWalletSpotlight ? [1, 1.05, 1] : 1
         }} transition={{
           duration: 1,
           repeat: showWalletSpotlight ? Infinity : 0,
           repeatType: "reverse"
-        }} className="h-8 w-8 rounded-full flex items-center justify-center bg-black text-white ml-2">
-          {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
-        </motion.button>
+        }}>
+          <Button 
+            onClick={handleConnect} 
+            disabled={isOpen}
+            variant="default" 
+            size="sm"
+            className="h-8 w-8 rounded-full p-0"
+          >
+            {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
+          </Button>
+        </motion.div>
       </div>
 
       {/* Contenu principal */}
@@ -78,22 +87,24 @@ export function MobilePhoneContent({
         <div className="w-full max-w-[360px] mx-auto">
           {/* Section modèle 3D */}
           <div className="h-[160px] w-full relative px-5">
+            {/* Badges positionnés en dehors de l'animation */}
+            <div className="absolute top-4 left-2 z-10 flex items-center space-x-2">
+              <div className="flex items-center bg-muted/50 px-2 py-0.5 rounded-full h-4">
+                <User className="h-2.5 w-2.5 text-muted-foreground mr-1" />
+                <span className="text-[9px] font-medium">Saphire</span>
+              </div>
+              <Badge variant="default" className="h-4 inline-flex items-center gap-1 text-[9px] font-medium whitespace-nowrap px-2">
+                <CheckCircle className="h-2.5 w-2.5" />
+                Profil vérifié
+              </Badge>
+            </div>
+
             <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
               scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
             }} transition={{
               duration: 0.5,
               ease: "easeInOut"
             }}>
-              <div className="absolute top-4 left-2 z-10 flex items-center space-x-2">
-                <div className="flex items-center bg-muted/50 px-2 py-0.5 rounded-full h-4">
-                  <User className="h-2.5 w-2.5 text-muted-foreground mr-1" />
-                  <span className="text-[9px] font-medium">Saphire</span>
-                </div>
-                <Badge variant="default" className="h-4 inline-flex items-center gap-1 text-[9px] font-medium whitespace-nowrap px-2">
-                  <CheckCircle className="h-2.5 w-2.5" />
-                  Profil vérifié
-                </Badge>
-              </div>
               <DiamondViewer state={transactionState} />
             </motion.div>
           </div>
