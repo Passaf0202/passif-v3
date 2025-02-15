@@ -49,7 +49,15 @@ export function HeroSection() {
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
             <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm">
-              <Diamond className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+              <img 
+                src="public/lovable-uploads/5c2be094-f495-4f5f-956c-bd18edf2bf13.png"
+                alt="Diamond icon"
+                className="h-3 w-3 sm:h-4 sm:w-4 object-contain"
+                style={{
+                  filter: 'brightness(0)',
+                  opacity: 0.87
+                }}
+              />
               <span className="text-xs sm:text-sm font-medium">La marketplace crypto #1 en France</span>
             </div>
             
