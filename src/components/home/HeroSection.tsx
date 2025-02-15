@@ -1,3 +1,4 @@
+
 import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -146,57 +147,87 @@ export function HeroSection() {
                 <div className="relative aspect-[19.5/38] w-full">
                   <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-lg overflow-hidden">
                     <div className="absolute inset-[1px] rounded-[47px] bg-gradient-to-tr from-black/5 via-transparent to-white/10" />
-                    <div className="absolute left-[-2px] top-[120px] w-[4px] h-16 flex flex-col gap-4">
-                      <div className="h-8 w-full bg-gradient-to-r from-[#1A1B1E] to-[#222] rounded-r-sm shadow-[2px_2px_4px_rgba(0,0,0,0.3)]" />
-                      <div className="h-8 w-full bg-gradient-to-r from-[#1A1B1E] to-[#222] rounded-r-sm shadow-[2px_2px_4px_rgba(0,0,0,0.3)]" />
-                    </div>
-                    <div className="absolute right-[-2px] top-[100px] w-[4px] h-12">
-                      <div className="h-12 w-full bg-gradient-to-l from-[#1A1B1E] to-[#222] rounded-l-sm shadow-[-2px_2px_4px_rgba(0,0,0,0.3)]" />
-                    </div>
-                    <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[140px] h-[25px] bg-black rounded-[20px] z-20 overflow-hidden shadow-[inset_0_0_5px_rgba(255,255,255,0.1)]">
-                      <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-black/95" />
-                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-black/40 to-white/5" />
-                      <div className="absolute top-1/2 left-[25%] -translate-y-1/2 w-[6px] h-[6px] rounded-full">
-                        <div className="absolute inset-0 bg-[#1A1B1E] rounded-full" />
-                        <div className="absolute inset-[0.5px] bg-black rounded-full" />
-                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white/10" />
+                    
+                    <div className="absolute left-[-2px] top-[120px] w-[6px] h-16 flex flex-col gap-4">
+                      <div className="h-8 w-full relative group">
+                        <div className="absolute inset-[-1px] right-[2px] bg-gradient-to-l from-black/30 to-transparent rounded-l-md blur-[0.5px]" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#D1D2D3] to-[#E3E4E5] rounded-l-md shadow-[inset_-1px_0_2px_rgba(255,255,255,0.5)]" />
+                        <div className="absolute inset-[0.5px] bg-gradient-to-br from-[#E8E9EA] to-[#D8D9DA] rounded-l-md opacity-90 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 top-0 h-[1px] bg-white/40" />
                       </div>
-                      <div className="absolute top-1/2 right-[25%] -translate-y-1/2 w-[8px] h-[8px] rounded-full">
-                        <div className="absolute inset-0 bg-[#1A1B1E] rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" />
-                        <div className="absolute inset-[0.5px] bg-black rounded-full" />
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+                      <div className="h-8 w-full relative group">
+                        <div className="absolute inset-[-1px] right-[2px] bg-gradient-to-l from-black/30 to-transparent rounded-l-md blur-[0.5px]" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#D1D2D3] to-[#E3E4E5] rounded-l-md shadow-[inset_-1px_0_2px_rgba(255,255,255,0.5)]" />
+                        <div className="absolute inset-[0.5px] bg-gradient-to-br from-[#E8E9EA] to-[#D8D9DA] rounded-l-md opacity-90 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 top-0 h-[1px] bg-white/40" />
                       </div>
                     </div>
-                    <div className="absolute inset-[3px] rounded-[45px] bg-white overflow-hidden">
-                      <div className="absolute top-0 left-0 right-0 h-6 px-4 flex items-center justify-between text-xs font-medium z-10">
-                        <span className="text-[11px] font-medium ml-2">9:41</span>
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[140px] h-[25px] z-20" />
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-2.5 flex items-end gap-[1px]">
-                            <div className="w-[2px] h-1.5 bg-black rounded-sm" />
-                            <div className="w-[2px] h-2 bg-black rounded-sm" />
-                            <div className="w-[2px] h-2.5 bg-black rounded-sm" />
-                            <div className="w-[2px] h-1.5 bg-black/30 rounded-sm" />
+
+                    <div className="absolute right-[-2px] top-[100px] w-[6px] h-12">
+                      <div className="h-12 w-full relative group">
+                        <div className="absolute inset-[-1px] left-[2px] bg-gradient-to-r from-black/30 to-transparent rounded-r-md blur-[0.5px]" />
+                        <div className="absolute inset-0 bg-gradient-to-l from-[#D1D2D3] to-[#E3E4E5] rounded-r-md shadow-[inset_1px_0_2px_rgba(255,255,255,0.5)]" />
+                        <div className="absolute inset-[0.5px] bg-gradient-to-bl from-[#E8E9EA] to-[#D8D9DA] rounded-r-md opacity-90 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 top-0 h-[1px] bg-white/40" />
+                      </div>
+                    </div>
+                    
+                    <div className="absolute inset-[3px] rounded-[45px] overflow-hidden">
+                      <div className="absolute inset-0 border-[1.5px] border-black/40 rounded-[45px] z-20" />
+                      <div className="absolute inset-0 bg-white">
+                        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[126px] h-[22px] bg-black rounded-[20px] z-30 overflow-hidden">
+                          <div className="absolute inset-0 bg-[#0B0B0B]" />
+                          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/95 to-black/90" />
+                          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-black/40 to-white/5" />
+                          
+                          <div className="absolute top-1/2 left-[22%] -translate-y-1/2 w-[10px] h-[10px] rounded-full">
+                            <div className="absolute inset-0 bg-black rounded-full shadow-[inset_0_0_2px_rgba(255,255,255,0.2)]" />
+                            <div className="absolute inset-[1.5px] bg-[#0A0A0A] rounded-full" />
+                            <div className="absolute inset-[2.5px] bg-black rounded-full" />
+                            <div className="absolute inset-[3px] bg-[#1A1A1A] rounded-full" />
+                            <div className="absolute top-[20%] left-[20%] w-[2px] h-[2px] bg-white/20 rounded-full" />
                           </div>
-                          <div className="h-3 w-3">
-                            <svg viewBox="0 0 24 24" className="w-full h-full fill-current">
-                              <path d="M1.999 5.001A1 1 0 013 4h18a1 1 0 011 1.001V19a1 1 0 01-1 1.001H3a1 1 0 01-1-1.001V5.001zM4 6v12h16V6H4z" />
-                            </svg>
-                          </div>
-                          <div className="h-3 w-6 relative">
-                            <div className="absolute inset-0 border-2 border-black rounded-sm" />
-                            <div className="absolute inset-0.5 bg-black rounded-sm" style={{ width: '66%' }} />
+                          
+                          <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[12px] h-[12px] rounded-full">
+                            <div className="absolute inset-0 bg-[#1A1A1A] rounded-full shadow-[inset_0_0_2px_rgba(255,255,255,0.15)]" />
+                            <div className="absolute inset-[2px] bg-black rounded-full" />
+                            <div className="absolute inset-[3px] bg-gradient-to-br from-[#1A1A1A] to-black rounded-full" />
+                            <div className="absolute top-[25%] left-[25%] w-[2px] h-[2px] bg-white/30 rounded-full" />
                           </div>
                         </div>
-                      </div>
-                      <div className="relative h-full w-full bg-white">
-                        <MobilePhoneContent 
-                          transactionState={transactionState}
-                          showWalletSpotlight={showWalletSpotlight}
-                        />
+
+                        <div className="absolute top-0 left-0 right-0 h-6 px-5 flex items-center justify-between text-[11px] font-medium z-10">
+                          <span className="font-['SF_Pro_Text'] text-black">9:41</span>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-4 h-2.5 flex items-end gap-[1px]">
+                              <div className="w-[2px] h-2.5 bg-black rounded-sm" />
+                              <div className="w-[2px] h-2 bg-black rounded-sm" />
+                              <div className="w-[2px] h-1.5 bg-black rounded-sm" />
+                              <div className="w-[2px] h-1 bg-black/30 rounded-sm" />
+                            </div>
+                            <div className="h-3 w-3 mt-0.5">
+                              <svg viewBox="0 0 24 24" className="w-full h-full fill-current">
+                                <path d="M12 21a9 9 0 0 0 9-9 9 9 0 0 0-9-9 9 9 0 0 0-9 9 9 9 0 0 0 9 9m7.5-15.6C17.3 3.2 14.7 2 12 2S6.7 3.2 4.5 5.4C2.3 7.6 1 10.3 1 13s1.3 5.4 3.5 7.6C6.7 22.8 9.3 24 12 24s5.3-1.2 7.5-3.4c2.2-2.2 3.5-4.9 3.5-7.6s-1.3-5.4-3.5-7.6z"/>
+                              </svg>
+                            </div>
+                            <div className="h-3.5 w-7 relative">
+                              <div className="absolute inset-0 border-[1.5px] border-black rounded-[3px]" />
+                              <div className="absolute inset-[2px] bg-black rounded-[1px]" style={{ width: '66%' }} />
+                              <div className="absolute -right-[2px] top-1/2 -translate-y-1/2 h-[8px] w-[1.5px] bg-black rounded-r-sm" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="relative h-full w-full bg-white">
+                          <MobilePhoneContent 
+                            transactionState={transactionState}
+                            showWalletSpotlight={showWalletSpotlight}
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div className="absolute bottom-[12px] left-1/2 -translate-x-1/2 w-[100px] h-[4px] bg-black rounded-full" />
+
+                    <div className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[100px] h-[4px] bg-black/90 rounded-full" />
                     <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-white/20 via-transparent to-black/10 pointer-events-none" />
                   </div>
                 </div>
