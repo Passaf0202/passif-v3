@@ -1,4 +1,3 @@
-
 import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -38,11 +37,7 @@ export function HeroSection() {
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
             <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm">
-              <img 
-                src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Design%20sans%20titre-30.png"
-                alt="Logo"
-                className="h-3 w-3 sm:h-4 sm:w-4 object-contain"
-              />
+              <Diamond className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
               <span className="text-xs sm:text-sm font-medium">
                 La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !
               </span>

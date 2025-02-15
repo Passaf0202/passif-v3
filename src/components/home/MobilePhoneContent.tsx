@@ -1,10 +1,9 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
-import { BadgeCheck, Wallet, Loader2, Check, RotateCcw } from "lucide-react";
+import { BadgeCheck, Coins, Loader2, Check, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { TransactionState } from "./HeroSection";
@@ -92,11 +91,7 @@ export function MobilePhoneContent({
       <div className="absolute inset-0 flex flex-col bg-white pt-10">
         <div className="h-12 flex items-center mb-[-35px]">
           <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px] pointer-events-auto">
-            <img 
-              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Design%20sans%20titre-30.png" 
-              alt="Tradecoiner" 
-              className="h-4 w-auto mobile-logo" 
-            />
+            <span className="text-sm font-semibold text-black">Tradecoiner</span>
             <div className="relative">
               <Button 
                 onClick={handleConnect} 
@@ -110,7 +105,7 @@ export function MobilePhoneContent({
                 ) : transactionState === 'wallet-connect' ? (
                   <Check className="h-3.5 w-3.5 text-white" strokeWidth={2} />
                 ) : (
-                  <Wallet className="h-3.5 w-3.5 text-white" strokeWidth={2} />
+                  <Coins className="h-3.5 w-3.5 text-white" strokeWidth={2} />
                 )}
               </Button>
             </div>
@@ -232,4 +227,3 @@ export function MobilePhoneContent({
     </TooltipProvider>
   );
 }
-
