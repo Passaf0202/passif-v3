@@ -1,7 +1,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, CheckCircle2, ShieldCheck } from "lucide-react";
-import { LogoViewer } from "./LogoViewer";
+import { LazyDiamondScene } from "./LazyDiamondScene";
 import { Button } from "@/components/ui/button";
 
 type TransactionState = 'initial' | 'payment' | 'confirmed';
@@ -12,6 +12,19 @@ interface MobilePhoneContentProps {
 }
 
 export function MobilePhoneContent({ transactionState, showWalletSpotlight }: MobilePhoneContentProps) {
+  const getDiamondState = (state: TransactionState): 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed' => {
+    switch (state) {
+      case 'initial':
+        return 'initial';
+      case 'payment':
+        return 'payment';
+      case 'confirmed':
+        return 'confirmed';
+      default:
+        return 'initial';
+    }
+  };
+
   const renderContent = () => {
     switch (transactionState) {
       case 'initial':
@@ -101,7 +114,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
 
       <div className="flex-1 flex flex-col items-center justify-between relative">
         <div className="w-48 h-48 relative">
-          <LogoViewer state={transactionState} />
+          <LazyDiamondScene state={getDiamondState(transactionState)} />
         </div>
 
         <AnimatePresence mode="wait">
