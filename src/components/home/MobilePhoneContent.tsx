@@ -82,7 +82,7 @@ export function MobilePhoneContent({
             repeat: showWalletSpotlight ? Infinity : 0,
             repeatType: "reverse"
           }}>
-              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] bg-black hover:bg-black/90">
+              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] bg-primary hover:bg-primary/90">
                 {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wallet className="h-3.5 w-3.5" strokeWidth={2} />}
               </Button>
             </motion.div>
@@ -118,7 +118,7 @@ export function MobilePhoneContent({
 
             <div className="space-y-3 -mt-8 px-5">
               <div>
-                <h2 className="text-lg leading-tight font-semibold text-black">Diamant</h2>
+                <h2 className="text-lg leading-tight font-semibold text-primary">Diamant</h2>
               </div>
 
               <div className="space-y-3">
