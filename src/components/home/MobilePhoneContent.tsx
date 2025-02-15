@@ -65,7 +65,7 @@ export function MobilePhoneContent({
         <StatusBar />
         <DynamicIsland />
         
-        <div className="absolute top-[52px] left-0 right-0 px-4 flex items-center justify-between z-40">
+        <div className="absolute top-[12px] left-0 right-0 px-4 flex items-center justify-between z-40">
           <img 
             src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
             alt="Tradecoiner" 
@@ -95,9 +95,9 @@ export function MobilePhoneContent({
           </motion.div>
         </div>
 
-        <main className="flex-1 flex flex-col relative mt-24">
+        <main className="flex-1 flex flex-col relative mt-8">
           <div className="w-full max-w-[360px] mx-auto">
-            <div className="h-[160px] w-full relative px-5">
+            <div className="h-[140px] w-full relative px-5">
               <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
                 scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
               }} transition={{
@@ -108,13 +108,13 @@ export function MobilePhoneContent({
               </motion.div>
             </div>
 
-            <div className="space-y-3 -mt-6 px-5">
+            <div className="space-y-2 -mt-8 px-5">
               <div>
                 <h2 className="text-lg leading-tight font-semibold text-[#000000]">Diamant</h2>
               </div>
 
-              <div className="space-y-3">
-                <div className="space-y-2">
+              <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="w-full h-[2px] bg-gray-200/80" />
                   <div className="w-full h-[2px] bg-gray-200/80" />
                 </div>
@@ -123,7 +123,7 @@ export function MobilePhoneContent({
                   Payer 20 ETH
                 </Button>
                 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="w-full h-[2px] bg-gray-200/80" />
                   <div className="w-full h-[2px] bg-gray-200/80" />
                   <div className="w-full h-[2px] bg-gray-200/80" />
