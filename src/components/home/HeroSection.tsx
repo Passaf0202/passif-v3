@@ -132,9 +132,9 @@ export function HeroSection() {
                 <img 
                   src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//iPhone%20dessin.png"
                   alt="iPhone frame"
-                  className="absolute -inset-6 w-[calc(100%+48px)] h-[calc(100%+48px)] object-contain z-10"
+                  className="absolute -inset-8 w-[calc(100%+64px)] h-[calc(100%+64px)] object-contain z-10"
                 />
-                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[10/21] scale-[0.62] mx-[14%] mt-[13%] mb-[13%]">
+                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[10/21] scale-[0.62] mx-[12%] mt-[13%] mb-[13%]">
                   <MobilePhoneContent 
                     transactionState={transactionState}
                     showWalletSpotlight={showWalletSpotlight}
