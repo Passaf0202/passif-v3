@@ -1,41 +1,29 @@
+
 import { motion, AnimatePresence } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useRef, useState, useEffect } from "react";
-import { BadgeCheck, Wallet, Loader2, Check, ArrowUp, RotateCcw } from "lucide-react";
+import { useRef, useState } from "react";
+import { BadgeCheck, Wallet, Loader2, Check, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import type { TransactionState } from "./HeroSection";
 
 interface MobilePhoneContentProps {
   transactionState: TransactionState;
-  showWalletSpotlight: boolean;
   onStateChange: (state: TransactionState) => void;
 }
 
 export function MobilePhoneContent({
   transactionState,
-  showWalletSpotlight,
   onStateChange
 }: MobilePhoneContentProps) {
   const modelContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [showGuide, setShowGuide] = useState(true);
-
-  useEffect(() => {
-    const hasVisited = localStorage.getItem('hasVisitedBefore');
-    if (hasVisited) {
-      setShowGuide(false);
-    }
-  }, []);
 
   const handleConnect = async () => {
-    setShowGuide(false);
-    localStorage.setItem('hasVisitedBefore', 'true');
-    
     if (transactionState === 'wallet-connect') {
       toast({
         title: "Déconnecté",
@@ -106,48 +94,21 @@ export function MobilePhoneContent({
           <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px] pointer-events-auto">
             <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto mobile-logo" />
             <div className="relative">
-              <AnimatePresence>
-                {showGuide && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 whitespace-nowrap"
-                  >
-                    <div className="bg-black text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2">
-                      Connectez votre portefeuille
-                      <ArrowUp className="h-3 w-3 animate-bounce" />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <motion.div 
-                animate={{
-                  scale: showWalletSpotlight ? [1, 1.05, 1] : 1
-                }} 
-                transition={{
-                  duration: 1,
-                  repeat: showWalletSpotlight ? Infinity : 0,
-                  repeatType: "reverse"
-                }}
-                className="pointer-events-auto z-50"
+              <Button 
+                onClick={handleConnect} 
+                disabled={isConnecting || transactionState === 'wallet-connecting'} 
+                variant="default" 
+                size="sm" 
+                className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] mobile-wallet-button relative pointer-events-auto z-50"
               >
-                <Button 
-                  onClick={handleConnect} 
-                  disabled={isConnecting || transactionState === 'wallet-connecting'} 
-                  variant="default" 
-                  size="sm" 
-                  className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] mobile-wallet-button relative pointer-events-auto z-50"
-                >
-                  {isConnecting || transactionState === 'wallet-connecting' ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
-                  ) : transactionState === 'wallet-connect' ? (
-                    <Check className="h-3.5 w-3.5 text-white" strokeWidth={2} />
-                  ) : (
-                    <Wallet className="h-3.5 w-3.5 text-white" strokeWidth={2} />
-                  )}
-                </Button>
-              </motion.div>
+                {isConnecting || transactionState === 'wallet-connecting' ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                ) : transactionState === 'wallet-connect' ? (
+                  <Check className="h-3.5 w-3.5 text-white" strokeWidth={2} />
+                ) : (
+                  <Wallet className="h-3.5 w-3.5 text-white" strokeWidth={2} />
+                )}
+              </Button>
             </div>
           </div>
         </div>
@@ -205,17 +166,7 @@ export function MobilePhoneContent({
                     </Button>
                   </motion.div>
                 ) : (
-                  <motion.div
-                    animate={{
-                      scale: transactionState === 'wallet-connect' ? [1, 1.02, 1] : 1
-                    }}
-                    transition={{
-                      duration: 1,
-                      repeat: transactionState === 'wallet-connect' ? Infinity : 0,
-                      repeatType: "reverse"
-                    }}
-                    className="pointer-events-auto z-50"
-                  >
+                  <motion.div className="pointer-events-auto z-50">
                     <Button 
                       variant="default" 
                       size="sm" 
@@ -244,7 +195,9 @@ export function MobilePhoneContent({
                   </motion.div>
                 )}
                 
-                <div className="space-y-2">
+                <div className="space
+
+-y-2">
                   <div className="w-full h-[2px] bg-gray-200/80" />
                   <div className="w-full h-[2px] bg-gray-200/80" />
                   <div className="w-full h-[2px] bg-gray-200/80" />
