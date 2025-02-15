@@ -1,37 +1,17 @@
 
-import { Loader2 } from "lucide-react";
 import { useModelViewer } from "./hooks/useModelViewer";
-import { ModelLoadingIndicator } from "./components/ModelLoadingIndicator";
 import type { DiamondViewerProps } from "./types/diamond-viewer";
 
 export function DiamondViewer({ state }: DiamondViewerProps) {
   const {
     modelRef,
     isModelViewerReady,
-    isLoading,
-    loadingProgress,
-    hasError,
     getRotationSpeed,
     MODEL_PATH
   } = useModelViewer(state);
 
   if (!isModelViewerReady) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-transparent">
-        <Loader2 className="h-5 w-5 animate-spin text-primary/50" />
-      </div>
-    );
-  }
-
-  if (hasError) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-transparent">
-        <div className="text-center text-red-500/80 text-sm">
-          <p>Erreur de chargement</p>
-          <p className="text-xs">Veuillez rafraîchir la page</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -59,7 +39,6 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
           width: '100%',
           height: '100%',
           backgroundColor: 'transparent',
-          opacity: isLoading ? '0.7' : '1',
           transition: 'opacity 0.5s ease-in-out',
           '--model-color': state === 'confirmed' ? '#22c55e' : 
                           state === 'processing' ? '#3b82f6' :
@@ -71,10 +50,6 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
       >
         <div slot="poster"></div>
       </model-viewer>
-      
-      {isLoading && loadingProgress < 100 && (
-        <ModelLoadingIndicator progress={loadingProgress} />
-      )}
     </div>
   );
 }
