@@ -1,15 +1,12 @@
-
 import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2, Wallet, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
-
 export function HeroSection() {
   const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed'>('initial');
   const [showWalletSpotlight, setShowWalletSpotlight] = useState(true);
-
   useEffect(() => {
     const runTransactionCycle = () => {
       setTransactionState('initial');
@@ -32,12 +29,9 @@ export function HeroSection() {
       const interval = setInterval(runTransactionCycle, 25000);
       return () => clearInterval(interval);
     }, 2000);
-
     return () => clearTimeout(initialTimeout);
   }, []);
-
-  return (
-    <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+  return <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-r from-black/5 to-black/10 backdrop-blur-[1px]" />
         <div className="absolute top-0 right-0 w-96 h-96 bg-purple-100/30 rounded-full transform translate-x-1/3 -translate-y-1/3 blur-3xl" />
@@ -46,12 +40,15 @@ export function HeroSection() {
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-8 lg:py-12 relative">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-12 items-center">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-3 sm:space-y-4 md:space-y-6"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          x: -20
+        }} animate={{
+          opacity: 1,
+          x: 0
+        }} transition={{
+          duration: 0.5
+        }} className="space-y-3 sm:space-y-4 md:space-y-6">
             <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm">
               <Diamond className="h-3 w-3 sm:h-4 sm:w-4 text-black" />
               <span className="text-xs sm:text-sm font-medium">La marketplace crypto #1 en France</span>
@@ -69,21 +66,14 @@ export function HeroSection() {
             
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <Link to="/create">
-                <Button 
-                  size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-black hover:bg-black/90 w-full sm:w-auto"
-                >
+                <Button size="default" className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-black hover:bg-black/90 w-full sm:w-auto">
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                   Déposer une annonce
                   <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2 opacity-0 group-hover:opacity-100 transition-all" />
                 </Button>
               </Link>
               <Link to="/search">
-                <Button 
-                  variant="outline" 
-                  size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 border-2 border-black text-black hover:bg-black/5 w-full sm:w-auto"
-                >
+                <Button variant="outline" size="default" className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 border-2 border-black text-black hover:bg-black/5 w-full sm:w-auto">
                   <Coins className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                   Explorer les annonces
                 </Button>
@@ -106,45 +96,37 @@ export function HeroSection() {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.5,
+          delay: 0.2
+        }} className="relative flex justify-center items-center">
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
-            <motion.div
-              animate={{ 
-                y: [0, -10, 0],
-                rotateY: [0, 2, 0],
-                rotateX: [0, 1, 0]
-              }}
-              transition={{ 
-                duration: 5, 
-                repeat: Infinity,
-                repeatType: "reverse",
-                ease: "easeInOut"
-              }}
-              className="relative w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] xl:w-[240px] transform scale-90 sm:scale-100"
-            >
+            <motion.div animate={{
+            y: [0, -10, 0],
+            rotateY: [0, 2, 0],
+            rotateX: [0, 1, 0]
+          }} transition={{
+            duration: 5,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut"
+          }} className="relative w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] xl:w-[240px] transform scale-90 sm:scale-100">
               <div className="relative w-full">
-                <img 
-                  src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Design%20sans%20titre.svg"
-                  alt="iPhone frame"
-                  className="absolute -inset-7 w-[calc(100%+56px)] h-[calc(100%+56px)] object-contain z-10"
-                />
+                <img alt="iPhone frame" className="absolute -inset-7 w-[calc(100%+56px)] h-[calc(100%+56px)] object-contain z-10 rounded-none" src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Design%20sans%20titre.svg" />
                 <div className="relative bg-white/98 overflow-hidden aspect-[10/21] scale-[0.78] mx-[9%] mt-[10%] mb-[10%] rounded-[32px] shadow-sm">
-                  <MobilePhoneContent 
-                    transactionState={transactionState}
-                    showWalletSpotlight={showWalletSpotlight}
-                  />
+                  <MobilePhoneContent transactionState={transactionState} showWalletSpotlight={showWalletSpotlight} />
                 </div>
               </div>
             </motion.div>
           </motion.div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
