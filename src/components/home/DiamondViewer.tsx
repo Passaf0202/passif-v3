@@ -165,7 +165,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 
   if (!isModelViewerReady) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-transparent">
+      <div className="flex items-center justify-center bg-transparent p-0 m-0 w-full h-full">
         <Loader2 className="h-5 w-5 animate-spin text-primary/50" />
       </div>
     );
@@ -173,7 +173,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 
   if (hasError) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-transparent">
+      <div className="flex items-center justify-center bg-transparent p-0 m-0 w-full h-full">
         <div className="text-center text-red-500/80 text-sm">
           <p>Erreur de chargement</p>
           <p className="text-xs">Veuillez rafraîchir la page</p>
@@ -183,7 +183,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
   }
 
   return (
-    <div className="w-full h-full relative bg-transparent">
+    <div className="bg-transparent p-0 m-0 w-full h-full">
       <model-viewer
         ref={modelRef}
         src={MODEL_PATH}
@@ -209,7 +209,10 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
           backgroundColor: 'transparent',
           opacity: isLoading ? '0.7' : '1',
           transition: 'opacity 0.5s ease-in-out',
-          '--model-color': 'black'
+          '--model-color': 'black',
+          padding: 0,
+          margin: 0,
+          display: 'block'
         } as any}
       >
         <div slot="poster"></div>

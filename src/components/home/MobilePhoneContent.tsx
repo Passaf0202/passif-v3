@@ -47,10 +47,10 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
           </div>
 
           {/* Section modèle 3D */}
-          <div className="relative aspect-square w-full max-w-[280px] mx-auto mb-4">
+          <div className="h-[280px] w-[280px] mx-auto mb-4">
             <motion.div 
               ref={modelContainerRef}
-              className="absolute inset-0 flex items-center justify-center"
+              className="w-full h-full"
               animate={{
                 scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1,
               }}
