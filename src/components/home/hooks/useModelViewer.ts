@@ -21,7 +21,7 @@ export function useModelViewer(state: DiamondViewerState) {
   const [isSpinningFast, setIsSpinningFast] = useState(false);
   const [currentSpeed, setCurrentSpeed] = useState(NORMAL_SPEED);
   const modelRef = useRef<HTMLElement>(null);
-  const spinTimeouts = useRef<NodeJS.Timeout[]>([]);
+  const spinTimeouts = useRef<NodeJS.Timeout[]>([]); // Initialisation avec un tableau vide
   const previousStateRef = useRef<DiamondViewerState>(state);
 
   const getRotationSpeed = useCallback(() => {
@@ -29,8 +29,10 @@ export function useModelViewer(state: DiamondViewerState) {
   }, [currentSpeed]);
 
   const clearAllTimeouts = () => {
-    spinTimeouts.current.forEach(timeout => clearTimeout(timeout));
-    spinTimeouts.current = [];
+    if (Array.isArray(spinTimeouts.current)) {
+      spinTimeouts.current.forEach(timeout => clearTimeout(timeout));
+      spinTimeouts.current = [];
+    }
   };
 
   useEffect(() => {
