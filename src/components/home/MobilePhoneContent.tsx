@@ -76,9 +76,9 @@ export function MobilePhoneContent({
 
       {/* Contenu principal */}
       <div className="flex-1 flex flex-col relative">
-        <div className="w-full max-w-[360px] mx-auto px-4">
+        <div className="w-full max-w-[360px] mx-auto pl-2">
           {/* Section profil acheteur */}
-          <div className="mb-0.5 flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
             <div className="flex items-center bg-muted/50 px-2 py-0.5 rounded-full h-4">
               <User className="h-2.5 w-2.5 text-muted-foreground mr-1" />
               <span className="text-[9px] font-medium">Saphire</span>
@@ -102,7 +102,7 @@ export function MobilePhoneContent({
           </div>
 
           {/* Informations produit */}
-          <div className="space-y-2 -mt-8">
+          <div className="space-y-2 -mt-8 pr-2">
             <div>
               <h2 className="text-lg leading-tight font-semibold text-black">Diamant</h2>
             </div>
