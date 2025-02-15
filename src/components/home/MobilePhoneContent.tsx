@@ -74,7 +74,7 @@ export function MobilePhoneContent({
       <div className="absolute inset-0 flex flex-col bg-white pt-6">
         <div className="h-16 flex items-center py-2">
           <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px]">
-            <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto" />
+            <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto mobile-logo" />
             <motion.div animate={{
             scale: showWalletSpotlight ? [1, 1.05, 1] : 1
           }} transition={{
@@ -82,7 +82,7 @@ export function MobilePhoneContent({
             repeat: showWalletSpotlight ? Infinity : 0,
             repeatType: "reverse"
           }}>
-              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] bg-[#000000] hover:bg-[#000000]/90">
+              <Button onClick={handleConnect} disabled={isOpen} variant="default" size="sm" className="h-8 w-8 rounded-full p-0 px-0 mx-[4px] mobile-wallet-button">
                 {isOpen ? <Loader2 className="h-3.5 w-3.5 animate-spin text-white" /> : <Wallet className="h-3.5 w-3.5 text-white" strokeWidth={2} />}
               </Button>
             </motion.div>

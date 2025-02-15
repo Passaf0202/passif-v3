@@ -3,7 +3,7 @@ import React from 'react';
 
 export const StatusBar = () => {
   return (
-    <div className="absolute top-0 left-0 right-0 h-[44px] px-8 flex items-center justify-between z-50">
+    <div className="absolute top-0 left-0 right-0 h-[44px] px-8 flex items-center justify-between mobile-status-bar">
       <span className="font-semibold text-[9px] tracking-wide pure-black-text translate-y-[1px]">9:41</span>
       <div className="flex items-center gap-[1px] translate-y-[1px]">
         <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="scale-[0.6] -mr-[2px]">

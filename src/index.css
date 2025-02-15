@@ -60,27 +60,45 @@
   }
 }
 
-/* Pure Black Elements */
+/* Pure Black Elements with !important */
 .pure-black-bg {
-  background-color: #000000;
+  background-color: #000000 !important;
 }
 
 .pure-black-text {
-  color: #000000;
+  color: #000000 !important;
 }
 
 .pure-black-fill {
-  fill: #000000;
+  fill: #000000 !important;
 }
 
 .pure-black-stroke {
-  stroke: #000000;
+  stroke: #000000 !important;
 }
 
 .pure-black * {
-  color: #000000;
-  fill: #000000;
-  stroke: #000000;
+  color: #000000 !important;
+  fill: #000000 !important;
+  stroke: #000000 !important;
+}
+
+/* Specific styles for mobile components */
+.mobile-status-bar {
+  z-index: 1000 !important;
+}
+
+.mobile-dynamic-island {
+  background-color: #000000 !important;
+  border-radius: 25px !important;
+}
+
+.mobile-wallet-button {
+  background-color: #000000 !important;
+}
+
+.mobile-logo {
+  height: 16px !important;
 }
 
 /* Model Viewer Styles */

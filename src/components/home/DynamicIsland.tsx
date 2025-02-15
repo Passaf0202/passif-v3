@@ -3,7 +3,7 @@ import React from 'react';
 
 export const DynamicIsland = () => {
   return (
-    <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] rounded-[25px] z-50">
+    <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] rounded-[25px] z-50 mobile-dynamic-island">
       <div className="absolute inset-0 pure-black-bg rounded-[25px]" />
       <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[4px] h-[4px] rounded-full">
         <div className="absolute inset-0 pure-black-bg rounded-full" />
