@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -83,7 +84,7 @@ export function MobilePhoneContent({
   return <TooltipProvider>
     <div className="absolute inset-0 flex flex-col bg-white pt-10">
       <div className="h-12 flex items-center mb-[-35px]">
-        <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px]">
+        <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px] pointer-events-auto">
           <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto mobile-logo" />
           <motion.div 
             animate={{
@@ -94,7 +95,7 @@ export function MobilePhoneContent({
               repeat: showWalletSpotlight ? Infinity : 0,
               repeatType: "reverse"
             }}
-            className="pointer-events-auto"
+            className="pointer-events-auto z-50"
           >
             <Tooltip>
               <TooltipTrigger asChild>
@@ -123,17 +124,17 @@ export function MobilePhoneContent({
       </div>
 
       <div className="flex-1 flex flex-col relative pointer-events-auto">
-        <div className="w-full max-w-[360px] mx-auto">
+        <div className="w-full max-w-[360px] mx-auto pointer-events-auto">
           <div className="h-[180px] w-full relative px-5">
             <motion.div 
               ref={modelContainerRef} 
-              className="w-full h-full"
+              className="w-full h-full pointer-events-none"
             >
               <DiamondViewer state={transactionState} />
             </motion.div>
           </div>
 
-          <div className="space-y-3 -mt-6 px-5">
+          <div className="space-y-3 -mt-6 px-5 pointer-events-auto">
             <div className="space-y-2">
               <h2 className="text-lg leading-tight font-semibold text-[#000000]">Diamant</h2>
               <div className="flex items-center gap-2">
@@ -172,13 +173,13 @@ export function MobilePhoneContent({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="pointer-events-auto"
+                  className="pointer-events-auto z-50"
                 >
                   <Button 
                     variant="default" 
                     size="sm" 
                     onClick={handleConfirmDelivery}
-                    className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto"
+                    className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto z-50"
                   >
                     Confirmer la réception
                   </Button>
@@ -193,14 +194,14 @@ export function MobilePhoneContent({
                     repeat: transactionState === 'wallet-connect' ? Infinity : 0,
                     repeatType: "reverse"
                   }}
-                  className="pointer-events-auto"
+                  className="pointer-events-auto z-50"
                 >
                   <Button 
                     variant="default" 
                     size="sm" 
                     onClick={transactionState === 'wallet-connect' ? handlePayment : handleConnect}
                     disabled={transactionState === 'processing' || transactionState === 'confirmed'}
-                    className={`w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
+                    className={`w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto z-50 ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
                   >
                     {transactionState === 'processing' ? (
                       <>
