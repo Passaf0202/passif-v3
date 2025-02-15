@@ -19,7 +19,7 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
   return (
     <div className="absolute inset-0 flex flex-col bg-white">
       {/* Header simple */}
-      <div className="relative h-14 px-4 flex items-center justify-between border-b border-gray-100">
+      <div className="relative h-14 px-4 flex items-center justify-between">
         <Badge variant="outline" className="h-7 flex items-center gap-1.5 text-[11px] font-medium">
           <CheckCircle className="h-3.5 w-3.5" />
           Acheteur vérifié
@@ -41,10 +41,10 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
       </div>
 
       {/* Contenu principal */}
-      <div className="flex-1 flex flex-col p-4">
-        <div className="w-full max-w-[360px] mx-auto space-y-6">
+      <div className="flex-1 flex flex-col">
+        <div className="w-full max-w-[360px] mx-auto">
           {/* Section modèle 3D */}
-          <div className="relative aspect-square w-full max-w-[320px] mx-auto bg-white">
+          <div className="relative aspect-square w-full max-w-[280px] mx-auto">
             <motion.div 
               ref={modelContainerRef}
               className="absolute inset-0 flex items-center justify-center"
@@ -61,22 +61,14 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
           </div>
 
           {/* Informations produit */}
-          <div className="space-y-6">
-            <div className="text-left">
-              <h2 className="text-2xl font-semibold text-black">Diamant 4 carats</h2>
+          <div className="space-y-4 px-4">
+            <div>
+              <h2 className="text-[32px] leading-tight font-semibold text-black">Diamant 4 carats</h2>
             </div>
 
-            <div className="w-full bg-black text-white px-4 py-3 rounded-md text-base font-medium">
+            <div className="w-full bg-black text-white px-4 py-3 rounded-xl text-base font-medium">
               19.25 ETH = 50.000 EUR
             </div>
-
-            <Button 
-              variant="default"
-              size="lg"
-              className="w-full bg-black hover:bg-black/90 text-white py-6 text-base font-medium"
-            >
-              Payer
-            </Button>
           </div>
         </div>
       </div>
