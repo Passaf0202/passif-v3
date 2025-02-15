@@ -78,10 +78,10 @@ export function MobilePhoneContent({
       <div className="flex-1 flex flex-col relative">
         <div className="w-full max-w-[360px] mx-auto px-4">
           {/* Section profil acheteur */}
-          <div className="mb-4 flex items-center space-x-2">
-            <div className="flex items-center bg-muted/50 px-2 py-1 rounded-full">
-              <User className="h-4 w-4 text-muted-foreground mr-1" />
-              <span className="text-sm font-medium">Pierre</span>
+          <div className="mb-2 flex items-center space-x-2">
+            <div className="flex items-center bg-muted/50 px-2 py-1 rounded-full h-4">
+              <User className="h-2.5 w-2.5 text-muted-foreground mr-1" />
+              <span className="text-[9px] font-medium">Pierre</span>
             </div>
             <Badge variant="default" className="h-4 inline-flex items-center gap-1 text-[9px] font-medium whitespace-nowrap px-2">
               <CheckCircle className="h-2.5 w-2.5" />
