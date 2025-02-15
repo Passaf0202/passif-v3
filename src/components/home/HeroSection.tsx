@@ -179,16 +179,16 @@ export function HeroSection() {
                           <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0B] via-[#0B0B0B]/95 to-[#0B0B0B]/90" />
                           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-black/40 to-white/5" />
                           
-                          <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[5px] h-[5px] rounded-full">
+                          <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[4px] h-[4px] rounded-full">
                             <div className="absolute inset-0 bg-[#0A0A0A] rounded-full shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]" />
-                            <div className="absolute inset-[1px] bg-[#090909] rounded-full" />
-                            <div className="absolute inset-[1.5px] bg-[#080808] rounded-full" />
-                            <div className="absolute top-[25%] left-[25%] w-[0.75px] h-[0.75px] bg-white/15 rounded-full" />
+                            <div className="absolute inset-[0.75px] bg-[#090909] rounded-full" />
+                            <div className="absolute inset-[1.25px] bg-[#080808] rounded-full" />
+                            <div className="absolute top-[25%] left-[25%] w-[0.5px] h-[0.5px] bg-white/15 rounded-full" />
                           </div>
                         </div>
 
-                        <div className="absolute top-0 left-0 right-0 h-[44px] px-4 flex items-center justify-between z-10">
-                          <span className="font-normal text-[10px] tracking-[-0.01em] text-black translate-y-[2px]">9:41</span>
+                        <div className="absolute top-0 left-0 right-0 h-[44px] px-6 flex items-center justify-between z-10">
+                          <span className="font-normal text-[9px] tracking-[-0.01em] text-black translate-y-[2px]">9:41</span>
                           <div className="flex items-center gap-[2px] translate-y-[2px]">
                             <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="scale-[0.85]">
                               <rect x="14" y="1" width="2" height="9" rx="0.7" fill="black"/>
@@ -198,8 +198,10 @@ export function HeroSection() {
                               <rect x="0" y="9" width="2" height="1" rx="0.5" fill="black" fillOpacity="0.3"/>
                             </svg>
 
-                            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="scale-[0.85] -translate-y-[1px]">
-                              <path fillRule="evenodd" clipRule="evenodd" d="M8 9.7c.56 0 1.01.45 1.01 1S8.56 11.7 8 11.7s-1.01-.45-1.01-1S7.44 9.7 8 9.7zm2.54-2.76c-.27-.36-.63-.64-1.03-.84-.81-.42-1.74-.42-2.55-.01-.4.2-.75.48-1.02.84-.23.31-.17.75.14.98.31.23.75.17.98-.14.36-.47 1-.48 1.36 0 .23.31.67.37.98.14.31-.23.37-.67.14-.97zM8 3.92c1.22 0 2.4.41 3.35 1.16.31.24.76.19 1-.12.24-.31.19-.76-.12-1C11.05 3 9.55 2.45 8 2.45c-1.55 0-3.05.55-4.23 1.51-.31.24-.36.69-.12 1 .24.31.69.36 1 .12A5.545 5.545 0 018 3.92zm5.39-1.5c.31-.24.36-.69.12-1C11.87.5 9.97 0 8 0 6.03 0 4.13.5 2.49 1.42c-.31.24-.36.69-.12 1 .24.31.69.36 1 .12C4.71 1.89 6.33 1.47 8 1.47c1.67 0 3.29.42 4.63 1.07.31.24.76.19 1-.12h-.24z" fill="black"/>
+                            <svg width="15" height="11" viewBox="0 0 15 11" fill="none" className="scale-[0.85] -translate-y-[1px]">
+                              <path d="M7.5 9.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="black"/>
+                              <path d="M3.5 6.5c2.2-2.2 5.8-2.2 8 0" stroke="black" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                              <path d="M1 4c4.4-4.4 8.6-4.4 13 0" stroke="black" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
                             </svg>
 
                             <div className="relative h-[13px] w-[24px] -translate-y-[1px]">
