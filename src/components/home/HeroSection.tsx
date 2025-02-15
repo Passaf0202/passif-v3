@@ -7,34 +7,23 @@ import { useState, useEffect } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
 
 export function HeroSection() {
-  const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed'>('initial');
-  const [showWalletSpotlight, setShowWalletSpotlight] = useState(true);
+  const [transactionState, setTransactionState] = useState<'initial' | 'payment' | 'confirmed'>('initial');
 
   useEffect(() => {
     const runTransactionCycle = () => {
       // Démarrage du cycle
       setTransactionState('initial');
-      setShowWalletSpotlight(true);
       
-      // Phase de connexion wallet
-      setTimeout(() => setShowWalletSpotlight(false), 3000);
-      setTimeout(() => setTransactionState('wallet-connecting'), 4000);
-      setTimeout(() => setTransactionState('wallet-connect'), 6000);
+      // Phase de paiement après 7 secondes
+      setTimeout(() => setTransactionState('payment'), 7000);
       
-      // Phase de paiement
-      setTimeout(() => setTransactionState('payment'), 9000);
+      // Phase de confirmation après 14 secondes
+      setTimeout(() => setTransactionState('confirmed'), 14000);
       
-      // Phase de traitement
-      setTimeout(() => setTransactionState('processing'), 12000);
-      
-      // Confirmation
-      setTimeout(() => setTransactionState('confirmed'), 15000);
-      
-      // Réinitialisation
+      // Réinitialisation après 21 secondes
       setTimeout(() => {
         setTransactionState('initial');
-        setShowWalletSpotlight(true);
-      }, 20000);
+      }, 21000);
     };
 
     // Délai initial pour laisser le modèle 3D se charger
@@ -47,24 +36,6 @@ export function HeroSection() {
 
     return () => clearTimeout(initialTimeout);
   }, []);
-
-  const getStepDescription = () => {
-    switch (transactionState) {
-      case 'initial':
-        return "Trouvez des produits uniques et connectez votre wallet en toute sécurité";
-      case 'wallet-connecting':
-      case 'wallet-connect':
-        return "Connexion sécurisée avec votre portefeuille numérique";
-      case 'payment':
-        return "Payez en crypto avec la protection de notre smart contract";
-      case 'processing':
-        return "Transaction sécurisée, les fonds sont bloqués jusqu'à la réception";
-      case 'confirmed':
-        return "Confirmez la réception et libérez les fonds. Simple et sécurisé";
-      default:
-        return "";
-    }
-  };
 
   return (
     <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
@@ -93,17 +64,9 @@ export function HeroSection() {
               <br /> en toute confiance
             </h1>
             
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={transactionState}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-sm sm:text-base md:text-lg text-gray-600"
-              >
-                {getStepDescription()}
-              </motion.p>
-            </AnimatePresence>
+            <p className="text-sm sm:text-base md:text-lg text-gray-600">
+              Achetez et vendez vos produits en toute sécurité grâce à notre système de paiement crypto protégé par smart contract.
+            </p>
             
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <Link to="/create">
@@ -172,7 +135,7 @@ export function HeroSection() {
                 <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/19]">
                   <MobilePhoneContent 
                     transactionState={transactionState}
-                    showWalletSpotlight={showWalletSpotlight}
+                    showWalletSpotlight={transactionState === 'initial'}
                   />
                 </div>
               </div>
