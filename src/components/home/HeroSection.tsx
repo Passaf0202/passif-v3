@@ -40,7 +40,7 @@ export function HeroSection() {
               <img 
                 src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                 alt="Tradecoiner"
-                className="h-3 w-3 sm:h-4 sm:w-4 [&>path]:fill-primary"
+                className="h-3 w-3 sm:h-4 sm:w-4 fill-primary"
               />
               <span className="text-xs sm:text-sm font-medium">La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !</span>
             </div>
@@ -75,7 +75,7 @@ export function HeroSection() {
                   <img 
                     src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                     alt="Tradecoiner"
-                    className="h-3 w-3 sm:h-4 sm:w-4 mr-2 [&>path]:fill-primary"
+                    className="h-3 w-3 sm:h-4 sm:w-4 mr-2 fill-primary"
                   />
                   Explorer les annonces
                 </Button>
