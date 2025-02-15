@@ -1,4 +1,3 @@
-
 import { Plus, Coins, Diamond, ArrowRight, CheckCircle2, ShieldCheck, Loader2, Wallet, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -7,10 +6,9 @@ import { useState, useEffect } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
 
 export function HeroSection() {
-  const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed'>('initial');
+  const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed'>('initial');
   const [showWalletSpotlight, setShowWalletSpotlight] = useState(true);
 
-  // Ralentissement des transitions d'état
   useEffect(() => {
     const runTransactionCycle = () => {
       setTransactionState('initial');
@@ -18,10 +16,9 @@ export function HeroSection() {
       setTimeout(() => setShowWalletSpotlight(false), 5000);
       setTimeout(() => setTransactionState('wallet-connecting'), 6000);
       setTimeout(() => setTransactionState('wallet-connect'), 8000);
-      setTimeout(() => setTransactionState('search'), 12000);
-      setTimeout(() => setTransactionState('validating'), 15000);
-      setTimeout(() => setTransactionState('processing'), 18000);
-      setTimeout(() => setTransactionState('confirmed'), 20000);
+      setTimeout(() => setTransactionState('payment'), 12000);
+      setTimeout(() => setTransactionState('processing'), 15000);
+      setTimeout(() => setTransactionState('confirmed'), 18000);
       setTimeout(() => {
         setTransactionState('initial');
         setShowWalletSpotlight(true);

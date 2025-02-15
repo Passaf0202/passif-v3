@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import type { SyntheticEvent } from 'react';
 
 interface DiamondViewerProps {
-  state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed';
+  state: 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
 }
 
 declare global {
@@ -118,9 +118,12 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 
   const getRotationSpeed = useCallback(() => {
     switch (state) {
-      case 'search':
+      case 'wallet-connect':
+        return "8deg"; // Vitesse normale
+      case 'wallet-connecting':
+        return "4deg"; // Plus lent pendant la validation
+      case 'payment':
         return "12deg"; // Plus rapide pendant la recherche
-      case 'validating':
       case 'processing':
         return "4deg"; // Plus lent pendant la validation
       case 'confirmed':
