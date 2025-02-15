@@ -26,27 +26,51 @@
     --ring: 0 0% 0%;
     --radius: 0.5rem;
   }
+}
 
-  .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 0%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 13.3%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 13.3%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 0 0% 83.9%;
+@layer components {
+  .phone-header {
+    @apply absolute top-0 left-0 right-0 flex flex-col;
+  }
+
+  .status-bar {
+    @apply h-[44px] px-6 flex items-center justify-between;
+  }
+
+  .status-bar-time {
+    @apply text-[14px] font-medium tracking-wide text-black;
+  }
+
+  .status-bar-icons {
+    @apply flex items-center gap-2;
+  }
+
+  .status-icon {
+    @apply text-black h-3.5 w-3.5;
+  }
+
+  .dynamic-island {
+    @apply absolute top-[12px] left-1/2 -translate-x-1/2 h-[30px] bg-black rounded-[20px] overflow-hidden transition-all duration-300 ease-in-out z-50;
+  }
+
+  .dynamic-island-default {
+    @apply w-[95px];
+  }
+
+  .dynamic-island-expanded {
+    @apply w-[350px] h-[180px];
+  }
+
+  .nav-header {
+    @apply mt-12 px-4 h-16 flex items-center justify-between;
+  }
+
+  .nav-logo {
+    @apply h-5 w-auto object-contain;
+  }
+
+  .nav-wallet-btn {
+    @apply h-10 w-10 rounded-full bg-black flex items-center justify-center hover:bg-black/90 transition-colors;
   }
 }
 
