@@ -4,7 +4,8 @@ import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
-import { User, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+import { WalletConnectButton } from "@/components/WalletConnectButton";
 
 type TransactionState = 'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed';
 
@@ -22,13 +23,13 @@ export function MobilePhoneContent({
   return (
     <div className="absolute inset-0 flex flex-col bg-white">
       {/* Header avec logo et wallet */}
-      <div className="relative h-12 px-4 flex items-center justify-between">
+      <div className="relative h-12 px-4 flex items-center">
         <img 
           src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png"
           alt="Tradecoiner" 
-          className="h-6 w-auto"
+          className="h-6 w-auto mr-auto"
         />
-        <motion.button
+        <motion.div
           animate={{
             scale: showWalletSpotlight ? [1, 1.05, 1] : 1
           }}
@@ -37,10 +38,9 @@ export function MobilePhoneContent({
             repeat: showWalletSpotlight ? Infinity : 0,
             repeatType: "reverse"
           }}
-          className="h-6 w-6 rounded-full flex items-center justify-center bg-black text-white"
         >
-          <User className="h-3 w-3" />
-        </motion.button>
+          <WalletConnectButton />
+        </motion.div>
       </div>
 
       {/* Contenu principal */}
