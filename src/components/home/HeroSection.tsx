@@ -2,42 +2,23 @@ import { Plus, Coins, Diamond, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
 import { StatusBar } from "./StatusBar";
 import { DynamicIsland } from "./DynamicIsland";
 
-export type TransactionState = 'initial' | 'wallet-connect' | 'payment' | 'confirmed';
+export type TransactionState = 'initial' | 'wallet-connect' | 'payment' | 'funds-locked' | 'confirmed';
 
 export function HeroSection() {
   const [transactionState, setTransactionState] = useState<TransactionState>('initial');
   const [showWalletSpotlight, setShowWalletSpotlight] = useState(true);
-  const [autoPlay, setAutoPlay] = useState(true);
 
-  useEffect(() => {
-    if (autoPlay) {
-      const runTransactionCycle = () => {
-        setTransactionState('initial');
-        setShowWalletSpotlight(true);
-        setTimeout(() => setShowWalletSpotlight(false), 5000);
-        setTimeout(() => setTransactionState('wallet-connect'), 6000);
-        setTimeout(() => setTransactionState('payment'), 10000);
-        setTimeout(() => setTransactionState('confirmed'), 14000);
-        setTimeout(() => {
-          setTransactionState('initial');
-          setShowWalletSpotlight(true);
-        }, 20000);
-      };
-
-      const initialTimeout = setTimeout(() => {
-        runTransactionCycle();
-        const interval = setInterval(runTransactionCycle, 20000);
-        return () => clearInterval(interval);
-      }, 2000);
-
-      return () => clearTimeout(initialTimeout);
+  const handleTransactionStateChange = (newState: TransactionState) => {
+    setTransactionState(newState);
+    if (newState !== 'initial') {
+      setShowWalletSpotlight(false);
     }
-  }, [autoPlay]);
+  };
 
   return (
     <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
@@ -130,7 +111,6 @@ export function HeroSection() {
                 ease: "easeInOut"
               }}
               className="relative w-[180px] sm:w-[200px] md:w-[220px] lg:w-[240px] xl:w-[260px] transform scale-100"
-              onClick={() => setAutoPlay(false)}
             >
               <div className="relative w-full">
                 <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
@@ -172,6 +152,7 @@ export function HeroSection() {
                           <MobilePhoneContent 
                             transactionState={transactionState}
                             showWalletSpotlight={showWalletSpotlight}
+                            onStateChange={handleTransactionStateChange}
                           />
                         </div>
                       </div>

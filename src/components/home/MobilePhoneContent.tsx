@@ -4,7 +4,7 @@ import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
-import { BadgeCheck, Wallet, Loader2, Check } from "lucide-react";
+import { BadgeCheck, Wallet, Loader2, Check, LockKeyhole } from "lucide-react";
 import { useAccount, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/react';
 import { useToast } from "@/components/ui/use-toast";
@@ -15,11 +15,13 @@ import type { TransactionState } from "./HeroSection";
 interface MobilePhoneContentProps {
   transactionState: TransactionState;
   showWalletSpotlight: boolean;
+  onStateChange: (state: TransactionState) => void;
 }
 
 export function MobilePhoneContent({
   transactionState,
-  showWalletSpotlight
+  showWalletSpotlight,
+  onStateChange
 }: MobilePhoneContentProps) {
   const modelContainerRef = useRef<HTMLDivElement>(null);
   const { address, isConnected } = useAccount();
@@ -27,7 +29,8 @@ export function MobilePhoneContent({
   const { open, isOpen } = useWeb3Modal();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [isPaymentButtonActive, setIsPaymentButtonActive] = useState(false);
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [isReleaseLoading, setIsReleaseLoading] = useState(false);
 
   const handleConnect = async () => {
     try {
@@ -40,6 +43,7 @@ export function MobilePhoneContent({
       }
       if (isConnected) {
         await disconnect();
+        onStateChange('initial');
         toast({
           title: "Déconnecté",
           description: "Votre portefeuille a été déconnecté"
@@ -47,7 +51,11 @@ export function MobilePhoneContent({
       } else {
         console.log('Tentative de connexion au wallet...');
         await open();
-        setIsPaymentButtonActive(true);
+        onStateChange('wallet-connect');
+        toast({
+          title: "Connecté",
+          description: "Votre portefeuille est maintenant connecté"
+        });
       }
     } catch (error) {
       console.error('Connection error:', error);
@@ -59,16 +67,127 @@ export function MobilePhoneContent({
     }
   };
 
+  const handlePayment = async () => {
+    try {
+      setIsPaymentLoading(true);
+      onStateChange('payment');
+      
+      // Simuler le temps de transaction
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      onStateChange('funds-locked');
+      toast({
+        title: "Paiement effectué",
+        description: "Les fonds sont bloqués dans l'escrow"
+      });
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Erreur",
+        description: "Le paiement a échoué. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsPaymentLoading(false);
+    }
+  };
+
+  const handleReleaseFunds = async () => {
+    try {
+      setIsReleaseLoading(true);
+      
+      // Simuler le temps de libération
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      onStateChange('confirmed');
+      toast({
+        title: "Fonds libérés",
+        description: "Transaction complétée avec succès"
+      });
+    } catch (error) {
+      console.error('Release funds error:', error);
+      toast({
+        title: "Erreur",
+        description: "La libération des fonds a échoué. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsReleaseLoading(false);
+    }
+  };
+
+  const getActionButton = () => {
+    if (transactionState === 'payment' || transactionState === 'initial') {
+      return (
+        <Button 
+          variant="default" 
+          size="sm" 
+          disabled={transactionState !== 'wallet-connect' || isPaymentLoading}
+          onClick={handlePayment}
+          className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white"
+        >
+          {isPaymentLoading ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+              Transaction en cours...
+            </>
+          ) : (
+            'Payer 20 ETH'
+          )}
+        </Button>
+      );
+    }
+
+    if (transactionState === 'funds-locked') {
+      return (
+        <Button 
+          variant="default" 
+          size="sm" 
+          onClick={handleReleaseFunds}
+          disabled={isReleaseLoading}
+          className="w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white"
+        >
+          {isReleaseLoading ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+              Libération en cours...
+            </>
+          ) : (
+            <>
+              <LockKeyhole className="h-3.5 w-3.5 mr-2" />
+              Libérer les fonds
+            </>
+          )}
+        </Button>
+      );
+    }
+
+    if (transactionState === 'confirmed') {
+      return (
+        <Button 
+          variant="default" 
+          size="sm" 
+          disabled
+          className="w-full h-8 rounded-full px-3 text-sm bg-[#000000] opacity-50 text-white"
+        >
+          Transaction terminée
+        </Button>
+      );
+    }
+  };
+
   const getTransactionMessage = () => {
     switch (transactionState) {
       case 'initial':
         return "Connectez votre portefeuille pour commencer";
       case 'wallet-connect':
-        return "Votre portefeuille est connecté !";
+        return "Cliquez sur 'Payer' pour démarrer la transaction";
       case 'payment':
         return "Transaction en cours...";
+      case 'funds-locked':
+        return "Libérez les fonds une fois le produit reçu";
       case 'confirmed':
-        return "Transaction réussie !";
+        return "Transaction complétée avec succès !";
       default:
         return "";
     }
@@ -100,7 +219,7 @@ export function MobilePhoneContent({
                   >
                     {isOpen ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
-                    ) : transactionState === 'wallet-connect' ? (
+                    ) : transactionState !== 'initial' ? (
                       <Check className="h-3.5 w-3.5 text-white" strokeWidth={2} />
                     ) : (
                       <Wallet className="h-3.5 w-3.5 text-white" strokeWidth={2} />
@@ -149,6 +268,16 @@ export function MobilePhoneContent({
                     </Tooltip>
                     <span className="text-[9px] font-medium text-black">Profil vérifié</span>
                   </div>
+                  {transactionState === 'funds-locked' && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex items-center bg-yellow-100 px-2 py-0.5 rounded-full h-4"
+                    >
+                      <LockKeyhole className="h-2.5 w-2.5 text-yellow-600 mr-1" />
+                      <span className="text-[9px] font-medium text-yellow-600">Fonds bloqués</span>
+                    </motion.div>
+                  )}
                   {transactionState === 'confirmed' && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -170,31 +299,15 @@ export function MobilePhoneContent({
 
                 <motion.div
                   animate={{
-                    scale: transactionState === 'wallet-connect' && !isPaymentButtonActive ? [1, 1.02, 1] : 1
+                    scale: (transactionState === 'wallet-connect' || transactionState === 'funds-locked') ? [1, 1.02, 1] : 1
                   }}
                   transition={{
                     duration: 1,
-                    repeat: transactionState === 'wallet-connect' && !isPaymentButtonActive ? Infinity : 0,
+                    repeat: (transactionState === 'wallet-connect' || transactionState === 'funds-locked') ? Infinity : 0,
                     repeatType: "reverse"
                   }}
                 >
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    disabled={!isPaymentButtonActive && transactionState !== 'wallet-connect'} 
-                    className={`w-full h-8 rounded-full px-3 text-sm transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
-                  >
-                    {transactionState === 'payment' ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-                        Transaction en cours...
-                      </>
-                    ) : transactionState === 'confirmed' ? (
-                      'Payé 20 ETH'
-                    ) : (
-                      'Payer 20 ETH'
-                    )}
-                  </Button>
+                  {getActionButton()}
                 </motion.div>
                 
                 <div className="space-y-2">
