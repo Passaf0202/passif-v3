@@ -142,7 +142,7 @@ export function MobilePhoneContent({
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="tooltip-content">
                   <p className="text-xs">{getTransactionMessage()}</p>
                 </TooltipContent>
               </Tooltip>
@@ -171,7 +171,7 @@ export function MobilePhoneContent({
                     <TooltipTrigger>
                       <BadgeCheck className="h-2.5 w-2.5 text-black mr-1" />
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent className="tooltip-content">
                       <p className="text-xs">Certifié</p>
                     </TooltipContent>
                   </Tooltip>
@@ -204,7 +204,7 @@ export function MobilePhoneContent({
                         Confirmer la réception
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent className="tooltip-content">
                       <p className="text-xs">Confirmer la réception du produit</p>
                     </TooltipContent>
                   </Tooltip>
@@ -244,7 +244,7 @@ export function MobilePhoneContent({
                         )}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent className="tooltip-content">
                       <p className="text-xs">{getTransactionMessage()}</p>
                     </TooltipContent>
                   </Tooltip>
