@@ -72,8 +72,8 @@ export function MobilePhoneContent({
 
   return <TooltipProvider>
       <div className="absolute inset-0 flex flex-col bg-white pt-6">
-        <div className="h-14 flex items-center py-0">
-          <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px] py-0">
+        <div className="h-16 flex items-center py-2">
+          <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px]">
             <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto" />
             <motion.div animate={{
             scale: showWalletSpotlight ? [1, 1.05, 1] : 1
@@ -91,9 +91,9 @@ export function MobilePhoneContent({
 
         <div className="flex-1 flex flex-col relative py-0">
           <div className="w-full max-w-[360px] mx-auto">
-            <div className="h-[140px] w-full relative px-5">
-              <div className="absolute top-4 left-2 z-10 flex items-center space-x-2">
-                <div className="flex items-center bg-[#000000] px-2 py-0.5 rounded-full h-4">
+            <div className="h-[160px] w-full relative px-5">
+              <div className="absolute top-6 left-[13px] z-10 flex items-center space-x-2">
+                <div className="flex items-center bg-gray-900 px-2 py-0.5 rounded-full h-4">
                   <Tooltip>
                     <TooltipTrigger>
                       <BadgeCheck className="h-2.5 w-2.5 text-white mr-1" />
@@ -116,12 +116,12 @@ export function MobilePhoneContent({
               </motion.div>
             </div>
 
-            <div className="space-y-3 -mt-8 px-5">
+            <div className="space-y-4 -mt-6 px-5">
               <div>
                 <h2 className="text-lg leading-tight font-semibold text-[#000000]">Diamant</h2>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <div className="w-full h-[2px] bg-gray-200/80" />
                   <div className="w-full h-[2px] bg-gray-200/80" />
