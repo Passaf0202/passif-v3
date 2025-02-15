@@ -10,27 +10,40 @@ export function HeroSection() {
   const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'search' | 'validating' | 'processing' | 'confirmed'>('initial');
   const [showWalletSpotlight, setShowWalletSpotlight] = useState(true);
 
-  // Ralentissement des transitions d'état
   useEffect(() => {
     const runTransactionCycle = () => {
+      // Démarrage du cycle
       setTransactionState('initial');
       setShowWalletSpotlight(true);
+      
+      // Phase de connexion wallet
       setTimeout(() => setShowWalletSpotlight(false), 5000);
       setTimeout(() => setTransactionState('wallet-connecting'), 6000);
       setTimeout(() => setTransactionState('wallet-connect'), 8000);
-      setTimeout(() => setTransactionState('search'), 12000);
-      setTimeout(() => setTransactionState('validating'), 15000);
-      setTimeout(() => setTransactionState('processing'), 18000);
-      setTimeout(() => setTransactionState('confirmed'), 20000);
+      
+      // Phase de recherche
+      setTimeout(() => setTransactionState('search'), 10000);
+      
+      // Phase de validation
+      setTimeout(() => setTransactionState('validating'), 13000);
+      
+      // Phase de traitement
+      setTimeout(() => setTransactionState('processing'), 16000);
+      
+      // Confirmation
+      setTimeout(() => setTransactionState('confirmed'), 19000);
+      
+      // Réinitialisation
       setTimeout(() => {
         setTransactionState('initial');
         setShowWalletSpotlight(true);
-      }, 25000);
+      }, 23000);
     };
 
     // Délai initial pour laisser le modèle 3D se charger
     const initialTimeout = setTimeout(() => {
       runTransactionCycle();
+      // Répétition toutes les 25 secondes
       const interval = setInterval(runTransactionCycle, 25000);
       return () => clearInterval(interval);
     }, 2000);

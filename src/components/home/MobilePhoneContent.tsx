@@ -32,19 +32,39 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
   const getButtonText = () => {
     switch (transactionState) {
       case 'wallet-connecting':
-        return 'Connexion...';
+        return "Connexion...";
       case 'wallet-connect':
-        return '0x12...89ab';
+        return "0x12...89ab";
       case 'search':
-        return 'Recherche...';
+        return "Recherche...";
       case 'validating':
-        return 'Validation...';
+        return "Validation...";
       case 'processing':
-        return 'Traitement...';
+        return "Traitement...";
       case 'confirmed':
-        return 'Confirmé !';
+        return "Confirmé !";
       default:
-        return 'Connecter Wallet';
+        return "Connecter Wallet";
+    }
+  };
+
+  const getExplanationText = () => {
+    switch (transactionState) {
+      case 'initial':
+        return "Connectez-vous avec votre wallet";
+      case 'wallet-connecting':
+      case 'wallet-connect':
+        return "Sécurisation de votre identité";
+      case 'search':
+        return "Trouvez le produit qui vous intéresse";
+      case 'validating':
+        return "Transaction sécurisée par smart contract";
+      case 'processing':
+        return "Paiement en cours";
+      case 'confirmed':
+        return "Transaction réussie !";
+      default:
+        return "";
     }
   };
 
@@ -102,23 +122,39 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
         </div>
       </div>
 
-      <motion.div 
-        className="flex-1 flex items-center justify-center bg-gradient-to-b from-transparent via-white/50 to-gray-50/20"
-        animate={{
-          scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1,
-        }}
-        transition={{
-          duration: 0.5,
-          ease: "easeInOut"
-        }}
-      >
-        <div 
-          ref={modelContainerRef} 
-          className="w-[30rem] h-[30rem] relative flex items-center justify-center"
+      <div className="flex-1 flex flex-col items-center justify-center relative">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={transactionState}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-4 text-center px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm"
+          >
+            <span className="text-sm font-medium text-gray-900">
+              {getExplanationText()}
+            </span>
+          </motion.div>
+        </AnimatePresence>
+
+        <motion.div 
+          className="flex-1 flex items-center justify-center bg-gradient-to-b from-transparent via-white/50 to-gray-50/20 w-full"
+          animate={{
+            scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1,
+          }}
+          transition={{
+            duration: 0.5,
+            ease: "easeInOut"
+          }}
         >
-          <DiamondViewer state={transactionState} />
-        </div>
-      </motion.div>
+          <div 
+            ref={modelContainerRef} 
+            className="w-[30rem] h-[30rem] relative flex items-center justify-center"
+          >
+            <DiamondViewer state={transactionState} />
+          </div>
+        </motion.div>
+      </div>
 
       {transactionState !== 'initial' && (
         <motion.div 
