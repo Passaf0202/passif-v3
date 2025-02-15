@@ -77,7 +77,7 @@ export function MobilePhoneContent({
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col relative py-0">
+        <div className="flex-1 flex flex-col relative">
           <div className="w-full max-w-[360px] mx-auto">
             <div className="h-[160px] w-full relative px-5">
               <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
