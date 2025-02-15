@@ -80,20 +80,6 @@ export function MobilePhoneContent({
         <div className="flex-1 flex flex-col relative py-0">
           <div className="w-full max-w-[360px] mx-auto">
             <div className="h-[160px] w-full relative px-5">
-              <div className="absolute top-4 left-[13px] z-10 flex items-center space-x-2">
-                <div className="flex items-center bg-[#F6F6F7] px-2 py-0.5 rounded-full h-4">
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <BadgeCheck className="h-2.5 w-2.5 text-black mr-1" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">Profil vérifié</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <span className="text-[9px] font-medium text-black">Saphire</span>
-                </div>
-              </div>
-
               <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
               scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1
             }} transition={{
@@ -105,8 +91,21 @@ export function MobilePhoneContent({
             </div>
 
             <div className="space-y-3 -mt-6 px-5">
-              <div>
+              <div className="space-y-2">
                 <h2 className="text-lg leading-tight font-semibold text-[#000000]">Diamant</h2>
+                <div className="flex items-center">
+                  <div className="flex items-center bg-[#F6F6F7] px-2 py-0.5 rounded-full h-4">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <BadgeCheck className="h-2.5 w-2.5 text-black mr-1" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">Certifié</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <span className="text-[9px] font-medium text-black">Profil vérifié</span>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-3">
