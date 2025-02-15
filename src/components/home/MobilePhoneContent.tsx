@@ -3,12 +3,12 @@ import { motion } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
-import { Wallet, Loader2, BadgeCheck } from "lucide-react";
+import { Wallet, Loader2 } from "lucide-react";
 import { useAccount, useDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/react';
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { StatusBar } from "./StatusBar";
 import { DynamicIsland } from "./DynamicIsland";
 
@@ -62,41 +62,40 @@ export function MobilePhoneContent({
   return (
     <TooltipProvider>
       <div className="absolute inset-0 flex flex-col bg-white">
-        <header className="phone-header">
-          <StatusBar />
-          <DynamicIsland />
-          <nav className="nav-header mt-4">
-            <img 
-              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
-              alt="Tradecoiner" 
-              className="nav-logo"
-            />
-            <motion.div
-              animate={{
-                scale: showWalletSpotlight ? [1, 1.05, 1] : 1
-              }}
-              transition={{
-                duration: 1,
-                repeat: showWalletSpotlight ? Infinity : 0,
-                repeatType: "reverse"
-              }}
+        <StatusBar />
+        <DynamicIsland />
+        
+        <div className="absolute top-[52px] left-0 right-0 px-4 flex items-center justify-between z-40">
+          <img 
+            src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" 
+            alt="Tradecoiner" 
+            className="h-5 w-auto object-contain"
+          />
+          <motion.div
+            animate={{
+              scale: showWalletSpotlight ? [1, 1.05, 1] : 1
+            }}
+            transition={{
+              duration: 1,
+              repeat: showWalletSpotlight ? Infinity : 0,
+              repeatType: "reverse"
+            }}
+          >
+            <Button 
+              onClick={handleConnect} 
+              disabled={isOpen} 
+              className="h-10 w-10 rounded-full bg-black flex items-center justify-center hover:bg-black/90 transition-colors"
             >
-              <Button 
-                onClick={handleConnect} 
-                disabled={isOpen} 
-                className="nav-wallet-btn"
-              >
-                {isOpen ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-white" />
-                ) : (
-                  <Wallet className="h-4 w-4 text-white" strokeWidth={2} />
-                )}
-              </Button>
-            </motion.div>
-          </nav>
-        </header>
+              {isOpen ? (
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+              ) : (
+                <Wallet className="h-4 w-4 text-white" strokeWidth={2} />
+              )}
+            </Button>
+          </motion.div>
+        </div>
 
-        <main className="flex-1 flex flex-col relative mt-8">
+        <main className="flex-1 flex flex-col relative mt-24">
           <div className="w-full max-w-[360px] mx-auto">
             <div className="h-[160px] w-full relative px-5">
               <motion.div ref={modelContainerRef} className="w-full h-full" animate={{
