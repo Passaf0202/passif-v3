@@ -11,10 +11,11 @@ export function useModelViewer(state: DiamondViewerState) {
   const [isSpinningFast, setIsSpinningFast] = useState(false);
   const modelRef = useRef<HTMLElement>(null);
   const spinTimeout = useRef<NodeJS.Timeout>();
+  const previousStateRef = useRef<DiamondViewerState>(state);
 
   useEffect(() => {
-    // Déclencher la rotation rapide quand l'état passe à 'confirmed'
-    if (state === 'confirmed' && !isSpinningFast) {
+    // Ne déclencher l'effet que si l'état passe à 'confirmed' depuis un autre état
+    if (state === 'confirmed' && previousStateRef.current !== 'confirmed') {
       setIsSpinningFast(true);
       
       // Nettoyer tout timeout existant
@@ -27,6 +28,9 @@ export function useModelViewer(state: DiamondViewerState) {
         setIsSpinningFast(false);
       }, 1000);
     }
+
+    // Mettre à jour la référence de l'état précédent
+    previousStateRef.current = state;
 
     // Nettoyage du timeout lors du démontage
     return () => {
