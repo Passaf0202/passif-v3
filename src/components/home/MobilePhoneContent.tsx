@@ -38,9 +38,12 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
   return (
     <div className="absolute inset-0 flex flex-col bg-white">
       {/* Header avec badge acheteur vérifié */}
-      <div className="relative h-14 px-4 flex items-center justify-between border-b border-gray-100">
-        <Badge variant="outline" className="h-7 flex items-center gap-1.5 text-[11px] font-medium">
-          <CheckCircle className="h-3.5 w-3.5" />
+      <div className="relative h-14 px-4 flex items-center justify-between">
+        <Badge 
+          variant="outline" 
+          className="h-8 px-3 flex items-center gap-1.5 text-sm font-medium border-2 border-gray-200"
+        >
+          <CheckCircle className="h-4 w-4" />
           Acheteur vérifié
         </Badge>
         
@@ -60,51 +63,58 @@ export function MobilePhoneContent({ transactionState, showWalletSpotlight }: Mo
       </div>
 
       {/* Contenu principal */}
-      <div className="flex-1 flex flex-col p-4">
-        <div className="w-full max-w-[360px] mx-auto space-y-6">
-          {/* Section modèle 3D */}
-          <div className="relative aspect-square w-full max-w-[320px] mx-auto bg-gradient-to-b from-gray-50 to-white">
-            <motion.div 
-              ref={modelContainerRef}
-              className="absolute inset-0 flex items-center justify-center"
-              animate={{
-                scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1,
-              }}
-              transition={{
-                duration: 0.5,
-                ease: "easeInOut"
-              }}
-            >
-              <DiamondViewer state={transactionState} />
-            </motion.div>
-          </div>
+      <div className="flex-1 flex flex-col px-4">
+        {/* Section modèle 3D */}
+        <div className="relative aspect-square w-full max-w-[320px] mx-auto bg-gradient-to-b from-gray-50 to-white mb-8">
+          <motion.div 
+            ref={modelContainerRef}
+            className="absolute inset-0 flex items-center justify-center"
+            animate={{
+              scale: transactionState === 'confirmed' ? [1, 1.05, 1] : 1,
+            }}
+            transition={{
+              duration: 0.5,
+              ease: "easeInOut"
+            }}
+          >
+            <DiamondViewer state={transactionState} />
+          </motion.div>
+        </div>
 
-          {/* Informations produit */}
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold text-black">Diamant 4 carats</h2>
-            </div>
-
-            <Separator className="bg-gray-100" />
-
-            <div className="text-center space-y-1">
-              <div className="text-lg font-medium">19.25 ETH = 50.000 EUR</div>
-            </div>
-
-            <Separator className="bg-gray-100" />
+        {/* Informations produit */}
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold text-black">
+              Diamant 4 carats
+            </h2>
 
             <Button 
-              size="lg"
-              className={`w-full ${
-                transactionState === 'confirmed' 
-                  ? 'bg-green-500 hover:bg-green-600' 
-                  : 'bg-black hover:bg-black/90'
-              } text-white py-6 text-base font-medium transition-colors duration-300`}
+              variant="default"
+              className="w-full justify-start bg-black hover:bg-black/90 text-base font-medium py-6"
             >
-              {getStatusText()}
-              {transactionState === 'initial' && <ArrowRight className="h-5 w-5 ml-2" />}
+              19.25 ETH = 50.000 EUR
             </Button>
           </div>
+
+          {/* Séparateurs gris simulant le contenu */}
+          <div className="space-y-4 py-4">
+            <Separator className="bg-gray-200 h-3 rounded" />
+            <Separator className="bg-gray-200 h-3 rounded" />
+            <Separator className="bg-gray-200 h-3 rounded" />
+            <Separator className="bg-gray-200 h-3 rounded" />
+          </div>
+
+          <Button 
+            size="lg"
+            className={`w-full ${
+              transactionState === 'confirmed' 
+                ? 'bg-green-500 hover:bg-green-600' 
+                : 'bg-black hover:bg-black/90'
+            } text-white py-6 text-base font-medium transition-colors duration-300`}
+          >
+            {getStatusText()}
+            {transactionState === 'initial' && <ArrowRight className="h-5 w-5 ml-2" />}
+          </Button>
         </div>
       </div>
 
