@@ -7,34 +7,37 @@ import { MobilePhoneContent } from "./MobilePhoneContent";
 import { StatusBar } from "./StatusBar";
 import { DynamicIsland } from "./DynamicIsland";
 
+export type TransactionState = 'initial' | 'wallet-connect' | 'payment' | 'confirmed';
+
 export function HeroSection() {
-  const [transactionState, setTransactionState] = useState<'initial' | 'wallet-connect' | 'wallet-connecting' | 'payment' | 'processing' | 'confirmed'>('initial');
+  const [transactionState, setTransactionState] = useState<TransactionState>('initial');
   const [showWalletSpotlight, setShowWalletSpotlight] = useState(true);
+  const [autoPlay, setAutoPlay] = useState(true);
 
   useEffect(() => {
-    const runTransactionCycle = () => {
-      setTransactionState('initial');
-      setShowWalletSpotlight(true);
-      setTimeout(() => setShowWalletSpotlight(false), 5000);
-      setTimeout(() => setTransactionState('wallet-connecting'), 6000);
-      setTimeout(() => setTransactionState('wallet-connect'), 8000);
-      setTimeout(() => setTransactionState('payment'), 12000);
-      setTimeout(() => setTransactionState('processing'), 15000);
-      setTimeout(() => setTransactionState('confirmed'), 18000);
-      setTimeout(() => {
+    if (autoPlay) {
+      const runTransactionCycle = () => {
         setTransactionState('initial');
         setShowWalletSpotlight(true);
-      }, 25000);
-    };
+        setTimeout(() => setShowWalletSpotlight(false), 5000);
+        setTimeout(() => setTransactionState('wallet-connect'), 6000);
+        setTimeout(() => setTransactionState('payment'), 10000);
+        setTimeout(() => setTransactionState('confirmed'), 14000);
+        setTimeout(() => {
+          setTransactionState('initial');
+          setShowWalletSpotlight(true);
+        }, 20000);
+      };
 
-    const initialTimeout = setTimeout(() => {
-      runTransactionCycle();
-      const interval = setInterval(runTransactionCycle, 25000);
-      return () => clearInterval(interval);
-    }, 2000);
+      const initialTimeout = setTimeout(() => {
+        runTransactionCycle();
+        const interval = setInterval(runTransactionCycle, 20000);
+        return () => clearInterval(interval);
+      }, 2000);
 
-    return () => clearTimeout(initialTimeout);
-  }, []);
+      return () => clearTimeout(initialTimeout);
+    }
+  }, [autoPlay]);
 
   return (
     <div className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
@@ -127,6 +130,7 @@ export function HeroSection() {
                 ease: "easeInOut"
               }}
               className="relative w-[180px] sm:w-[200px] md:w-[220px] lg:w-[240px] xl:w-[260px] transform scale-100"
+              onClick={() => setAutoPlay(false)}
             >
               <div className="relative w-full">
                 <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
