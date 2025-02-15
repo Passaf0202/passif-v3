@@ -134,7 +134,7 @@ export function HeroSection() {
                   alt="iPhone frame"
                   className="absolute -inset-6 w-[calc(100%+48px)] h-[calc(100%+48px)] object-contain z-10"
                 />
-                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/19] scale-[0.74] mx-[12%] mt-[6%] mb-[7%]">
+                <div className="relative bg-white rounded-[28px] overflow-hidden aspect-[9/19] scale-[0.72] mx-[13%] mt-[7%] mb-[8%]">
                   <MobilePhoneContent 
                     transactionState={transactionState}
                     showWalletSpotlight={showWalletSpotlight}
