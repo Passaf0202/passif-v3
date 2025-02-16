@@ -60,7 +60,25 @@
   }
 }
 
-/* Pure Black Elements with !important */
+.highlight-stabilo {
+  position: relative;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.highlight-stabilo::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: 0;
+  height: 40%;
+  background-color: #E5E7EB;
+  opacity: 0.5;
+  z-index: -1;
+  transform: skew(-12deg);
+}
+
 .pure-black-bg {
   background-color: #000000 !important;
 }
