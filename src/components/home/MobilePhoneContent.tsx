@@ -22,8 +22,11 @@ export function MobilePhoneContent({
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const handleConnect = async () => {
+    if (!hasInteracted) setHasInteracted(true);
+    
     if (transactionState === 'wallet-connect') {
       toast({
         title: "Déconnecté",
@@ -47,12 +50,14 @@ export function MobilePhoneContent({
   };
 
   const handlePayment = async () => {
+    if (!hasInteracted) setHasInteracted(true);
     onStateChange('processing');
     await new Promise(resolve => setTimeout(resolve, 2000));
     onStateChange('awaiting-confirmation');
   };
 
   const handleConfirmDelivery = async () => {
+    if (!hasInteracted) setHasInteracted(true);
     setIsConfirming(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
     onStateChange('confirmed');
@@ -159,7 +164,7 @@ export function MobilePhoneContent({
                         size="sm" 
                         onClick={handleConfirmDelivery}
                         disabled={isConfirming}
-                        className="w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto shadow-[0_2px_10px_-3px_rgba(0,0,0,0.3)] active:shadow-[0_2px_5px_-3px_rgba(0,0,0,0.3)]"
+                        className="w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto shadow-[inset_0_2px_10px_-3px_rgba(0,0,0,0.3)] active:shadow-[inset_0_2px_5px_-3px_rgba(0,0,0,0.3)]"
                       >
                         {isConfirming ? (
                           <div className="flex items-center justify-center">
@@ -180,7 +185,7 @@ export function MobilePhoneContent({
                 <motion.div
                   className="pointer-events-auto z-50 relative"
                 >
-                  {transactionState !== 'wallet-connect' && <SimulationIndicator />}
+                  {!hasInteracted && transactionState !== 'wallet-connect' && <SimulationIndicator />}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
@@ -189,9 +194,12 @@ export function MobilePhoneContent({
                         onClick={transactionState === 'wallet-connect' ? handlePayment : handleConnect}
                         disabled={transactionState === 'processing' || transactionState === 'confirmed'}
                         className={`w-full h-8 rounded-full px-4 text-xs transition-all duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto 
-                          transform perspective-[1000px] hover:rotate-y-[2deg] hover:-rotate-x-[2deg] active:translate-z-[-2px] active:scale-[0.98]
-                          shadow-[0_2px_10px_-3px_rgba(0,0,0,0.3),0_1px_2px_0_rgba(255,255,255,0.1)_inset] 
-                          active:shadow-[0_1px_5px_-3px_rgba(0,0,0,0.3),0_1px_2px_0_rgba(255,255,255,0.05)_inset]
+                          transform perspective-[800px] 
+                          hover:rotate-y-[6deg] hover:-rotate-x-[4deg] 
+                          hover:translate-y-[-2px]
+                          active:translate-y-[1px] active:translate-z-[-4px] active:scale-[0.97]
+                          shadow-[0_8px_16px_-4px_rgba(0,0,0,0.3),0_2px_0_0_rgba(255,255,255,0.15)_inset,0_-1px_0_0_rgba(0,0,0,0.2)_inset]
+                          active:shadow-[0_4px_8px_-2px_rgba(0,0,0,0.2),0_1px_0_0_rgba(255,255,255,0.1)_inset,0_-1px_0_0_rgba(0,0,0,0.1)_inset]
                           ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
                       >
                         {transactionState === 'processing' ? (
