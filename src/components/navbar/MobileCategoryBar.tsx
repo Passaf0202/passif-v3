@@ -5,11 +5,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Category } from "@/types/category";
 import { capitalizeFirstLetter } from "@/utils/textUtils";
+import { useOrganizedCategories } from "./categories/useOrganizedCategories";
 
 export function MobileCategoryBar() {
   const navigate = useNavigate();
 
-  const { data: categories } = useQuery<Category[]>({
+  const { data: fetchedCategories } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -23,6 +24,9 @@ export function MobileCategoryBar() {
     }
   });
 
+  // Utiliser le même ordre que sur desktop
+  const categories = useOrganizedCategories(fetchedCategories);
+
   const handleCategoryClick = (categoryName: string) => {
     navigate(`/category/${categoryName.toLowerCase()}`);
   };
@@ -31,8 +35,8 @@ export function MobileCategoryBar() {
 
   return (
     <div className="md:hidden border-b border-gray-200/80 bg-white relative overflow-hidden">
-      {/* Gradient de fade à gauche */}
-      <div className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+      {/* Gradient de fade à gauche - modifié pour commencer après la première catégorie */}
+      <div className="absolute left-[120px] top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
       
       <Carousel
         opts={{
@@ -43,7 +47,10 @@ export function MobileCategoryBar() {
       >
         <CarouselContent className="-ml-2">
           {categories.map((category, index) => (
-            <CarouselItem key={category.id} className="pl-2 basis-auto">
+            <CarouselItem 
+              key={category.id} 
+              className={`pl-2 basis-auto ${index === 0 ? 'ml-4' : ''}`}
+            >
               <div className="flex items-center">
                 <button
                   onClick={() => handleCategoryClick(category.name)}
