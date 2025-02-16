@@ -29,7 +29,7 @@ export function CategoryContent({ category }: CategoryContentProps) {
           <div className="w-[250px] flex-shrink-0 bg-gray-100 rounded-lg">
             <div className="space-y-4 p-6">
               <div className="flex items-center gap-3 text-primary">
-                {IconComponent && <IconComponent className="h-8 w-8" />}
+                {IconComponent && <IconComponent className="h-7 w-7" />}
                 <h3 className="text-lg font-medium">
                   {category.name}
                 </h3>
