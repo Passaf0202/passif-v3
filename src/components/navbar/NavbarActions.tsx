@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
+import { MobileMenu } from "./mobile/MobileMenu";
 
 export const NavbarActions = () => {
   const { user } = useAuth();
@@ -72,6 +73,8 @@ export const NavbarActions = () => {
 
   return (
     <div className="flex items-center gap-2 md:gap-3">
+      <MobileMenu />
+      
       <Button 
         onClick={handleCreateListing}
         className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200"
@@ -153,7 +156,7 @@ export const NavbarActions = () => {
           <div className="flex-shrink-0">
             <WalletConnectButton />
           </div>
-          <div className="flex items-center">
+          <div className="hidden md:flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -163,7 +166,9 @@ export const NavbarActions = () => {
               <DropdownMenuContent className="w-56 mt-2" align="end">
                 <Link to="/auth" className="w-full">
                   <DropdownMenuItem className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
+                    <User className="mr
+
+-2 h-4 w-4" />
                     Connexion
                   </DropdownMenuItem>
                 </Link>
@@ -174,4 +179,4 @@ export const NavbarActions = () => {
       )}
     </div>
   );
-}
+};
