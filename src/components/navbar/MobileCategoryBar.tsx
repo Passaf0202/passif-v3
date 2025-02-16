@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Category } from "@/types/category";
 import { capitalizeFirstLetter } from "@/utils/textUtils";
-import { useOrganizedCategories } from "./categories/useOrganizedCategories";
+import { useMobileCategories } from "./categories/useMobileCategories";
 
 export function MobileCategoryBar() {
   const navigate = useNavigate();
@@ -24,8 +24,8 @@ export function MobileCategoryBar() {
     }
   });
 
-  // Utiliser le même ordre que sur desktop
-  const categories = useOrganizedCategories(fetchedCategories);
+  // Utiliser la liste plate ordonnée pour mobile
+  const categories = useMobileCategories(fetchedCategories);
 
   const handleCategoryClick = (categoryName: string) => {
     navigate(`/category/${categoryName.toLowerCase()}`);
@@ -35,8 +35,8 @@ export function MobileCategoryBar() {
 
   return (
     <div className="md:hidden border-b border-gray-200/80 bg-white relative overflow-hidden">
-      {/* Gradient de fade à gauche - modifié pour commencer après la première catégorie */}
-      <div className="absolute left-[120px] top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+      {/* Gradient de fade à gauche - déplacé plus loin pour ne pas affecter "Véhicules" */}
+      <div className="absolute left-[200px] top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
       
       <Carousel
         opts={{
