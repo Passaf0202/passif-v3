@@ -55,14 +55,16 @@ export function Navbar() {
                 </div>
               </div>
             ) : (
-              <div className="w-full grid grid-cols-[1fr,3fr,1fr] items-center gap-8">
+              <div className="w-full grid grid-cols-[1.2fr,2fr,1.2fr] items-center gap-6 lg:gap-8">
                 {/* Logo à gauche */}
-                <div className="flex-shrink-0">
-                  <NavbarLogo />
+                <div className="flex-shrink-0 pl-2 xl:pl-4">
+                  <div className="w-[140px] lg:w-[160px]">
+                    <NavbarLogo />
+                  </div>
                 </div>
 
                 {/* Barre de recherche au centre */}
-                <div className="w-full max-w-3xl mx-auto">
+                <div className="w-full max-w-2xl mx-auto">
                   <SearchBar onSearch={onSearch} />
                 </div>
 

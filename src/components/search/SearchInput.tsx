@@ -25,7 +25,7 @@ export const SearchInput = ({
     <div className="w-full">
       <Input
         placeholder="Rechercher sur Tradecoiner"
-        className="h-8 text-sm rounded-full bg-gray-50/80 border-transparent focus:border-transparent focus:ring-0 pl-10 pr-4 transition-all duration-200 placeholder:text-gray-500 w-full"
+        className="h-8 text-sm rounded-full bg-gray-100 border-transparent focus:border-transparent focus:ring-0 pl-10 pr-4 transition-all duration-200 placeholder:text-gray-500 w-full"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => {
