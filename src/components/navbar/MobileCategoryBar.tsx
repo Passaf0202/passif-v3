@@ -16,7 +16,6 @@ export function MobileCategoryBar() {
     loop: false,
     dragFree: false, // Désactivé pour un défilement plus contrôlé
     containScroll: "keepSnaps",
-    inertia: false, // Désactivé pour réduire l'effet d'inertie
     speed: 10, // Ralentir la vitesse de défilement
   });
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -54,11 +53,11 @@ export function MobileCategoryBar() {
 
     const onScroll = () => {
       const progress = emblaApi.scrollProgress();
-      const scrollOffset = emblaApi.scrollOffset();
+      const currentSnap = emblaApi.selectedScrollSnap();
       setScrollProgress(progress);
       
-      // Détecter si l'utilisateur a commencé à défiler (même légèrement)
-      setHasScrolled(Math.abs(scrollOffset) > 1);
+      // Détecter si l'utilisateur a commencé à défiler
+      setHasScrolled(currentSnap > 0 || progress > 0);
     };
 
     emblaApi.on("select", onSelect);
