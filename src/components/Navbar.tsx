@@ -2,12 +2,12 @@
 import { SearchBar } from "./SearchBar";
 import { NavbarLogo } from "./navbar/NavbarLogo";
 import { NavbarActions } from "./navbar/NavbarActions";
+import { MobileCreateButton } from "./navbar/MobileCreateButton";
 import { useNavigate } from "react-router-dom";
 import { NavbarCategories } from "./navbar/NavbarCategories";
 import { useCategoriesData } from "./navbar/categories/useCategoriesData";
 import { useRef } from "react";
 import { useAdaptiveLayout } from "@/hooks/use-adaptive-layout";
-import { MobileMenu } from "./navbar/mobile/MobileMenu";
 import { MobileCategoryBar } from "./navbar/MobileCategoryBar";
 
 export function Navbar() {
@@ -27,53 +27,21 @@ export function Navbar() {
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md">
       <div className="max-w-[1440px] mx-auto" ref={containerRef}>
         {/* Top section */}
-        <div className="h-12 border-b border-gray-200/80">
-          <div className="h-full flex items-center px-4">
-            {isMobile ? (
-              <div className="w-full flex items-center justify-between">
-                {/* Menu à gauche */}
-                <div className="flex-shrink-0">
-                  <MobileMenu />
-                </div>
-
-                {/* Logo au centre */}
-                <div className="flex-1 flex justify-center">
-                  <div className="w-auto flex-shrink-0 scale-90">
-                    <NavbarLogo />
-                  </div>
-                </div>
-
-                {/* Wallet à droite */}
-                <div className="flex-shrink-0">
-                  <button className="rounded-full flex items-center justify-center h-8 w-8">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M18.125 5H3.125C2.43464 5 1.875 5.55964 1.875 6.25V15C1.875 15.6904 2.43464 16.25 3.125 16.25H18.125C18.8154 16.25 19.375 15.6904 19.375 15V6.25C19.375 5.55964 18.8154 5 18.125 5Z" />
-                      <path d="M1.875 8.75H19.375" />
-                      <path d="M15 12.5H16.25" />
-                    </svg>
-                  </button>
-                </div>
+        <div className="h-12 px-4 md:px-8 border-b border-gray-200/80">
+          <div className="h-full flex items-center justify-center">
+            <div className="w-full max-w-[1200px] grid grid-cols-[auto_1fr_auto] items-center gap-4 md:gap-6">
+              <div className={`w-auto flex-shrink-0 transition-all duration-200 ${
+                isMobile ? 'scale-110' : ''
+              }`}>
+                <NavbarLogo />
               </div>
-            ) : (
-              <div className="w-full grid grid-cols-[1.2fr,2fr,1.2fr] items-center gap-6 lg:gap-8">
-                {/* Logo à gauche */}
-                <div className="flex-shrink-0 pl-2 xl:pl-4">
-                  <div className="w-[140px] lg:w-[160px]">
-                    <NavbarLogo />
-                  </div>
-                </div>
-
-                {/* Barre de recherche au centre */}
-                <div className="w-full max-w-2xl mx-auto">
+              <div className="flex justify-start md:justify-center w-full">
+                <div className={isMobile ? "hidden" : "w-full max-w-xl"}>
                   <SearchBar onSearch={onSearch} />
                 </div>
-
-                {/* Actions à droite */}
-                <div className="flex justify-end">
-                  <NavbarActions />
-                </div>
               </div>
-            )}
+              <NavbarActions />
+            </div>
           </div>
         </div>
 
@@ -90,8 +58,10 @@ export function Navbar() {
         )}
 
         {/* Mobile category bar */}
-        {isMobile && <MobileCategoryBar />}
+        <MobileCategoryBar />
       </div>
+      
+      <MobileCreateButton />
     </header>
   );
 }
