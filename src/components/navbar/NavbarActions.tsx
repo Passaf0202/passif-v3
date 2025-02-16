@@ -1,10 +1,11 @@
+
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { AdminLink } from "./AdminLink";
 import { MenuWalletBalance } from "../wallet/MenuWalletBalance";
 import {
@@ -55,7 +56,9 @@ export const NavbarActions = () => {
         onClick={handleCreateListing}
         className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200"
       >
-        <Plus className="h-4 w-4 mr-1" />
+        <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-current mr-2">
+          <Plus className="h-3 w-3" strokeWidth={3} />
+        </span>
         Déposer une annonce
       </Button>
 
@@ -142,4 +145,4 @@ export const NavbarActions = () => {
       )}
     </div>
   );
-};
+}

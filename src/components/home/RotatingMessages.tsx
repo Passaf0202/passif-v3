@@ -1,7 +1,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const MESSAGES = [
@@ -28,50 +28,42 @@ export function RotatingMessages() {
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
 
-  const handlePrevious = () => {
+  const handleDotClick = (index: number) => {
     setIsAutoPlaying(false);
-    setCurrentIndex((prev) => (prev - 1 + MESSAGES.length) % MESSAGES.length);
-  };
-
-  const handleNext = () => {
-    setIsAutoPlaying(false);
-    setCurrentIndex((prev) => (prev + 1) % MESSAGES.length);
+    setCurrentIndex(index);
   };
 
   return (
-    <div className="relative">
-      <div className="min-h-[100px] sm:min-h-[80px] flex items-center justify-center">
+    <div className="relative space-y-4">
+      <div className="min-h-[100px] sm:min-h-[80px] flex items-center">
         <AnimatePresence mode="wait">
           <motion.p
             key={currentIndex}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.5 }}
-            className="text-sm sm:text-base md:text-lg text-gray-700 text-center max-w-2xl mx-auto px-4"
+            className="text-sm sm:text-base md:text-lg text-gray-700"
           >
             {MESSAGES[currentIndex]}
           </motion.p>
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center justify-center gap-2 mt-2">
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8 rounded-full"
-          onClick={handlePrevious}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8 rounded-full"
-          onClick={handleNext}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+      <div className="flex items-center gap-2">
+        {MESSAGES.map((_, index) => (
+          <Button
+            key={index}
+            variant="ghost"
+            size="sm"
+            className={`w-2 h-2 p-0 rounded-full transition-all duration-200 hover:opacity-100
+              ${index === currentIndex ? 'bg-primary opacity-100 scale-125' : 'bg-primary/30 opacity-50 scale-100'}`}
+            onClick={() => handleDotClick(index)}
+          >
+            <Circle className="w-2 h-2" />
+            <span className="sr-only">Message {index + 1}</span>
+          </Button>
+        ))}
       </div>
     </div>
   );
