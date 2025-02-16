@@ -3,8 +3,8 @@ import { Category } from "@/types/category";
 
 // Même ordre de priorité que dans useOrganizedCategories
 const PRIORITY_CATEGORIES = [
-  "vehicles",
   "real estate",
+  "vehicles",
   "electronics",
   "fashion",
   "collectibles",
