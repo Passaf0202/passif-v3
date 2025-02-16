@@ -81,7 +81,7 @@ export function MobileCategoryBar() {
         style={{ opacity: leftGradientOpacity }}
       />
       
-      <div className="overflow-hidden" ref={emblaRef}>
+      <Carousel ref={emblaRef}>
         <CarouselContent className="-ml-2">
           {categories.map((category, index) => (
             <CarouselItem 
@@ -102,7 +102,7 @@ export function MobileCategoryBar() {
             </CarouselItem>
           ))}
         </CarouselContent>
-      </div>
+      </Carousel>
 
       {/* Gradient de fade à droite - dynamique */}
       <div 
