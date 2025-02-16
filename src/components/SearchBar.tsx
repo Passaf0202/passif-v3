@@ -54,7 +54,7 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
 
   return (
     <div className="relative w-full">
-      <form onSubmit={handleSubmit} className="flex">
+      <form onSubmit={handleSubmit} className="flex w-full">
         <div className="relative w-full group">
           <SearchInput
             value={searchInput}
