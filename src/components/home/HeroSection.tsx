@@ -30,14 +30,14 @@ export function HeroSection() {
       </div>
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-8 lg:py-12 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-12 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="space-y-6 max-w-2xl"
+            className="space-y-3 sm:space-y-4 md:space-y-6"
           >
-            <div className="inline-flex items-center gap-2 bg-white/90 px-4 py-2 rounded-full shadow-sm border-2 border-primary">
+            <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border-2 border-primary">
               <img 
                 src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                 alt="Tradecoiner"
@@ -46,46 +46,44 @@ export function HeroSection() {
               <span className="text-xs sm:text-sm font-medium">La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !</span>
             </div>
             
-            <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
-                Achetez et vendez vos biens avec des cryptomonnaies.
-              </h1>
-              
-              <p className="text-sm sm:text-base md:text-lg text-gray-600 mt-4">
-                Bénéficiez d'un paiement ultra sécurisé, instantané et avec des frais minimes grâce à la technologie blockchain.
-              </p>
-            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
+              Achetez et vendez vos biens avec des cryptomonnaies.
+            </h1>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-              <Link to="/create" className="block w-full">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600">
+              Bénéficiez d'un paiement ultra sécurisé, instantané et avec des frais minimes grâce à la technologie blockchain.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <Link to="/create">
                 <Button 
                   size="default"
-                  className="w-full h-10 px-4 text-sm bg-primary hover:bg-primary/90 rounded-[25px] group"
+                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-2 sm:px-3 md:px-4 bg-primary hover:bg-primary/90 w-full sm:w-auto rounded-[25px]"
                 >
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-current">
-                    <Plus className="h-4 w-4" strokeWidth={3} />
+                  <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-current">
+                    <Plus className="h-3 w-3 sm:h-4 sm:w-4" strokeWidth={3} />
                   </span>
                   Déposer une annonce
-                  <ArrowRight className="h-4 w-4 ml-2 opacity-0 group-hover:opacity-100 transition-all" />
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2 opacity-0 group-hover:opacity-100 transition-all" />
                 </Button>
               </Link>
-              <Link to="/search" className="block w-full">
+              <Link to="/search">
                 <Button 
                   variant="outline" 
                   size="default"
-                  className="w-full h-10 px-4 text-sm bg-white text-primary hover:text-primary hover:bg-gray-50 rounded-[25px] border-2 border-primary group"
+                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-white text-primary hover:text-primary hover:bg-gray-50 w-full sm:w-auto rounded-[25px] border-2 border-primary"
                 >
                   <img 
                     src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                     alt="Tradecoiner"
-                    className="h-4 w-4 mr-2 fill-primary"
+                    className="h-3 w-3 sm:h-4 sm:w-4 mr-2 fill-primary"
                   />
                   Explorer les annonces
                 </Button>
               </Link>
             </div>
             
-            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-3 sm:pt-4">
               <div className="text-center">
                 <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">2X</div>
                 <div className="text-xs sm:text-sm text-gray-600">Moins cher que nos concurrents</div>
@@ -105,7 +103,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center lg:items-start"
+            className="relative flex justify-center items-center"
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
