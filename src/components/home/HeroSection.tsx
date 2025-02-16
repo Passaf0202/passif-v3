@@ -1,3 +1,4 @@
+
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -65,7 +66,7 @@ export function HeroSection() {
                   <img 
                     src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                     alt="Tradecoiner"
-                    className="h-3 w-3 sm:h-4 sm:w-4 mr-2 fill-primary"
+                    className="h-4 w-4 sm:h-5 sm:w-5 mr-2 fill-primary"
                   />
                   Explorer les annonces
                 </Button>
