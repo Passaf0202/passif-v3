@@ -38,7 +38,7 @@ export function HeroSection() {
             transition={{ duration: 0.5 }}
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-[42px] font-bold text-gray-900 leading-tight">
+            <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl 2xl:text-[42px] font-bold text-gray-900 leading-tight">
               <div className="whitespace-nowrap">Achetez et vendez vos biens</div>
               <div>avec <span className="highlight-stabilo">des cryptomonnaies.</span></div>
             </h1>
