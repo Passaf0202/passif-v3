@@ -17,11 +17,7 @@ export function MobileCategoryBar() {
     dragFree: false,
     containScroll: "keepSnaps",
     axis: "x",
-    skipSnaps: false,
-    dragStartPredicate: {
-      startOnMove: true,
-      filterTaps: true
-    }
+    skipSnaps: false
   });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isFirstSlide, setIsFirstSlide] = useState(true);
