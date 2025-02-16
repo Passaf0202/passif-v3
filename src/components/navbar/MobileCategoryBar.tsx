@@ -14,8 +14,14 @@ export function MobileCategoryBar() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     loop: false,
-    dragFree: false, // Désactivé pour un défilement plus contrôlé
+    dragFree: false,
     containScroll: "keepSnaps",
+    axis: "x",
+    skipSnaps: false,
+    dragStartPredicate: {
+      startOnMove: true,
+      filterTaps: true
+    }
   });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isFirstSlide, setIsFirstSlide] = useState(true);
@@ -74,19 +80,19 @@ export function MobileCategoryBar() {
 
   if (!categories?.length) return null;
 
-  // Calculer l'opacité des gradients en fonction de la position
-  const leftGradientOpacity = hasScrolled && !isFirstSlide ? 1 : 0;
-  const rightGradientOpacity = hasScrolled || !isFirstSlide ? 1 : Math.min(1, (1 - scrollProgress) * 2);
+  // Amélioration des calculs d'opacité pour les gradients
+  const leftGradientOpacity = hasScrolled ? Math.min(1, scrollProgress * 2) : 0;
+  const rightGradientOpacity = Math.min(1, (1 - scrollProgress) * 2);
 
   return (
     <div className="md:hidden border-b border-gray-200/80 bg-white relative overflow-hidden">
-      {/* Gradient de fade à gauche - dynamique */}
+      {/* Gradient de fade à gauche - avec transition améliorée */}
       <div 
-        className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none transition-opacity duration-200"
+        className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 ease-in-out"
         style={{ opacity: leftGradientOpacity }}
       />
       
-      <Carousel ref={emblaRef}>
+      <Carousel ref={emblaRef} className="overflow-visible">
         <CarouselContent className="-ml-2">
           {categories.map((category, index) => (
             <CarouselItem 
@@ -109,9 +115,9 @@ export function MobileCategoryBar() {
         </CarouselContent>
       </Carousel>
 
-      {/* Gradient de fade à droite - dynamique */}
+      {/* Gradient de fade à droite - avec transition améliorée */}
       <div 
-        className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none transition-opacity duration-200"
+        className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 ease-in-out"
         style={{ opacity: rightGradientOpacity }}
       />
     </div>
