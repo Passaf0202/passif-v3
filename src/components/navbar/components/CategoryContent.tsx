@@ -26,11 +26,11 @@ export function CategoryContent({ category }: CategoryContentProps) {
       <div className="py-6 px-8">
         <div className="flex">
           {/* Colonne de gauche - Aperçu */}
-          <div className="w-[250px] flex-shrink-0 bg-gray-100">
+          <div className="w-[250px] flex-shrink-0 bg-gray-100 rounded-lg">
             <div className="space-y-4 p-6">
               <div className="flex items-center gap-3 text-primary">
-                {IconComponent && <IconComponent className="h-8 w-8" />}
-                <h3 className="text-lg font-medium whitespace-nowrap">
+                {IconComponent && <IconComponent className="h-10 w-10" />}
+                <h3 className="text-lg font-medium">
                   {category.name}
                 </h3>
               </div>
