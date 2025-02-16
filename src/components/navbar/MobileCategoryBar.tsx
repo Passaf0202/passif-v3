@@ -14,11 +14,14 @@ export function MobileCategoryBar() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     loop: false,
-    dragFree: true,
+    dragFree: false, // Désactivé pour un défilement plus contrôlé
     containScroll: "keepSnaps",
+    inertia: false, // Désactivé pour réduire l'effet d'inertie
+    speed: 10, // Ralentir la vitesse de défilement
   });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isFirstSlide, setIsFirstSlide] = useState(true);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   const { data: fetchedCategories } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -51,7 +54,11 @@ export function MobileCategoryBar() {
 
     const onScroll = () => {
       const progress = emblaApi.scrollProgress();
+      const scrollOffset = emblaApi.scrollOffset();
       setScrollProgress(progress);
+      
+      // Détecter si l'utilisateur a commencé à défiler (même légèrement)
+      setHasScrolled(Math.abs(scrollOffset) > 1);
     };
 
     emblaApi.on("select", onSelect);
@@ -70,8 +77,8 @@ export function MobileCategoryBar() {
   if (!categories?.length) return null;
 
   // Calculer l'opacité des gradients en fonction de la position
-  const leftGradientOpacity = isFirstSlide ? 0 : Math.min(1, scrollProgress * 2);
-  const rightGradientOpacity = Math.min(1, (1 - scrollProgress) * 2);
+  const leftGradientOpacity = hasScrolled && !isFirstSlide ? 1 : 0;
+  const rightGradientOpacity = hasScrolled || !isFirstSlide ? 1 : Math.min(1, (1 - scrollProgress) * 2);
 
   return (
     <div className="md:hidden border-b border-gray-200/80 bg-white relative overflow-hidden">
