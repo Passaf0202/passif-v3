@@ -1,4 +1,3 @@
-
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -98,9 +97,9 @@ export function MobileMenu() {
             <div className="p-4 border-b">
               <Button 
                 onClick={handleCreateListing}
-                className="w-full bg-primary hover:bg-primary/90"
+                className="w-full bg-primary hover:bg-primary/90 rounded-full py-2 h-auto"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2 stroke-[2.5]" />
                 Déposer une annonce
               </Button>
             </div>
@@ -108,14 +107,14 @@ export function MobileMenu() {
             {/* Section Mon compte */}
             {user ? (
               <AccordionItem value="account" className="border-b">
-                <AccordionTrigger className="px-4 py-3">
+                <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-2" />
                     Mon compte
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="space-y-3 p-3">
+                  <div className="space-y-1 p-2">
                     <Link 
                       to="/profile" 
                       className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 rounded-md"
@@ -183,11 +182,11 @@ export function MobileMenu() {
             {/* Section Catégories */}
             {categories?.map((category) => (
               <AccordionItem key={category.id} value={category.id} className="border-b">
-                <AccordionTrigger className="px-4 py-3">
+                <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
                   {capitalizeFirstLetter(category.name)}
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="space-y-2 p-3">
+                  <div className="space-y-1 p-2">
                     <Link
                       to={`/category/${category.name.toLowerCase()}`}
                       className="block px-4 py-2 text-primary hover:underline"
@@ -211,11 +210,11 @@ export function MobileMenu() {
 
             {/* Section Informations pratiques */}
             <AccordionItem value="info" className="border-b">
-              <AccordionTrigger className="px-4 py-3">
+              <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
                 Informations pratiques
               </AccordionTrigger>
               <AccordionContent>
-                <div className="space-y-2 p-3">
+                <div className="space-y-1 p-2">
                   <Link 
                     to="/help" 
                     className="block px-4 py-2 hover:bg-gray-100 rounded-md"

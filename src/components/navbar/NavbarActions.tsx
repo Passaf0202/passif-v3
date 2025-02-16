@@ -1,6 +1,6 @@
 
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound } from "lucide-react";
+import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
@@ -73,11 +73,24 @@ export const NavbarActions = () => {
 
   return (
     <div className="flex items-center gap-2 md:gap-3">
-      <MobileMenu />
+      <div className="flex items-center gap-2 md:hidden">
+        {user && (
+          <div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full flex items-center justify-center bg-gray-100/80 h-8 w-8"
+            >
+              <Wallet className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        <MobileMenu />
+      </div>
       
       <Button 
         onClick={handleCreateListing}
-        className="bg-primary/90 hover:bg-primary/80 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200"
+        className="bg-primary hover:bg-primary/90 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200"
       >
         <Plus className="h-4 w-4 mr-1" />
         Déposer une annonce
@@ -85,11 +98,11 @@ export const NavbarActions = () => {
 
       {user ? (
         <>
-          <div className="flex-shrink-0">
+          <div className="hidden md:block flex-shrink-0">
             <WalletConnectButton />
           </div>
           <AdminLink />
-          <div className="flex items-center">
+          <div className="hidden md:flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -152,11 +165,11 @@ export const NavbarActions = () => {
           </div>
         </>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2">
           <div className="flex-shrink-0">
             <WalletConnectButton />
           </div>
-          <div className="hidden md:flex items-center">
+          <div className="flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -166,9 +179,7 @@ export const NavbarActions = () => {
               <DropdownMenuContent className="w-56 mt-2" align="end">
                 <Link to="/auth" className="w-full">
                   <DropdownMenuItem className="cursor-pointer">
-                    <User className="mr
-
--2 h-4 w-4" />
+                    <User className="mr-2 h-4 w-4" />
                     Connexion
                   </DropdownMenuItem>
                 </Link>

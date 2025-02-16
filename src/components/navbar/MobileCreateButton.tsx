@@ -1,3 +1,4 @@
+
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -24,9 +25,10 @@ export const MobileCreateButton = () => {
   return (
     <Button 
       onClick={handleCreateListing}
-      className="bg-primary hover:bg-primary/90 fixed bottom-4 right-4 md:hidden shadow-lg rounded-full z-50"
+      className="bg-primary hover:bg-primary/90 fixed bottom-4 right-4 md:hidden shadow-lg rounded-full z-50 px-4 py-2 text-sm font-medium flex items-center gap-2"
     >
-      <Plus className="h-5 w-5" />
+      <Plus className="h-4 w-4 stroke-[2.5]" />
+      <span>Déposer une annonce</span>
     </Button>
   );
 };
