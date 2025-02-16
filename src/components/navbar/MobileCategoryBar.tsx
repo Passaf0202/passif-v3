@@ -15,8 +15,6 @@ export function MobileCategoryBar() {
     align: "start",
     loop: false,
     dragFree: false,
-    strictAxis: true,
-    target: "center",
     containScroll: "keepSnaps",
     axis: "x",
     skipSnaps: false,
