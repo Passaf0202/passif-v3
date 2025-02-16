@@ -1,4 +1,3 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -94,8 +93,8 @@ export function MobilePhoneContent({
   };
 
   return <TooltipProvider>
-    <div className="absolute inset-0 flex flex-col bg-white">
-      <div className="h-10 flex items-center mb-[-20px]">
+    <div className="absolute inset-0 flex flex-col bg-white pt-10">
+      <div className="h-12 flex items-center mb-[-35px]">
         <div className="w-full max-w-[360px] mx-auto flex items-center justify-between px-[13px] pointer-events-auto relative">
           <img src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Tradecoiner%20(texte).png" alt="Tradecoiner" className="h-4 w-auto mobile-logo" />
           <Button 
@@ -118,7 +117,7 @@ export function MobilePhoneContent({
 
       <div className="flex-1 flex flex-col relative pointer-events-auto z-40">
         <div className="w-full max-w-[360px] mx-auto pointer-events-auto">
-          <div className="h-[140px] w-full relative px-5">
+          <div className="h-[180px] w-full relative px-5">
             <motion.div 
               ref={modelContainerRef} 
               className="w-full h-full pointer-events-none"
@@ -127,8 +126,8 @@ export function MobilePhoneContent({
             </motion.div>
           </div>
 
-          <div className="space-y-2 -mt-4 px-5 pointer-events-auto relative z-50">
-            <div>
+          <div className="space-y-3 -mt-6 px-5 pointer-events-auto relative z-50">
+            <div className="space-y-2">
               <h2 className="text-lg leading-tight font-semibold text-[#000000]">Diamant</h2>
               <div className="flex items-center">
                 <div className="flex items-center bg-[#F6F6F7] px-2 py-0.5 rounded-full h-4">
@@ -145,10 +144,10 @@ export function MobilePhoneContent({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="space-y-1.5">
-                <div className="w-full h-[1px] bg-gray-200/80" />
-                <div className="w-full h-[1px] bg-gray-200/80" />
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <div className="w-full h-[2px] bg-gray-200/80" />
+                <div className="w-full h-[2px] bg-gray-200/80" />
               </div>
 
               {transactionState === 'awaiting-confirmation' ? (
@@ -229,10 +228,10 @@ export function MobilePhoneContent({
                 </motion.div>
               )}
               
-              <div className="space-y-1.5">
-                <div className="w-full h-[1px] bg-gray-200/80" />
-                <div className="w-full h-[1px] bg-gray-200/80" />
-                <div className="w-full h-[1px] bg-gray-200/80" />
+              <div className="space-y-2">
+                <div className="w-full h-[2px] bg-gray-200/80" />
+                <div className="w-full h-[2px] bg-gray-200/80" />
+                <div className="w-full h-[2px] bg-gray-200/80" />
                 {transactionState === 'confirmed' && (
                   <div className="flex items-center justify-between">
                     <motion.div

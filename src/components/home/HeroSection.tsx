@@ -102,7 +102,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center"
+            className="relative flex justify-end items-start"
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
@@ -119,7 +119,7 @@ export function HeroSection() {
                 ease: "easeInOut"
               }}
               onHoverStart={() => !hasInteracted && setHasInteracted(true)}
-              className="relative w-[180px] sm:w-[200px] md:w-[220px] lg:w-[240px] xl:w-[260px] transform scale-100 cursor-pointer"
+              className="relative w-[180px] sm:w-[200px] md:w-[220px] lg:w-[240px] xl:w-[260px] 2xl:w-[280px] transform scale-100 cursor-pointer"
             >
               <div className="relative w-full">
                 <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
