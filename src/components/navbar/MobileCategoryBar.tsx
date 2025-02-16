@@ -14,6 +14,9 @@ export function MobileCategoryBar() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     loop: false,
+    dragFree: false,
+    strictAxis: true,
+    target: "center",
     containScroll: "keepSnaps",
     axis: "x",
     skipSnaps: false,
@@ -74,8 +77,8 @@ export function MobileCategoryBar() {
 
   if (!categories?.length) return null;
 
-  // Amélioration des calculs d'opacité pour les gradients
-  const leftGradientOpacity = !isFirstSlide ? 1 : 0;
+  // Amélioration des calculs d'opacité pour les gradients avec une meilleure réactivité
+  const leftGradientOpacity = !isFirstSlide || scrollProgress > 0.1 ? 1 : 0;
   const rightGradientOpacity = Math.min(1, (1 - scrollProgress) * 1.5);
 
   return (
