@@ -1,3 +1,4 @@
+
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -37,7 +38,7 @@ export function HeroSection() {
             transition={{ duration: 0.5 }}
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight max-w-[500px]">
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
               <div className="whitespace-nowrap">Achetez et vendez vos biens</div>
               <div>avec <span className="highlight-stabilo">des cryptomonnaies</span>.</div>
             </h1>
