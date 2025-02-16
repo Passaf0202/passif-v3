@@ -1,4 +1,3 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -189,7 +188,11 @@ export function MobilePhoneContent({
                         size="sm" 
                         onClick={transactionState === 'wallet-connect' ? handlePayment : handleConnect}
                         disabled={transactionState === 'processing' || transactionState === 'confirmed'}
-                        className={`w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto shadow-[0_2px_10px_-3px_rgba(0,0,0,0.3)] active:shadow-[0_2px_5px_-3px_rgba(0,0,0,0.3)] ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
+                        className={`w-full h-8 rounded-full px-4 text-xs transition-all duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto 
+                          transform perspective-[1000px] hover:rotate-y-[2deg] hover:-rotate-x-[2deg] active:translate-z-[-2px] active:scale-[0.98]
+                          shadow-[0_2px_10px_-3px_rgba(0,0,0,0.3),0_1px_2px_0_rgba(255,255,255,0.1)_inset] 
+                          active:shadow-[0_1px_5px_-3px_rgba(0,0,0,0.3),0_1px_2px_0_rgba(255,255,255,0.05)_inset]
+                          ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
                       >
                         {transactionState === 'processing' ? (
                           <div className="flex items-center justify-center w-full">
