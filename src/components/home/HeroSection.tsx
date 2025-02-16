@@ -36,13 +36,15 @@ export function HeroSection() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="space-y-6 max-w-xl pr-8"
+            className="w-full space-y-6 pr-8"
           >
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
-              Achetez et vendez vos biens avec des cryptomonnaies.
-            </h1>
+            <div className="max-w-xl">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
+                Achetez et vendez vos biens avec des cryptomonnaies.
+              </h1>
 
-            <RotatingMessages />
+              <RotatingMessages />
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-fit">
               <Link to="/create">
@@ -78,7 +80,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-end lg:justify-end items-start h-full pt-12"
+            className="relative flex justify-end lg:justify-end items-start h-full"
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
