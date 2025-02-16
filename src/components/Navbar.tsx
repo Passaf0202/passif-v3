@@ -2,7 +2,6 @@
 import { SearchBar } from "./SearchBar";
 import { NavbarLogo } from "./navbar/NavbarLogo";
 import { NavbarActions } from "./navbar/NavbarActions";
-import { MobileCreateButton } from "./navbar/MobileCreateButton";
 import { useNavigate } from "react-router-dom";
 import { NavbarCategories } from "./navbar/NavbarCategories";
 import { useCategoriesData } from "./navbar/categories/useCategoriesData";
@@ -11,6 +10,7 @@ import { useAdaptiveLayout } from "@/hooks/use-adaptive-layout";
 import { MobileMenu } from "./navbar/mobile/MobileMenu";
 import { Button } from "./ui/button";
 import { Wallet } from "lucide-react";
+import { MobileCategoryBar } from "./navbar/MobileCategoryBar";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -69,9 +69,10 @@ export function Navbar() {
             <SearchBar onSearch={onSearch} />
           </div>
         )}
+
+        {/* Mobile category bar */}
+        {isMobile && <MobileCategoryBar />}
       </div>
-      
-      <MobileCreateButton />
     </header>
   );
 }

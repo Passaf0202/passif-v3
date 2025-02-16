@@ -30,7 +30,10 @@ export function MobileCategoryBar() {
   if (!categories?.length) return null;
 
   return (
-    <div className="md:hidden border-t border-b border-gray-200/80 bg-white">
+    <div className="md:hidden border-b border-gray-200/80 bg-white relative overflow-hidden">
+      {/* Gradient de fade à gauche */}
+      <div className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+      
       <Carousel
         opts={{
           align: "start",
@@ -39,18 +42,26 @@ export function MobileCategoryBar() {
         className="w-full"
       >
         <CarouselContent className="-ml-2">
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <CarouselItem key={category.id} className="pl-2 basis-auto">
-              <button
-                onClick={() => handleCategoryClick(category.name)}
-                className="whitespace-nowrap px-3 py-2 text-sm text-gray-600 hover:text-primary transition-colors"
-              >
-                {capitalizeFirstLetter(category.name)}
-              </button>
+              <div className="flex items-center">
+                <button
+                  onClick={() => handleCategoryClick(category.name)}
+                  className="whitespace-nowrap px-3 py-2 text-sm text-gray-600 hover:text-primary transition-colors"
+                >
+                  {capitalizeFirstLetter(category.name)}
+                </button>
+                {index < categories.length - 1 && (
+                  <span className="text-gray-300 select-none">•</span>
+                )}
+              </div>
             </CarouselItem>
           ))}
         </CarouselContent>
       </Carousel>
+
+      {/* Gradient de fade à droite */}
+      <div className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
     </div>
   );
 }
