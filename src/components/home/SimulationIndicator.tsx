@@ -18,7 +18,7 @@ export function SimulationIndicator() {
       }}
       className="absolute right-[-8px] top-[50%] -translate-y-1/2 pointer-events-none z-50"
     >
-      <MousePointer size={24} className="text-white fill-white" />
+      <MousePointer size={24} className="text-black fill-white" />
     </motion.div>
   );
 }
