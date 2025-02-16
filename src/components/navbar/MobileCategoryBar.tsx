@@ -14,10 +14,10 @@ export function MobileCategoryBar() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     loop: false,
-    dragFree: false,
     containScroll: "keepSnaps",
     axis: "x",
-    skipSnaps: false
+    skipSnaps: false,
+    direction: "ltr"
   });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isFirstSlide, setIsFirstSlide] = useState(true);
@@ -37,7 +37,6 @@ export function MobileCategoryBar() {
     }
   });
 
-  // Utiliser la liste plate ordonnée pour mobile
   const categories = useMobileCategories(fetchedCategories);
 
   const handleCategoryClick = (categoryName: string) => {
@@ -57,7 +56,6 @@ export function MobileCategoryBar() {
       const currentSnap = emblaApi.selectedScrollSnap();
       setScrollProgress(progress);
       
-      // Détecter si l'utilisateur a commencé à défiler
       setHasScrolled(currentSnap > 0 || progress > 0);
     };
 
@@ -77,14 +75,14 @@ export function MobileCategoryBar() {
   if (!categories?.length) return null;
 
   // Amélioration des calculs d'opacité pour les gradients
-  const leftGradientOpacity = hasScrolled ? Math.min(1, scrollProgress * 2) : 0;
-  const rightGradientOpacity = Math.min(1, (1 - scrollProgress) * 2);
+  const leftGradientOpacity = !isFirstSlide ? 1 : 0;
+  const rightGradientOpacity = Math.min(1, (1 - scrollProgress) * 1.5);
 
   return (
     <div className="md:hidden border-b border-gray-200/80 bg-white relative overflow-hidden">
       {/* Gradient de fade à gauche - avec transition améliorée */}
       <div 
-        className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 ease-in-out"
+        className="absolute left-0 top-0 w-12 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 ease-in-out"
         style={{ opacity: leftGradientOpacity }}
       />
       
@@ -113,7 +111,7 @@ export function MobileCategoryBar() {
 
       {/* Gradient de fade à droite - avec transition améliorée */}
       <div 
-        className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 ease-in-out"
+        className="absolute right-0 top-0 w-12 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 ease-in-out"
         style={{ opacity: rightGradientOpacity }}
       />
     </div>
