@@ -86,7 +86,7 @@ export const NavbarActions = () => {
             <WalletConnectButton />
           </div>
           <AdminLink />
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -97,9 +97,16 @@ export const NavbarActions = () => {
                 <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/profile" className="w-full cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    Mon profil
+                  <Link to="/profile" className="w-full cursor-pointer flex items-center justify-between">
+                    <div className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Mon profil</span>
+                    </div>
+                    {displayName && (
+                      <span className="text-sm text-muted-foreground">
+                        {displayName}
+                      </span>
+                    )}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -139,11 +146,6 @@ export const NavbarActions = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {displayName && (
-              <span className="text-xs text-black max-w-[80px] truncate">
-                {displayName}
-              </span>
-            )}
           </div>
         </>
       ) : (
@@ -151,7 +153,7 @@ export const NavbarActions = () => {
           <div className="flex-shrink-0">
             <WalletConnectButton />
           </div>
-          <div className="flex flex-col items-center">
+          <div className="flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
