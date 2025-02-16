@@ -16,7 +16,6 @@ export function MobileCategoryBar() {
     loop: false,
     dragFree: false, // Désactivé pour un défilement plus contrôlé
     containScroll: "keepSnaps",
-    speed: 10, // Ralentir la vitesse de défilement
   });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isFirstSlide, setIsFirstSlide] = useState(true);
