@@ -6,9 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Category } from "@/types/category";
 import { capitalizeFirstLetter } from "@/utils/textUtils";
 import { useMobileCategories } from "./categories/useMobileCategories";
+import { useEffect, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 
 export function MobileCategoryBar() {
   const navigate = useNavigate();
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: "start",
+    loop: false,
+    dragFree: true,
+    containScroll: "keepSnaps",
+  });
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isFirstSlide, setIsFirstSlide] = useState(true);
 
   const { data: fetchedCategories } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -31,20 +41,47 @@ export function MobileCategoryBar() {
     navigate(`/category/${categoryName.toLowerCase()}`);
   };
 
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    const onSelect = () => {
+      const currentIndex = emblaApi.selectedScrollSnap();
+      setIsFirstSlide(currentIndex === 0);
+    };
+
+    const onScroll = () => {
+      const progress = emblaApi.scrollProgress();
+      setScrollProgress(progress);
+    };
+
+    emblaApi.on("select", onSelect);
+    emblaApi.on("scroll", onScroll);
+
+    // Initial state
+    onSelect();
+    onScroll();
+
+    return () => {
+      emblaApi.off("select", onSelect);
+      emblaApi.off("scroll", onScroll);
+    };
+  }, [emblaApi]);
+
   if (!categories?.length) return null;
+
+  // Calculer l'opacité des gradients en fonction de la position
+  const leftGradientOpacity = isFirstSlide ? 0 : Math.min(1, scrollProgress * 2);
+  const rightGradientOpacity = Math.min(1, (1 - scrollProgress) * 2);
 
   return (
     <div className="md:hidden border-b border-gray-200/80 bg-white relative overflow-hidden">
-      {/* Gradient de fade à gauche - déplacé plus loin pour ne pas affecter "Véhicules" */}
-      <div className="absolute left-[200px] top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+      {/* Gradient de fade à gauche - dynamique */}
+      <div 
+        className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none transition-opacity duration-200"
+        style={{ opacity: leftGradientOpacity }}
+      />
       
-      <Carousel
-        opts={{
-          align: "start",
-          loop: true,
-        }}
-        className="w-full"
-      >
+      <div className="overflow-hidden" ref={emblaRef}>
         <CarouselContent className="-ml-2">
           {categories.map((category, index) => (
             <CarouselItem 
@@ -65,10 +102,13 @@ export function MobileCategoryBar() {
             </CarouselItem>
           ))}
         </CarouselContent>
-      </Carousel>
+      </div>
 
-      {/* Gradient de fade à droite */}
-      <div className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+      {/* Gradient de fade à droite - dynamique */}
+      <div 
+        className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none transition-opacity duration-200"
+        style={{ opacity: rightGradientOpacity }}
+      />
     </div>
   );
 }
