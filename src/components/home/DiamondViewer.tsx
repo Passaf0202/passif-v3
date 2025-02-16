@@ -33,7 +33,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         environment-image="neutral"
         field-of-view="18deg"
         bounds="tight"
-        scale="3.2 3.2 3.2"
+        scale="2.4 2.4 2.4"
         loading="eager"
         style={{
           width: '100%',

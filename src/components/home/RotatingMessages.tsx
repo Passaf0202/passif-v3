@@ -1,6 +1,6 @@
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -13,10 +13,12 @@ const MESSAGES = [
 ];
 
 const ROTATION_INTERVAL = 6000; // 6 secondes
+const AUTOPLAY_RESUME_DELAY = 10000; // 10 secondes
 
 export function RotatingMessages() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const autoplayResumeTimeout = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -31,7 +33,26 @@ export function RotatingMessages() {
   const handleDotClick = (index: number) => {
     setIsAutoPlaying(false);
     setCurrentIndex(index);
+
+    // Nettoyer le timeout existant s'il y en a un
+    if (autoplayResumeTimeout.current) {
+      clearTimeout(autoplayResumeTimeout.current);
+    }
+
+    // Réactiver l'autoplay après le délai
+    autoplayResumeTimeout.current = setTimeout(() => {
+      setIsAutoPlaying(true);
+    }, AUTOPLAY_RESUME_DELAY);
   };
+
+  // Nettoyage du timeout lors du démontage du composant
+  useEffect(() => {
+    return () => {
+      if (autoplayResumeTimeout.current) {
+        clearTimeout(autoplayResumeTimeout.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="relative space-y-4">
