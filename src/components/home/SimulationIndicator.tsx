@@ -12,8 +12,8 @@ export function SimulationIndicator() {
         scale: [1, 0.95, 1]
       }}
       transition={{ 
-        duration: 1.5,
-        repeat: Infinity,
+        duration: 6,
+        repeat: 0,
         ease: "easeInOut"
       }}
       className="absolute right-[-8px] top-[50%] -translate-y-1/2 pointer-events-none z-50"

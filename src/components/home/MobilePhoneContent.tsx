@@ -1,3 +1,4 @@
+
 import { motion, AnimatePresence } from "framer-motion";
 import { DiamondViewer } from "./DiamondViewer";
 import { Badge } from "@/components/ui/badge";
@@ -159,7 +160,7 @@ export function MobilePhoneContent({
                         size="sm" 
                         onClick={handleConfirmDelivery}
                         disabled={isConfirming}
-                        className="w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto"
+                        className="w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto shadow-[0_2px_10px_-3px_rgba(0,0,0,0.3)] active:shadow-[0_2px_5px_-3px_rgba(0,0,0,0.3)]"
                       >
                         {isConfirming ? (
                           <div className="flex items-center justify-center">
@@ -188,7 +189,7 @@ export function MobilePhoneContent({
                         size="sm" 
                         onClick={transactionState === 'wallet-connect' ? handlePayment : handleConnect}
                         disabled={transactionState === 'processing' || transactionState === 'confirmed'}
-                        className={`w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
+                        className={`w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-[#000000] hover:bg-[#000000]/90 text-white pointer-events-auto shadow-[0_2px_10px_-3px_rgba(0,0,0,0.3)] active:shadow-[0_2px_5px_-3px_rgba(0,0,0,0.3)] ${transactionState === 'confirmed' ? 'opacity-50' : ''}`}
                       >
                         {transactionState === 'processing' ? (
                           <div className="flex items-center justify-center w-full">
