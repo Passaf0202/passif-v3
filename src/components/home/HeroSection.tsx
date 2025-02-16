@@ -1,4 +1,3 @@
-
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -7,6 +6,7 @@ import { useState } from "react";
 import { MobilePhoneContent } from "./MobilePhoneContent";
 import { StatusBar } from "./StatusBar";
 import { DynamicIsland } from "./DynamicIsland";
+import { RotatingMessages } from "./RotatingMessages";
 
 export type TransactionState = 
   | 'initial'               
@@ -37,22 +37,11 @@ export function HeroSection() {
             transition={{ duration: 0.5 }}
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
-            <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border-2 border-primary">
-              <img 
-                src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
-                alt="Tradecoiner"
-                className="h-3 w-3 sm:h-4 sm:w-4 fill-primary"
-              />
-              <span className="text-xs sm:text-sm font-medium">La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !</span>
-            </div>
-            
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
               Achetez et vendez vos biens avec des cryptomonnaies.
             </h1>
             
-            <p className="text-sm sm:text-base md:text-lg text-gray-600">
-              Bénéficiez d'un paiement ultra sécurisé, instantané et avec des frais minimes grâce à la technologie blockchain.
-            </p>
+            <RotatingMessages />
             
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <Link to="/create">
@@ -81,21 +70,6 @@ export function HeroSection() {
                   Explorer les annonces
                 </Button>
               </Link>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-3 sm:pt-4">
-              <div className="text-center">
-                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">2X</div>
-                <div className="text-xs sm:text-sm text-gray-600">Moins cher que nos concurrents</div>
-              </div>
-              <div className="text-center">
-                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">2-5 secondes</div>
-                <div className="text-xs sm:text-sm text-gray-600">Temps moyen d'une transaction</div>
-              </div>
-              <div className="text-center">
-                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">24/7</div>
-                <div className="text-xs sm:text-sm text-gray-600">Support client</div>
-              </div>
             </div>
           </motion.div>
 
