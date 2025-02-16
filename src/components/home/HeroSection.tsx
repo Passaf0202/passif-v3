@@ -1,3 +1,4 @@
+
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -28,15 +29,15 @@ export function HeroSection() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100/30 rounded-full transform -translate-x-1/3 translate-y-1/3 blur-3xl" />
       </div>
       
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-8 lg:py-12 relative">
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-12 items-center">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="space-y-3 sm:space-y-4 md:space-y-6"
+            className="space-y-4 sm:space-y-6 lg:space-y-8 max-w-xl"
           >
-            <div className="inline-flex items-center gap-2 bg-white/90 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border-2 border-primary">
+            <div className="inline-flex items-center gap-2 bg-white/90 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-sm border-2 border-primary">
               <img 
                 src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                 alt="Tradecoiner"
@@ -45,19 +46,19 @@ export function HeroSection() {
               <span className="text-xs sm:text-sm font-medium">La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !</span>
             </div>
             
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
               Achetez et vendez vos biens avec des cryptomonnaies.
             </h1>
             
-            <p className="text-sm sm:text-base md:text-lg text-gray-600">
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-lg">
               Bénéficiez d'un paiement ultra sécurisé, instantané et avec des frais minimes grâce à la technologie blockchain.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Link to="/create">
                 <Button 
                   size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-2 sm:px-3 md:px-4 bg-primary hover:bg-primary/90 w-full sm:w-auto rounded-[25px]"
+                  className="group text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4 bg-primary hover:bg-primary/90 w-full sm:w-auto rounded-[25px]"
                 >
                   <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-current">
                     <Plus className="h-3 w-3 sm:h-4 sm:w-4" strokeWidth={3} />
@@ -70,7 +71,7 @@ export function HeroSection() {
                 <Button 
                   variant="outline" 
                   size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-white text-primary hover:text-primary hover:bg-gray-50 w-full sm:w-auto rounded-[25px] border-2 border-primary"
+                  className="group text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4 bg-white text-primary hover:text-primary hover:bg-gray-50 w-full sm:w-auto rounded-[25px] border-2 border-primary"
                 >
                   <img 
                     src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
@@ -82,17 +83,17 @@ export function HeroSection() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-3 sm:pt-4">
+            <div className="grid grid-cols-3 gap-4 pt-4">
               <div className="text-center">
-                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">2X</div>
+                <div className="font-bold text-lg sm:text-xl lg:text-2xl text-primary">2X</div>
                 <div className="text-xs sm:text-sm text-gray-600">Moins cher que nos concurrents</div>
               </div>
               <div className="text-center">
-                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">2-5 secondes</div>
+                <div className="font-bold text-lg sm:text-xl lg:text-2xl text-primary">2-5 secondes</div>
                 <div className="text-xs sm:text-sm text-gray-600">Temps moyen d'une transaction</div>
               </div>
               <div className="text-center">
-                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-primary">24/7</div>
+                <div className="font-bold text-lg sm:text-xl lg:text-2xl text-primary">24/7</div>
                 <div className="text-xs sm:text-sm text-gray-600">Support client</div>
               </div>
             </div>
@@ -102,7 +103,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center"
+            className="relative flex justify-center items-center lg:justify-end"
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
@@ -119,7 +120,7 @@ export function HeroSection() {
                 ease: "easeInOut"
               }}
               onHoverStart={() => !hasInteracted && setHasInteracted(true)}
-              className="relative w-[180px] sm:w-[200px] md:w-[220px] lg:w-[240px] xl:w-[260px] transform scale-100 cursor-pointer"
+              className="relative w-[180px] sm:w-[200px] md:w-[220px] max-w-[240px] transform scale-100 cursor-pointer mx-auto lg:mx-0"
             >
               <div className="relative w-full">
                 <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
