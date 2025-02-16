@@ -1,3 +1,4 @@
+
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -85,7 +86,7 @@ export const NavbarActions = () => {
             <WalletConnectButton />
           </div>
           <AdminLink />
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center gap-1">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -139,7 +140,7 @@ export const NavbarActions = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             {displayName && (
-              <span className="text-xs text-gray-400 underline mt-1 max-w-[80px] truncate">
+              <span className="text-xs text-black max-w-[80px] truncate">
                 {displayName}
               </span>
             )}
