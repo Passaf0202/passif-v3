@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -74,7 +75,7 @@
   bottom: 0;
   height: 40%;
   background-color: #E5E7EB;
-  opacity: 0.5;
+  opacity: 0.55;
   z-index: -1;
   transform: skew(-12deg);
 }
