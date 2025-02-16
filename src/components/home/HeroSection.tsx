@@ -38,8 +38,10 @@ export function HeroSection() {
             transition={{ duration: 0.5 }}
             className="space-y-3 sm:space-y-4 md:space-y-6"
           >
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
-              Achetez et vendez vos biens avec <span className="highlight-stabilo">des cryptomonnaies</span>.
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight max-w-xl">
+              Achetez et vendez vos biens
+              <br />
+              avec <span className="highlight-stabilo">des cryptomonnaies</span>.
             </h1>
             
             <RotatingMessages />
