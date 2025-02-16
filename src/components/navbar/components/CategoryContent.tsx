@@ -26,10 +26,10 @@ export function CategoryContent({ category }: CategoryContentProps) {
       <div className="py-6 px-8">
         <div className="flex">
           {/* Colonne de gauche - Aperçu */}
-          <div className="w-[250px] flex-shrink-0 pr-8 bg-gray-50 rounded-lg p-4">
+          <div className="w-[250px] flex-shrink-0 bg-gray-50/50 rounded-xl border border-gray-100/60 p-6">
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-primary">
-                <IconComponent className="h-6 w-6" />
+                <IconComponent className="h-8 w-8" />
                 <h3 className="text-lg font-medium whitespace-nowrap">
                   {category.name}
                 </h3>
@@ -63,7 +63,7 @@ export function CategoryContent({ category }: CategoryContentProps) {
           </div>
 
           {/* Séparateur vertical */}
-          <div className="w-px bg-gray-200 mx-4" />
+          <div className="w-[1.5px] bg-gray-100 mx-6" />
 
           {/* Colonne de droite - Sous-catégories */}
           <div className="flex-1">

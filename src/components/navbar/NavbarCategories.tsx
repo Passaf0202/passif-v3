@@ -100,7 +100,7 @@ export function NavbarCategories({
             {/* Menu avec largeur limitée */}
             <div 
               ref={menuZoneRef}
-              className="bg-white border-x border-b border-gray-200/80 shadow-lg rounded-xl"
+              className="bg-white border border-gray-200/60 shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-2xl backdrop-blur-sm"
               style={{ 
                 width: menuContainerRef.current?.offsetWidth,
                 marginLeft: menuContainerRef.current?.offsetLeft ? menuContainerRef.current.offsetLeft - 32 : 0
