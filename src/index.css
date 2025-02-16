@@ -63,19 +63,20 @@
 
 .highlight-stabilo {
   position: relative;
-  white-space: nowrap;
+  display: inline-block;
+  padding: 0 4px;
   z-index: 1;
 }
 
 .highlight-stabilo::after {
   content: "";
   position: absolute;
-  left: -2px;
-  right: -2px;
-  bottom: 0;
-  height: 40%;
-  background-color: #E5E7EB;
-  opacity: 0.55;
+  left: -4px;
+  right: -4px;
+  bottom: 0.1em;
+  height: 65%;
+  background-color: #D1D5DB;
+  opacity: 0.85;
   z-index: -1;
   transform: skew(-12deg);
 }
