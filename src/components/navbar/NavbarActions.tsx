@@ -1,6 +1,6 @@
 
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound, Wallet } from "lucide-react";
+import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
-import { MobileMenu } from "./mobile/MobileMenu";
 
 export const NavbarActions = () => {
   const { user } = useAuth();
@@ -76,16 +75,9 @@ export const NavbarActions = () => {
       <div className="flex items-center gap-2 md:hidden">
         {user && (
           <div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="rounded-full flex items-center justify-center bg-gray-100/80 h-8 w-8"
-            >
-              <Wallet className="h-4 w-4" />
-            </Button>
+            <WalletConnectButton />
           </div>
         )}
-        <MobileMenu />
       </div>
       
       <Button 
