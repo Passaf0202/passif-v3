@@ -1,19 +1,40 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Circle } from "lucide-react";
+import { HandDrawnCircle } from "./HandDrawnCircle";
 
 const MESSAGES = [
-  "La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !",
-  "Bénéficiez d'un paiement ultra sécurisé, instantané et avec des frais minimes grâce à la technologie blockchain.",
-  "En moyenne, deux fois moins cher que nos concurrents en raison de frais minimes liés à la blockchain.",
-  "Des fonds sécurisés et bloqués à chaque transaction puis libérés au vendeur une fois que le produit est bien reçu par l'acheteur, afin d'éviter toute arnaque.",
-  "Des transactions éclairs ne durant que quelques secondes en moyenne grâce à la technologie blockchain (2-5 secondes en moyenne)."
+  {
+    text: "La marketplace de seconde main",
+    highlight: "N°1",
+    suffix: "au monde avec paiement en cryptomonnaie !"
+  },
+  {
+    text: "Paiement ultra sécurisé, instantané et sans commission grâce à la",
+    highlight: "blockchain",
+    suffix: "."
+  },
+  {
+    text: "",
+    highlight: "Deux fois moins cher",
+    suffix: "que nos concurrents."
+  },
+  {
+    text: "Des fonds sécurisés sur un",
+    highlight: "compte séquestre",
+    suffix: "à chaque transaction."
+  },
+  {
+    text: "Des transactions éclairs ne durant que",
+    highlight: "quelques secondes",
+    suffix: "."
+  }
 ];
 
-const ROTATION_INTERVAL = 6000; // 6 secondes
-const AUTOPLAY_RESUME_DELAY = 10000; // 10 secondes
+const ROTATION_INTERVAL = 6000;
+const AUTOPLAY_RESUME_DELAY = 10000;
 
 export function RotatingMessages() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -34,18 +55,15 @@ export function RotatingMessages() {
     setIsAutoPlaying(false);
     setCurrentIndex(index);
 
-    // Nettoyer le timeout existant s'il y en a un
     if (autoplayResumeTimeout.current) {
       clearTimeout(autoplayResumeTimeout.current);
     }
 
-    // Réactiver l'autoplay après le délai
     autoplayResumeTimeout.current = setTimeout(() => {
       setIsAutoPlaying(true);
     }, AUTOPLAY_RESUME_DELAY);
   };
 
-  // Nettoyage du timeout lors du démontage du composant
   useEffect(() => {
     return () => {
       if (autoplayResumeTimeout.current) {
@@ -55,23 +73,33 @@ export function RotatingMessages() {
   }, []);
 
   return (
-    <div className="relative space-y-4">
-      <div className="min-h-[100px] sm:min-h-[80px] flex items-center">
+    <div className="relative space-y-2">
+      <div className="min-h-[80px] sm:min-h-[72px] flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.p
             key={currentIndex}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.5 }}
-            className="text-sm sm:text-base md:text-lg text-gray-700"
+            className="text-sm sm:text-base text-gray-700 text-center max-w-[300px] mx-auto leading-snug"
           >
-            {MESSAGES[currentIndex]}
+            {MESSAGES[currentIndex].text && (
+              <span>{MESSAGES[currentIndex].text}{" "}</span>
+            )}
+            {MESSAGES[currentIndex].highlight && (
+              <HandDrawnCircle>
+                {MESSAGES[currentIndex].highlight}
+              </HandDrawnCircle>
+            )}
+            {MESSAGES[currentIndex].suffix && (
+              <span>{" "}{MESSAGES[currentIndex].suffix}</span>
+            )}
           </motion.p>
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center gap-1.5">
         {MESSAGES.map((_, index) => (
           <Button
             key={index}
@@ -89,3 +117,4 @@ export function RotatingMessages() {
     </div>
   );
 }
+

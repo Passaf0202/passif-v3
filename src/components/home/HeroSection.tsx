@@ -110,12 +110,12 @@ export function HeroSection() {
               <Link to="/create" className="w-full">
                 <Button 
                   size="default"
-                  className="group h-11 px-4 bg-primary hover:bg-primary/90 w-full rounded-[25px] min-w-0 truncate flex items-center justify-center"
+                  className="group h-11 px-4 bg-black hover:bg-black/90 w-full rounded-[25px] min-w-0 truncate flex items-center justify-center shadow-sm transition-all duration-200"
                 >
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-current flex-shrink-0">
-                    <Plus className="h-4 w-4" strokeWidth={3} />
+                  <span className="flex items-center justify-center w-7 h-7 rounded-full border-[1.5px] border-current flex-shrink-0">
+                    <Plus className="h-5 w-5" strokeWidth={2.5} />
                   </span>
-                  <span className="mx-2 truncate">Déposer une annonce</span>
+                  <span className="mx-3 truncate font-medium">Déposer une annonce</span>
                   <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0" />
                 </Button>
               </Link>
@@ -123,16 +123,16 @@ export function HeroSection() {
                 <Button 
                   variant="outline" 
                   size="default"
-                  className="group h-11 px-4 bg-white text-primary hover:text-primary hover:bg-gray-50 w-full rounded-[25px] border-2 border-primary min-w-0 truncate flex items-center justify-center"
+                  className="group h-11 px-4 bg-white text-black hover:text-black hover:bg-gray-50 w-full rounded-[25px] border-2 border-black min-w-0 truncate flex items-center justify-center shadow-sm transition-all duration-200"
                 >
-                  <span className="flex items-center justify-center w-6 h-6 flex-shrink-0">
+                  <span className="flex items-center justify-center w-7 h-7 flex-shrink-0">
                     <img 
                       src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                       alt="Tradecoiner"
-                      className="h-5 w-5"
+                      className="h-6 w-6"
                     />
                   </span>
-                  <span className="mx-2 truncate">Explorer les annonces</span>
+                  <span className="mx-3 truncate font-medium">Explorer les annonces</span>
                 </Button>
               </Link>
             </div>
@@ -271,3 +271,4 @@ export function HeroSection() {
     </div>
   );
 }
+
