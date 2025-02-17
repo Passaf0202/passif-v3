@@ -14,14 +14,16 @@ const PRIORITY_CATEGORIES = [
 ];
 
 export function useOrganizedCategories(categories: Category[] | undefined) {
-  if (!categories) return [];
+  if (!categories || categories.length === 0) {
+    return [];
+  }
 
   const priorityCategories = PRIORITY_CATEGORIES
-    .map(name => categories.find(cat => cat.name === name))
+    .map(name => categories.find(cat => cat?.name === name))
     .filter((cat): cat is Category => cat !== undefined);
 
   const otherCategories = categories.filter(
-    cat => !PRIORITY_CATEGORIES.includes(cat.name)
+    cat => cat && !PRIORITY_CATEGORIES.includes(cat.name)
   );
 
   if (otherCategories.length > 0) {
