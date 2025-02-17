@@ -31,21 +31,23 @@ export function HeroSection() {
       </div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-12 relative">
-        <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-6 lg:gap-8 xl:gap-12">
+        <div className="flex flex-col items-center md:grid md:grid-cols-2 gap-8 md:gap-6 lg:gap-8 xl:gap-12">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="space-y-4 sm:space-y-6 order-2 md:order-1"
+            className="space-y-4 sm:space-y-6 md:order-1 w-full flex flex-col items-center md:items-start"
           >
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl font-bold text-gray-900 leading-tight text-center md:text-left">
               <div className="whitespace-normal md:whitespace-nowrap">Achetez et vendez vos biens</div>
               <div>avec <span className="highlight-stabilo">des cryptomonnaies.</span></div>
             </h1>
             
-            <RotatingMessages />
+            <div className="hidden md:block">
+              <RotatingMessages />
+            </div>
             
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full md:w-auto">
               <Link to="/create" className="w-full sm:w-auto">
                 <Button 
                   size="default"
@@ -79,7 +81,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center order-1 md:order-2"
+            className="relative flex justify-center items-center md:order-2"
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
@@ -95,7 +97,7 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-full max-w-[260px] mx-auto md:w-[220px] xl:w-[230px] 2xl:w-[240px] transform scale-100 cursor-pointer"
+              className="relative w-full max-w-[220px] mx-auto md:w-[220px] xl:w-[230px] 2xl:w-[240px] transform scale-100 cursor-pointer"
             >
               <div className="relative w-full">
                 <div className="absolute inset-0 -z-10 rounded-[52px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
@@ -150,6 +152,10 @@ export function HeroSection() {
 
             <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-primary/5 pointer-events-none rounded-[52px] blur-sm" />
           </motion.div>
+
+          <div className="md:hidden w-full">
+            <RotatingMessages />
+          </div>
         </div>
       </div>
     </div>
