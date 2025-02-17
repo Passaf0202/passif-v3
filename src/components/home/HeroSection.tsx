@@ -32,6 +32,7 @@ export function HeroSection() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-12 relative">
         <div className="flex flex-col items-center md:grid md:grid-cols-2 gap-8 md:gap-6 lg:gap-8 xl:gap-12">
+          {/* Section du titre et des boutons */}
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -77,11 +78,12 @@ export function HeroSection() {
             </div>
           </motion.div>
 
+          {/* Section de l'iPhone */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center md:order-2"
+            className="relative flex justify-center items-center order-2 md:order-2 mt-4 md:mt-0"
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
@@ -153,7 +155,8 @@ export function HeroSection() {
             <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-primary/5 pointer-events-none rounded-[52px] blur-sm" />
           </motion.div>
 
-          <div className="md:hidden w-full">
+          {/* Messages rotatifs en bas pour mobile */}
+          <div className="md:hidden w-full order-3">
             <RotatingMessages />
           </div>
         </div>
