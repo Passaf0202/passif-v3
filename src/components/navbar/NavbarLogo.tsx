@@ -10,7 +10,7 @@ type LogoSettings = {
 
 const FALLBACK_LOGO = '/placeholder.svg';
 
-export const NavbarLogo = ({ isMobile }: { isMobile?: boolean }) => {
+export const NavbarLogo = () => {
   const { data: logoSettings, error: logoError } = useQuery({
     queryKey: ['site-settings', 'logo'],
     queryFn: async () => {
@@ -53,13 +53,7 @@ export const NavbarLogo = ({ isMobile }: { isMobile?: boolean }) => {
   const logoUrl = logoSettings?.url || FALLBACK_LOGO;
 
   return (
-    <Link 
-      to="/" 
-      className={isMobile 
-        ? "flex items-center justify-center w-full" 
-        : "flex items-center flex-shrink-0"
-      }
-    >
+    <Link to="/" className="flex items-center flex-shrink-0">
       <img
         src={logoUrl}
         alt="TRADECOINER"
@@ -67,10 +61,7 @@ export const NavbarLogo = ({ isMobile }: { isMobile?: boolean }) => {
           console.error('Logo loading error, falling back to placeholder');
           e.currentTarget.src = FALLBACK_LOGO;
         }}
-        className={isMobile 
-          ? "h-8 w-[160px] object-contain transition-all duration-200"
-          : "h-8 max-h-[35px] w-auto object-contain transition-all duration-200"
-        }
+        className="h-7 max-h-[32px] w-auto object-contain transition-all duration-200"
       />
     </Link>
   );
