@@ -82,7 +82,7 @@ export function RotatingMessages() {
           transform: "skew(-12deg)",
           display: "inline-block",
         }}>
-          <span style={{ display: "inline-block", transform: "skew(12deg)" }}>
+          <span style={{ display: "inline-block", transform: "skew(12deg)" }} className="font-semibold">
             {message.highlight}
           </span>
         </span>
@@ -92,7 +92,7 @@ export function RotatingMessages() {
   );
 
   return (
-    <div className="relative space-y-2">
+    <div className="relative space-y-1">
       <div className="min-h-[60px] sm:min-h-[80px] flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.p
@@ -101,7 +101,7 @@ export function RotatingMessages() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.5 }}
-            className="text-sm sm:text-base md:text-lg text-gray-700 text-center md:text-left max-w-[300px] md:max-w-none mx-auto"
+            className="text-sm sm:text-base md:text-lg text-gray-700 text-center md:text-left w-full px-4 md:px-0"
           >
             {renderMessage(MESSAGES[currentIndex])}
           </motion.p>
