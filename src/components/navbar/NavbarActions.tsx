@@ -1,6 +1,6 @@
 
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound } from "lucide-react";
+import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
@@ -75,7 +75,7 @@ export const NavbarActions = () => {
       <div className="flex items-center gap-2 md:hidden">
         {user && (
           <div>
-            <WalletConnectButton />
+            <WalletConnectButton minimal />
           </div>
         )}
       </div>

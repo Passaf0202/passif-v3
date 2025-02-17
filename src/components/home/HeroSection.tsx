@@ -1,4 +1,3 @@
-
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -36,7 +35,7 @@ export function HeroSection() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="space-y-4 sm:space-y-6"
+            className="space-y-4 sm:space-y-6 order-2 md:order-1"
           >
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl font-bold text-gray-900 leading-tight">
               <div className="whitespace-normal md:whitespace-nowrap">Achetez et vendez vos biens</div>
@@ -79,7 +78,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center mt-4 md:mt-0"
+            className="relative flex justify-center items-center order-1 md:order-2"
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
@@ -95,15 +94,14 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              onHoverStart={() => !hasInteracted && setHasInteracted(true)}
-              className="relative w-[180px] sm:w-[220px] xl:w-[230px] 2xl:w-[240px] transform scale-100 cursor-pointer mx-auto"
+              className="relative w-full max-w-[300px] mx-auto md:w-[220px] xl:w-[230px] 2xl:w-[240px] transform scale-100 cursor-pointer"
             >
               <div className="relative w-full">
-                <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
+                <div className="absolute inset-0 -z-10 rounded-[52px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
 
                 <div className="relative aspect-[19.5/38] w-full">
-                  <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-lg overflow-hidden">
-                    <div className="absolute inset-[1px] rounded-[47px] bg-gradient-to-tr from-primary/5 via-transparent to-white/10" />
+                  <div className="absolute inset-0 rounded-[52px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-lg overflow-hidden">
+                    <div className="absolute inset-[1px] rounded-[51px] bg-gradient-to-tr from-primary/5 via-transparent to-white/10" />
                     
                     <div className="absolute left-[-2px] top-[120px] w-[5px] h-16 flex flex-col gap-4">
                       <div className="h-8 w-full relative group">
@@ -129,8 +127,8 @@ export function HeroSection() {
                       </div>
                     </div>
                     
-                    <div className="absolute inset-[3px] rounded-[45px] overflow-hidden">
-                      <div className="absolute inset-0 border-[2.5px] border-[#000000] rounded-[45px] z-20" />
+                    <div className="absolute inset-[3px] rounded-[49px] overflow-hidden">
+                      <div className="absolute inset-0 border-[2.5px] border-[#000000] rounded-[49px] z-20" />
                       <div className="absolute inset-0 bg-white">
                         <StatusBar />
                         <DynamicIsland />
@@ -149,7 +147,7 @@ export function HeroSection() {
               </div>
             </motion.div>
 
-            <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-primary/5 pointer-events-none rounded-[48px] blur-sm" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-primary/5 pointer-events-none rounded-[52px] blur-sm" />
           </motion.div>
         </div>
       </div>
