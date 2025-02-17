@@ -7,8 +7,17 @@ import { useRef, useState } from "react";
 import { BadgeCheck, Wallet, Loader2, Check, ArrowUp, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import type { TransactionState } from "./HeroSection";
 import { SimulationIndicator } from "./SimulationIndicator";
+
+// Définir le type localement au lieu de l'importer
+type TransactionState = 
+  | "initial"
+  | "wallet-connecting"
+  | "wallet-connect"
+  | "payment"
+  | "processing"
+  | "awaiting-confirmation"
+  | "confirmed";
 
 interface MobilePhoneContentProps {
   transactionState: TransactionState;
