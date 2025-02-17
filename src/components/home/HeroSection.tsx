@@ -30,46 +30,46 @@ export function HeroSection() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100/30 rounded-full transform -translate-x-1/3 translate-y-1/3 blur-3xl" />
       </div>
       
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-8 lg:py-12 relative">
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-12 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-12 relative">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-6 lg:gap-8 xl:gap-12">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="space-y-3 sm:space-y-4 md:space-y-6"
+            className="space-y-4 sm:space-y-6"
           >
-            <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl 2xl:text-[42px] font-bold text-gray-900 leading-tight">
-              <div className="whitespace-nowrap">Achetez et vendez vos biens</div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl font-bold text-gray-900 leading-tight">
+              <div className="whitespace-normal md:whitespace-nowrap">Achetez et vendez vos biens</div>
               <div>avec <span className="highlight-stabilo">des cryptomonnaies.</span></div>
             </h1>
             
             <RotatingMessages />
             
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-              <Link to="/create">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Link to="/create" className="w-full sm:w-auto">
                 <Button 
                   size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-2 sm:px-3 md:px-4 bg-primary hover:bg-primary/90 w-full sm:w-auto rounded-[25px]"
+                  className="group text-sm md:text-base h-10 md:h-12 px-3 md:px-4 bg-primary hover:bg-primary/90 w-full sm:w-auto rounded-[25px] min-w-0 truncate"
                 >
-                  <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-current">
+                  <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-current flex-shrink-0">
                     <Plus className="h-3 w-3 sm:h-4 sm:w-4" strokeWidth={3} />
                   </span>
-                  Déposer une annonce
-                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2 opacity-0 group-hover:opacity-100 transition-all" />
+                  <span className="truncate">Déposer une annonce</span>
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0" />
                 </Button>
               </Link>
-              <Link to="/search">
+              <Link to="/search" className="w-full sm:w-auto">
                 <Button 
                   variant="outline" 
                   size="default"
-                  className="group text-xs sm:text-sm md:text-base h-8 sm:h-10 md:h-12 px-3 sm:px-4 md:px-6 bg-white text-primary hover:text-primary hover:bg-gray-50 w-full sm:w-auto rounded-[25px] border-2 border-primary"
+                  className="group text-sm md:text-base h-10 md:h-12 px-3 md:px-4 bg-white text-primary hover:text-primary hover:bg-gray-50 w-full sm:w-auto rounded-[25px] border-2 border-primary min-w-0 truncate"
                 >
                   <img 
                     src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                     alt="Tradecoiner"
-                    className="h-4 w-4 sm:h-5 sm:w-5 mr-2 fill-primary"
+                    className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0"
                   />
-                  Explorer les annonces
+                  <span className="truncate">Explorer les annonces</span>
                 </Button>
               </Link>
             </div>
@@ -79,7 +79,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex justify-center items-center"
+            className="relative flex justify-center items-center mt-4 md:mt-0"
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-200/30 via-blue-200/30 to-transparent rounded-full blur-2xl" />
             
@@ -96,7 +96,7 @@ export function HeroSection() {
                 ease: "easeInOut"
               }}
               onHoverStart={() => !hasInteracted && setHasInteracted(true)}
-              className="relative w-[220px] xl:w-[230px] 2xl:w-[240px] transform scale-100 cursor-pointer"
+              className="relative w-[180px] sm:w-[220px] xl:w-[230px] 2xl:w-[240px] transform scale-100 cursor-pointer mx-auto"
             >
               <div className="relative w-full">
                 <div className="absolute inset-0 -z-10 rounded-[48px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />

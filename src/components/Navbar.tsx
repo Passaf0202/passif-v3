@@ -39,7 +39,7 @@ export function Navbar() {
 
                   {/* Logo au centre */}
                   <div className="flex justify-center">
-                    <div className="scale-85 transition-transform duration-200 min-w-[120px]">
+                    <div className="scale-95 transition-transform duration-200 min-w-[140px]">
                       <NavbarLogo />
                     </div>
                   </div>
