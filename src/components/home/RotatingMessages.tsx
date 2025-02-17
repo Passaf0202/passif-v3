@@ -4,12 +4,35 @@ import { useState, useEffect, useRef } from "react";
 import { Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const MESSAGES = [
-  "La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !",
-  "Bénéficiez d'un paiement ultra sécurisé, instantané et avec des frais minimes grâce à la technologie blockchain.",
-  "En moyenne, deux fois moins cher que nos concurrents en raison de frais minimes liés à la blockchain.",
-  "Des fonds sécurisés et bloqués à chaque transaction puis libérés au vendeur une fois que le produit est bien reçu par l'acheteur, afin d'éviter toute arnaque.",
-  "Des transactions éclairs ne durant que quelques secondes en moyenne grâce à la technologie blockchain (2-5 secondes en moyenne)."
+type MessageSegment = {
+  prefix?: string;
+  highlight?: string;
+  suffix?: string;
+};
+
+const MESSAGES: MessageSegment[] = [
+  {
+    highlight: "La marketplace de seconde main N°1",
+    suffix: " au monde avec paiement en cryptomonnaie !"
+  },
+  {
+    prefix: "Paiement ultra sécurisé, instantané et sans commission."
+  },
+  {
+    prefix: "En moyenne, ",
+    highlight: "deux fois moins cher",
+    suffix: " que nos concurrents."
+  },
+  {
+    prefix: "Des fonds sécurisés ",
+    highlight: "sur un compte séquestre",
+    suffix: " à chaque transaction."
+  },
+  {
+    prefix: "Des transactions éclairs ne durant ",
+    highlight: "que quelques secondes",
+    suffix: " grâce à la blockchain."
+  }
 ];
 
 const ROTATION_INTERVAL = 6000; // 6 secondes
@@ -34,18 +57,15 @@ export function RotatingMessages() {
     setIsAutoPlaying(false);
     setCurrentIndex(index);
 
-    // Nettoyer le timeout existant s'il y en a un
     if (autoplayResumeTimeout.current) {
       clearTimeout(autoplayResumeTimeout.current);
     }
 
-    // Réactiver l'autoplay après le délai
     autoplayResumeTimeout.current = setTimeout(() => {
       setIsAutoPlaying(true);
     }, AUTOPLAY_RESUME_DELAY);
   };
 
-  // Nettoyage du timeout lors du démontage du composant
   useEffect(() => {
     return () => {
       if (autoplayResumeTimeout.current) {
@@ -54,9 +74,26 @@ export function RotatingMessages() {
     };
   }, []);
 
+  const renderMessage = (message: MessageSegment) => (
+    <>
+      {message.prefix}
+      {message.highlight && (
+        <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
+          transform: "skew(-12deg)",
+          display: "inline-block",
+        }}>
+          <span style={{ display: "inline-block", transform: "skew(12deg)" }}>
+            {message.highlight}
+          </span>
+        </span>
+      )}
+      {message.suffix}
+    </>
+  );
+
   return (
-    <div className="relative space-y-4">
-      <div className="min-h-[100px] sm:min-h-[80px] flex items-center">
+    <div className="relative space-y-2">
+      <div className="min-h-[60px] sm:min-h-[80px] flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.p
             key={currentIndex}
@@ -64,14 +101,14 @@ export function RotatingMessages() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.5 }}
-            className="text-sm sm:text-base md:text-lg text-gray-700"
+            className="text-sm sm:text-base md:text-lg text-gray-700 text-center md:text-left max-w-[300px] md:max-w-none mx-auto"
           >
-            {MESSAGES[currentIndex]}
+            {renderMessage(MESSAGES[currentIndex])}
           </motion.p>
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center md:justify-start gap-1">
         {MESSAGES.map((_, index) => (
           <Button
             key={index}
