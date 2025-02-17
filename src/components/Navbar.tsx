@@ -1,3 +1,4 @@
+
 import { SearchBar } from "./SearchBar";
 import { NavbarLogo } from "./navbar/NavbarLogo";
 import { NavbarActions } from "./navbar/NavbarActions";
@@ -30,17 +31,17 @@ export function Navbar() {
             <div className="w-full max-w-[1200px] grid grid-cols-[auto_1fr_auto] items-center gap-4 md:gap-6">
               {isMobile ? (
                 <>
-                  <div className="flex-shrink-0">
+                  <div className="w-8 flex-shrink-0">
                     <MobileMenu />
                   </div>
 
-                  <div className="flex justify-center">
-                    <div className="scale-100 transition-transform duration-200 min-w-[160px] py-1.5">
+                  <div className="flex-1 flex justify-center">
+                    <div className="w-[140px] py-1">
                       <NavbarLogo />
                     </div>
                   </div>
 
-                  <div className="flex-shrink-0">
+                  <div className="w-8 flex-shrink-0">
                     <NavbarActions />
                   </div>
                 </>

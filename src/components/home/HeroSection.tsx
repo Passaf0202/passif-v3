@@ -1,3 +1,4 @@
+
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -31,7 +32,7 @@ export function HeroSection() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-12 relative">
         <div className="md:grid md:grid-cols-2 gap-8 md:gap-6 lg:gap-8 xl:gap-12">
-          <div className="flex flex-col items-center gap-8 md:hidden">
+          <div className="flex flex-col items-center gap-6 md:hidden">
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -48,10 +49,10 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="relative z-10 flex justify-center items-center w-full"
+              className="relative z-10 flex justify-center items-center w-full px-4"
             >
-              <div className="relative w-full max-w-[220px] mx-auto">
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
+              <div className="relative w-full max-w-[220px] mx-auto overflow-visible">
+                <div className="absolute inset-0 -z-10 rounded-[52px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
 
                 <div className="relative aspect-[19.5/38] w-full">
                   <div className="absolute inset-0 rounded-[52px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-lg overflow-hidden">
@@ -101,40 +102,43 @@ export function HeroSection() {
               </div>
             </motion.div>
 
-            <div className="w-full">
+            <div className="w-full px-4 -mt-2">
               <RotatingMessages />
             </div>
 
-            <div className="flex flex-col gap-3 w-full">
+            <div className="flex flex-col gap-3 w-full px-4">
               <Link to="/create" className="w-full">
                 <Button 
                   size="default"
-                  className="group text-sm h-10 px-3 bg-primary hover:bg-primary/90 w-full rounded-[25px] min-w-0 truncate"
+                  className="group h-11 px-4 bg-primary hover:bg-primary/90 w-full rounded-[25px] min-w-0 truncate flex items-center justify-center"
                 >
-                  <span className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-current flex-shrink-0">
-                    <Plus className="h-3 w-3" strokeWidth={3} />
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-current flex-shrink-0">
+                    <Plus className="h-4 w-4" strokeWidth={3} />
                   </span>
-                  <span className="truncate">Déposer une annonce</span>
-                  <ArrowRight className="h-3 w-3 ml-2 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0" />
+                  <span className="mx-2 truncate">Déposer une annonce</span>
+                  <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0" />
                 </Button>
               </Link>
               <Link to="/search" className="w-full">
                 <Button 
                   variant="outline" 
                   size="default"
-                  className="group text-sm h-10 px-3 bg-white text-primary hover:text-primary hover:bg-gray-50 w-full rounded-[25px] border-2 border-primary min-w-0 truncate"
+                  className="group h-11 px-4 bg-white text-primary hover:text-primary hover:bg-gray-50 w-full rounded-[25px] border-2 border-primary min-w-0 truncate flex items-center justify-center"
                 >
-                  <img 
-                    src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
-                    alt="Tradecoiner"
-                    className="h-4 w-4 mr-2 flex-shrink-0"
-                  />
-                  <span className="truncate">Explorer les annonces</span>
+                  <span className="flex items-center justify-center w-6 h-6 flex-shrink-0">
+                    <img 
+                      src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
+                      alt="Tradecoiner"
+                      className="h-5 w-5"
+                    />
+                  </span>
+                  <span className="mx-2 truncate">Explorer les annonces</span>
                 </Button>
               </Link>
             </div>
           </div>
 
+          {/* Version desktop inchangée */}
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
