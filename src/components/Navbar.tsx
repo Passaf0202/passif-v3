@@ -37,7 +37,7 @@ export function Navbar() {
 
                   <div className="flex-1 flex justify-center">
                     <div className="w-[140px] py-1">
-                      <NavbarLogo />
+                      <NavbarLogo isMobile={isMobile} />
                     </div>
                   </div>
 
@@ -48,7 +48,7 @@ export function Navbar() {
               ) : (
                 <>
                   <div className="w-auto flex-shrink-0 transition-all duration-200">
-                    <NavbarLogo />
+                    <NavbarLogo isMobile={isMobile} />
                   </div>
                   <div className="flex justify-start md:justify-center w-full">
                     <div className={isMobile ? "hidden" : "w-full max-w-xl"}>

@@ -36,7 +36,11 @@ const MESSAGES = [
 const ROTATION_INTERVAL = 6000;
 const AUTOPLAY_RESUME_DELAY = 10000;
 
-export function RotatingMessages() {
+interface RotatingMessagesProps {
+  isMobile?: boolean;
+}
+
+export function RotatingMessages({ isMobile }: RotatingMessagesProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const autoplayResumeTimeout = useRef<NodeJS.Timeout>();
@@ -73,8 +77,8 @@ export function RotatingMessages() {
   }, []);
 
   return (
-    <div className="relative flex flex-col items-center">
-      <div className="min-h-[60px] flex items-center justify-center mb-1">
+    <div className={isMobile ? "relative flex flex-col items-center" : "relative space-y-2"}>
+      <div className={isMobile ? "min-h-[60px] flex items-center justify-center mb-1" : "min-h-[80px] sm:min-h-[72px] flex items-center justify-center"}>
         <AnimatePresence mode="wait">
           <motion.p
             key={currentIndex}
@@ -82,34 +86,34 @@ export function RotatingMessages() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.5 }}
-            className="text-sm sm:text-base text-gray-700 text-center max-w-[300px] mx-auto leading-snug whitespace-pre-wrap"
+            className={`text-sm sm:text-base text-gray-700 text-center max-w-[300px] mx-auto leading-snug ${isMobile ? 'whitespace-pre-wrap' : ''}`}
           >
             {MESSAGES[currentIndex].text && (
               <span>{MESSAGES[currentIndex].text}{" "}</span>
             )}
             {MESSAGES[currentIndex].highlight && (
-              <HandDrawnCircle>
+              <HandDrawnCircle isMobile={isMobile}>
                 {MESSAGES[currentIndex].highlight}
               </HandDrawnCircle>
             )}
             {MESSAGES[currentIndex].suffix && (
-              <span>{MESSAGES[currentIndex].suffix}</span>
+              <span>{isMobile ? MESSAGES[currentIndex].suffix : ` ${MESSAGES[currentIndex].suffix}`}</span>
             )}
           </motion.p>
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center justify-center gap-1">
+      <div className={`flex items-center justify-center ${isMobile ? 'gap-1' : 'gap-1.5'}`}>
         {MESSAGES.map((_, index) => (
           <Button
             key={index}
             variant="ghost"
             size="sm"
-            className={`w-1.5 h-1.5 p-0 rounded-full transition-all duration-200 hover:opacity-100
+            className={`${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} p-0 rounded-full transition-all duration-200 hover:opacity-100
               ${index === currentIndex ? 'bg-primary opacity-100 scale-125' : 'bg-primary/30 opacity-50 scale-100'}`}
             onClick={() => handleDotClick(index)}
           >
-            <Circle className="w-1.5 h-1.5" />
+            <Circle className={isMobile ? "w-1.5 h-1.5" : "w-2 h-2"} />
             <span className="sr-only">Message {index + 1}</span>
           </Button>
         ))}

@@ -6,14 +6,19 @@ import { RecentSearchesSection } from "@/components/home/RecentSearchesSection";
 import { FavoritesSection } from "@/components/home/FavoritesSection";
 import { TopCategoriesSection } from "@/components/home/TopCategoriesSection";
 import { RecommendedListingsSection } from "@/components/home/RecommendedListingsSection";
+import { useAdaptiveLayout } from "@/hooks/use-adaptive-layout";
+import { useRef } from "react";
 
 const Index = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useAdaptiveLayout(containerRef);
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" ref={containerRef}>
       <Navbar />
       
       <main className="flex-grow">
-        <HeroSection />
+        <HeroSection isMobile={isMobile} />
         <RecentSearchesSection />
         <FavoritesSection />
         <TopCategoriesSection />
