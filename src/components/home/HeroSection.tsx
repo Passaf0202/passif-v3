@@ -1,3 +1,4 @@
+
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -94,7 +95,7 @@ export function HeroSection() {
                 repeatType: "reverse",
                 ease: "easeInOut"
               }}
-              className="relative w-full max-w-[300px] mx-auto md:w-[220px] xl:w-[230px] 2xl:w-[240px] transform scale-100 cursor-pointer"
+              className="relative w-full max-w-[260px] mx-auto md:w-[220px] xl:w-[230px] 2xl:w-[240px] transform scale-100 cursor-pointer"
             >
               <div className="relative w-full">
                 <div className="absolute inset-0 -z-10 rounded-[52px] bg-gradient-to-tr from-[#E3E4E5] via-[#F3F3F3] to-[#E3E4E5] shadow-xl translate-x-2 translate-y-2" />
