@@ -16,12 +16,14 @@ const MESSAGES: MessageSegment[] = [
     suffix: " au monde avec paiement en cryptomonnaie !"
   },
   {
-    prefix: "Paiement ultra sécurisé, instantané et sans commission."
+    prefix: "Paiement ultra sécurisé, instantané et sans commission ",
+    highlight: "grâce à la blockchain",
+    suffix: "."
   },
   {
-    prefix: "En moyenne, ",
-    highlight: "deux fois moins cher",
-    suffix: " que nos concurrents."
+    prefix: "Des transactions sécurisés ",
+    highlight: "sans commission",
+    suffix: " à la différence de nos concurrents."
   },
   {
     prefix: "Des fonds sécurisés ",
@@ -101,7 +103,7 @@ export function RotatingMessages() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.5 }}
-            className="text-sm sm:text-base md:text-lg text-gray-700 text-center md:text-left w-full px-4 md:px-0"
+            className="text-sm sm:text-base md:text-lg text-gray-700 text-center md:text-left w-full px-6 md:px-0"
           >
             {renderMessage(MESSAGES[currentIndex])}
           </motion.p>
@@ -126,3 +128,4 @@ export function RotatingMessages() {
     </div>
   );
 }
+
