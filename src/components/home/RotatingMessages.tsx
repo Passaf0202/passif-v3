@@ -1,4 +1,3 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Circle } from "lucide-react";
@@ -127,7 +126,7 @@ export function RotatingMessages() {
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center justify-center md:justify-start gap-3 md:gap-1">
+      <div className="flex items-center justify-center md:justify-start gap-2">
         {messages.map((_, index) => (
           <Button
             key={index}
@@ -145,4 +144,3 @@ export function RotatingMessages() {
     </div>
   );
 }
-
