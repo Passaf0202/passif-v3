@@ -1,11 +1,25 @@
-export function AuthHeader({ step }: { step: "email" | "password" | "register" }) {
+
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { NavbarLogo } from "@/components/navbar/NavbarLogo";
+
+export function AuthHeader() {
+  const navigate = useNavigate();
+
   return (
-    <div className="sm:mx-auto sm:w-full sm:max-w-md">
-      <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-        {step === "register" 
-          ? "Créez votre compte"
-          : "Connectez-vous ou créez votre compte"}
-      </h2>
+    <div className="w-full px-4 py-4 flex items-center justify-between md:justify-center">
+      <Button 
+        variant="ghost" 
+        className="md:hidden -ml-3" 
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="h-6 w-6" />
+      </Button>
+      <div className="flex-1 flex justify-center">
+        <NavbarLogo />
+      </div>
+      <div className="w-10 md:hidden" /> {/* Spacer for centering */}
     </div>
   );
 }
