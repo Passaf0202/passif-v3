@@ -24,7 +24,15 @@ const FallbackDiamond = ({ position, scale }: { position: [number, number, numbe
 
 const Diamond = ({ position, scale }: { position: [number, number, number]; scale: number }) => {
   const meshRef = useRef<THREE.Group>(null);
-  const { scene } = useGLTF('/models/diamond.glb', true);
+  const [model, setModel] = useState<THREE.Group | null>(null);
+  const gltf = useGLTF('/models/diamond.glb');
+
+  useEffect(() => {
+    if (gltf?.scene) {
+      const clonedScene = gltf.scene.clone();
+      setModel(clonedScene);
+    }
+  }, [gltf]);
 
   useFrame((state) => {
     if (!meshRef.current) return;
@@ -32,16 +40,14 @@ const Diamond = ({ position, scale }: { position: [number, number, number]; scal
     meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.1;
   });
 
-  if (!scene) {
+  if (!model) {
     return <FallbackDiamond position={position} scale={scale} />;
   }
-
-  const clonedScene = scene.clone();
 
   return (
     <primitive
       ref={meshRef}
-      object={clonedScene}
+      object={model}
       position={position}
       scale={[scale, scale, scale]}
     />
@@ -69,17 +75,6 @@ const DiamondsScene = () => {
   );
 };
 
-const CanvasWrapper = () => {
-  return (
-    <Canvas
-      camera={{ position: [0, 0, 8], fov: 50 }}
-      style={{ background: 'transparent' }}
-    >
-      <DiamondsScene />
-    </Canvas>
-  );
-};
-
 export function DiamondWall() {
   const [loaded, setLoaded] = useState(false);
 
@@ -95,7 +90,12 @@ export function DiamondWall() {
   return (
     <div className="h-48 md:hidden bg-black">
       <ErrorBoundary>
-        <CanvasWrapper />
+        <Canvas
+          camera={{ position: [0, 0, 8], fov: 50 }}
+          style={{ background: 'transparent' }}
+        >
+          <DiamondsScene />
+        </Canvas>
       </ErrorBoundary>
     </div>
   );
