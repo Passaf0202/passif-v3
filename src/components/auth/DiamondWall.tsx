@@ -23,32 +23,34 @@ const FallbackDiamond = ({ position, scale }: { position: [number, number, numbe
 };
 
 const Diamond = ({ position, scale }: { position: [number, number, number]; scale: number }) => {
-  const [error, setError] = useState(false);
   const meshRef = useRef<THREE.Group>(null);
-
-  // Utiliser try-catch pour gérer l'erreur de chargement du modèle
+  let gltf;
+  
   try {
-    const { scene } = useGLTF('/models/diamond.glb');
-
-    useFrame((state) => {
-      if (!meshRef.current) return;
-      meshRef.current.rotation.y += 0.01;
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.1;
-    });
-
-    return (
-      <primitive
-        ref={meshRef}
-        object={scene.clone()}
-        position={position}
-        scale={[scale, scale, scale]}
-      />
-    );
-  } catch (e) {
-    // En cas d'erreur, on utilise le fallback
-    console.error("Error loading diamond model:", e);
+    gltf = useGLTF('/models/diamond.glb');
+  } catch (error) {
+    console.error("Failed to load diamond model:", error);
     return <FallbackDiamond position={position} scale={scale} />;
   }
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+    meshRef.current.rotation.y += 0.01;
+    meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.1;
+  });
+
+  if (!gltf?.scene) {
+    return <FallbackDiamond position={position} scale={scale} />;
+  }
+
+  return (
+    <primitive
+      ref={meshRef}
+      object={gltf.scene.clone()}
+      position={position}
+      scale={[scale, scale, scale]}
+    />
+  );
 };
 
 const DiamondsScene = () => {
@@ -76,7 +78,6 @@ export function DiamondWall() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    // Simuler un chargement initial pour éviter les problèmes de rendu
     const timer = setTimeout(() => setLoaded(true), 100);
     return () => clearTimeout(timer);
   }, []);
