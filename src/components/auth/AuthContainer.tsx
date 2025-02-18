@@ -51,6 +51,23 @@ export function AuthContainer() {
     }
   };
 
+  const handleLoginSubmit = async (values: { email: string; password: string }) => {
+    try {
+      setErrorMessage("");
+      const { error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+
+      if (error) {
+        setErrorMessage(getErrorMessage(error));
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setErrorMessage("Une erreur est survenue lors de la connexion");
+    }
+  };
+
   const handleSocialLogin = async (provider: 'google' | 'apple') => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -95,6 +112,7 @@ export function AuthContainer() {
             errorMessage={errorMessage}
             userEmail={userEmail}
             onEmailSubmit={handleEmailSubmit}
+            onLoginSubmit={handleLoginSubmit}
           />
 
           <div className="relative">
