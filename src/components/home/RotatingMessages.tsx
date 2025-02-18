@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type MessageSegment = {
   prefix?: string;
@@ -10,7 +11,7 @@ type MessageSegment = {
   suffix?: string;
 };
 
-const MESSAGES: MessageSegment[] = [
+const MOBILE_MESSAGES: MessageSegment[] = [
   {
     highlight: "La marketplace de seconde main N°1",
     suffix: " au monde avec paiement en cryptomonnaie !"
@@ -37,23 +38,32 @@ const MESSAGES: MessageSegment[] = [
   }
 ];
 
-const ROTATION_INTERVAL = 6000; // 6 secondes
-const AUTOPLAY_RESUME_DELAY = 10000; // 10 secondes
+const DESKTOP_MESSAGES = [
+  "La marketplace de seconde main N°1 au monde avec paiement en cryptomonnaie !",
+  "Paiement ultra sécurisé, instantané et sans commission grâce à la blockchain.",
+  "Des transactions sécurisés sans commission à la différence de nos concurrents.",
+  "Des fonds sécurisés sur un compte séquestre à chaque transaction.",
+  "Des transactions éclairs ne durant que quelques secondes grâce à la blockchain."
+];
+
+const ROTATION_INTERVAL = 6000;
+const AUTOPLAY_RESUME_DELAY = 10000;
 
 export function RotatingMessages() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const autoplayResumeTimeout = useRef<NodeJS.Timeout>();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!isAutoPlaying) return;
     
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % MESSAGES.length);
+      setCurrentIndex((prev) => (prev + 1) % (isMobile ? MOBILE_MESSAGES.length : DESKTOP_MESSAGES.length));
     }, ROTATION_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, isMobile]);
 
   const handleDotClick = (index: number) => {
     setIsAutoPlaying(false);
@@ -76,22 +86,29 @@ export function RotatingMessages() {
     };
   }, []);
 
-  const renderMessage = (message: MessageSegment) => (
-    <>
-      {message.prefix}
-      {message.highlight && (
-        <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
-          transform: "skew(-12deg)",
-          display: "inline-block",
-        }}>
-          <span style={{ display: "inline-block", transform: "skew(12deg)" }} className="font-semibold">
-            {message.highlight}
+  const renderMessage = (message: MessageSegment | string) => {
+    if (typeof message === 'string') {
+      return message;
+    }
+    return (
+      <>
+        {message.prefix}
+        {message.highlight && (
+          <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
+            transform: "skew(-12deg)",
+            display: "inline-block",
+          }}>
+            <span style={{ display: "inline-block", transform: "skew(12deg)" }} className="font-semibold">
+              {message.highlight}
+            </span>
           </span>
-        </span>
-      )}
-      {message.suffix}
-    </>
-  );
+        )}
+        {message.suffix}
+      </>
+    );
+  };
+
+  const messages = isMobile ? MOBILE_MESSAGES : DESKTOP_MESSAGES;
 
   return (
     <div className="relative space-y-1">
@@ -103,15 +120,15 @@ export function RotatingMessages() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.5 }}
-            className="text-sm sm:text-base md:text-lg text-gray-700 text-center md:text-left w-full px-6 md:px-0"
+            className="text-sm sm:text-base md:text-lg text-gray-700 text-center md:text-left w-full px-4 md:px-0"
           >
-            {renderMessage(MESSAGES[currentIndex])}
+            {renderMessage(messages[currentIndex])}
           </motion.p>
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center justify-center md:justify-start gap-1">
-        {MESSAGES.map((_, index) => (
+      <div className="flex items-center justify-center md:justify-start gap-3 md:gap-1">
+        {messages.map((_, index) => (
           <Button
             key={index}
             variant="ghost"
