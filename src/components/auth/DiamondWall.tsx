@@ -1,35 +1,12 @@
 
-import React, { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { ErrorBoundary } from 'react-error-boundary';
-
-function Box() {
-  return (
-    <mesh position={[0, 0, 0]}>
-      <boxGeometry attach="geometry" />
-      <meshBasicMaterial attach="material" color="white" />
-    </mesh>
-  );
-}
-
-function Fallback() {
-  return <div className="h-48 md:hidden bg-black" />;
-}
-
-function ErrorFallback() {
-  return <div className="h-48 md:hidden bg-black" />;
-}
+import React from 'react';
 
 export function DiamondWall() {
   return (
-    <div className="h-48 md:hidden bg-black">
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <Suspense fallback={<Fallback />}>
-          <Canvas gl={{ preserveDrawingBuffer: true }}>
-            <Box />
-          </Canvas>
-        </Suspense>
-      </ErrorBoundary>
+    <div className="h-48 md:hidden bg-gradient-to-br from-gray-900 to-black">
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="w-12 h-12 bg-white transform rotate-45"></div>
+      </div>
     </div>
   );
 }
