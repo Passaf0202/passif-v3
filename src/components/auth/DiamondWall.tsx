@@ -2,8 +2,6 @@
 import { useEffect, useRef, useState, Suspense } from 'react';
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useLoader } from '@react-three/fiber';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
 
 const Diamond = ({ position, scale }: { position: [number, number, number]; scale: number }) => {
