@@ -1,56 +1,26 @@
 
 import { useEffect, useRef, useState, Suspense } from 'react';
 import React from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import { Canvas } from '@react-three/fiber';
+import { useLoader } from '@react-three/fiber';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
 
-const FallbackDiamond = ({ position, scale }: { position: [number, number, number]; scale: number }) => {
+const Diamond = ({ position, scale }: { position: [number, number, number]; scale: number }) => {
   const meshRef = useRef<THREE.Mesh>(null);
 
-  useFrame((state) => {
-    if (!meshRef.current) return;
-    meshRef.current.rotation.y += 0.01;
-    meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.1;
-  });
+  useEffect(() => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x = 0.5;
+      meshRef.current.rotation.y = 0.5;
+    }
+  }, []);
 
   return (
     <mesh ref={meshRef} position={position} scale={scale}>
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial color="#fff" metalness={0.8} roughness={0.2} />
     </mesh>
-  );
-};
-
-const Diamond = ({ position, scale }: { position: [number, number, number]; scale: number }) => {
-  const meshRef = useRef<THREE.Group>(null);
-  const [model, setModel] = useState<THREE.Group | null>(null);
-  const gltf = useGLTF('/models/diamond.glb');
-
-  useEffect(() => {
-    if (gltf?.scene) {
-      const clonedScene = gltf.scene.clone();
-      setModel(clonedScene);
-    }
-  }, [gltf]);
-
-  useFrame((state) => {
-    if (!meshRef.current) return;
-    meshRef.current.rotation.y += 0.01;
-    meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.1;
-  });
-
-  if (!model) {
-    return <FallbackDiamond position={position} scale={scale} />;
-  }
-
-  return (
-    <primitive
-      ref={meshRef}
-      object={model}
-      position={position}
-      scale={[scale, scale, scale]}
-    />
   );
 };
 
@@ -65,13 +35,13 @@ const DiamondsScene = () => {
   }));
 
   return (
-    <Suspense fallback={null}>
+    <>
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
       {diamonds.map((diamond, i) => (
         <Diamond key={i} position={diamond.position} scale={diamond.scale} />
       ))}
-    </Suspense>
+    </>
   );
 };
 
@@ -94,7 +64,9 @@ export function DiamondWall() {
           camera={{ position: [0, 0, 8], fov: 50 }}
           style={{ background: 'transparent' }}
         >
-          <DiamondsScene />
+          <Suspense fallback={null}>
+            <DiamondsScene />
+          </Suspense>
         </Canvas>
       </ErrorBoundary>
     </div>
