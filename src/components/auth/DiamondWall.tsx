@@ -1,10 +1,9 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Créer une géométrie de base pour le fallback
 const FallbackDiamond = ({ position, scale }: { position: [number, number, number]; scale: number }) => {
   const meshRef = useRef<THREE.Mesh>(null);
 
@@ -16,7 +15,7 @@ const FallbackDiamond = ({ position, scale }: { position: [number, number, numbe
 
   return (
     <mesh ref={meshRef} position={position} scale={scale}>
-      <octahedronGeometry args={[1]} />
+      <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial color="#fff" metalness={0.8} roughness={0.2} />
     </mesh>
   );
@@ -24,14 +23,7 @@ const FallbackDiamond = ({ position, scale }: { position: [number, number, numbe
 
 const Diamond = ({ position, scale }: { position: [number, number, number]; scale: number }) => {
   const meshRef = useRef<THREE.Group>(null);
-  let gltf;
-  
-  try {
-    gltf = useGLTF('/models/diamond.glb');
-  } catch (error) {
-    console.error("Failed to load diamond model:", error);
-    return <FallbackDiamond position={position} scale={scale} />;
-  }
+  const { scene } = useGLTF('/models/diamond.glb', true);
 
   useFrame((state) => {
     if (!meshRef.current) return;
@@ -39,14 +31,16 @@ const Diamond = ({ position, scale }: { position: [number, number, number]; scal
     meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.1;
   });
 
-  if (!gltf?.scene) {
+  if (!scene) {
     return <FallbackDiamond position={position} scale={scale} />;
   }
+
+  const clonedScene = scene.clone();
 
   return (
     <primitive
       ref={meshRef}
-      object={gltf.scene.clone()}
+      object={clonedScene}
       position={position}
       scale={[scale, scale, scale]}
     />
@@ -64,13 +58,24 @@ const DiamondsScene = () => {
   }));
 
   return (
-    <>
+    <Suspense fallback={null}>
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
       {diamonds.map((diamond, i) => (
         <Diamond key={i} position={diamond.position} scale={diamond.scale} />
       ))}
-    </>
+    </Suspense>
+  );
+};
+
+const CanvasWrapper = () => {
+  return (
+    <Canvas
+      camera={{ position: [0, 0, 8], fov: 50 }}
+      style={{ background: 'transparent' }}
+    >
+      <DiamondsScene />
+    </Canvas>
   );
 };
 
@@ -88,12 +93,35 @@ export function DiamondWall() {
 
   return (
     <div className="h-48 md:hidden bg-black">
-      <Canvas
-        camera={{ position: [0, 0, 8], fov: 50 }}
-        style={{ background: 'transparent' }}
-      >
-        <DiamondsScene />
-      </Canvas>
+      <ErrorBoundary>
+        <CanvasWrapper />
+      </ErrorBoundary>
     </div>
   );
+}
+
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("Error in DiamondWall:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div className="h-48 md:hidden bg-black" />;
+    }
+
+    return this.props.children;
+  }
 }
