@@ -1,11 +1,11 @@
 
-import { useEffect, useRef, useState, Suspense } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import * as THREE from 'three';
+import type { Mesh } from 'three';
 
 const Diamond = ({ position, scale }: { position: [number, number, number]; scale: number }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   useEffect(() => {
     if (meshRef.current) {
@@ -15,84 +15,49 @@ const Diamond = ({ position, scale }: { position: [number, number, number]; scal
   }, []);
 
   return (
-    <mesh ref={meshRef} position={position} scale={scale}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#fff" metalness={0.8} roughness={0.2} />
+    <mesh ref={meshRef} position={position}>
+      <boxGeometry args={[scale, scale, scale]} />
+      <meshStandardMaterial color="#ffffff" metalness={0.8} roughness={0.2} />
     </mesh>
   );
 };
 
-const DiamondsScene = () => {
-  const diamonds = Array.from({ length: 15 }, (_, i) => ({
-    position: [
-      (Math.random() - 0.5) * 10,
-      (Math.random() - 0.5) * 5,
-      (Math.random() - 0.5) * 5
-    ] as [number, number, number],
-    scale: 0.5 + Math.random() * 1.5
-  }));
-
-  return (
-    <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={1} />
-      {diamonds.map((diamond, i) => (
-        <Diamond key={i} position={diamond.position} scale={diamond.scale} />
-      ))}
-    </>
-  );
-};
+const DiamondsScene = () => (
+  <>
+    <ambientLight intensity={0.5} />
+    <directionalLight position={[10, 10, 5]} intensity={1} />
+    {Array.from({ length: 15 }, (_, i) => {
+      const position: [number, number, number] = [
+        (Math.random() - 0.5) * 10,
+        (Math.random() - 0.5) * 5,
+        (Math.random() - 0.5) * 5
+      ];
+      const scale = 0.5 + Math.random() * 1.5;
+      return <Diamond key={i} position={position} scale={scale} />;
+    })}
+  </>
+);
 
 export function DiamondWall() {
-  const [loaded, setLoaded] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoaded(true), 100);
-    return () => clearTimeout(timer);
+    setMounted(true);
+    return () => setMounted(false);
   }, []);
 
-  if (!loaded) {
+  if (!mounted) {
     return <div className="h-48 md:hidden bg-black" />;
   }
 
   return (
     <div className="h-48 md:hidden bg-black">
-      <ErrorBoundary>
-        <Canvas
-          camera={{ position: [0, 0, 8], fov: 50 }}
-          style={{ background: 'transparent' }}
-        >
-          <Suspense fallback={null}>
-            <DiamondsScene />
-          </Suspense>
-        </Canvas>
-      </ErrorBoundary>
+      <Canvas
+        camera={{ position: [0, 0, 8], fov: 50 }}
+        style={{ background: 'transparent' }}
+      >
+        <DiamondsScene />
+      </Canvas>
     </div>
   );
-}
-
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error) {
-    console.error("Error in DiamondWall:", error);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <div className="h-48 md:hidden bg-black" />;
-    }
-
-    return this.props.children;
-  }
 }
