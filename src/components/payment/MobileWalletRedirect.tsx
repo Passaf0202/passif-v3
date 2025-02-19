@@ -28,108 +28,20 @@ export function MobileWalletRedirect({
     return `${protocol}//${hostname}`;
   };
 
-  const getWalletDeepLink = () => {
-    // Debug du provider Ethereum
-    console.log('Provider info:', {
-      isMetaMask: window.ethereum?.isMetaMask,
-      isWalletConnect: connector?.id === 'walletConnect',
-      provider: window.ethereum?.provider,
-      connectorName: connector?.name,
-      connectorId: connector?.id,
-      hasEthereum: !!window.ethereum
-    });
-
-    const dappUrl = getCurrentDappUrl();
-    console.log('Current dApp URL:', dappUrl);
-
-    // Détecter si nous sommes sur mobile
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (!isMobile) {
-      console.log('Not on mobile, skipping deep link');
-      return null;
-    }
-
-    // Si c'est WalletConnect, pas besoin de redirection supplémentaire
-    if (connector?.id === 'walletConnect') {
-      console.log('Using WalletConnect, no deep link needed');
-      return null;
-    }
-
-    // Différentes implémentations d'universal links selon le wallet
-    const walletInfo = {
-      name: connector?.name?.toLowerCase() || '',
-      providerId: window.ethereum?.provider?.name?.toLowerCase() || '',
-      isMetaMask: window.ethereum?.isMetaMask,
-      isZerion: 'isZerion' in (window.ethereum?.provider || {})
-    };
-
-    console.log('Wallet info:', walletInfo);
-
-    // URLs par défaut pour chaque wallet supporté, inspiré par l'approche d'OpenSea
-    const walletUrls = {
-      metamask: `https://metamask.app.link/dapp/${dappUrl.replace('https://', '')}`,
-      trust: `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(dappUrl)}`,
-      coinbase: `https://wallet.coinbase.com/dapp/${dappUrl.replace('https://', '')}`,
-      rainbow: `https://rainbow.me/dapp/${dappUrl.replace('https://', '')}`,
-      zerion: `https://app.zerion.io/connect?url=${encodeURIComponent(dappUrl)}`
-    };
-
-    // Détection du wallet et retour de l'URL appropriée
-    if (walletInfo.isMetaMask) {
-      return walletUrls.metamask;
-    } else if (walletInfo.isZerion) {
-      return walletUrls.zerion;
-    } else if (walletInfo.name.includes('trust') || walletInfo.providerId.includes('trust')) {
-      return walletUrls.trust;
-    } else if (walletInfo.name.includes('coinbase') || walletInfo.providerId.includes('coinbase')) {
-      return walletUrls.coinbase;
-    } else if (walletInfo.name.includes('rainbow') || walletInfo.providerId.includes('rainbow')) {
-      return walletUrls.rainbow;
-    }
-
-    // Si aucun wallet n'est détecté explicitement, essayer d'utiliser MetaMask par défaut
-    if (window.ethereum) {
-      return walletUrls.metamask;
-    }
-
-    console.log('No matching wallet found');
-    return null;
-  };
-
   const handleRedirect = async () => {
     try {
+      // Si pas de connector, on ouvre la modal de connexion
       if (!connector) {
         await open();
         return;
       }
 
-      // Obtenir le lien deep link
-      const deepLink = getWalletDeepLink();
-      console.log('Deep link URL:', deepLink);
-
-      // Si c'est WalletConnect ou desktop, juste lancer la transaction
-      if (!deepLink) {
-        console.log('No deep link needed, proceeding with transaction');
-        await onConfirm();
-        return;
-      }
-
-      // Pour les autres cas, lancer la transaction puis rediriger
-      console.log('Starting transaction before redirect');
-      try {
-        await onConfirm();
-        console.log('Transaction started successfully');
-
-        // Courte pause pour s'assurer que la transaction est initiée
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Redirection vers le wallet
-        console.log('Redirecting to wallet:', deepLink);
-        window.location.href = deepLink;
-      } catch (error) {
-        console.error('Error during transaction or redirect:', error);
-        throw error;
-      }
+      // Pour les wallets mobiles, on lance directement la transaction
+      // WalletConnect s'occupera de la redirection
+      console.log('Starting transaction...');
+      await onConfirm();
+      console.log('Transaction started successfully');
+      
     } catch (error: any) {
       console.error('Mobile wallet redirect error:', error);
       toast({
