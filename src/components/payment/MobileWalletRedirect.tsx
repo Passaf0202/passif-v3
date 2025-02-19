@@ -24,16 +24,30 @@ export function MobileWalletRedirect({
   const getWalletDeepLink = () => {
     // WalletConnect v2 expose le nom du wallet connecté
     const walletName = connector?.name?.toLowerCase() || '';
+    console.log('Detected wallet name:', walletName); // Debug log
     
-    // Mapping des deep links des principaux wallets
+    // Mapping des deep links des principaux wallets avec plus de variations possibles
     const deepLinks: { [key: string]: string } = {
       'metamask': 'metamask://',
       'trust wallet': 'trust://',
       'rainbow': 'rainbow://',
-      'coinbase wallet': 'cbwallet://'
+      'coinbase wallet': 'cbwallet://',
+      // Ajout de variations courantes
+      'injected': 'metamask://', // MetaMask est souvent détecté comme 'injected'
+      'metamask-mobile': 'metamask://',
+      'coinbase': 'cbwallet://',
+      'trust': 'trust://'
     };
 
-    return deepLinks[walletName] || null;
+    // Trouver le premier deep link qui correspond au nom du wallet
+    const matchedWallet = Object.keys(deepLinks).find(key => 
+      walletName.includes(key)
+    );
+
+    console.log('Matched wallet:', matchedWallet); // Debug log
+    console.log('Available deep link:', matchedWallet ? deepLinks[matchedWallet] : 'none'); // Debug log
+
+    return matchedWallet ? deepLinks[matchedWallet] : null;
   };
 
   const handleRedirect = async () => {
@@ -43,14 +57,19 @@ export function MobileWalletRedirect({
         return;
       }
 
+      // Lancer d'abord l'action pour démarrer la transaction
+      await onConfirm();
+
       const deepLink = getWalletDeepLink();
+      console.log('Attempting redirect with deep link:', deepLink); // Debug log
+
       if (deepLink) {
-        // Lancer l'action (paiement ou libération)
-        onConfirm();
-        
-        // Rediriger vers l'app du wallet
-        window.location.href = deepLink;
+        // Petit délai pour laisser le temps à la transaction de démarrer
+        setTimeout(() => {
+          window.location.href = deepLink;
+        }, 500);
       } else {
+        console.error('No deep link found for wallet:', connector.name); // Debug log
         toast({
           title: "Wallet non supporté",
           description: "Veuillez utiliser un wallet compatible (MetaMask, Trust Wallet, Rainbow, Coinbase Wallet)",
