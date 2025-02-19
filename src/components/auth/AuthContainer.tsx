@@ -106,7 +106,7 @@ export function AuthContainer() {
       <AuthHeader />
       <div className="mx-auto px-4 md:max-w-xl pt-2 md:pt-4">
         <div className="text-center">
-          <h2 className={`text-xl md:text-2xl font-bold tracking-tight mb-2 md:mb-4 ${!isMobile ? 'whitespace-nowrap' : ''}`}>
+          <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-2 md:mb-4 ${!isMobile ? 'whitespace-nowrap' : ''}`}>
             Connectez-vous ou créez votre compte{" "}
             <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
               transform: "skew(-12deg)",
@@ -119,7 +119,7 @@ export function AuthContainer() {
           </h2>
         </div>
 
-        <div className="h-32 md:h-40 mb-2">
+        <div className="h-28 md:h-36 mb-1">
           <DiamondViewer state="initial" />
         </div>
 
@@ -158,9 +158,9 @@ export function AuthContainer() {
                   : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google%20(1).png"
                 } 
                 alt="Google" 
-                className="w-4 h-4 mr-2 invert-0 hover:invert" 
+                className="w-4 h-4 mr-2"
                 style={{
-                  filter: hoverGoogle ? 'invert(1)' : 'none'
+                  filter: !hoverGoogle ? 'none' : 'invert(1)'
                 }}
               />
               Google
@@ -179,9 +179,9 @@ export function AuthContainer() {
                   : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo%20(1).png"
                 } 
                 alt="Apple" 
-                className="w-4 h-4 mr-2" 
+                className="w-4 h-4 mr-2"
                 style={{
-                  filter: hoverApple ? 'invert(1)' : 'none'
+                  filter: !hoverApple ? 'none' : 'invert(1)'
                 }}
               />
               Apple
