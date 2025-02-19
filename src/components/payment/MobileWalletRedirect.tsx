@@ -1,9 +1,10 @@
 
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react';
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount, useNetwork, useProvider } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Loader2 } from "lucide-react";
+import { ethers } from "ethers";
 
 interface MobileWalletRedirectProps {
   isProcessing: boolean;
@@ -17,30 +18,65 @@ export function MobileWalletRedirect({
   action 
 }: MobileWalletRedirectProps) {
   const { toast } = useToast();
-  const { connector } = useAccount();
+  const { connector, isConnected } = useAccount();
   const { chain } = useNetwork();
   const { open } = useWeb3Modal();
+  const wagmiProvider = useProvider();
 
-  const getCurrentDappUrl = () => {
-    if (typeof window === 'undefined') return '';
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    return `${protocol}//${hostname}`;
+  const ensureProvider = async () => {
+    console.log("Checking provider status:", {
+      isConnected,
+      hasEthereum: !!window.ethereum,
+      connectorName: connector?.name,
+      hasWagmiProvider: !!wagmiProvider
+    });
+
+    if (!isConnected) {
+      console.log("Not connected, opening web3modal");
+      await open();
+      return false;
+    }
+
+    // Vérifier si nous avons un provider valide
+    let provider;
+    try {
+      if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+      } else if (wagmiProvider) {
+        provider = new ethers.providers.Web3Provider(wagmiProvider.provider as any);
+      }
+
+      if (!provider) {
+        throw new Error("Aucun provider disponible");
+      }
+
+      // Tester le provider
+      await provider.getNetwork();
+      console.log("Provider successfully initialized");
+      return true;
+    } catch (error) {
+      console.error("Provider initialization error:", error);
+      return false;
+    }
   };
 
   const handleRedirect = async () => {
     try {
-      // Si pas de connector, on ouvre la modal de connexion
-      if (!connector) {
-        await open();
+      // Vérifier le provider avant tout
+      const hasProvider = await ensureProvider();
+      if (!hasProvider) {
+        console.log("No valid provider found");
+        toast({
+          title: "Erreur de connexion",
+          description: "Veuillez vous connecter à votre wallet avant de continuer",
+          variant: "destructive",
+        });
         return;
       }
 
-      // Pour les wallets mobiles, on lance directement la transaction
-      // WalletConnect s'occupera de la redirection
-      console.log('Starting transaction...');
+      console.log("Starting transaction with valid provider");
       await onConfirm();
-      console.log('Transaction started successfully');
+      console.log("Transaction started successfully");
       
     } catch (error: any) {
       console.error('Mobile wallet redirect error:', error);
