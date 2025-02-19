@@ -1,7 +1,7 @@
 
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react';
-import { useAccount, useNetwork, useProvider } from 'wagmi';
+import { useAccount, useNetwork, usePublicClient } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { ethers } from "ethers";
@@ -21,14 +21,14 @@ export function MobileWalletRedirect({
   const { connector, isConnected } = useAccount();
   const { chain } = useNetwork();
   const { open } = useWeb3Modal();
-  const wagmiProvider = useProvider();
+  const publicClient = usePublicClient();
 
   const ensureProvider = async () => {
     console.log("Checking provider status:", {
       isConnected,
       hasEthereum: !!window.ethereum,
       connectorName: connector?.name,
-      hasWagmiProvider: !!wagmiProvider
+      hasPublicClient: !!publicClient
     });
 
     if (!isConnected) {
@@ -42,8 +42,9 @@ export function MobileWalletRedirect({
     try {
       if (window.ethereum) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
-      } else if (wagmiProvider) {
-        provider = new ethers.providers.Web3Provider(wagmiProvider.provider as any);
+      } else if (publicClient) {
+        // Utiliser le publicClient comme fallback
+        provider = new ethers.providers.JsonRpcProvider(publicClient.chain.rpcUrls.default.http[0]);
       }
 
       if (!provider) {
