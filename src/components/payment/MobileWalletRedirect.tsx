@@ -21,79 +21,78 @@ export function MobileWalletRedirect({
   const { chain } = useNetwork();
   const { open } = useWeb3Modal();
 
+  const getCurrentDappUrl = () => {
+    if (typeof window === 'undefined') return '';
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    return `${protocol}//${hostname}`;
+  };
+
   const getWalletDeepLink = () => {
     // Debug du provider Ethereum
     console.log('Provider info:', {
       isMetaMask: window.ethereum?.isMetaMask,
+      isWalletConnect: connector?.id === 'walletConnect',
       provider: window.ethereum?.provider,
       connectorName: connector?.name,
       connectorId: connector?.id,
       hasEthereum: !!window.ethereum
     });
 
-    if (typeof window !== 'undefined' && window.ethereum) {
-      // Détecter si nous sommes sur mobile
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (!isMobile) {
-        console.log('Not on mobile, skipping deep link');
-        return null;
-      }
+    const dappUrl = getCurrentDappUrl();
+    console.log('Current dApp URL:', dappUrl);
 
-      // Vérifier si MetaMask est disponible
-      if (window.ethereum.isMetaMask) {
-        console.log('MetaMask detected, using metamask deep link');
-        return 'https://metamask.app.link/dapp/321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com';
-      }
-
-      // Vérifier Zerion
-      const provider = window.ethereum.provider;
-      if (provider && 'isZerion' in provider) {
-        console.log('Zerion detected, using zerion deep link');
-        return 'https://app.zerion.io';
-      }
+    // Détecter si nous sommes sur mobile
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!isMobile) {
+      console.log('Not on mobile, skipping deep link');
+      return null;
     }
 
-    // Récupérer le nom du wallet pour les autres cas
-    const walletName = connector?.name?.toLowerCase() || '';
-    const providerId = window.ethereum?.provider?.name?.toLowerCase() || '';
-    
-    console.log('Detected wallet info:', {
-      walletName,
-      providerId,
-      ethereum: window.ethereum
-    });
-    
-    // Mapping des deep links avec liens universels
-    const deepLinks: { [key: string]: string } = {
-      'metamask': 'https://metamask.app.link/dapp/321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com',
-      'trust wallet': 'https://link.trustwallet.com/open_url?url=https://321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com',
-      'rainbow': 'https://rainbow.me',
-      'coinbase wallet': 'https://go.cb-w.com/dapp?cb_url=https://321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com',
-      'zerion': 'https://app.zerion.io',
-      'trust': 'https://link.trustwallet.com/open_url?url=https://321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com'
+    // Si c'est WalletConnect, pas besoin de redirection supplémentaire
+    if (connector?.id === 'walletConnect') {
+      console.log('Using WalletConnect, no deep link needed');
+      return null;
+    }
+
+    // Différentes implémentations d'universal links selon le wallet
+    const walletInfo = {
+      name: connector?.name?.toLowerCase() || '',
+      providerId: window.ethereum?.provider?.name?.toLowerCase() || '',
+      isMetaMask: window.ethereum?.isMetaMask,
+      isZerion: 'isZerion' in (window.ethereum?.provider || {})
     };
 
-    // Chercher une correspondance dans le provider ID
-    if (providerId) {
-      for (const [key, link] of Object.entries(deepLinks)) {
-        if (providerId.includes(key)) {
-          console.log(`Matched provider ${key} with universal link ${link}`);
-          return link;
-        }
-      }
+    console.log('Wallet info:', walletInfo);
+
+    // URLs par défaut pour chaque wallet supporté, inspiré par l'approche d'OpenSea
+    const walletUrls = {
+      metamask: `https://metamask.app.link/dapp/${dappUrl.replace('https://', '')}`,
+      trust: `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(dappUrl)}`,
+      coinbase: `https://wallet.coinbase.com/dapp/${dappUrl.replace('https://', '')}`,
+      rainbow: `https://rainbow.me/dapp/${dappUrl.replace('https://', '')}`,
+      zerion: `https://app.zerion.io/connect?url=${encodeURIComponent(dappUrl)}`
+    };
+
+    // Détection du wallet et retour de l'URL appropriée
+    if (walletInfo.isMetaMask) {
+      return walletUrls.metamask;
+    } else if (walletInfo.isZerion) {
+      return walletUrls.zerion;
+    } else if (walletInfo.name.includes('trust') || walletInfo.providerId.includes('trust')) {
+      return walletUrls.trust;
+    } else if (walletInfo.name.includes('coinbase') || walletInfo.providerId.includes('coinbase')) {
+      return walletUrls.coinbase;
+    } else if (walletInfo.name.includes('rainbow') || walletInfo.providerId.includes('rainbow')) {
+      return walletUrls.rainbow;
     }
 
-    // Chercher une correspondance dans le nom du wallet
-    if (walletName) {
-      for (const [key, link] of Object.entries(deepLinks)) {
-        if (walletName.includes(key)) {
-          console.log(`Matched wallet ${key} with universal link ${link}`);
-          return link;
-        }
-      }
+    // Si aucun wallet n'est détecté explicitement, essayer d'utiliser MetaMask par défaut
+    if (window.ethereum) {
+      return walletUrls.metamask;
     }
 
-    console.log('No wallet match found');
+    console.log('No matching wallet found');
     return null;
   };
 
@@ -104,32 +103,32 @@ export function MobileWalletRedirect({
         return;
       }
 
+      // Obtenir le lien deep link
       const deepLink = getWalletDeepLink();
-      console.log('Got deep link:', deepLink);
+      console.log('Deep link URL:', deepLink);
 
-      if (deepLink) {
-        console.log('Starting transaction before redirect');
-        try {
-          await onConfirm();
-          console.log('Transaction started successfully');
+      // Si c'est WalletConnect ou desktop, juste lancer la transaction
+      if (!deepLink) {
+        console.log('No deep link needed, proceeding with transaction');
+        await onConfirm();
+        return;
+      }
 
-          // Forcer une courte pause pour s'assurer que la transaction est initiée
-          await new Promise(resolve => setTimeout(resolve, 500));
+      // Pour les autres cas, lancer la transaction puis rediriger
+      console.log('Starting transaction before redirect');
+      try {
+        await onConfirm();
+        console.log('Transaction started successfully');
 
-          // Ouvrir dans un nouvel onglet pour éviter les problèmes de redirection
-          console.log('Opening wallet in new window:', deepLink);
-          window.open(deepLink, '_blank');
-        } catch (error) {
-          console.error('Error during transaction or redirect:', error);
-          throw error;
-        }
-      } else {
-        console.error('No supported wallet found');
-        toast({
-          title: "Wallet non supporté",
-          description: "Veuillez utiliser un wallet compatible (MetaMask, Trust Wallet, Rainbow, Coinbase Wallet, Zerion)",
-          variant: "destructive",
-        });
+        // Courte pause pour s'assurer que la transaction est initiée
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Redirection vers le wallet
+        console.log('Redirecting to wallet:', deepLink);
+        window.location.href = deepLink;
+      } catch (error) {
+        console.error('Error during transaction or redirect:', error);
+        throw error;
       }
     } catch (error: any) {
       console.error('Mobile wallet redirect error:', error);
