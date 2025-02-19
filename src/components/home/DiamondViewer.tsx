@@ -26,8 +26,8 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         orientation="0deg 270deg 0deg"
         interaction-prompt="when-focused"
         camera-orbit="35deg 85deg 1.2m"
-        min-camera-orbit="35deg 85deg 1.2m"
-        max-camera-orbit="35deg 85deg 1.2m"
+        min-camera-orbit="0deg 0deg 1.2m"
+        max-camera-orbit="360deg 180deg 1.2m"
         auto-rotate-delay={0}
         shadow-intensity="0"
         exposure="0.8"
@@ -58,3 +58,4 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 }
 
 export default DiamondViewer;
+

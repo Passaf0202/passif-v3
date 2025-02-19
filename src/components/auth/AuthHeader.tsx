@@ -8,7 +8,7 @@ export function AuthHeader() {
   const navigate = useNavigate();
 
   return (
-    <div className="w-full px-4 py-4 flex items-center">
+    <div className="w-full px-4 py-3 flex items-center">
       <Button 
         variant="ghost" 
         className="-ml-3" 
@@ -16,7 +16,7 @@ export function AuthHeader() {
       >
         <ArrowLeft className="h-6 w-6" />
       </Button>
-      <div className="flex-1 flex md:justify-start justify-center md:ml-4">
+      <div className="flex-1 flex justify-center">
         <NavbarLogo />
       </div>
     </div>

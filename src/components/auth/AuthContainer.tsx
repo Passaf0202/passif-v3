@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -91,12 +90,20 @@ export function AuthContainer() {
     }
   };
 
+  const handleSocialInteraction = (provider: 'google' | 'apple', isActive: boolean) => {
+    if (provider === 'google') {
+      setHoverGoogle(isActive);
+    } else {
+      setHoverApple(isActive);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white md:bg-gray-50">
       <AuthHeader />
-      <div className="mx-auto px-4 md:max-w-2xl pt-4 md:pt-8">
-        <div className="md:text-center">
-          <h2 className="text-xl md:text-3xl font-bold tracking-tight mb-6 md:mb-8">
+      <div className="mx-auto px-4 md:max-w-xl pt-4 md:pt-6">
+        <div className="text-center">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-4 md:mb-6 whitespace-nowrap">
             Connectez-vous ou créez votre compte{" "}
             <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
               transform: "skew(-12deg)",
@@ -109,7 +116,7 @@ export function AuthContainer() {
           </h2>
         </div>
 
-        <div className="h-40 md:h-48 mb-6">
+        <div className="h-36 md:h-44 mb-4">
           <DiamondViewer state="initial" />
         </div>
 
@@ -133,11 +140,13 @@ export function AuthContainer() {
             </div>
           </div>
 
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-3">
             <Button 
-              className="w-full bg-black hover:bg-white text-white hover:text-black rounded-full border border-black transition-all duration-200 h-12"
-              onMouseEnter={() => setHoverGoogle(true)}
-              onMouseLeave={() => setHoverGoogle(false)}
+              className="w-full bg-black hover:bg-white text-white hover:text-black rounded-full border border-black transition-all duration-200 h-10"
+              onMouseEnter={() => handleSocialInteraction('google', true)}
+              onMouseLeave={() => handleSocialInteraction('google', false)}
+              onTouchStart={() => handleSocialInteraction('google', true)}
+              onTouchEnd={() => handleSocialInteraction('google', false)}
               onClick={() => handleSocialLogin('google')}
             >
               <img 
@@ -146,14 +155,16 @@ export function AuthContainer() {
                   : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google%20(1).png"
                 } 
                 alt="Google" 
-                className="w-5 h-5 mr-2" 
+                className="w-4 h-4 mr-2" 
               />
               Google
             </Button>
             <Button 
-              className="w-full bg-black hover:bg-white text-white hover:text-black rounded-full border border-black transition-all duration-200 h-12"
-              onMouseEnter={() => setHoverApple(true)}
-              onMouseLeave={() => setHoverApple(false)}
+              className="w-full bg-black hover:bg-white text-white hover:text-black rounded-full border border-black transition-all duration-200 h-10"
+              onMouseEnter={() => handleSocialInteraction('apple', true)}
+              onMouseLeave={() => handleSocialInteraction('apple', false)}
+              onTouchStart={() => handleSocialInteraction('apple', true)}
+              onTouchEnd={() => handleSocialInteraction('apple', false)}
               onClick={() => handleSocialLogin('apple')}
             >
               <img 
@@ -162,7 +173,7 @@ export function AuthContainer() {
                   : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo%20(1).png"
                 } 
                 alt="Apple" 
-                className="w-5 h-5 mr-2" 
+                className="w-4 h-4 mr-2" 
               />
               Apple
             </Button>
