@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { useTransactionCreation } from "@/hooks/useTransactionCreation";
 import { TransactionError, TransactionErrorCodes } from "@/utils/escrow/transactionErrors";
+import { useAccount } from 'wagmi';
 
 interface UsePaymentTransactionProps {
   listingId: string;
@@ -35,6 +36,7 @@ export function usePaymentTransaction({
   const { toast } = useToast();
   const { ensureCorrectNetwork } = useNetworkSwitch();
   const { createTransaction, updateTransactionWithBlockchain } = useTransactionCreation();
+  const { connector } = useAccount();
 
   const verifyTransactionAmount = (expectedAmount: ethers.BigNumber, actualAmount: ethers.BigNumber) => {
     console.log("Verifying amounts:", {
@@ -119,7 +121,23 @@ export function usePaymentTransaction({
       }
 
       // 6. Initialiser le contrat
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      let provider;
+      if (typeof window !== 'undefined' && window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+      } else if (connector) {
+        // Utiliser le connector WalletConnect
+        provider = new ethers.providers.Web3Provider(connector.provider as any);
+      }
+
+      if (!provider) {
+        throw new TransactionError(
+          "Impossible d'initialiser le provider. Veuillez vous connecter à votre wallet.",
+          TransactionErrorCodes.PROVIDER_ERROR
+        );
+      }
+
+      console.log("Provider initialized successfully");
+
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
@@ -128,7 +146,8 @@ export function usePaymentTransaction({
       );
 
       // 7. Vérifier le solde
-      const balance = await provider.getBalance(address);
+      const userAddress = await signer.getAddress();
+      const balance = await provider.getBalance(userAddress);
       const amount = ethers.utils.parseEther(listing.crypto_amount.toString());
       
       if (balance.lt(amount)) {
@@ -207,6 +226,8 @@ export function usePaymentTransaction({
           variant: "destructive",
         });
       }
+
+      throw error;
     } finally {
       setIsProcessing(false);
     }
