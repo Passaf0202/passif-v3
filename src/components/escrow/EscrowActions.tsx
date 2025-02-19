@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Transaction } from "./types/escrow";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileWalletRedirect } from "../payment/MobileWalletRedirect";
 
 interface EscrowActionsProps {
   transaction: Transaction;
@@ -29,6 +31,7 @@ export function EscrowActions({
   const { switchNetwork } = useSwitchNetwork();
   const { toast } = useToast();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const canConfirmTransaction = transaction.funds_secured && 
     !transaction.buyer_confirmation && 
@@ -188,6 +191,16 @@ export function EscrowActions({
 
   if (transaction?.escrow_status === 'completed') {
     return null;
+  }
+
+  if (isMobile) {
+    return (
+      <MobileWalletRedirect 
+        isProcessing={isLoading}
+        onConfirm={handleConfirmTransaction}
+        action="release"
+      />
+    );
   }
 
   return (
