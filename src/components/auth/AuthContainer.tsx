@@ -118,7 +118,7 @@ export function AuthContainer() {
           </h2>
         </div>
 
-        <div className="h-36 md:h-44 mb-1">
+        <div className="h-36 md:h-44 -mb-2">
           <DiamondViewer state="initial" />
         </div>
 
@@ -144,7 +144,7 @@ export function AuthContainer() {
 
           <div className="flex flex-col space-y-3">
             <Button 
-              className="w-full bg-black hover:bg-white text-white hover:text-black rounded-full border border-black transition-all duration-200 h-10"
+              className="w-full bg-white hover:bg-black text-black hover:text-white rounded-full border border-black transition-all duration-200 h-10"
               onMouseEnter={() => handleSocialInteraction('google', true)}
               onMouseLeave={() => handleSocialInteraction('google', false)}
               onTouchStart={() => handleSocialInteraction('google', true)}
@@ -153,14 +153,11 @@ export function AuthContainer() {
             >
               <img 
                 src={hoverGoogle 
-                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google.png"
-                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google%20(1).png"
+                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google%20(1).png"
+                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google.png"
                 } 
                 alt="Google" 
                 className="w-4 h-4 mr-2"
-                style={{
-                  filter: !hoverGoogle ? 'none' : 'invert(1)'
-                }}
               />
               Google
             </Button>
@@ -174,14 +171,11 @@ export function AuthContainer() {
             >
               <img 
                 src={hoverApple 
-                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo.png"
-                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo%20(1).png"
+                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo%20(1).png"
+                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo.png"
                 } 
                 alt="Apple" 
                 className="w-4 h-4 mr-2"
-                style={{
-                  filter: !hoverApple ? 'none' : 'invert(1)'
-                }}
               />
               Apple
             </Button>
