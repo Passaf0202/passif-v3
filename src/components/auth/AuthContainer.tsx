@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -105,7 +106,7 @@ export function AuthContainer() {
       <AuthHeader />
       <div className="mx-auto px-4 md:max-w-xl pt-2 md:pt-4">
         <div className="text-center">
-          <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-2 md:mb-4 ${!isMobile ? 'whitespace-nowrap' : ''}`}>
+          <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-2 md:mb-4 text-center`}>
             Connectez-vous ou créez votre compte{" "}
             <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
               transform: "skew(-12deg)",
@@ -118,7 +119,7 @@ export function AuthContainer() {
           </h2>
         </div>
 
-        <div className="h-36 md:h-44 -mb-2">
+        <div className="h-36 md:h-44 -mb-4">
           <DiamondViewer state="initial" />
         </div>
 
@@ -162,7 +163,7 @@ export function AuthContainer() {
               Google
             </Button>
             <Button 
-              className="w-full bg-black hover:bg-white text-white hover:text-black rounded-full border border-black transition-all duration-200 h-10"
+              className="w-full bg-white hover:bg-black text-black hover:text-white rounded-full border border-black transition-all duration-200 h-10"
               onMouseEnter={() => handleSocialInteraction('apple', true)}
               onMouseLeave={() => handleSocialInteraction('apple', false)}
               onTouchStart={() => handleSocialInteraction('apple', true)}
