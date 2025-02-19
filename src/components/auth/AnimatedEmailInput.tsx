@@ -19,22 +19,43 @@ interface AnimatedEmailInputProps {
 
 export function AnimatedEmailInput({ form }: AnimatedEmailInputProps) {
   const [currentExample, setCurrentExample] = useState(0);
+  const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout>();
+  const typeIntervalRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    if (!isTyping) {
-      intervalRef.current = setInterval(() => {
-        setCurrentExample(prev => (prev + 1) % EXAMPLE_EMAILS.length);
-      }, 2000);
+    if (!isTyping && !isFocused) {
+      // Start new typing animation
+      const startTyping = () => {
+        const targetText = EXAMPLE_EMAILS[currentExample];
+        let currentIndex = 0;
+        setDisplayedText("");
+
+        typeIntervalRef.current = setInterval(() => {
+          if (currentIndex <= targetText.length) {
+            setDisplayedText(targetText.slice(0, currentIndex));
+            currentIndex++;
+          } else {
+            if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
+            
+            // Wait before starting next email
+            setTimeout(() => {
+              setCurrentExample((prev) => (prev + 1) % EXAMPLE_EMAILS.length);
+            }, 2000);
+          }
+        }, 100);
+      };
+
+      startTyping();
     }
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isTyping]);
+  }, [currentExample, isTyping, isFocused]);
 
   return (
     <FormField
@@ -49,9 +70,12 @@ export function AnimatedEmailInput({ form }: AnimatedEmailInputProps) {
             <Input
               {...field}
               type="email"
-              placeholder={isTyping ? "votre@email.com" : EXAMPLE_EMAILS[currentExample]}
-              className="h-10"
-              onFocus={() => setIsTyping(true)}
+              placeholder={isFocused ? "votre@email.com" : displayedText}
+              className="h-10 bg-white"
+              onFocus={() => {
+                setIsFocused(true);
+                setIsTyping(true);
+              }}
               onChange={(e) => {
                 setIsTyping(true);
                 field.onChange(e);

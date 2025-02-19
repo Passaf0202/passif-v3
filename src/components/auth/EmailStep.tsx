@@ -26,7 +26,10 @@ export function EmailStep({ onSubmit }: EmailStepProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <AnimatedEmailInput form={form} />
-        <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600">
+        <Button 
+          type="submit" 
+          className="w-full bg-black hover:bg-black/90 text-white rounded-full"
+        >
           Continuer
         </Button>
       </form>

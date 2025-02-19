@@ -129,18 +129,18 @@ export function AuthContainer() {
           <div className="grid grid-cols-2 gap-4">
             <Button 
               variant="outline" 
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2"
               onClick={() => handleSocialLogin('google')}
             >
-              <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2" />
+              <img src="/google.svg" alt="Google" className="w-5 h-5" />
               Google
             </Button>
             <Button 
               variant="outline" 
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2"
               onClick={() => handleSocialLogin('apple')}
             >
-              <img src="/apple.svg" alt="Apple" className="w-5 h-5 mr-2" />
+              <img src="/apple.svg" alt="Apple" className="w-5 h-5" />
               Apple
             </Button>
           </div>
