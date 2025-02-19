@@ -37,6 +37,7 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         scale="2.5 2.5 2.5"
         min-scale="1"
         max-scale="1"
+        disable-zoom
         loading="eager"
         style={{
           width: '100%',
@@ -58,4 +59,3 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
 }
 
 export default DiamondViewer;
-
