@@ -94,24 +94,26 @@ export function AuthContainer() {
   return (
     <div className="min-h-screen bg-white md:bg-gray-50">
       <AuthHeader />
-      <div className="max-w-sm mx-auto pt-8 px-4">
-        <div className="h-48 mb-8">
+      <div className="mx-auto px-4 md:max-w-2xl pt-4 md:pt-8">
+        <div className="md:text-center">
+          <h2 className="text-xl md:text-3xl font-bold tracking-tight mb-6 md:mb-8">
+            Connectez-vous ou créez votre compte{" "}
+            <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
+              transform: "skew(-12deg)",
+              display: "inline-block",
+            }}>
+              <span style={{ display: "inline-block", transform: "skew(12deg)" }}>
+                Tradecoiner
+              </span>
+            </span>
+          </h2>
+        </div>
+
+        <div className="h-40 md:h-48 mb-6">
           <DiamondViewer state="initial" />
         </div>
 
-        <h2 className="text-xl md:text-3xl font-bold tracking-tight text-center mb-8">
-          Connectez-vous ou créez votre compte{" "}
-          <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
-            transform: "skew(-12deg)",
-            display: "inline-block",
-          }}>
-            <span style={{ display: "inline-block", transform: "skew(12deg)" }}>
-              Tradecoiner
-            </span>
-          </span>
-        </h2>
-
-        <div className="space-y-6">
+        <div className="space-y-4">
           <AuthFormContainer
             step={step}
             errorMessage={errorMessage}
