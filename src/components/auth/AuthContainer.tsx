@@ -5,8 +5,9 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { getErrorMessage } from "@/utils/authUtils";
 import { AuthHeader } from "./AuthHeader";
 import { AuthFormContainer } from "./AuthFormContainer";
-import { DiamondWall } from "./DiamondWall";
+import { DiamondViewer } from "../home/DiamondViewer";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 export function AuthContainer() {
   const {
@@ -17,6 +18,9 @@ export function AuthContainer() {
     userEmail,
     setUserEmail
   } = useAuthState();
+
+  const [hoverGoogle, setHoverGoogle] = useState(false);
+  const [hoverApple, setHoverApple] = useState(false);
 
   useAuthSession(setErrorMessage);
 
@@ -90,10 +94,11 @@ export function AuthContainer() {
   return (
     <div className="min-h-screen bg-white md:bg-gray-50">
       <AuthHeader />
-      <div className="md:hidden">
-        <DiamondWall />
-      </div>
-      <div className="px-4 md:mt-8">
+      <div className="max-w-sm mx-auto pt-8 px-4">
+        <div className="h-48 mb-8">
+          <DiamondViewer state="initial" />
+        </div>
+
         <h2 className="text-xl md:text-3xl font-bold tracking-tight text-center mb-8">
           Connectez-vous ou créez votre compte{" "}
           <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
@@ -106,7 +111,7 @@ export function AuthContainer() {
           </span>
         </h2>
 
-        <div className="space-y-6 max-w-sm mx-auto">
+        <div className="space-y-6">
           <AuthFormContainer
             step={step}
             errorMessage={errorMessage}
@@ -126,21 +131,37 @@ export function AuthContainer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col space-y-4">
             <Button 
-              variant="outline" 
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full bg-black hover:bg-white text-white hover:text-black rounded-full border border-black transition-all duration-200 h-12"
+              onMouseEnter={() => setHoverGoogle(true)}
+              onMouseLeave={() => setHoverGoogle(false)}
               onClick={() => handleSocialLogin('google')}
             >
-              <img src="/google.svg" alt="Google" className="w-5 h-5" />
+              <img 
+                src={hoverGoogle 
+                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google.png"
+                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google%20(1).png"
+                } 
+                alt="Google" 
+                className="w-5 h-5 mr-2" 
+              />
               Google
             </Button>
             <Button 
-              variant="outline" 
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full bg-black hover:bg-white text-white hover:text-black rounded-full border border-black transition-all duration-200 h-12"
+              onMouseEnter={() => setHoverApple(true)}
+              onMouseLeave={() => setHoverApple(false)}
               onClick={() => handleSocialLogin('apple')}
             >
-              <img src="/apple.svg" alt="Apple" className="w-5 h-5" />
+              <img 
+                src={hoverApple 
+                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo.png"
+                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo%20(1).png"
+                } 
+                alt="Apple" 
+                className="w-5 h-5 mr-2" 
+              />
               Apple
             </Button>
           </div>

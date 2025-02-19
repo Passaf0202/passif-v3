@@ -20,13 +20,12 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         ref={modelRef}
         src={MODEL_PATH}
         auto-rotate
+        camera-controls
         rotation-per-second={getRotationSpeed()}
         rotation-axis="0 1 0"
         orientation="0deg 270deg 0deg"
-        interaction-prompt="none"
+        interaction-prompt="when-focused"
         camera-orbit="35deg 85deg 1.2m"
-        min-camera-orbit="35deg 85deg 1.2m"
-        max-camera-orbit="35deg 85deg 1.2m"
         auto-rotate-delay={0}
         shadow-intensity="0"
         exposure="0.8"
