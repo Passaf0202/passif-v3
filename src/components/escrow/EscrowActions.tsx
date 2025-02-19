@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork } from "wagmi";
+import { useNetwork, useSwitchNetwork, useAccount } from "wagmi";
 import { amoy } from "@/config/chains";
 import { ethers } from "ethers";
 import { ESCROW_CONTRACT_ADDRESS, ESCROW_ABI } from "./types/escrow";
@@ -32,6 +32,7 @@ export function EscrowActions({
   const { toast } = useToast();
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const { connector, isConnected } = useAccount();
 
   const canConfirmTransaction = transaction.funds_secured && 
     !transaction.buyer_confirmation && 
@@ -78,7 +79,18 @@ export function EscrowActions({
       }
 
       // 3. Initialisation du provider et du contrat
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      let provider;
+      if (typeof window !== 'undefined' && window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+      } else if (isConnected && connector) {
+        const connectorProvider = await connector.getProvider();
+        provider = new ethers.providers.Web3Provider(connectorProvider);
+      }
+
+      if (!provider) {
+        throw new Error("Impossible d'initialiser le provider. Veuillez vous connecter à votre wallet.");
+      }
+
       const signer = provider.getSigner();
       console.log("[EscrowActions] Connected with address:", await signer.getAddress());
 
