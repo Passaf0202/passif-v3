@@ -77,10 +77,6 @@ export function EscrowActions({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      if (!window.ethereum) {
-        throw new Error("MetaMask n'est pas installé");
-      }
-
       // 3. Initialisation du provider et du contrat
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
