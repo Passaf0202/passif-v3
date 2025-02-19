@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -119,7 +118,7 @@ export function AuthContainer() {
           </h2>
         </div>
 
-        <div className="h-28 md:h-36 mb-1">
+        <div className="h-36 md:h-44 mb-1">
           <DiamondViewer state="initial" />
         </div>
 
