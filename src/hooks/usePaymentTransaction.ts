@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { useTransactionCreation } from "@/hooks/useTransactionCreation";
 import { TransactionError, TransactionErrorCodes } from "@/utils/escrow/transactionErrors";
-import { useAccount } from 'wagmi';
+import { useAccount, useConnect } from 'wagmi';
 
 interface UsePaymentTransactionProps {
   listingId: string;
@@ -36,7 +36,8 @@ export function usePaymentTransaction({
   const { toast } = useToast();
   const { ensureCorrectNetwork } = useNetworkSwitch();
   const { createTransaction, updateTransactionWithBlockchain } = useTransactionCreation();
-  const { connector } = useAccount();
+  const { connector, isConnected } = useAccount();
+  const { data: connectData } = useConnect();
 
   const verifyTransactionAmount = (expectedAmount: ethers.BigNumber, actualAmount: ethers.BigNumber) => {
     console.log("Verifying amounts:", {
@@ -124,9 +125,9 @@ export function usePaymentTransaction({
       let provider;
       if (typeof window !== 'undefined' && window.ethereum) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
-      } else if (connector) {
-        // Utiliser le connector WalletConnect
-        provider = new ethers.providers.Web3Provider(connector.provider as any);
+      } else if (isConnected && connector) {
+        const connectorProvider = await connector.getProvider();
+        provider = new ethers.providers.Web3Provider(connectorProvider);
       }
 
       if (!provider) {
@@ -210,7 +211,6 @@ export function usePaymentTransaction({
     } catch (error: any) {
       console.error('Payment error:', error);
       
-      // Gérer les erreurs spécifiques
       if (error instanceof TransactionError) {
         setError(error.message);
         toast({
