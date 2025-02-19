@@ -21,63 +21,19 @@ export function MobileWalletRedirect({
   const { connector, isConnected } = useAccount();
   const { chain } = useNetwork();
   const { open } = useWeb3Modal();
-  const publicClient = usePublicClient();
-
-  const ensureProvider = async () => {
-    console.log("Checking provider status:", {
-      isConnected,
-      hasEthereum: !!window.ethereum,
-      connectorName: connector?.name,
-      hasPublicClient: !!publicClient
-    });
-
-    if (!isConnected) {
-      console.log("Not connected, opening web3modal");
-      await open();
-      return false;
-    }
-
-    // Vérifier si nous avons un provider valide
-    let provider;
-    try {
-      if (window.ethereum) {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-      } else if (publicClient) {
-        // Utiliser le publicClient comme fallback
-        provider = new ethers.providers.JsonRpcProvider(publicClient.chain.rpcUrls.default.http[0]);
-      }
-
-      if (!provider) {
-        throw new Error("Aucun provider disponible");
-      }
-
-      // Tester le provider
-      await provider.getNetwork();
-      console.log("Provider successfully initialized");
-      return true;
-    } catch (error) {
-      console.error("Provider initialization error:", error);
-      return false;
-    }
-  };
 
   const handleRedirect = async () => {
     try {
-      // Vérifier le provider avant tout
-      const hasProvider = await ensureProvider();
-      if (!hasProvider) {
-        console.log("No valid provider found");
-        toast({
-          title: "Erreur de connexion",
-          description: "Veuillez vous connecter à votre wallet avant de continuer",
-          variant: "destructive",
-        });
+      // Si l'utilisateur n'est pas connecté, ouvrir WalletConnect
+      if (!isConnected) {
+        console.log("Opening WalletConnect modal...");
+        await open();
         return;
       }
 
-      console.log("Starting transaction with valid provider");
+      // Une fois connecté, on lance directement la transaction
+      // WalletConnect s'occupera de rediriger vers l'app du wallet si nécessaire
       await onConfirm();
-      console.log("Transaction started successfully");
       
     } catch (error: any) {
       console.error('Mobile wallet redirect error:', error);
@@ -104,7 +60,7 @@ export function MobileWalletRedirect({
         <>
           <ExternalLink className="mr-2 h-4 w-4" />
           {action === 'payment' 
-            ? 'Confirmer le paiement dans votre wallet' 
+            ? 'Payer avec mon wallet' 
             : 'Confirmer la libération dans votre wallet'}
         </>
       )}
