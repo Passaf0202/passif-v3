@@ -31,13 +31,29 @@ export function MobileWalletRedirect({
       hasEthereum: !!window.ethereum
     });
 
-    // Si on est sur mobile et qu'on a ethereum dans window
-    if (window.ethereum?.isMetaMask) {
-      console.log('MetaMask detected via window.ethereum');
-      return 'metamask://';
+    if (typeof window !== 'undefined' && window.ethereum) {
+      // Détecter si nous sommes sur mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) {
+        console.log('Not on mobile, skipping deep link');
+        return null;
+      }
+
+      // Vérifier si MetaMask est disponible
+      if (window.ethereum.isMetaMask) {
+        console.log('MetaMask detected, using metamask deep link');
+        return 'https://metamask.app.link/dapp/321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com';
+      }
+
+      // Vérifier Zerion
+      const provider = window.ethereum.provider;
+      if (provider && 'isZerion' in provider) {
+        console.log('Zerion detected, using zerion deep link');
+        return 'https://app.zerion.io';
+      }
     }
 
-    // Récupérer le nom du wallet
+    // Récupérer le nom du wallet pour les autres cas
     const walletName = connector?.name?.toLowerCase() || '';
     const providerId = window.ethereum?.provider?.name?.toLowerCase() || '';
     
@@ -47,46 +63,32 @@ export function MobileWalletRedirect({
       ethereum: window.ethereum
     });
     
-    // Mapping des deep links avec ajout de Zerion
+    // Mapping des deep links avec liens universels
     const deepLinks: { [key: string]: string } = {
-      'metamask': 'metamask://',
-      'trust wallet': 'trust://',
-      'rainbow': 'rainbow://',
-      'coinbase wallet': 'cbwallet://',
-      'zerion': 'zerion://',
-      'injected': 'metamask://',
-      'metamask-mobile': 'metamask://',
-      'coinbase': 'cbwallet://',
-      'trust': 'trust://'
+      'metamask': 'https://metamask.app.link/dapp/321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com',
+      'trust wallet': 'https://link.trustwallet.com/open_url?url=https://321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com',
+      'rainbow': 'https://rainbow.me',
+      'coinbase wallet': 'https://go.cb-w.com/dapp?cb_url=https://321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com',
+      'zerion': 'https://app.zerion.io',
+      'trust': 'https://link.trustwallet.com/open_url?url=https://321540df-6d8a-4916-b589-ad0dd0aad4aa.lovableproject.com'
     };
 
-    // Vérifier d'abord le provider ID
+    // Chercher une correspondance dans le provider ID
     if (providerId) {
       for (const [key, link] of Object.entries(deepLinks)) {
         if (providerId.includes(key)) {
-          console.log(`Matched provider ${key} with deep link ${link}`);
+          console.log(`Matched provider ${key} with universal link ${link}`);
           return link;
         }
       }
     }
 
-    // Ensuite vérifier le nom du connector
+    // Chercher une correspondance dans le nom du wallet
     if (walletName) {
       for (const [key, link] of Object.entries(deepLinks)) {
         if (walletName.includes(key)) {
-          console.log(`Matched wallet ${key} with deep link ${link}`);
+          console.log(`Matched wallet ${key} with universal link ${link}`);
           return link;
-        }
-      }
-    }
-
-    // Si aucune correspondance n'est trouvée mais qu'on a un provider, on essaie de deviner
-    if (window.ethereum?.provider) {
-      console.log('Trying to guess wallet from provider:', window.ethereum.provider);
-      if (typeof window.ethereum.provider === 'object') {
-        // Tenter de détecter Zerion ou d'autres wallets par leurs propriétés spécifiques
-        if ('isZerion' in window.ethereum.provider || walletName.includes('zerion')) {
-          return 'zerion://';
         }
       }
     }
@@ -107,7 +109,6 @@ export function MobileWalletRedirect({
 
       if (deepLink) {
         console.log('Starting transaction before redirect');
-        // Commencer la transaction
         try {
           await onConfirm();
           console.log('Transaction started successfully');
@@ -115,9 +116,9 @@ export function MobileWalletRedirect({
           // Forcer une courte pause pour s'assurer que la transaction est initiée
           await new Promise(resolve => setTimeout(resolve, 500));
 
-          // Utiliser window.location.href pour la redirection
-          console.log('Redirecting to wallet app:', deepLink);
-          window.location.href = deepLink;
+          // Ouvrir dans un nouvel onglet pour éviter les problèmes de redirection
+          console.log('Opening wallet in new window:', deepLink);
+          window.open(deepLink, '_blank');
         } catch (error) {
           console.error('Error during transaction or redirect:', error);
           throw error;
