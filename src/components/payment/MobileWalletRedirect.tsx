@@ -22,33 +22,72 @@ export function MobileWalletRedirect({
   const { open } = useWeb3Modal();
 
   const getWalletDeepLink = () => {
-    // Si on est sur mobile et qu'on a ethereum dans window, c'est probablement MetaMask
+    // Debug du provider Ethereum
+    console.log('Provider info:', {
+      isMetaMask: window.ethereum?.isMetaMask,
+      provider: window.ethereum?.provider,
+      connectorName: connector?.name,
+      connectorId: connector?.id,
+      hasEthereum: !!window.ethereum
+    });
+
+    // Si on est sur mobile et qu'on a ethereum dans window
     if (window.ethereum?.isMetaMask) {
       console.log('MetaMask detected via window.ethereum');
       return 'metamask://';
     }
 
-    // WalletConnect v2 expose le nom du wallet connecté
+    // Récupérer le nom du wallet
     const walletName = connector?.name?.toLowerCase() || '';
-    console.log('Detected wallet name:', walletName);
+    const providerId = window.ethereum?.provider?.name?.toLowerCase() || '';
     
-    // Mapping des deep links
+    console.log('Detected wallet info:', {
+      walletName,
+      providerId,
+      ethereum: window.ethereum
+    });
+    
+    // Mapping des deep links avec ajout de Zerion
     const deepLinks: { [key: string]: string } = {
       'metamask': 'metamask://',
       'trust wallet': 'trust://',
       'rainbow': 'rainbow://',
       'coinbase wallet': 'cbwallet://',
+      'zerion': 'zerion://',
       'injected': 'metamask://',
       'metamask-mobile': 'metamask://',
       'coinbase': 'cbwallet://',
       'trust': 'trust://'
     };
 
-    // Recherche de correspondance
-    for (const [key, link] of Object.entries(deepLinks)) {
-      if (walletName.includes(key)) {
-        console.log(`Matched wallet ${key} with deep link ${link}`);
-        return link;
+    // Vérifier d'abord le provider ID
+    if (providerId) {
+      for (const [key, link] of Object.entries(deepLinks)) {
+        if (providerId.includes(key)) {
+          console.log(`Matched provider ${key} with deep link ${link}`);
+          return link;
+        }
+      }
+    }
+
+    // Ensuite vérifier le nom du connector
+    if (walletName) {
+      for (const [key, link] of Object.entries(deepLinks)) {
+        if (walletName.includes(key)) {
+          console.log(`Matched wallet ${key} with deep link ${link}`);
+          return link;
+        }
+      }
+    }
+
+    // Si aucune correspondance n'est trouvée mais qu'on a un provider, on essaie de deviner
+    if (window.ethereum?.provider) {
+      console.log('Trying to guess wallet from provider:', window.ethereum.provider);
+      if (typeof window.ethereum.provider === 'object') {
+        // Tenter de détecter Zerion ou d'autres wallets par leurs propriétés spécifiques
+        if ('isZerion' in window.ethereum.provider || walletName.includes('zerion')) {
+          return 'zerion://';
+        }
       }
     }
 
@@ -87,7 +126,7 @@ export function MobileWalletRedirect({
         console.error('No supported wallet found');
         toast({
           title: "Wallet non supporté",
-          description: "Veuillez utiliser un wallet compatible (MetaMask, Trust Wallet, Rainbow, Coinbase Wallet)",
+          description: "Veuillez utiliser un wallet compatible (MetaMask, Trust Wallet, Rainbow, Coinbase Wallet, Zerion)",
           variant: "destructive",
         });
       }
