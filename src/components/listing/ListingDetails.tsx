@@ -1,4 +1,3 @@
-
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -53,7 +52,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
 
-  // Fetch and validate crypto amount before allowing purchase
   const { data: listingData } = useQuery({
     queryKey: ['listing-wallet', listing.id],
     queryFn: async () => {
@@ -107,6 +105,12 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
 
+  console.log("[ListingDetails] Seller wallet details:", {
+    fromListing: listing.wallet_address,
+    fromListingData: listingData?.wallet_address,
+    finalAddress: sellerWalletAddress
+  });
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <ListingImages images={listing.images} title={listing.title} isHovered={false} />
@@ -138,7 +142,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <ListingActions
           listingId={listing.id}
           sellerId={listing.user_id}
-          sellerAddress={sellerWalletAddress || ''}
+          sellerAddress={sellerWalletAddress}
           title={listing.title}
           price={listing.price}
           cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}

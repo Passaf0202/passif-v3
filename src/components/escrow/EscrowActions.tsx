@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork, useAccount } from "wagmi";
@@ -67,7 +66,7 @@ export function EscrowActions({
     try {
       setIsLoading(true);
 
-      // 1. Vérifications préliminaires
+      // Vérifications préliminaires plus strictes
       if (!user?.id) {
         throw new Error("Utilisateur non connecté");
       }
@@ -76,8 +75,22 @@ export function EscrowActions({
         throw new Error("Les fonds ne sont pas encore sécurisés");
       }
 
+      // Vérification plus stricte de l'adresse du vendeur
       if (!transaction.seller_wallet_address) {
         throw new Error("Adresse du vendeur manquante");
+      }
+
+      // Log détaillé des adresses pour le debug
+      console.log("[EscrowActions] Transaction wallet addresses:", {
+        sellerWalletAddress: transaction.seller_wallet_address,
+        transactionSellerId: transaction.seller?.id,
+        userId: user.id,
+        buyerId: transaction.buyer?.id
+      });
+
+      // Vérification que la transaction peut être confirmée
+      if (transaction.seller_wallet_address !== transaction.listing?.wallet_address) {
+        throw new Error("L'adresse du vendeur ne correspond pas à celle de l'annonce");
       }
 
       console.log("[EscrowActions] Starting transaction confirmation...");

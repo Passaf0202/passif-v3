@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ethers } from "ethers";
 import { useToast } from "@/components/ui/use-toast";
@@ -56,7 +55,7 @@ export function usePaymentTransaction({
   const handlePayment = async () => {
     if (!address) {
       throw new TransactionError(
-        "Veuillez connecter votre portefeuille pour continuer",
+        "L'adresse du vendeur n'est pas disponible",
         TransactionErrorCodes.SELLER_ADDRESS_MISSING
       );
     }
@@ -64,7 +63,10 @@ export function usePaymentTransaction({
     try {
       setIsProcessing(true);
       setError(null);
-      console.log('Starting payment process for listing:', listingId);
+      console.log('[usePaymentTransaction] Starting payment process:', {
+        listingId,
+        sellerAddress: address
+      });
 
       // 1. Récupérer les détails de l'annonce
       const { data: listing, error: listingError } = await supabase
@@ -87,16 +89,17 @@ export function usePaymentTransaction({
         );
       }
 
-      // 2. Vérifier l'adresse du vendeur
-      const sellerAddress = listing.user?.wallet_address;
-      if (!sellerAddress) {
+      // 2. Vérifier que l'adresse correspond bien à celle de l'annonce
+      if (listing.wallet_address !== address) {
+        console.error('Address mismatch:', {
+          listingAddress: listing.wallet_address,
+          providedAddress: address
+        });
         throw new TransactionError(
-          "L'adresse du vendeur n'est pas disponible",
-          TransactionErrorCodes.SELLER_ADDRESS_MISSING
+          "L'adresse du vendeur ne correspond pas à celle de l'annonce",
+          TransactionErrorCodes.SELLER_ADDRESS_MISMATCH
         );
       }
-
-      console.log("Seller wallet address:", sellerAddress);
 
       // 3. S'assurer d'être sur le bon réseau
       await ensureCorrectNetwork();
@@ -114,7 +117,7 @@ export function usePaymentTransaction({
         listingId,
         listing.crypto_amount,
         'POL',
-        sellerAddress
+        address
       );
 
       if (onTransactionCreated) {
@@ -165,7 +168,7 @@ export function usePaymentTransaction({
 
       // 8. Envoyer la transaction blockchain
       console.log("Sending transaction with amount:", ethers.utils.formatEther(amount));
-      const tx = await contract.createTransaction(sellerAddress, { value: amount });
+      const tx = await contract.createTransaction(address, { value: amount });
       console.log("Transaction sent:", tx.hash);
 
       if (onTransactionHash) {
