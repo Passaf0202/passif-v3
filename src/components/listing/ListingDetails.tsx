@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus, Home, ArrowLeft, Heart } from "lucide-react";
 import { ListingImages } from "./ListingImages";
@@ -52,7 +51,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
 
   const { data: listingData } = useQuery({
@@ -109,6 +107,80 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     locale: fr 
   });
 
+  const HeaderContent = () => (
+    <>
+      <h1 className="text-xl font-semibold mb-2">{listing.title}</h1>
+      <div className="flex flex-col space-y-1">
+        <p className="text-2xl font-bold">{listing.price} €</p>
+        {cryptoDetails && (
+          <p className="text-sm text-gray-600">
+            ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mt-2">
+        {listing.category && <Badge variant="secondary">{listing.category}</Badge>}
+        <div className="flex items-center gap-1">
+          <MapPin className="h-4 w-4" />
+          <span>{listing.location}</span>
+        </div>
+        <span>{timeAgo}</span>
+      </div>
+    </>
+  );
+
+  const MainContent = () => (
+    <div className="space-y-6">
+      <ProductDetailsCard details={listing} />
+
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold">Description</h2>
+        <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold">Localisation</h2>
+        <p className="text-gray-600 flex items-center gap-2">
+          <MapPin className="h-4 w-4" />
+          {listing.location}
+        </p>
+        <div className="h-[200px] rounded-lg overflow-hidden">
+          <LocationMap location={listing.location} />
+        </div>
+      </div>
+
+      <SellerInfo 
+        seller={listing.user} 
+        location={listing.location} 
+        walletAddress={listingData?.wallet_address || listing.wallet_address}
+      />
+
+      <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+        <h2 className="font-semibold flex items-center gap-2">
+          <Shield className="h-5 w-5 text-blue-600" />
+          Protection acheteur Tradecoiner
+        </h2>
+        <div className="grid gap-4">
+          <div className="flex items-start gap-3">
+            <PackageOpen className="h-5 w-5 text-gray-600 mt-1" />
+            <div>
+              <p className="font-medium">Paiement sécurisé</p>
+              <p className="text-sm text-gray-600">Votre argent est sécurisé jusqu'à la réception</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <SmilePlus className="h-5 w-5 text-gray-600 mt-1" />
+            <div>
+              <p className="font-medium">Support dédié</p>
+              <p className="text-sm text-gray-600">Une équipe à votre écoute 7j/7</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="pb-32 md:pb-0">
       {/* Version mobile */}
@@ -142,134 +214,42 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         {/* Contenu principal */}
         <div className="px-4 -mt-6 relative z-10 bg-white rounded-t-3xl">
           <div className="space-y-4 pt-6">
-            <div>
-              <h1 className="text-xl font-semibold mb-2">{listing.title}</h1>
-              <div className="flex flex-col space-y-1">
-                <p className="text-2xl font-bold">{listing.price} €</p>
-                {cryptoDetails && (
-                  <p className="text-sm text-gray-600">
-                    ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-              {listing.category && <Badge variant="secondary">{listing.category}</Badge>}
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                <span>{listing.location}</span>
-              </div>
-              <span>{timeAgo}</span>
-            </div>
-
-            {/* Reste du contenu */}
-            <ProductDetailsCard details={listing} />
-
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Description</h2>
-              <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
-            </div>
-
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Localisation</h2>
-              <p className="text-gray-600 flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                {listing.location}
-              </p>
-              <div className="h-[200px] rounded-lg overflow-hidden">
-                <LocationMap location={listing.location} />
-              </div>
-            </div>
-
-            <SellerInfo 
-              seller={listing.user} 
-              location={listing.location} 
-              walletAddress={listingData?.wallet_address || listing.wallet_address}
-            />
-
-            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-              <h2 className="font-semibold flex items-center gap-2">
-                <Shield className="h-5 w-5 text-blue-600" />
-                Protection acheteur Tradecoiner
-              </h2>
-              <div className="grid gap-4">
-                <div className="flex items-start gap-3">
-                  <PackageOpen className="h-5 w-5 text-gray-600 mt-1" />
-                  <div>
-                    <p className="font-medium">Paiement sécurisé</p>
-                    <p className="text-sm text-gray-600">Votre argent est sécurisé jusqu'à la réception</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <SmilePlus className="h-5 w-5 text-gray-600 mt-1" />
-                  <div>
-                    <p className="font-medium">Support dédié</p>
-                    <p className="text-sm text-gray-600">Une équipe à votre écoute 7j/7</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <HeaderContent />
+            <MainContent />
           </div>
         </div>
       </div>
 
       {/* Version desktop */}
-      <div className="hidden md:block">
-        <ListingImages images={listing.images} title={listing.title} />
-      </div>
-
-      {/* Reste du contenu */}
-      <div className="px-4 md:px-0 space-y-6 mt-4">
-        {/* Caractéristiques du produit */}
-        <ProductDetailsCard details={listing} />
-
-        {/* Description */}
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Description</h2>
-          <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
-        </div>
-
-        {/* Localisation */}
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Localisation</h2>
-          <p className="text-gray-600 flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            {listing.location}
-          </p>
-          <div className="h-[200px] rounded-lg overflow-hidden">
-            <LocationMap location={listing.location} />
+      <div className="hidden md:block max-w-7xl mx-auto px-4">
+        <div className="grid grid-cols-12 gap-8">
+          <div className="col-span-8">
+            <ListingImages images={listing.images} title={listing.title} />
           </div>
-        </div>
-
-        {/* Infos vendeur */}
-        <SellerInfo 
-          seller={listing.user} 
-          location={listing.location} 
-          walletAddress={listingData?.wallet_address || listing.wallet_address}
-        />
-
-        {/* Protection acheteur */}
-        <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-          <h2 className="font-semibold flex items-center gap-2">
-            <Shield className="h-5 w-5 text-blue-600" />
-            Protection acheteur Tradecoiner
-          </h2>
-          <div className="grid gap-4">
-            <div className="flex items-start gap-3">
-              <PackageOpen className="h-5 w-5 text-gray-600 mt-1" />
-              <div>
-                <p className="font-medium">Paiement sécurisé</p>
-                <p className="text-sm text-gray-600">Votre argent est sécurisé jusqu'à la réception</p>
-              </div>
+          <div className="col-span-4">
+            <div className="sticky top-4 space-y-4">
+              <HeaderContent />
+              <Button 
+                className="w-full" 
+                onClick={handleBuyClick}
+              >
+                Acheter
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                asChild
+              >
+                <ContactModal
+                  listingId={listing.id}
+                  sellerId={listing.user_id}
+                  listingTitle={listing.title}
+                />
+              </Button>
             </div>
-            <div className="flex items-start gap-3">
-              <SmilePlus className="h-5 w-5 text-gray-600 mt-1" />
-              <div>
-                <p className="font-medium">Support dédié</p>
-                <p className="text-sm text-gray-600">Une équipe à votre écoute 7j/7</p>
-              </div>
-            </div>
+          </div>
+          <div className="col-span-12">
+            <MainContent />
           </div>
         </div>
       </div>
