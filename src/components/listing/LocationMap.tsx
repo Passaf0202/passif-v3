@@ -26,7 +26,7 @@ export const LocationMap = ({ location }: LocationMapProps) => {
     }).addTo(mapRef.current);
 
     // Créer une icône personnalisée noire
-    const blackIcon = L.divIcon({
+    const customIcon = L.divIcon({
       className: 'custom-marker',
       html: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="black"/>
@@ -41,12 +41,14 @@ export const LocationMap = ({ location }: LocationMapProps) => {
       .then(data => {
         if (data.length > 0) {
           const { lat, lon } = data[0];
-          mapRef.current?.setView([lat, lon], 13);
+          if (mapRef.current) {
+            mapRef.current.setView([lat, lon], 13);
 
-          if (markerRef.current) {
-            markerRef.current.setLatLng([lat, lon]);
-          } else {
-            markerRef.current = L.marker([lat, lon], { icon: blackIcon }).addTo(mapRef.current!);
+            if (markerRef.current) {
+              markerRef.current.setLatLng([lat, lon]);
+            } else {
+              markerRef.current = L.marker([lat, lon], { icon: customIcon }).addTo(mapRef.current);
+            }
           }
         }
       })
@@ -68,9 +70,12 @@ export const LocationMap = ({ location }: LocationMapProps) => {
             background: none;
             border: none;
           }
+          .leaflet-control-container {
+            display: none;
+          }
         `}
       </style>
-      <div ref={mapContainerRef} className="h-[200px] rounded-lg overflow-hidden relative" />
+      <div ref={mapContainerRef} className="h-full w-full rounded-lg overflow-hidden relative" />
     </>
   );
 };

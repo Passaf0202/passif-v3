@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus, Home, ArrowLeft, Heart } from "lucide-react";
 import { ListingImages } from "./ListingImages";
@@ -184,11 +183,11 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   return (
     <div className="pb-32 md:pb-0 bg-white min-h-screen">
       <div className="relative">
-        <div className="h-[250px] md:h-[400px] w-full">
+        <div className="h-[200px] md:h-[300px] w-full">
           <ListingImages images={listing.images} title={listing.title} />
         </div>
         
-        <div className="absolute top-0 left-0 right-0 p-4 flex justify-between z-20">
+        <div className="absolute top-4 left-0 right-0 px-4 flex justify-between z-20">
           <Button
             variant="secondary"
             size="icon"
@@ -208,54 +207,46 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto">
-        <div className="md:grid md:grid-cols-12 md:gap-8">
-          {/* Contenu principal */}
-          <div className="md:col-span-8 px-4 -mt-6 md:mt-8 relative">
-            <div className="md:hidden">
-              <div className="bg-white rounded-t-3xl p-6 space-y-6">
-                <ListingContent />
-              </div>
-            </div>
-            <div className="hidden md:block">
+      <div className="bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="md:grid md:grid-cols-12 md:gap-8">
+            <div className="md:col-span-8 px-4 py-6 md:py-8">
               <ListingContent />
             </div>
-          </div>
 
-          {/* Sidebar desktop */}
-          <div className="hidden md:block md:col-span-4 px-4 mt-8">
-            <div className="sticky top-4 space-y-4 bg-white p-6 rounded-lg border">
-              <div className="space-y-2">
-                <p className="text-3xl font-bold">{listing.price} €</p>
-                {cryptoDetails && (
-                  <p className="text-sm text-gray-600">
-                    ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
-                  </p>
-                )}
+            <div className="hidden md:block md:col-span-4 px-4 py-8">
+              <div className="sticky top-4 space-y-4 bg-white p-6 rounded-lg border">
+                <div className="space-y-2">
+                  <p className="text-3xl font-bold">{listing.price} €</p>
+                  {cryptoDetails && (
+                    <p className="text-sm text-gray-600">
+                      ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
+                    </p>
+                  )}
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={handleBuyClick}
+                >
+                  Acheter
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  asChild
+                >
+                  <ContactModal
+                    listingId={listing.id}
+                    sellerId={listing.user_id}
+                    listingTitle={listing.title}
+                  />
+                </Button>
               </div>
-              <Button 
-                className="w-full" 
-                onClick={handleBuyClick}
-              >
-                Acheter
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                asChild
-              >
-                <ContactModal
-                  listingId={listing.id}
-                  sellerId={listing.user_id}
-                  listingTitle={listing.title}
-                />
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Barre d'actions fixe en bas en mobile */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 md:hidden">
         <ListingActions
           listingId={listing.id}
