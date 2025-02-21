@@ -5,7 +5,6 @@ import { ContactModal } from "@/components/ContactModal";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from 'wagmi';
-import { MobileWalletRedirect } from "@/components/payment/MobileWalletRedirect";
 
 interface ListingActionsProps {
   listingId: string;
@@ -72,11 +71,13 @@ export const ListingActions = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <MobileWalletRedirect 
-          isProcessing={isProcessing}
-          onConfirm={handleCryptoPayment}
-          action="payment"
-        />
+        <Button 
+          className="w-full h-auto py-2 px-4" 
+          onClick={handleCryptoPayment}
+          disabled={isProcessing}
+        >
+          {isProcessing ? 'Transaction en cours...' : 'Payer avec mon wallet'}
+        </Button>
 
         <Button variant="outline" className="w-full h-auto py-2 px-4" asChild>
           <ContactModal
