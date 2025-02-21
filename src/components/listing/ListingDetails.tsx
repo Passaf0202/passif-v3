@@ -63,8 +63,6 @@ interface ListingDetailsProps {
 export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { toast } = useToast();
   const [showHowItWorks, setShowHowItWorks] = React.useState(false);
-  const { createEscrowTransaction } = useEscrowPayment();
-  
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
   const isMobile = useIsMobile();
 
@@ -87,14 +85,17 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     },
   });
 
+  const { handlePayment } = useEscrowPayment({
+    listingId: listing.id,
+    onPaymentComplete: () => {
+      console.log("Payment completed successfully");
+    }
+  });
+
   const handleBuyClick = async () => {
     try {
       console.log("Starting escrow transaction...");
-      await createEscrowTransaction({
-        listingId: listing.id,
-        amount: listingData?.crypto_amount || cryptoDetails?.amount || 0,
-        sellerAddress: listingData?.wallet_address || listing.wallet_address || "",
-      });
+      await handlePayment();
     } catch (error) {
       console.error("Error in handleBuyClick:", error);
       toast({
