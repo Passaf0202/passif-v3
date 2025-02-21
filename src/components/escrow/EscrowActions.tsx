@@ -186,7 +186,7 @@ export function EscrowActions({
         variant: "destructive",
       });
     } finally {
-      setIsProcessing(false);
+      setIsLoading(false); // On utilise setIsLoading au lieu de setIsProcessing
     }
   };
 
