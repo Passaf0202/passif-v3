@@ -131,7 +131,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         </div>
 
         <div className="space-y-6">
-          <div className="sticky top-4">
+          <div className="sticky top-4 z-20"> {/* Augmenté le z-index */}
             <Card>
               <CardContent className="p-6">
                 <ListingHeader 
@@ -202,7 +202,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
             </div>
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <LocationMap location={listing.location} />
         </CardContent>
       </Card>

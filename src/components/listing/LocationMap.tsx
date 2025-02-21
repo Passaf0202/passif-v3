@@ -26,7 +26,11 @@ export const LocationMap = ({ location }: LocationMapProps) => {
           const { lat, lon } = data[0];
           
           // Initialisation de la carte
-          mapRef.current = L.map(mapContainerRef.current).setView([lat, lon], 13);
+          mapRef.current = L.map(mapContainerRef.current, {
+            zoomControl: false, // Désactive les contrôles de zoom par défaut
+            scrollWheelZoom: false, // Désactive le zoom avec la molette
+            dragging: false // Désactive le déplacement de la carte
+          }).setView([lat, lon], 14);
 
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
@@ -34,6 +38,11 @@ export const LocationMap = ({ location }: LocationMapProps) => {
 
           // Ajout du marqueur
           L.marker([lat, lon]).addTo(mapRef.current);
+
+          // Ajoute les contrôles de zoom dans le coin supérieur droit
+          L.control.zoom({
+            position: 'topright'
+          }).addTo(mapRef.current);
         }
       } catch (error) {
         console.error('Error initializing map:', error);
@@ -51,6 +60,12 @@ export const LocationMap = ({ location }: LocationMapProps) => {
   }, [location]);
 
   return (
-    <div ref={mapContainerRef} className="h-[300px] rounded-lg shadow-md" />
+    <div className="relative">
+      <div 
+        ref={mapContainerRef} 
+        className="h-[200px] rounded-lg shadow-md" 
+        style={{ zIndex: 1 }} // Force un z-index bas
+      />
+    </div>
   );
 };
