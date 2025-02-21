@@ -14,38 +14,29 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Si la carte existe déjà, on la supprime pour la recréer
     if (mapRef.current) {
       mapRef.current.remove();
       mapRef.current = null;
     }
 
-    // Vérifier que le conteneur existe et qu'on a une localisation par défaut
     if (!mapContainerRef.current || !defaultLocation) return;
 
     console.log('Initialisation de la carte avec la localisation:', defaultLocation);
 
-    // Géocoder la localisation
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(defaultLocation)}`)
       .then(res => res.json())
       .then(data => {
-        console.log('Résultat du géocodage:', data);
         if (data.length > 0) {
           const { lat, lon } = data[0];
           const latitude = parseFloat(lat);
           const longitude = parseFloat(lon);
           
-          console.log('Coordonnées trouvées:', latitude, longitude);
-          
-          // Initialiser la carte
           mapRef.current = L.map(mapContainerRef.current!).setView([latitude, longitude], 14);
           
-          // Ajouter la couche de tuiles
           L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(mapRef.current);
 
-          // Créer une icône noire personnalisée pour le marqueur
           const blackIcon = L.divIcon({
             className: 'custom-div-icon',
             html: `<div style="background-color: black; width: 20px; height: 20px; border-radius: 50%; transform: translate(-50%, -50%)"></div>`,
@@ -53,7 +44,6 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
             iconAnchor: [10, 10]
           });
 
-          // Ajouter le marqueur
           L.marker([latitude, longitude], { icon: blackIcon })
             .addTo(mapRef.current);
         }
@@ -82,7 +72,7 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
       )}
       <div 
         ref={mapContainerRef} 
-        className="h-[400px] rounded-lg relative" 
+        className="h-[400px] rounded-lg relative z-0" // Ajout de z-0 pour s'assurer que la carte reste en arrière-plan
       />
     </div>
   );

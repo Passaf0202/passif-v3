@@ -1,10 +1,10 @@
-import { Shield } from "lucide-react";
+import { Shield, ArrowLeft } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
 import { ListingActions } from "./ListingActions";
 import { ProductDetailsCard } from "./ProductDetailsCard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
@@ -14,6 +14,7 @@ import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "../ui/card";
 import { LocationPicker } from "../LocationPicker";
+import { Button } from "../ui/button";
 
 interface ListingDetailsProps {
   listing: {
@@ -43,6 +44,7 @@ interface ListingDetailsProps {
 export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -88,6 +90,14 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         returnUrl: `/listings/${listing.id}`
       } 
     });
+  };
+
+  const handleBackClick = () => {
+    if (location.state?.from === '/search') {
+      navigate('/search');
+    } else {
+      navigate(-1);
+    }
   };
 
   const categories = [listing.category, listing.subcategory].filter(Boolean);
@@ -140,7 +150,17 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   const MobileLayout = () => (
     <div className="space-y-6">
-      <ListingImages images={listing.images} title={listing.title} />
+      <div className="relative">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
+          onClick={handleBackClick}
+        >
+          <ArrowLeft className="h-5 w-5 text-gray-700" />
+        </Button>
+        <ListingImages images={listing.images} title={listing.title} />
+      </div>
       
       <div className="px-4">
         <ListingHeader 
@@ -200,70 +220,80 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   );
 
   const DesktopLayout = () => (
-    <div className="grid grid-cols-[2fr,1fr] gap-8 px-6 py-8">
-      <div className="space-y-8">
-        <ListingImages images={listing.images} title={listing.title} />
-        
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Description</h2>
-          <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
-        </Card>
-
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Localisation</h2>
-          <p className="text-gray-700 mb-4">{listing.location}</p>
-          <div className="h-[400px] rounded-lg overflow-hidden">
-            <LocationPicker 
-              onLocationChange={() => {}} 
-              defaultLocation={listing.location}
-              readOnly={true}
-            />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          {renderSecurityInfo()}
-        </Card>
-
-        <Card className="p-6">
-          {renderHandDeliveryInfo()}
-        </Card>
-      </div>
-
-      <div className="space-y-6">
-        <div className="sticky top-6">
+    <div className="relative">
+      <Button 
+        variant="ghost" 
+        size="icon"
+        className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
+        onClick={handleBackClick}
+      >
+        <ArrowLeft className="h-5 w-5 text-gray-700" />
+      </Button>
+      <div className="grid grid-cols-[2fr,1fr] gap-8 px-6 py-8">
+        <div className="space-y-8">
+          <ListingImages images={listing.images} title={listing.title} />
+          
           <Card className="p-6">
-            <ListingHeader 
-              title={listing.title}
-              price={listing.price}
-              cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
-              cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-              categories={categories}
-            />
+            <h2 className="text-xl font-semibold mb-4">Description</h2>
+            <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+          </Card>
 
-            <div className="py-4">
-              <ListingActions
-                listingId={listing.id}
-                sellerId={listing.user_id}
-                sellerAddress={sellerWalletAddress}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Localisation</h2>
+            <p className="text-gray-700 mb-4">{listing.location}</p>
+            <div className="h-[400px] rounded-lg overflow-hidden">
+              <LocationPicker 
+                onLocationChange={() => {}} 
+                defaultLocation={listing.location}
+                readOnly={true}
+              />
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            {renderSecurityInfo()}
+          </Card>
+
+          <Card className="p-6">
+            {renderHandDeliveryInfo()}
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <div className="sticky top-6">
+            <Card className="p-6">
+              <ListingHeader 
                 title={listing.title}
                 price={listing.price}
                 cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
                 cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-                handleBuyClick={handleBuyClick}
+                categories={categories}
               />
-            </div>
 
-            <ProductDetailsCard details={listing} />
+              <div className="py-4">
+                <ListingActions
+                  listingId={listing.id}
+                  sellerId={listing.user_id}
+                  sellerAddress={sellerWalletAddress}
+                  title={listing.title}
+                  price={listing.price}
+                  cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+                  cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+                  handleBuyClick={handleBuyClick}
+                />
+              </div>
 
-            <div className="mt-6 pt-6 border-t">
-              <SellerInfo 
-                seller={listing.user}
-                location={listing.location}
-                walletAddress={sellerWalletAddress}
-              />
-            </div>
-          </Card>
+              <ProductDetailsCard details={listing} />
+
+              <div className="mt-6 pt-6 border-t">
+                <SellerInfo 
+                  seller={listing.user}
+                  location={listing.location}
+                  walletAddress={sellerWalletAddress}
+                />
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
