@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEscrowContract } from "./useEscrowContract";
 import { useTransactionUpdater } from "./useTransactionUpdater";
 import { useAccount } from 'wagmi';
+import { useNavigate } from 'react-router-dom';
 
 interface UseEscrowPaymentProps {
   listingId: string;
@@ -24,6 +25,7 @@ export function useEscrowPayment({
   const { address, isConnected } = useAccount();
   const { getContract, getActiveContract } = useEscrowContract();
   const { createTransaction, updateTransactionStatus } = useTransactionUpdater();
+  const navigate = useNavigate();
 
   const handlePayment = async () => {
     if (!address) {
@@ -144,7 +146,13 @@ export function useEscrowPayment({
       if (receipt.status === 1) {
         await updateTransactionStatus(transaction.id, 'processing', tx.hash);
         setTransactionStatus('confirmed');
+        toast({
+          title: "Transaction réussie",
+          description: "Vous allez être redirigé vers la page de statut de la transaction",
+        });
         onPaymentComplete();
+        // Redirection vers la page de statut de transaction
+        navigate(`/payment/${transaction.id}`);
       } else {
         throw new Error("La transaction a échoué sur la blockchain");
       }
