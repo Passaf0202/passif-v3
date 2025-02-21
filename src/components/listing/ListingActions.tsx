@@ -71,15 +71,17 @@ export const ListingActions = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <Button className="w-full" disabled>
+        <Button className="w-full" onClick={handleCryptoPayment}>
           {cryptoAmount?.toFixed(6)} {cryptoCurrency} sur Polygon Amoy
         </Button>
 
-        <ContactModal
-          listingId={listingId}
-          sellerId={sellerId}
-          listingTitle={title}
-        />
+        <Button variant="outline" className="w-full" asChild>
+          <ContactModal
+            listingId={listingId}
+            sellerId={sellerId}
+            listingTitle={title}
+          />
+        </Button>
       </div>
     </div>
   );

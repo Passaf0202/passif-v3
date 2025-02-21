@@ -2,6 +2,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import {
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -24,6 +28,7 @@ export const ListingImages = ({
 }: ListingImagesProps) => {
   const [currentImage, setCurrentImage] = useState(0);
   const [useDarkLogo, setUseDarkLogo] = useState<boolean[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = "/placeholder.svg";
@@ -72,59 +77,71 @@ export const ListingImages = ({
   }, [images]);
 
   return (
-    <div className="relative h-[500px] bg-gray-100 rounded-lg overflow-hidden">
-      {images.length > 0 ? (
-        <Carousel className="w-full h-full">
-          <CarouselContent>
-            {images.map((image, index) => (
-              <CarouselItem key={index} className="relative">
-                <img
-                  src={image}
-                  alt={`${title} - Image ${index + 1}`}
-                  className="w-full h-[500px] object-contain"
-                  onClick={(e) => onImageClick?.(e, image)}
-                  onError={handleImageError}
-                />
-                <div className="absolute top-4 left-4 w-24">
+    <>
+      <div className="relative h-[500px] bg-gray-100 rounded-lg overflow-hidden">
+        {images.length > 0 ? (
+          <Carousel className="w-full h-full">
+            <CarouselContent>
+              {images.map((image, index) => (
+                <CarouselItem key={index} className="relative">
                   <img
-                    src={useDarkLogo[index] 
-                      ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20blanc.png"
-                      : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
-                    }
-                    alt="Tradecoiner"
-                    className="w-full h-auto"
+                    src={image}
+                    alt={`${title} - Image ${index + 1}`}
+                    className="w-full h-[500px] object-contain cursor-pointer"
+                    onClick={() => setSelectedImage(image)}
+                    onError={handleImageError}
                   />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-          
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-            {images.map((_, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                size="sm"
-                className={`w-2 h-2 rounded-full p-0 ${
-                  currentImage === index ? 'bg-primary' : 'bg-gray-300'
-                }`}
-                onClick={() => setCurrentImage(index)}
-              />
-            ))}
+                  <div className="absolute top-4 left-4 w-16">
+                    <img
+                      src={useDarkLogo[index] 
+                        ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20blanc.png"
+                        : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
+                      }
+                      alt="Tradecoiner"
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+            
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+              {images.map((_, index) => (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  size="sm"
+                  className={`w-2 h-2 rounded-full p-0 ${
+                    currentImage === index ? 'bg-primary' : 'bg-gray-300'
+                  }`}
+                  onClick={() => setCurrentImage(index)}
+                />
+              ))}
+            </div>
+          </Carousel>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <img
+              src="/placeholder.svg"
+              alt={title}
+              className="max-h-full"
+              onError={handleImageError}
+            />
           </div>
-        </Carousel>
-      ) : (
-        <div className="flex items-center justify-center h-full">
+        )}
+      </div>
+
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0">
           <img
-            src="/placeholder.svg"
+            src={selectedImage || ''}
             alt={title}
-            className="max-h-full"
-            onError={handleImageError}
+            className="w-full h-full object-contain"
           />
-        </div>
-      )}
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
