@@ -27,18 +27,24 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
             const longitude = parseFloat(lon);
             
             // Initialiser la carte avec la position
-            mapRef.current = L.map(mapContainerRef.current).setView([latitude, longitude], 13);
+            mapRef.current = L.map(mapContainerRef.current).setView([latitude, longitude], 14);
             
             // Ajouter la couche de tuiles
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
               attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(mapRef.current);
 
-            // Ajouter le marqueur
-            L.marker([latitude, longitude])
-              .addTo(mapRef.current)
-              .bindPopup(defaultLocation)
-              .openPopup();
+            // Créer une icône noire personnalisée pour le marqueur
+            const blackIcon = L.divIcon({
+              className: 'custom-div-icon',
+              html: `<div style="background-color: black; width: 20px; height: 20px; border-radius: 50%; transform: translate(-50%, -50%)"></div>`,
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
+            });
+
+            // Ajouter le marqueur avec l'icône noire
+            L.marker([latitude, longitude], { icon: blackIcon })
+              .addTo(mapRef.current);
           }
         })
         .catch(error => {
