@@ -1,11 +1,10 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { ContactModal } from "@/components/ContactModal";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from 'wagmi';
 import { PaymentButton } from "../payment/PaymentButton";
+import { Button } from "../ui/button";
 
 interface ListingActionsProps {
   listingId: string;
@@ -16,6 +15,7 @@ interface ListingActionsProps {
   cryptoAmount?: number;
   cryptoCurrency?: string;
   handleBuyClick?: () => void;
+  isMobile?: boolean;
 }
 
 export const ListingActions = ({ 
@@ -27,6 +27,7 @@ export const ListingActions = ({
   cryptoAmount,
   cryptoCurrency,
   handleBuyClick,
+  isMobile = false
 }: ListingActionsProps) => {
   const { user } = useAuth();
   const { address, isConnected } = useAccount();
@@ -70,26 +71,30 @@ export const ListingActions = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <PaymentButton 
-          isProcessing={isProcessing}
-          isConnected={isConnected}
-          cryptoAmount={cryptoAmount}
-          cryptoCurrency={cryptoCurrency}
-          onClick={handleCryptoPayment}
-          sellerAddress={sellerAddress}
-          listingId={listingId}
-        />
+    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+      <PaymentButton 
+        isProcessing={isProcessing}
+        isConnected={isConnected}
+        cryptoAmount={cryptoAmount}
+        cryptoCurrency={cryptoCurrency}
+        onClick={handleCryptoPayment}
+        sellerAddress={sellerAddress}
+        listingId={listingId}
+        className={isMobile ? 'w-full' : ''}
+      />
 
-        <Button variant="outline" className="w-full" asChild>
-          <ContactModal
-            listingId={listingId}
-            sellerId={sellerId}
-            listingTitle={title}
-          />
-        </Button>
-      </div>
+      <Button 
+        variant="outline" 
+        className={isMobile ? 'w-full' : ''} 
+        asChild
+      >
+        <ContactModal
+          listingId={listingId}
+          sellerId={sellerId}
+          listingTitle={title}
+        />
+      </Button>
     </div>
   );
 }
+

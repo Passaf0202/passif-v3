@@ -1,3 +1,4 @@
+
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -11,6 +12,14 @@ import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Card } from "../ui/card";
+import dynamic from "next/dynamic";
+
+const DynamicMap = dynamic(() => import("../LocationPicker"), {
+  ssr: false,
+  loading: () => <p>Chargement de la carte...</p>,
+});
 
 interface ListingDetailsProps {
   listing: {
@@ -32,16 +41,8 @@ interface ListingDetailsProps {
     wallet_address?: string;
     brand?: string;
     model?: string;
-    year?: number;
-    mileage?: number;
-    condition?: string;
-    color?: string[];
-    transmission?: string;
-    fuel_type?: string;
-    doors?: number;
-    crit_air?: string;
-    emission_class?: string;
-    shipping_method?: string;
+    category?: string;
+    subcategory?: string;
   };
 }
 
@@ -49,6 +50,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
 
@@ -94,69 +96,176 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     });
   };
 
-  if (!listing.user) {
-    console.error("User information is missing from the listing");
-    return (
-      <div className="text-center p-4">
-        <p>Information du vendeur non disponible</p>
+  const categories = [listing.category, listing.subcategory].filter(Boolean);
+
+  const renderSecurityInfo = () => (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold mb-4">Protection Tradecoiner</h2>
+      <div className="space-y-6">
+        <div className="flex gap-4">
+          <Shield className="h-6 w-6 text-blue-500" />
+          <div>
+            <p className="font-semibold mb-1">Paiement sécurisé</p>
+            <p className="text-gray-600">Votre argent est sécurisé et versé au bon moment</p>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <Shield className="h-6 w-6 text-blue-500" />
+          <div>
+            <p className="font-semibold mb-1">Support dédié</p>
+            <p className="text-gray-600">Notre service client dédié vous accompagne</p>
+          </div>
+        </div>
       </div>
-    );
-  }
+    </div>
+  );
+
+  const renderHandDeliveryInfo = () => (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold mb-4">Remise en main propre sécurisée</h2>
+      <div className="space-y-6">
+        <div className="flex gap-4">
+          <Shield className="h-6 w-6 text-blue-500" />
+          <div>
+            <p className="font-semibold mb-1">Réservation garantie</p>
+            <p className="text-gray-600">Réservez ce bien jusqu'au rendez-vous avec le vendeur</p>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <Shield className="h-6 w-6 text-blue-500" />
+          <div>
+            <p className="font-semibold mb-1">Liberté de choix</p>
+            <p className="text-gray-600">Restez libre de refuser ce bien s'il ne correspond pas à vos attentes</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
 
-  console.log("[ListingDetails] Seller wallet details:", {
-    fromListing: listing.wallet_address,
-    fromListingData: listingData?.wallet_address,
-    finalAddress: sellerWalletAddress
-  });
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <ListingImages images={listing.images} title={listing.title} isHovered={false} />
-
-      <div className="space-y-6">
+  const MobileLayout = () => (
+    <div className="space-y-6">
+      <ListingImages images={listing.images} title={listing.title} />
+      
+      <div className="px-4">
         <ListingHeader 
-          title={listing.title} 
-          price={listing.price} 
-          cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
-          cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-        />
-        
-        <SellerInfo 
-          seller={listing.user} 
-          location={listing.location} 
-          walletAddress={sellerWalletAddress}
-        />
-
-        <div className="p-4 bg-blue-50 rounded-lg flex items-start space-x-3">
-          <Shield className="h-5 w-5 text-blue-500 mt-0.5" />
-          <div>
-            <p className="font-semibold text-blue-700">Protection Acheteurs</p>
-            <p className="text-sm text-blue-600">
-              Paiement sécurisé via notre plateforme
-            </p>
-          </div>
-        </div>
-
-        <ListingActions
-          listingId={listing.id}
-          sellerId={listing.user_id}
-          sellerAddress={sellerWalletAddress}
           title={listing.title}
           price={listing.price}
           cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
           cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-          handleBuyClick={handleBuyClick}
+          categories={categories}
+          isMobile={true}
         />
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Description</h2>
-          <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+        <div className="py-4">
+          <ListingActions
+            listingId={listing.id}
+            sellerId={listing.user_id}
+            sellerAddress={sellerWalletAddress}
+            title={listing.title}
+            price={listing.price}
+            cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+            cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+            handleBuyClick={handleBuyClick}
+            isMobile={true}
+          />
         </div>
 
         <ProductDetailsCard details={listing} />
+        
+        <div className="my-6">
+          <h2 className="text-xl font-semibold mb-4">Description</h2>
+          <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4">Localisation</h2>
+          <p className="text-gray-700 mb-4">{listing.location}</p>
+          <div className="h-[300px] rounded-lg overflow-hidden">
+            <DynamicMap onLocationChange={() => {}} />
+          </div>
+        </div>
+
+        {renderSecurityInfo()}
+        {renderHandDeliveryInfo()}
+
+        <div className="mt-6">
+          <SellerInfo 
+            seller={listing.user}
+            location={listing.location}
+            walletAddress={sellerWalletAddress}
+          />
+        </div>
       </div>
     </div>
   );
+
+  const DesktopLayout = () => (
+    <div className="grid grid-cols-[2fr,1fr] gap-8 px-6 py-8">
+      <div className="space-y-8">
+        <ListingImages images={listing.images} title={listing.title} />
+        
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Description</h2>
+          <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Localisation</h2>
+          <p className="text-gray-700 mb-4">{listing.location}</p>
+          <div className="h-[400px] rounded-lg overflow-hidden">
+            <DynamicMap onLocationChange={() => {}} />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          {renderSecurityInfo()}
+        </Card>
+
+        <Card className="p-6">
+          {renderHandDeliveryInfo()}
+        </Card>
+      </div>
+
+      <div className="space-y-6">
+        <div className="sticky top-6">
+          <Card className="p-6">
+            <ListingHeader 
+              title={listing.title}
+              price={listing.price}
+              cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+              cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+              categories={categories}
+            />
+
+            <div className="py-4">
+              <ListingActions
+                listingId={listing.id}
+                sellerId={listing.user_id}
+                sellerAddress={sellerWalletAddress}
+                title={listing.title}
+                price={listing.price}
+                cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+                cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+                handleBuyClick={handleBuyClick}
+              />
+            </div>
+
+            <ProductDetailsCard details={listing} />
+
+            <div className="mt-6 pt-6 border-t">
+              <SellerInfo 
+                seller={listing.user}
+                location={listing.location}
+                walletAddress={sellerWalletAddress}
+              />
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+
+  return isMobile ? <MobileLayout /> : <DesktopLayout />;
 };
