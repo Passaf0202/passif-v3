@@ -1,4 +1,3 @@
-
 import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -14,12 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "../ui/card";
-import dynamic from "next/dynamic";
-
-const DynamicMap = dynamic(() => import("../LocationPicker"), {
-  ssr: false,
-  loading: () => <p>Chargement de la carte...</p>,
-});
+import { LocationPicker } from "../LocationPicker";
 
 interface ListingDetailsProps {
   listing: {
@@ -183,7 +177,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           <h2 className="text-xl font-semibold mb-4">Localisation</h2>
           <p className="text-gray-700 mb-4">{listing.location}</p>
           <div className="h-[300px] rounded-lg overflow-hidden">
-            <DynamicMap onLocationChange={() => {}} />
+            <LocationPicker onLocationChange={() => {}} />
           </div>
         </div>
 
@@ -215,7 +209,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           <h2 className="text-xl font-semibold mb-4">Localisation</h2>
           <p className="text-gray-700 mb-4">{listing.location}</p>
           <div className="h-[400px] rounded-lg overflow-hidden">
-            <DynamicMap onLocationChange={() => {}} />
+            <LocationPicker onLocationChange={() => {}} />
           </div>
         </Card>
 

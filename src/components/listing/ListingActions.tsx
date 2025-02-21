@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { ContactModal } from "@/components/ContactModal";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -80,7 +81,6 @@ export const ListingActions = ({
         onClick={handleCryptoPayment}
         sellerAddress={sellerAddress}
         listingId={listingId}
-        className={isMobile ? 'w-full' : ''}
       />
 
       <Button 
@@ -96,5 +96,4 @@ export const ListingActions = ({
       </Button>
     </div>
   );
-}
-
+};
