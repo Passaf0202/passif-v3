@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -23,15 +23,58 @@ export const ListingImages = ({
   onImageClick 
 }: ListingImagesProps) => {
   const [currentImage, setCurrentImage] = useState(0);
+  const [useDarkLogo, setUseDarkLogo] = useState<boolean[]>([]);
   
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = "/placeholder.svg";
   };
 
+  useEffect(() => {
+    const checkImageBrightness = async (imageUrl: string, index: number) => {
+      try {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = imageUrl;
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let brightness = 0;
+        
+        for (let i = 0; i < imageData.length; i += 4) {
+          brightness += (imageData[i] * 0.299 + imageData[i + 1] * 0.587 + imageData[i + 2] * 0.114);
+        }
+        
+        brightness = brightness / (imageData.length / 4);
+        
+        setUseDarkLogo(prev => {
+          const newState = [...prev];
+          newState[index] = brightness < 128;
+          return newState;
+        });
+      } catch (error) {
+        console.error('Error analyzing image brightness:', error);
+      }
+    };
+
+    images.forEach((image, index) => {
+      checkImageBrightness(image, index);
+    });
+  }, [images]);
+
   return (
     <div className="relative h-[500px] bg-gray-100 rounded-lg overflow-hidden">
       {images.length > 0 ? (
-        <Carousel className="w-full h-full">
+        <Carousel className="w-full h-full" onSelect={setCurrentImage}>
           <CarouselContent>
             {images.map((image, index) => (
               <CarouselItem key={index} className="relative">
@@ -42,11 +85,14 @@ export const ListingImages = ({
                   onClick={(e) => onImageClick?.(e, image)}
                   onError={handleImageError}
                 />
-                <div className="absolute top-4 left-4">
+                <div className="absolute top-4 left-4 w-24">
                   <img
-                    src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
+                    src={useDarkLogo[index] 
+                      ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20blanc.png"
+                      : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
+                    }
                     alt="Tradecoiner"
-                    className="w-24 h-auto opacity-90"
+                    className="w-full h-auto"
                   />
                 </div>
               </CarouselItem>

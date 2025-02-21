@@ -168,11 +168,12 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           </div>
 
           <section className="bg-white rounded-xl shadow-sm p-8 space-y-8">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
+              <h2 className="text-xl font-semibold">Protection</h2>
               <img
                 src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
-                alt="Protection"
-                className="w-32 h-auto"
+                alt="Tradecoiner"
+                className="h-8 w-auto"
               />
             </div>
             
@@ -180,7 +181,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
             
             <div className="grid gap-6">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items 0-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
                   <PackageOpen className="h-5 w-5 text-gray-600" />
                 </div>
                 <div>

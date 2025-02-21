@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ContactModal } from "@/components/ContactModal";
@@ -72,22 +71,18 @@ export const ListingActions = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <PaymentButton 
-          isProcessing={isProcessing}
-          isConnected={isConnected}
-          cryptoAmount={cryptoAmount}
-          cryptoCurrency={cryptoCurrency}
-          onClick={handleCryptoPayment}
-          sellerAddress={sellerAddress}
-          listingId={listingId}
-        />
+        <Button className="w-full" disabled>
+          {cryptoAmount?.toFixed(6)} {cryptoCurrency} sur Polygon Amoy
+        </Button>
 
         <Button variant="outline" className="w-full" asChild>
           <ContactModal
             listingId={listingId}
             sellerId={sellerId}
             listingTitle={title}
-          />
+          >
+            Contacter le vendeur
+          </ContactModal>
         </Button>
       </div>
     </div>
