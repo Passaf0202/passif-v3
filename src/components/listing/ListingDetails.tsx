@@ -104,19 +104,23 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   const renderSecurityInfo = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold mb-4">Protection Tradecoiner</h2>
-      <div className="space-y-6">
-        <div className="flex gap-4">
-          <Shield className="h-6 w-6 text-blue-500" />
+      <h2 className="text-2xl font-semibold mb-6">Protection Tradecoiner</h2>
+      <div className="space-y-8">
+        <div className="flex gap-4 items-start">
+          <div className="p-3 bg-gray-100 rounded-lg">
+            <Shield className="h-6 w-6 text-gray-700" />
+          </div>
           <div>
-            <p className="font-semibold mb-1">Paiement sécurisé</p>
+            <p className="text-lg font-semibold mb-1">Paiement sécurisé</p>
             <p className="text-gray-600">Votre argent est sécurisé et versé au bon moment</p>
           </div>
         </div>
-        <div className="flex gap-4">
-          <Shield className="h-6 w-6 text-blue-500" />
+        <div className="flex gap-4 items-start">
+          <div className="p-3 bg-gray-100 rounded-lg">
+            <Shield className="h-6 w-6 text-gray-700" />
+          </div>
           <div>
-            <p className="font-semibold mb-1">Support dédié</p>
+            <p className="text-lg font-semibold mb-1">Support dédié</p>
             <p className="text-gray-600">Notre service client dédié vous accompagne</p>
           </div>
         </div>
@@ -126,19 +130,23 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   const renderHandDeliveryInfo = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold mb-4">Remise en main propre sécurisée</h2>
-      <div className="space-y-6">
-        <div className="flex gap-4">
-          <Shield className="h-6 w-6 text-blue-500" />
+      <h2 className="text-2xl font-semibold mb-6">Remise en main propre sécurisée</h2>
+      <div className="space-y-8">
+        <div className="flex gap-4 items-start">
+          <div className="p-3 bg-gray-100 rounded-lg">
+            <Shield className="h-6 w-6 text-gray-700" />
+          </div>
           <div>
-            <p className="font-semibold mb-1">Réservation garantie</p>
+            <p className="text-lg font-semibold mb-1">Réservation garantie</p>
             <p className="text-gray-600">Réservez ce bien jusqu'au rendez-vous avec le vendeur</p>
           </div>
         </div>
-        <div className="flex gap-4">
-          <Shield className="h-6 w-6 text-blue-500" />
+        <div className="flex gap-4 items-start">
+          <div className="p-3 bg-gray-100 rounded-lg">
+            <Shield className="h-6 w-6 text-gray-700" />
+          </div>
           <div>
-            <p className="font-semibold mb-1">Liberté de choix</p>
+            <p className="text-lg font-semibold mb-1">Liberté de choix</p>
             <p className="text-gray-600">Restez libre de refuser ce bien s'il ne correspond pas à vos attentes</p>
           </div>
         </div>
