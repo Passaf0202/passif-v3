@@ -167,16 +167,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           </div>
 
           <section className="bg-white rounded-xl shadow-sm p-8 space-y-8">
-            <div className="flex items-center gap-4 justify-between">
-              <div className="flex items-center gap-4">
-                <img
-                  src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
-                  alt="Tradecoiner"
-                  className="h-8 w-auto"
-                />
-                <h2 className="text-xl font-semibold">Protection</h2>
-              </div>
-            </div>
+            <h2 className="text-xl font-semibold">Protection Tradecoiner</h2>
             
             <Separator className="my-6" />
             
