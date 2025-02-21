@@ -84,22 +84,23 @@ export const ListingImages = ({
             <CarouselContent>
               {images.map((image, index) => (
                 <CarouselItem key={index} className="relative">
-                  <img
-                    src={image}
-                    alt={`${title} - Image ${index + 1}`}
-                    className="w-full h-[500px] object-contain cursor-pointer"
-                    onClick={() => setSelectedImage(image)}
-                    onError={handleImageError}
-                  />
-                  <div className="absolute top-4 left-4 w-16">
+                  <div className="relative w-full h-[500px] cursor-zoom-in" onClick={() => setSelectedImage(image)}>
                     <img
-                      src={useDarkLogo[index] 
-                        ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20blanc.png"
-                        : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
-                      }
-                      alt="Tradecoiner"
-                      className="w-full h-auto object-contain"
+                      src={image}
+                      alt={`${title} - Image ${index + 1}`}
+                      className="w-full h-full object-contain"
+                      onError={handleImageError}
                     />
+                    <div className="absolute top-4 left-4 w-16 pointer-events-none">
+                      <img
+                        src={useDarkLogo[index] 
+                          ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20blanc.png"
+                          : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
+                        }
+                        alt="Tradecoiner"
+                        className="w-full h-auto object-contain"
+                      />
+                    </div>
                   </div>
                 </CarouselItem>
               ))}
@@ -134,12 +135,24 @@ export const ListingImages = ({
       </div>
 
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0">
-          <img
-            src={selectedImage || ''}
-            alt={title}
-            className="w-full h-full object-contain"
-          />
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-auto">
+          <div className="relative">
+            <img
+              src={selectedImage || ''}
+              alt={title}
+              className="w-full h-auto max-h-[90vh] object-contain"
+            />
+            <div className="absolute top-4 left-4 w-16">
+              <img
+                src={useDarkLogo[currentImage] 
+                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20blanc.png"
+                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
+                }
+                alt="Tradecoiner"
+                className="w-full h-auto object-contain"
+              />
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>

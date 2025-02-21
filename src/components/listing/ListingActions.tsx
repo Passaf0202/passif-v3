@@ -71,11 +71,11 @@ export const ListingActions = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <Button className="w-full" onClick={handleCryptoPayment}>
+        <Button className="w-full h-auto py-2 px-4 whitespace-normal text-sm" onClick={handleCryptoPayment}>
           {cryptoAmount?.toFixed(6)} {cryptoCurrency} sur Polygon Amoy
         </Button>
 
-        <Button variant="outline" className="w-full" asChild>
+        <Button variant="outline" className="w-full h-auto py-2 px-4" asChild>
           <ContactModal
             listingId={listingId}
             sellerId={sellerId}
