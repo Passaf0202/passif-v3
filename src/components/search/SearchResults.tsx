@@ -1,24 +1,21 @@
-
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { ListingCard } from "../ListingCard";
+import { Button } from "../ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchFilters } from "./types";
-import { SearchFiltersHeader } from "./filters/SearchFiltersHeader";
-import { ListingRow } from "./listings/ListingRow";
-import { formatRelativeDate } from "@/utils/dateUtils";
-import { Separator } from "../ui/separator";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { SearchFiltersButton } from "./filters/SearchFiltersButton";
+import { Badge } from "../ui/badge";
+import { X } from "lucide-react";
 
 export const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const titleOnly = searchParams.get("titleOnly") === "true";
-  const isMobile = useIsMobile();
   
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<SearchFilters>({});
-  const [totalCount, setTotalCount] = useState<number>(0);
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -38,17 +35,8 @@ export const SearchResults = () => {
           shipping_method,
           crypto_amount,
           crypto_currency,
-          wallet_address,
-          category,
-          subcategory,
-          subsubcategory,
-          user:profiles!listings_user_id_fkey (
-            id,
-            full_name,
-            avatar_url,
-            wallet_address
-          )
-        `, { count: 'exact' })
+          wallet_address
+        `)
         .eq("status", "active");
 
       if (titleOnly) {
@@ -74,14 +62,13 @@ export const SearchResults = () => {
         queryBuilder = queryBuilder.eq("shipping_method", filters.shipping_method);
       }
 
-      const { data, error, count } = await queryBuilder.order("created_at", { ascending: false });
+      const { data, error } = await queryBuilder.order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching listings:", error);
       } else {
         console.log("Fetched listings:", data);
         setListings(data || []);
-        setTotalCount(count || 0);
       }
       setIsLoading(false);
     };
@@ -89,40 +76,75 @@ export const SearchResults = () => {
     fetchListings();
   }, [query, titleOnly, filters]);
 
-  return (
-    <div className="min-h-screen bg-white">
-      <div className={`${isMobile ? 'px-0' : 'max-w-7xl mx-auto px-4'} py-4`}>
-        <SearchFiltersHeader 
-          filters={filters} 
-          onFiltersChange={setFilters}
-          totalCount={totalCount}
-          location={filters.location}
-        />
+  const removeFilter = (key: keyof SearchFilters) => {
+    const newFilters = { ...filters };
+    delete newFilters[key];
+    setFilters(newFilters);
+  };
 
-        <Separator className={`my-4 ${isMobile ? 'mx-4' : ''}`} />
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">
+            {listings.length} résultat{listings.length !== 1 ? 's' : ''} pour "{query}"
+          </h2>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              {Object.entries(filters).map(([key, value]) => (
+                value && (
+                  <Badge key={key} variant="secondary" className="px-3 py-1">
+                    <span className="mr-2">{`${key === 'minPrice' ? 'Min: ' : key === 'maxPrice' ? 'Max: ' : ''}${value}`}</span>
+                    <X 
+                      className="h-3 w-3 cursor-pointer inline-block" 
+                      onClick={() => removeFilter(key as keyof SearchFilters)}
+                    />
+                  </Badge>
+                )
+              ))}
+            </div>
+            <SearchFiltersButton filters={filters} onFiltersChange={setFilters} />
+          </div>
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : listings.length > 0 ? (
-          <div className={`space-y-4 ${isMobile ? 'px-4' : ''}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {listings.map((listing) => (
-              <ListingRow
+              <ListingCard
                 key={listing.id}
-                listing={listing}
-                date={formatRelativeDate(listing.created_at)}
+                id={listing.id}
+                title={listing.title}
+                price={listing.price}
+                location={listing.location}
+                image={listing.images?.[0] || "/placeholder.svg"}
+                images={listing.images}
+                sellerId={listing.user_id}
+                shipping_method={listing.shipping_method}
+                created_at={listing.created_at}
+                crypto_amount={listing.crypto_amount}
+                crypto_currency={listing.crypto_currency}
+                walletAddress={listing.wallet_address}
               />
             ))}
           </div>
         ) : (
           <div className="text-center py-12">
             <h2 className="text-2xl font-semibold mb-4">
-              Aucune annonce trouvée
+              Aucune annonce trouvée pour "{query}"
             </h2>
-            <p className="text-gray-600">
-              Modifiez vos critères de recherche pour trouver ce que vous cherchez
+            <p className="text-gray-600 mb-6">
+              Soyez le premier à créer une annonce pour cette recherche !
             </p>
+            <Button 
+              size="lg"
+              onClick={() => window.location.href = "/create"}
+            >
+              Créer une annonce
+            </Button>
           </div>
         )}
       </div>

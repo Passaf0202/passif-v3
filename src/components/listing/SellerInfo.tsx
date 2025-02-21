@@ -1,4 +1,3 @@
-
 interface SellerInfoProps {
   seller: {
     avatar_url: string | null;
