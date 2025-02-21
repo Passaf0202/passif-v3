@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 import { formatPrice } from "@/utils/priceUtils";
@@ -5,6 +6,7 @@ import { FavoriteButton } from "@/components/listing/FavoriteButton";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 
 interface ListingRowProps {
   listing: {
@@ -29,6 +31,7 @@ interface ListingRowProps {
 
 export function ListingRow({ listing, date }: ListingRowProps) {
   const isMobile = useIsMobile();
+  const cryptoDetails = useCryptoConversion(listing.price);
   
   const categories = [
     listing.category,
@@ -43,48 +46,62 @@ export function ListingRow({ listing, date }: ListingRowProps) {
 
   if (isMobile) {
     return (
-      <Link to={`/listings/${listing.id}`}>
-        <Card className="mb-3 relative overflow-hidden">
-          <div className="relative h-36"> {/* Hauteur réduite pour les images */}
-            <img
-              src={listing.images[0] || "/placeholder.svg"}
-              alt={listing.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="p-3 space-y-2">
-            <div className="flex justify-between items-start">
-              <h3 className="text-base font-medium line-clamp-2 flex-1 pr-2">
-                {listing.title}
-              </h3>
-              <p className="text-lg font-semibold whitespace-nowrap">
-                {formatPrice(listing.price)}
-              </p>
+      <div className="relative">
+        <Link to={`/listings/${listing.id}`}>
+          <Card className="mb-3 relative overflow-hidden">
+            <div className="relative h-36">
+              <img
+                src={listing.images[0] || "/placeholder.svg"}
+                alt={listing.title}
+                className="w-full h-full object-cover"
+              />
             </div>
+            
+            <div className="p-3 space-y-2">
+              <div className="flex justify-between items-start">
+                <h3 className="text-base font-medium line-clamp-2 flex-1 pr-2">
+                  {listing.title}
+                </h3>
+                <div className="text-right">
+                  <p className="text-lg font-semibold whitespace-nowrap">
+                    {formatPrice(listing.price)}
+                  </p>
+                  {cryptoDetails && (
+                    <p className="text-xs text-gray-600">
+                      ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
+                    </p>
+                  )}
+                </div>
+              </div>
 
-            <div className="flex items-center text-sm text-gray-600">
-              <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-              <span className="truncate">{listing.location}</span>
-            </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">{listing.location}</span>
+              </div>
 
-            <div className="flex flex-wrap gap-1">
-              {categories.slice(0, 2).map((category, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {category}
-                </Badge>
-              ))}
-            </div>
+              <div className="flex flex-wrap gap-1">
+                {categories.slice(0, 2).map((category, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {category}
+                  </Badge>
+                ))}
+              </div>
 
-            <div className="flex justify-between items-center text-xs text-gray-500">
-              <span>{date}</span>
-              <span className="truncate ml-2">
-                {truncateAddress(listing.wallet_address || listing.user?.wallet_address)}
-              </span>
+              <div className="flex justify-between items-center text-xs text-gray-500">
+                <span>{date}</span>
+                <span className="truncate ml-2">
+                  {truncateAddress(listing.wallet_address || listing.user?.wallet_address)}
+                </span>
+              </div>
             </div>
-          </div>
-        </Card>
-      </Link>
+          </Card>
+        </Link>
+        
+        {/* Bouton favori positionné absolument sur la carte */}
+        <div className="absolute top-2 right-2 z-10">
+          <FavoriteButton listingId={listing.id} isHovered={true} />
+        </div>
+      </div>
     );
   }
 
