@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 import { formatPrice } from "@/utils/priceUtils";
@@ -44,8 +43,8 @@ export function ListingRow({ listing, date }: ListingRowProps) {
 
   if (isMobile) {
     return (
-      <Link to={`/listings/${listing.id}`}>
-        <Card className="mb-3 relative overflow-hidden">
+      <Link to={`/listings/${listing.id}`} className="block w-full">
+        <Card className="relative overflow-hidden">
           <div className="relative h-48">
             <img
               src={listing.images[0] || "/placeholder.svg"}
@@ -54,11 +53,6 @@ export function ListingRow({ listing, date }: ListingRowProps) {
             />
             <div className="absolute top-2 right-2">
               <FavoriteButton listingId={listing.id} isHovered={true} />
-            </div>
-            <div className="absolute top-2 left-2">
-              <Badge className="bg-purple-600 text-white">
-                À la une
-              </Badge>
             </div>
           </div>
           
@@ -87,9 +81,11 @@ export function ListingRow({ listing, date }: ListingRowProps) {
 
             <div className="flex justify-between items-center text-xs text-gray-500">
               <span>{date}</span>
-              <span className="truncate ml-2">
-                {truncateAddress(listing.wallet_address || listing.user?.wallet_address)}
-              </span>
+              {(listing.wallet_address || listing.user?.wallet_address) && (
+                <span className="truncate ml-2">
+                  {truncateAddress(listing.wallet_address || listing.user?.wallet_address)}
+                </span>
+              )}
             </div>
           </div>
         </Card>

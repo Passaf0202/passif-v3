@@ -6,7 +6,7 @@ import { PriceRangeSelector } from "./PriceRangeSelector";
 import { ShippingSelector } from "./ShippingSelector";
 import { SearchFilters } from "../types";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface SearchFiltersHeaderProps {
   filters: SearchFilters;
@@ -34,7 +34,7 @@ export function SearchFiltersHeader({
         </div>
 
         <ScrollArea className="w-full">
-          <div className="flex gap-2 px-4 pb-4 whitespace-nowrap">
+          <div className="flex gap-2 px-4 pb-2">
             <LocationSelector 
               currentLocation={filters.location}
               onLocationChange={(loc) => onFiltersChange({ ...filters, location: loc })}
@@ -59,12 +59,13 @@ export function SearchFiltersHeader({
               <Button 
                 variant="outline" 
                 onClick={() => onFiltersChange({})}
-                className="text-sm"
+                className="text-sm whitespace-nowrap"
               >
                 Réinitialiser
               </Button>
             )}
           </div>
+          <ScrollBar orientation="horizontal" className="invisible" />
         </ScrollArea>
       </div>
     );
