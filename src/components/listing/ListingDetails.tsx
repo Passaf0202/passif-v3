@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus, Home, ArrowLeft, Heart } from "lucide-react";
 import { ListingImages } from "./ListingImages";
@@ -108,31 +109,29 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     locale: fr 
   });
 
-  const HeaderContent = () => (
-    <>
-      <h1 className="text-xl font-semibold mb-2">{listing.title}</h1>
-      <div className="flex flex-col space-y-1">
-        <p className="text-2xl font-bold">{listing.price} €</p>
-        {cryptoDetails && (
-          <p className="text-sm text-gray-600">
-            ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
-          </p>
-        )}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mt-2">
-        {listing.category && <Badge variant="secondary">{listing.category}</Badge>}
-        <div className="flex items-center gap-1">
-          <MapPin className="h-4 w-4" />
-          <span>{listing.location}</span>
-        </div>
-        <span>{timeAgo}</span>
-      </div>
-    </>
-  );
-
-  const MainContent = () => (
+  const ListingContent = () => (
     <div className="space-y-6">
+      <div className="flex flex-col space-y-2">
+        <h1 className="text-xl md:text-2xl font-semibold">{listing.title}</h1>
+        <div className="flex flex-col space-y-1">
+          <p className="text-2xl md:text-3xl font-bold">{listing.price} €</p>
+          {cryptoDetails && (
+            <p className="text-sm text-gray-600">
+              ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+          {listing.category && <Badge variant="secondary">{listing.category}</Badge>}
+          <div className="flex items-center gap-1">
+            <MapPin className="h-4 w-4" />
+            <span>{listing.location}</span>
+          </div>
+          <span>{timeAgo}</span>
+        </div>
+      </div>
+
       <ProductDetailsCard details={listing} />
 
       <div className="space-y-2">
@@ -183,53 +182,57 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   );
 
   return (
-    <div className="pb-32 md:pb-0">
-      {/* Version mobile */}
-      <div className="md:hidden">
-        <div className="relative">
-          <div className="h-[250px] w-full">
-            <ListingImages images={listing.images} title={listing.title} />
-          </div>
-          
-          {/* Boutons de navigation */}
-          <div className="absolute top-0 left-0 right-0 p-4 flex justify-between z-20">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="rounded-full bg-white/90 hover:bg-white"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-700" />
-            </Button>
-            
-            <Button
-              variant="secondary"
-              size="icon"
-              className="rounded-full bg-white/90 hover:bg-white"
-            >
-              <Heart className="h-5 w-5 text-gray-700" />
-            </Button>
-          </div>
+    <div className="pb-32 md:pb-0 bg-white min-h-screen">
+      <div className="relative">
+        <div className="h-[250px] md:h-[400px] w-full">
+          <ListingImages images={listing.images} title={listing.title} />
         </div>
-
-        {/* Contenu principal */}
-        <div className="px-4 -mt-6 relative z-10 bg-white rounded-t-3xl">
-          <div className="space-y-4 pt-6">
-            <HeaderContent />
-            <MainContent />
-          </div>
+        
+        <div className="absolute top-0 left-0 right-0 p-4 flex justify-between z-20">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-full bg-white/90 hover:bg-white"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
+          </Button>
+          
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-full bg-white/90 hover:bg-white"
+          >
+            <Heart className="h-5 w-5 text-gray-700" />
+          </Button>
         </div>
       </div>
 
-      {/* Version desktop */}
-      <div className="hidden md:block max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-12 gap-8">
-          <div className="col-span-8">
-            <ListingImages images={listing.images} title={listing.title} />
+      <div className="max-w-7xl mx-auto">
+        <div className="md:grid md:grid-cols-12 md:gap-8">
+          {/* Contenu principal */}
+          <div className="md:col-span-8 px-4 -mt-6 md:mt-8 relative">
+            <div className="md:hidden">
+              <div className="bg-white rounded-t-3xl p-6 space-y-6">
+                <ListingContent />
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <ListingContent />
+            </div>
           </div>
-          <div className="col-span-4">
-            <div className="sticky top-4 space-y-4">
-              <HeaderContent />
+
+          {/* Sidebar desktop */}
+          <div className="hidden md:block md:col-span-4 px-4 mt-8">
+            <div className="sticky top-4 space-y-4 bg-white p-6 rounded-lg border">
+              <div className="space-y-2">
+                <p className="text-3xl font-bold">{listing.price} €</p>
+                {cryptoDetails && (
+                  <p className="text-sm text-gray-600">
+                    ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
+                  </p>
+                )}
+              </div>
               <Button 
                 className="w-full" 
                 onClick={handleBuyClick}
@@ -248,9 +251,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
                 />
               </Button>
             </div>
-          </div>
-          <div className="col-span-12">
-            <MainContent />
           </div>
         </div>
       </div>
