@@ -5,27 +5,23 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEscrowContract } from "./useEscrowContract";
 import { useTransactionUpdater } from "./useTransactionUpdater";
+import { useAccount } from 'wagmi';
 
 interface UseEscrowPaymentProps {
   listingId: string;
-  address?: string;
-  onTransactionHash?: (hash: string) => void;
   onPaymentComplete: () => void;
-  onTransactionCreated?: (id: string) => void;
 }
 
 export function useEscrowPayment({ 
-  listingId, 
-  address,
-  onTransactionHash,
-  onPaymentComplete,
-  onTransactionCreated
+  listingId,
+  onPaymentComplete
 }: UseEscrowPaymentProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transactionStatus, setTransactionStatus] = useState<'none' | 'pending' | 'confirmed' | 'failed'>('none');
   
   const { toast } = useToast();
+  const { address, isConnected } = useAccount();
   const { getContract, getActiveContract } = useEscrowContract();
   const { createTransaction, updateTransactionStatus } = useTransactionUpdater();
 
@@ -40,14 +36,7 @@ export function useEscrowPayment({
       setError(null);
       console.log('Starting escrow payment process for listing:', listingId);
 
-      // Get the authenticated user
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      if (authError || !authUser) {
-        console.error('Auth error:', authError);
-        throw new Error("Vous devez être connecté pour effectuer un paiement");
-      }
-
-      // Récupérer les détails de l'annonce avec le wallet_address du vendeur
+      // Get listing details
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .select(`
@@ -65,9 +54,8 @@ export function useEscrowPayment({
         throw new Error("Impossible de récupérer les détails de l'annonce");
       }
 
-      // Si le wallet_address n'est pas dans la table listings, le récupérer depuis le profil du vendeur
+      // Get seller wallet address
       let sellerWalletAddress = listing.user?.wallet_address;
-
       if (!sellerWalletAddress) {
         const { data: sellerProfile, error: sellerError } = await supabase
           .from('profiles')
@@ -89,15 +77,17 @@ export function useEscrowPayment({
 
       console.log("Seller wallet address:", sellerWalletAddress);
 
+      // Check crypto amount
       if (!listing.crypto_amount) {
         throw new Error("Le montant en crypto n'est pas défini");
       }
 
+      // Prevent self-purchase
       if (sellerWalletAddress.toLowerCase() === address.toLowerCase()) {
         throw new Error("Vous ne pouvez pas acheter votre propre annonce");
       }
 
-      // Vérifier le solde
+      // Get blockchain provider and check balance
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const balance = await provider.getBalance(address);
@@ -107,78 +97,57 @@ export function useEscrowPayment({
         throw new Error("Fonds insuffisants dans votre portefeuille");
       }
 
-      // Récupérer le smart contract
+      // Get active contract
       const activeContract = await getActiveContract();
       if (!activeContract?.address) {
         throw new Error("Aucun contrat actif trouvé");
       }
 
       const contract = await getContract(activeContract.address);
-      console.log("Contract instance initialized:", contract);
+      console.log("Contract instance initialized:", contract.address);
 
-      // Estimation des frais de gas
+      // Estimate gas
       const gasPrice = await provider.getGasPrice();
-      const estimatedGasLimit = await contract.estimateGas.createTransaction(sellerWalletAddress, {
-        value: amountInWei
-      });
+      const estimatedGasLimit = await contract.estimateGas.createTransaction(
+        sellerWalletAddress, 
+        { value: amountInWei }
+      );
 
-      const totalCost = amountInWei.add(gasPrice.mul(estimatedGasLimit));
-      if (balance.lt(totalCost)) {
-        throw new Error("Fonds insuffisants pour couvrir les frais de transaction");
-      }
-
-      console.log("Transaction parameters:", {
-        seller: sellerWalletAddress,
-        amount: ethers.utils.formatEther(amountInWei),
-        gasLimit: estimatedGasLimit.toString(),
-        gasPrice: ethers.utils.formatUnits(gasPrice, 'gwei')
-      });
-
-      // Exécuter la transaction
-      const tx = await contract.createTransaction(sellerWalletAddress, {
-        value: amountInWei,
-        gasLimit: estimatedGasLimit,
-        gasPrice
-      });
+      // Send transaction
+      const tx = await contract.createTransaction(
+        sellerWalletAddress, 
+        {
+          value: amountInWei,
+          gasLimit: estimatedGasLimit,
+          gasPrice
+        }
+      );
 
       console.log("Transaction sent:", tx.hash);
-      if (onTransactionHash) {
-        onTransactionHash(tx.hash);
-      }
+      setTransactionStatus('pending');
 
+      // Wait for confirmation
       const receipt = await tx.wait();
       console.log("Transaction confirmed:", receipt);
 
-      // Créer l'entrée transaction en base de données
+      // Create transaction record
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const transaction = await createTransaction(
         listingId,
-        authUser.id,
+        user.id,
         listing.user_id,
         listing.crypto_amount,
-        listing.crypto_amount * 0.05,
+        listing.crypto_amount * 0.05, // 5% platform fee
         activeContract.address,
         activeContract.chain_id
       );
 
-      if (onTransactionCreated && transaction.id) {
-        onTransactionCreated(transaction.id);
-      }
-
+      // Update status
       if (receipt.status === 1) {
         await updateTransactionStatus(transaction.id, 'processing', tx.hash);
-
-        await supabase.from('transactions')
-          .update({
-            funds_secured: true,
-            funds_secured_at: new Date().toISOString()
-          })
-          .eq('id', transaction.id);
-
         setTransactionStatus('confirmed');
-        toast({
-          title: "Transaction réussie",
-          description: "Les fonds sont bloqués dans l'escrow.",
-        });
         onPaymentComplete();
       } else {
         throw new Error("La transaction a échoué sur la blockchain");
