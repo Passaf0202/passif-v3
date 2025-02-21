@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus, Home } from "lucide-react";
 import { ListingImages } from "./ListingImages";
@@ -109,9 +108,11 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   return (
     <div className="pb-32 md:pb-0">
-      {/* Images en plein écran en mobile */}
+      {/* Images en mobile avec hauteur réduite */}
       <div className="md:hidden -mx-4">
-        <ListingImages images={listing.images} title={listing.title} />
+        <div className="h-[300px]">
+          <ListingImages images={listing.images} title={listing.title} />
+        </div>
       </div>
 
       {/* Contenu principal */}
@@ -123,14 +124,19 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
         {/* Titre et infos principales */}
         <div className="space-y-2 mt-4">
-          <h1 className="text-2xl font-semibold">{listing.title}</h1>
+          <h1 className="text-xl font-semibold">{listing.title}</h1>
           <div className="flex items-center text-gray-600 text-sm gap-2">
             <span>{listing.category}</span>
             <span>•</span>
             <span>{listing.location}</span>
           </div>
-          <div className="flex items-baseline gap-2">
+          <div className="flex flex-col gap-1">
             <p className="text-2xl font-bold">{listing.price} €</p>
+            {cryptoDetails && (
+              <p className="text-sm text-gray-600">
+                ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
+              </p>
+            )}
             <span className="text-gray-600 text-sm">{timeAgo}</span>
           </div>
         </div>

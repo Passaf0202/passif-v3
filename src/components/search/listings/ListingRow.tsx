@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 import { formatPrice } from "@/utils/priceUtils";
@@ -46,20 +45,12 @@ export function ListingRow({ listing, date }: ListingRowProps) {
     return (
       <Link to={`/listings/${listing.id}`}>
         <Card className="mb-3 relative overflow-hidden">
-          <div className="relative h-48">
+          <div className="relative h-36"> {/* Hauteur réduite pour les images */}
             <img
               src={listing.images[0] || "/placeholder.svg"}
               alt={listing.title}
               className="w-full h-full object-cover"
             />
-            <div className="absolute top-2 right-2">
-              <FavoriteButton listingId={listing.id} isHovered={true} />
-            </div>
-            <div className="absolute top-2 left-2">
-              <Badge className="bg-purple-600 text-white">
-                À la une
-              </Badge>
-            </div>
           </div>
           
           <div className="p-3 space-y-2">

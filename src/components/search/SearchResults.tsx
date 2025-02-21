@@ -90,40 +90,42 @@ export const SearchResults = () => {
   }, [query, titleOnly, filters]);
 
   return (
-    <div className={`${isMobile ? 'px-0' : 'max-w-7xl mx-auto px-4'} py-4`}>
-      <SearchFiltersHeader 
-        filters={filters} 
-        onFiltersChange={setFilters}
-        totalCount={totalCount}
-        location={filters.location}
-      />
+    <div className="max-w-full mx-auto">
+      <div className="px-4 py-4 w-full overflow-x-hidden">
+        <SearchFiltersHeader 
+          filters={filters} 
+          onFiltersChange={setFilters}
+          totalCount={totalCount}
+          location={filters.location}
+        />
 
-      <Separator className={`my-4 ${isMobile ? 'mx-4' : ''}`} />
+        <Separator className="my-4" />
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      ) : listings.length > 0 ? (
-        <div className={`space-y-4 ${isMobile ? 'px-4' : ''}`}>
-          {listings.map((listing) => (
-            <ListingRow
-              key={listing.id}
-              listing={listing}
-              date={formatRelativeDate(listing.created_at)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold mb-4">
-            Aucune annonce trouvée
-          </h2>
-          <p className="text-gray-600">
-            Modifiez vos critères de recherche pour trouver ce que vous cherchez
-          </p>
-        </div>
-      )}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : listings.length > 0 ? (
+          <div className="space-y-4 w-full">
+            {listings.map((listing) => (
+              <ListingRow
+                key={listing.id}
+                listing={listing}
+                date={formatRelativeDate(listing.created_at)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-semibold mb-4">
+              Aucune annonce trouvée
+            </h2>
+            <p className="text-gray-600">
+              Modifiez vos critères de recherche pour trouver ce que vous cherchez
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
