@@ -1,5 +1,6 @@
+
 import React from "react";
-import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus, Home } from "lucide-react";
+import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus, Home, ArrowLeft, Heart } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
@@ -15,6 +16,7 @@ import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
 import { Link } from "react-router-dom";
 import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Button } from "@/components/ui/button";
 
 interface ListingDetailsProps {
   listing: {
@@ -108,39 +110,71 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   return (
     <div className="pb-32 md:pb-0">
-      {/* Images en mobile avec hauteur réduite */}
-      <div className="md:hidden -mx-4">
-        <div className="h-[300px]">
+      {/* Images en mobile avec nouvelle hauteur et boutons */}
+      <div className="md:hidden relative">
+        <div className="h-[250px]">
           <ListingImages images={listing.images} title={listing.title} />
+          
+          {/* Boutons sur l'image */}
+          <div className="absolute top-4 left-4">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="rounded-full bg-white/90 hover:bg-white"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-700" />
+            </Button>
+          </div>
+          
+          <div className="absolute top-4 right-4 flex gap-2">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="rounded-full bg-white/90 hover:bg-white"
+            >
+              <Heart className="h-5 w-5 text-gray-700" />
+            </Button>
+          </div>
+
+          {/* Indicateur de position dans le carousel */}
+          <div className="absolute bottom-4 right-4 bg-black/60 text-white px-2 py-1 rounded-full text-sm">
+            1/{listing.images.length}
+          </div>
+        </div>
+
+        {/* Informations principales directement sous l'image */}
+        <div className="p-4 space-y-4 bg-white">
+          <div>
+            <h1 className="text-xl font-semibold mb-2">{listing.title}</h1>
+            <div className="flex flex-col space-y-1">
+              <p className="text-2xl font-bold">{listing.price} €</p>
+              {cryptoDetails && (
+                <p className="text-sm text-gray-600">
+                  ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+            {listing.category && <Badge variant="secondary">{listing.category}</Badge>}
+            <div className="flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              <span>{listing.location}</span>
+            </div>
+            <span>{timeAgo}</span>
+          </div>
         </div>
       </div>
 
-      {/* Contenu principal */}
-      <div className="px-4 md:px-0 space-y-6">
-        {/* Version desktop des images */}
-        <div className="hidden md:block">
-          <ListingImages images={listing.images} title={listing.title} />
-        </div>
+      {/* Version desktop des images */}
+      <div className="hidden md:block">
+        <ListingImages images={listing.images} title={listing.title} />
+      </div>
 
-        {/* Titre et infos principales */}
-        <div className="space-y-2 mt-4">
-          <h1 className="text-xl font-semibold">{listing.title}</h1>
-          <div className="flex items-center text-gray-600 text-sm gap-2">
-            <span>{listing.category}</span>
-            <span>•</span>
-            <span>{listing.location}</span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="text-2xl font-bold">{listing.price} €</p>
-            {cryptoDetails && (
-              <p className="text-sm text-gray-600">
-                ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
-              </p>
-            )}
-            <span className="text-gray-600 text-sm">{timeAgo}</span>
-          </div>
-        </div>
-
+      {/* Reste du contenu */}
+      <div className="px-4 md:px-0 space-y-6 mt-4">
         {/* Caractéristiques du produit */}
         <ProductDetailsCard details={listing} />
 
