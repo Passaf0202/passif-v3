@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork, useAccount } from "wagmi";
@@ -186,7 +185,7 @@ export function EscrowActions({
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false); // On utilise setIsLoading au lieu de setIsProcessing
+      setIsLoading(false);
     }
   };
 
@@ -208,7 +207,7 @@ export function EscrowActions({
     <Button
       onClick={handleConfirmTransaction}
       disabled={isLoading || !canConfirmTransaction}
-      className="w-full bg-black hover:bg-black/90"
+      className="w-full bg-purple-500 hover:bg-purple-600"
     >
       {isLoading ? (
         <>

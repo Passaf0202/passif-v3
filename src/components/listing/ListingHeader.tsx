@@ -1,4 +1,3 @@
-
 import { formatPrice } from "@/utils/priceUtils";
 import { useCurrencyStore } from "@/stores/currencyStore";
 

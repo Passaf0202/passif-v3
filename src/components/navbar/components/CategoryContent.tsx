@@ -12,10 +12,6 @@ interface CategoryContentProps {
 }
 
 export function CategoryContent({ category }: CategoryContentProps) {
-  if (!category) {
-    return null;
-  }
-
   const highlights = CATEGORY_HIGHLIGHTS[category.name] || {
     brands: [],
     sections: [],

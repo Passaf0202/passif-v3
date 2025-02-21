@@ -33,7 +33,6 @@ export const SearchInput = ({
           onFocus();
         }}
         onBlur={() => setIsFocused(false)}
-        style={{ fontSize: '16px' }} // Empêche le zoom sur iOS
       />
     </div>
   );
