@@ -7,11 +7,13 @@ import { SearchFiltersHeader } from "./filters/SearchFiltersHeader";
 import { ListingRow } from "./listings/ListingRow";
 import { formatRelativeDate } from "@/utils/dateUtils";
 import { Separator } from "../ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const titleOnly = searchParams.get("titleOnly") === "true";
+  const isMobile = useIsMobile();
   
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,7 +90,7 @@ export const SearchResults = () => {
   }, [query, titleOnly, filters]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className={`${isMobile ? 'px-0' : 'max-w-7xl mx-auto px-4'} py-4`}>
       <SearchFiltersHeader 
         filters={filters} 
         onFiltersChange={setFilters}
@@ -96,14 +98,14 @@ export const SearchResults = () => {
         location={filters.location}
       />
 
-      <Separator className="my-6" />
+      <Separator className={`my-4 ${isMobile ? 'mx-4' : ''}`} />
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : listings.length > 0 ? (
-        <div className="space-y-4">
+        <div className={`space-y-4 ${isMobile ? 'px-4' : ''}`}>
           {listings.map((listing) => (
             <ListingRow
               key={listing.id}
