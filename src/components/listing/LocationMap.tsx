@@ -79,24 +79,26 @@ export const LocationMap = ({ location }: LocationMapProps) => {
       <div 
         ref={mapContainerRef} 
         className="h-[300px] rounded-lg shadow-md"
-        style={{ zIndex: 1 }} // S'assure que la carte est au-dessus des autres éléments
+        style={{ zIndex: 1 }}
       />
-      <style jsx global>{`
-        .leaflet-container {
-          z-index: 1;
-        }
-        .leaflet-pane {
-          z-index: 1;
-        }
-        .leaflet-top,
-        .leaflet-bottom {
-          z-index: 1;
-        }
-        .custom-div-icon {
-          background: none;
-          border: none;
-        }
-      `}</style>
+      <style>
+        {`
+          .leaflet-container {
+            z-index: 1;
+          }
+          .leaflet-pane {
+            z-index: 1;
+          }
+          .leaflet-top,
+          .leaflet-bottom {
+            z-index: 1;
+          }
+          .custom-div-icon {
+            background: none;
+            border: none;
+          }
+        `}
+      </style>
     </div>
   );
 };
