@@ -1,4 +1,5 @@
-import { ArrowLeft } from "lucide-react";
+
+import { ArrowLeft, LockIcon, HeadphonesIcon, CalendarIcon, ThumbsUpIcon } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
@@ -103,7 +104,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       <div className="space-y-8">
         <div className="flex gap-4 items-start">
           <div className="p-3 bg-gray-100 rounded-lg">
-            <Lock className="h-6 w-6 text-gray-700" />
+            <LockIcon className="h-6 w-6 text-gray-700" />
           </div>
           <div>
             <p className="text-lg font-semibold mb-1">Paiement sécurisé</p>
@@ -112,10 +113,10 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         </div>
         <div className="flex gap-4 items-start">
           <div className="p-3 bg-gray-100 rounded-lg">
-            <Headphones className="h-6 w-6 text-gray-700" />
+            <HeadphonesIcon className="h-6 w-6 text-gray-700" />
           </div>
           <div>
-            <p className="text-lg font-semibold mb-1">Support dédi��</p>
+            <p className="text-lg font-semibold mb-1">Support dédié</p>
             <p className="text-gray-600">Notre service client dédié vous accompagne</p>
           </div>
         </div>
@@ -129,7 +130,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       <div className="space-y-8">
         <div className="flex gap-4 items-start">
           <div className="p-3 bg-gray-100 rounded-lg">
-            <Calendar className="h-6 w-6 text-gray-700" />
+            <CalendarIcon className="h-6 w-6 text-gray-700" />
           </div>
           <div>
             <p className="text-lg font-semibold mb-1">Réservation garantie</p>
@@ -138,7 +139,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         </div>
         <div className="flex gap-4 items-start">
           <div className="p-3 bg-gray-100 rounded-lg">
-            <ThumbsUp className="h-6 w-6 text-gray-700" />
+            <ThumbsUpIcon className="h-6 w-6 text-gray-700" />
           </div>
           <div>
             <p className="text-lg font-semibold mb-1">Liberté de choix</p>
