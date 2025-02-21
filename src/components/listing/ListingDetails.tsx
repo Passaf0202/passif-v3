@@ -209,20 +209,73 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           </section>
 
           {/* Protection acheteur */}
-          <section className="bg-white rounded-xl space-y-4">
+          <section className="bg-white rounded-xl p-8 space-y-8">
             <h2 className="text-xl font-semibold">Protection Tradecoiner</h2>
-            <div className="space-y-4">
+            
+            <Separator className="my-6" />
+            
+            <div className="grid gap-6">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
                   <PackageOpen className="h-5 w-5 text-gray-600" />
                 </div>
                 <div>
-                  <h3 className="font-medium">Paiement sécurisé</h3>
-                  <p className="text-sm text-gray-600">
-                    Votre argent est sécurisé jusqu'à la réception
-                  </p>
+                  <h3 className="font-medium mb-1">Paiement sécurisé</h3>
+                  <p className="text-gray-600 text-sm">Votre argent est sécurisé et versé au bon moment</p>
                 </div>
               </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
+                  <SmilePlus className="h-5 w-5 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium mb-1">Support dédié</h3>
+                  <p className="text-gray-600 text-sm">Notre service client dédié vous accompagne</p>
+                </div>
+              </div>
+
+              <a href="#" className="text-primary hover:underline inline-flex items-center gap-2 text-sm font-medium">
+                En savoir plus
+                <ChevronRight className="h-4 w-4" />
+              </a>
+            </div>
+
+            <Separator className="my-6" />
+
+            <div className="grid gap-6">
+              <div className="flex items-center gap-2">
+                <Handshake className="h-6 w-6 text-gray-600" />
+                <h2 className="text-xl font-semibold">Remise en main propre sécurisée</h2>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="h-5 w-5 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium mb-1">Réservation garantie</h3>
+                  <p className="text-gray-600 text-sm">Réservez ce bien jusqu'au rendez-vous avec le vendeur</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
+                  <Phone className="h-5 w-5 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium mb-1">Liberté de choix</h3>
+                  <p className="text-gray-600 text-sm">Restez libre de refuser ce bien s'il ne correspond pas à vos attentes</p>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setShowHowItWorks(true)}
+                className="text-primary hover:underline inline-flex items-center gap-2 text-sm font-medium"
+              >
+                Comment ça marche ?
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
           </section>
 
