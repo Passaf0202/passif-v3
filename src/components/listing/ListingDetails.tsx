@@ -4,7 +4,7 @@ import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
 import { ListingActions } from "./ListingActions";
 import { ProductDetailsCard } from "./ProductDetailsCard";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
@@ -44,7 +44,6 @@ interface ListingDetailsProps {
 export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -93,11 +92,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   };
 
   const handleBackClick = () => {
-    if (location.state?.from === '/search') {
-      navigate('/search');
-    } else {
-      navigate(-1);
-    }
+    navigate('/search');
   };
 
   const categories = [listing.category, listing.subcategory].filter(Boolean);
@@ -154,8 +149,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     </div>
   );
 
-  const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
-
   const MobileLayout = () => (
     <div className="space-y-6">
       <div className="relative">
@@ -165,7 +158,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
           onClick={handleBackClick}
         >
-          <ArrowLeft className="h-5 w-5 text-gray-700" />
+          <ArrowLeft className="h-5 w-5" />
         </Button>
         <ListingImages images={listing.images} title={listing.title} />
       </div>
@@ -189,7 +182,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           <ListingActions
             listingId={listing.id}
             sellerId={listing.user_id}
-            sellerAddress={sellerWalletAddress}
+            sellerAddress={listingData?.wallet_address || listing.wallet_address}
             title={listing.title}
             price={listing.price}
             cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
@@ -222,7 +215,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           <SellerInfo 
             seller={listing.user}
             location={listing.location}
-            walletAddress={sellerWalletAddress}
+            walletAddress={listingData?.wallet_address || listing.wallet_address}
           />
         </div>
       </div>
@@ -237,7 +230,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
         onClick={handleBackClick}
       >
-        <ArrowLeft className="h-5 w-5 text-gray-700" />
+        <ArrowLeft className="h-5 w-5" />
       </Button>
       <div className="grid grid-cols-[2fr,1fr] gap-8 px-6 py-8">
         <div className="space-y-8">
@@ -284,7 +277,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
                 <ListingActions
                   listingId={listing.id}
                   sellerId={listing.user_id}
-                  sellerAddress={sellerWalletAddress}
+                  sellerAddress={listingData?.wallet_address || listing.wallet_address}
                   title={listing.title}
                   price={listing.price}
                   cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
@@ -299,7 +292,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
                 <SellerInfo 
                   seller={listing.user}
                   location={listing.location}
-                  walletAddress={sellerWalletAddress}
+                  walletAddress={listingData?.wallet_address || listing.wallet_address}
                 />
               </div>
             </Card>
