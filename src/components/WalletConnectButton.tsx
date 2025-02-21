@@ -5,7 +5,7 @@ import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 
 interface WalletConnectButtonProps {
@@ -18,6 +18,14 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   const { open, isOpen } = useWeb3Modal()
   const { toast } = useToast()
   const { user } = useAuth();
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  useEffect(() => {
+    // Réinitialiser l'état de connexion quand isConnected change
+    if (isConnected) {
+      setIsConnecting(false);
+    }
+  }, [isConnected]);
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
     try {
@@ -77,12 +85,15 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           title: "Déconnecté",
           description: "Votre portefeuille a été déconnecté",
         });
+        setIsConnecting(false);
       } else {
+        setIsConnecting(true);
         console.log('Tentative de connexion au wallet...');
         await open();
       }
     } catch (error) {
       console.error('Connection error:', error);
+      setIsConnecting(false);
       toast({
         title: "Erreur",
         description: "Impossible de se connecter au portefeuille. Veuillez réessayer.",
@@ -94,11 +105,11 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   return (
     <Button 
       onClick={handleConnect}
-      disabled={isOpen}
+      disabled={isOpen || isConnecting}
       variant={isConnected ? "outline" : "default"}
       className={`h-8 ${minimal ? 'w-8 p-0' : 'px-3'} rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm`}
     >
-      {isOpen ? (
+      {isOpen || isConnecting ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
           {!minimal && <span className="ml-2">Connexion...</span>}

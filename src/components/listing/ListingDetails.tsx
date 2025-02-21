@@ -1,4 +1,4 @@
-import { Shield, Lock, Headphones, Calendar, ThumbsUp, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
@@ -92,7 +92,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   };
 
   const handleBackClick = () => {
-    navigate('/search');
+    navigate(-1);
   };
 
   const categories = [listing.category, listing.subcategory].filter(Boolean);
@@ -115,7 +115,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
             <Headphones className="h-6 w-6 text-gray-700" />
           </div>
           <div>
-            <p className="text-lg font-semibold mb-1">Support dédié</p>
+            <p className="text-lg font-semibold mb-1">Support dédi��</p>
             <p className="text-gray-600">Notre service client dédié vous accompagne</p>
           </div>
         </div>
