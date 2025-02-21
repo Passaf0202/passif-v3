@@ -6,12 +6,11 @@ import { SellerInfo } from "./SellerInfo";
 import { ListingActions } from "./ListingActions";
 import { ProductDetailsCard } from "./ProductDetailsCard";
 import { LocationMap } from "./LocationMap";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useQuery } from "@tanstack/react-query";
 import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
+import { useEscrowPayment } from "@/hooks/escrow/useEscrowPayment";
 import { Link } from "react-router-dom";
 import {
   Card,
@@ -62,10 +61,9 @@ interface ListingDetailsProps {
 }
 
 export const ListingDetails = ({ listing }: ListingDetailsProps) => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [showHowItWorks, setShowHowItWorks] = React.useState(false);
+  const { createEscrowTransaction } = useEscrowPayment();
   
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
   const isMobile = useIsMobile();
@@ -89,27 +87,22 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     },
   });
 
-  const handleBuyClick = () => {
-    if (!user) {
+  const handleBuyClick = async () => {
+    try {
+      console.log("Starting escrow transaction...");
+      await createEscrowTransaction({
+        listingId: listing.id,
+        amount: listingData?.crypto_amount || cryptoDetails?.amount || 0,
+        sellerAddress: listingData?.wallet_address || listing.wallet_address || "",
+      });
+    } catch (error) {
+      console.error("Error in handleBuyClick:", error);
       toast({
         title: "Erreur",
-        description: "Vous devez être connecté pour acheter",
+        description: "Une erreur est survenue lors de la création de la transaction",
         variant: "destructive",
       });
-      return;
     }
-    
-    navigate(`/payment/${listing.id}`, { 
-      state: { 
-        listing: {
-          ...listing,
-          crypto_amount: listingData?.crypto_amount || cryptoDetails?.amount,
-          crypto_currency: listingData?.crypto_currency || cryptoDetails?.currency,
-          wallet_address: listingData?.wallet_address || listing.wallet_address
-        },
-        returnUrl: `/listings/${listing.id}`
-      } 
-    });
   };
 
   if (!listing.user) {
