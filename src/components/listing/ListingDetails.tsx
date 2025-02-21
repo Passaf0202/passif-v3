@@ -177,7 +177,11 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           <h2 className="text-xl font-semibold mb-4">Localisation</h2>
           <p className="text-gray-700 mb-4">{listing.location}</p>
           <div className="h-[300px] rounded-lg overflow-hidden">
-            <LocationPicker onLocationChange={() => {}} />
+            <LocationPicker 
+              onLocationChange={() => {}} 
+              defaultLocation={listing.location}
+              readOnly={true}
+            />
           </div>
         </div>
 
@@ -209,7 +213,11 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           <h2 className="text-xl font-semibold mb-4">Localisation</h2>
           <p className="text-gray-700 mb-4">{listing.location}</p>
           <div className="h-[400px] rounded-lg overflow-hidden">
-            <LocationPicker onLocationChange={() => {}} />
+            <LocationPicker 
+              onLocationChange={() => {}} 
+              defaultLocation={listing.location}
+              readOnly={true}
+            />
           </div>
         </Card>
 
