@@ -47,6 +47,9 @@ export function NavbarCategories({
     return null;
   }
 
+  // Trouver la catégorie actuelle
+  const currentCategory = displayedCategories.find(cat => cat?.id === menuState.currentCategory);
+
   return (
     <nav className="relative w-full border-b border-gray-200/80">
       <div className="sticky top-0 z-51 bg-white border-b border-gray-200/80">
@@ -86,7 +89,7 @@ export function NavbarCategories({
         </div>
       </div>
 
-      {menuState.isOpen && menuState.currentCategory && ( // Ajout d'une vérification
+      {menuState.isOpen && currentCategory && ( // Modification ici pour utiliser currentCategory
         <div 
           ref={menuRef}
           className="fixed inset-0 z-40"
@@ -107,11 +110,7 @@ export function NavbarCategories({
               onMouseEnter={handleMenuZoneEnter}
               onClick={(e) => e.stopPropagation()}
             >
-              {menuState.currentCategory && (
-                <CategoryContent
-                  category={displayedCategories.find(cat => cat?.id === menuState.currentCategory)!}
-                />
-              )}
+              <CategoryContent category={currentCategory} />
             </div>
           </div>
         </div>
