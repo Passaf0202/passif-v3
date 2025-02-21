@@ -33,40 +33,46 @@ export function SearchFiltersHeader({
           </h1>
         </div>
 
-        <ScrollArea className="w-full">
-          <div className="flex gap-2 px-4 pb-2">
-            <LocationSelector 
-              currentLocation={filters.location}
-              onLocationChange={(loc) => onFiltersChange({ ...filters, location: loc })}
-            />
-            
-            <PriceRangeSelector
-              minPrice={filters.minPrice}
-              maxPrice={filters.maxPrice}
-              onPriceChange={(min, max) => 
-                onFiltersChange({ ...filters, minPrice: min, maxPrice: max })
-              }
-            />
+        <div className="relative">
+          <ScrollArea className="w-full">
+            <div className="flex gap-2 px-4 pb-4">
+              <LocationSelector 
+                currentLocation={filters.location}
+                onLocationChange={(loc) => onFiltersChange({ ...filters, location: loc })}
+              />
+              
+              <PriceRangeSelector
+                minPrice={filters.minPrice}
+                maxPrice={filters.maxPrice}
+                onPriceChange={(min, max) => 
+                  onFiltersChange({ ...filters, minPrice: min, maxPrice: max })
+                }
+              />
 
-            <ShippingSelector
-              currentMethod={filters.shipping_method}
-              onMethodChange={(method) => 
-                onFiltersChange({ ...filters, shipping_method: method })
-              }
-            />
+              <ShippingSelector
+                currentMethod={filters.shipping_method}
+                onMethodChange={(method) => 
+                  onFiltersChange({ ...filters, shipping_method: method })
+                }
+              />
 
-            {Object.keys(filters).length > 0 && (
-              <Button 
-                variant="outline" 
-                onClick={() => onFiltersChange({})}
-                className="text-sm whitespace-nowrap"
-              >
-                Réinitialiser
-              </Button>
-            )}
-          </div>
-          <ScrollBar orientation="horizontal" className="invisible" />
-        </ScrollArea>
+              {Object.keys(filters).length > 0 && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => onFiltersChange({})}
+                  className="text-sm whitespace-nowrap shrink-0"
+                >
+                  Réinitialiser
+                </Button>
+              )}
+            </div>
+            <ScrollBar 
+              orientation="horizontal" 
+              className="h-2 bg-transparent"
+            />
+          </ScrollArea>
+          <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+        </div>
       </div>
     );
   }
