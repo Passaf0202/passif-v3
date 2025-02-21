@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ListingCard } from "../ListingCard";
@@ -7,11 +8,13 @@ import { SearchFilters } from "./types";
 import { SearchFiltersButton } from "./filters/SearchFiltersButton";
 import { Badge } from "../ui/badge";
 import { X } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const titleOnly = searchParams.get("titleOnly") === "true";
+  const isMobile = useIsMobile();
   
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,19 +87,25 @@ export const SearchResults = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className={`space-y-6 ${isMobile ? 'px-2' : ''}`}>
+        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
           <h2 className="text-xl font-semibold">
             {listings.length} résultat{listings.length !== 1 ? 's' : ''} pour "{query}"
           </h2>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col space-y-2 md:flex-row md:items-center md:space-x-4 md:space-y-0">
+            <div className="flex flex-wrap gap-2">
               {Object.entries(filters).map(([key, value]) => (
                 value && (
-                  <Badge key={key} variant="secondary" className="px-3 py-1">
-                    <span className="mr-2">{`${key === 'minPrice' ? 'Min: ' : key === 'maxPrice' ? 'Max: ' : ''}${value}`}</span>
+                  <Badge 
+                    key={key} 
+                    variant="secondary" 
+                    className="px-3 py-1 text-sm"
+                  >
+                    <span className="mr-2">
+                      {`${key === 'minPrice' ? 'Min: ' : key === 'maxPrice' ? 'Max: ' : ''}${value}`}
+                    </span>
                     <X 
-                      className="h-3 w-3 cursor-pointer inline-block" 
+                      className="h-3 w-3 cursor-pointer inline-block hover:text-destructive" 
                       onClick={() => removeFilter(key as keyof SearchFilters)}
                     />
                   </Badge>
@@ -112,7 +121,11 @@ export const SearchResults = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : listings.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className={`grid gap-4 ${
+            isMobile 
+              ? 'grid-cols-2' 
+              : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+          }`}>
             {listings.map((listing) => (
               <ListingCard
                 key={listing.id}
@@ -132,15 +145,16 @@ export const SearchResults = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-semibold mb-4">
+          <div className="text-center py-12 space-y-4">
+            <h2 className="text-2xl font-semibold">
               Aucune annonce trouvée pour "{query}"
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600">
               Soyez le premier à créer une annonce pour cette recherche !
             </p>
             <Button 
               size="lg"
+              className="mt-4"
               onClick={() => window.location.href = "/create"}
             >
               Créer une annonce
