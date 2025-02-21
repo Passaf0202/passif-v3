@@ -1,22 +1,17 @@
-
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { ListingCard } from "../ListingCard";
 import { Button } from "../ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchFilters } from "./types";
 import { SearchFiltersButton } from "./filters/SearchFiltersButton";
-import { MapPin, Euro, Truck } from "lucide-react";
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Card } from "../ui/card";
-import { FavoriteButton } from "../listing/FavoriteButton";
+import { Badge } from "../ui/badge";
+import { X } from "lucide-react";
 
 export const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const titleOnly = searchParams.get("titleOnly") === "true";
-  const isMobile = useIsMobile();
   
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,8 +35,7 @@ export const SearchResults = () => {
           shipping_method,
           crypto_amount,
           crypto_currency,
-          wallet_address,
-          category
+          wallet_address
         `)
         .eq("status", "active");
 
@@ -82,96 +76,78 @@ export const SearchResults = () => {
     fetchListings();
   }, [query, titleOnly, filters]);
 
-  const truncateAddress = (address?: string | null) => {
-    if (!address) return '';
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const removeFilter = (key: keyof SearchFilters) => {
+    const newFilters = { ...filters };
+    delete newFilters[key];
+    setFilters(newFilters);
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">{listings.length} annonces</h1>
-      
-      <div className="flex gap-4 mb-8">
-        <Button variant="outline" className="flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
-          Toute la France
-        </Button>
-        <Button variant="outline" className="flex items-center gap-2">
-          <Euro className="h-4 w-4" />
-          Prix
-        </Button>
-        <Button variant="outline" className="flex items-center gap-2">
-          <Truck className="h-4 w-4" />
-          Mode de livraison
-        </Button>
-      </div>
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">
+            {listings.length} résultat{listings.length !== 1 ? 's' : ''} pour "{query}"
+          </h2>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              {Object.entries(filters).map(([key, value]) => (
+                value && (
+                  <Badge key={key} variant="secondary" className="px-3 py-1">
+                    <span className="mr-2">{`${key === 'minPrice' ? 'Min: ' : key === 'maxPrice' ? 'Max: ' : ''}${value}`}</span>
+                    <X 
+                      className="h-3 w-3 cursor-pointer inline-block" 
+                      onClick={() => removeFilter(key as keyof SearchFilters)}
+                    />
+                  </Badge>
+                )
+              ))}
+            </div>
+            <SearchFiltersButton filters={filters} onFiltersChange={setFilters} />
+          </div>
+        </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {listings.map((listing) => (
-            <Card 
-              key={listing.id}
-              className="flex border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer relative"
-              onClick={() => window.location.href = `/listings/${listing.id}`}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : listings.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {listings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                id={listing.id}
+                title={listing.title}
+                price={listing.price}
+                location={listing.location}
+                image={listing.images?.[0] || "/placeholder.svg"}
+                images={listing.images}
+                sellerId={listing.user_id}
+                shipping_method={listing.shipping_method}
+                created_at={listing.created_at}
+                crypto_amount={listing.crypto_amount}
+                crypto_currency={listing.crypto_currency}
+                walletAddress={listing.wallet_address}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-semibold mb-4">
+              Aucune annonce trouvée pour "{query}"
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Soyez le premier à créer une annonce pour cette recherche !
+            </p>
+            <Button 
+              size="lg"
+              onClick={() => window.location.href = "/create"}
             >
-              <div className="relative w-80 h-60">
-                <img
-                  src={listing.images?.[0] || "/placeholder.svg"}
-                  alt={listing.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-2 right-2">
-                  <FavoriteButton listingId={listing.id} isHovered={true} />
-                </div>
-              </div>
-              
-              <div className="flex-1 p-4 flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-xl font-semibold mb-2">{listing.title}</h2>
-                    <div className="flex items-center text-gray-500 mb-2">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      <span>{listing.location}</span>
-                    </div>
-                    {listing.category && (
-                      <div className="flex gap-2 mt-2">
-                        {listing.category.split(',').map((cat: string) => (
-                          <span 
-                            key={cat} 
-                            className="bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full"
-                          >
-                            {cat.trim()}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <p className="text-gray-500 text-sm mt-2">
-                      {formatDistanceToNow(new Date(listing.created_at), { 
-                        locale: fr,
-                        addSuffix: true 
-                      })}
-                    </p>
-                  </div>
-                  
-                  <div className="text-right">
-                    <p className="text-2xl font-bold">{listing.price},00</p>
-                    <p className="text-sm text-gray-500">
-                      ≈ {listing.crypto_amount} {listing.crypto_currency}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Wallet: {truncateAddress(listing.wallet_address)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+              Créer une annonce
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
