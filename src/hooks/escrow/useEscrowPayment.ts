@@ -82,13 +82,9 @@ export function useEscrowPayment({
         throw new Error("Le montant en crypto n'est pas défini");
       }
 
-      // Prevent self-purchase
-      if (sellerWalletAddress.toLowerCase() === address.toLowerCase()) {
-        throw new Error("Vous ne pouvez pas acheter votre propre annonce");
-      }
-
       // Get blockchain provider and check balance
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []); // Explicitly request accounts
       const signer = provider.getSigner();
       const balance = await provider.getBalance(address);
       const amountInWei = ethers.utils.parseEther(listing.crypto_amount.toString());
