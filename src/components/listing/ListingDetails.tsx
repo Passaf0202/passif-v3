@@ -1,4 +1,3 @@
-
 import { Shield, Star, MapPin } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
@@ -119,6 +118,26 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">
           <ListingImages images={listing.images} title={listing.title} isHovered={false} />
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Protection Tradecoiner
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3 text-sm">
+                <Shield className="h-4 w-4 text-blue-500" />
+                <p>Votre argent est sécurisé et versé au bon moment</p>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Shield className="h-4 w-4 text-blue-500" />
+                <p>Notre service client dédié vous accompagne</p>
+              </div>
+              <a href="#" className="text-blue-500 hover:underline text-sm">En savoir plus →</a>
+            </CardContent>
+          </Card>
           
           <Card>
             <CardHeader>
@@ -128,10 +147,42 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
               <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Remise en main propre sécurisée</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3 text-sm">
+                <Shield className="h-4 w-4 text-blue-500" />
+                <p>Réservez ce bien jusqu'au rendez-vous avec le vendeur</p>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Shield className="h-4 w-4 text-blue-500" />
+                <p>Restez libre de refuser ce bien s'il ne correspond pas à vos attentes</p>
+              </div>
+              <a href="#" className="text-blue-500 hover:underline text-sm">Comment ça marche ?</a>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Localisation</CardTitle>
+              <CardDescription>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  {listing.location}
+                </div>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LocationMap location={listing.location} />
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">
-          <div className="sticky top-4 z-20"> {/* Augmenté le z-index */}
+          <div className="sticky top-4 z-20">
             <Card>
               <CardContent className="p-6">
                 <ListingHeader 
@@ -191,21 +242,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           </div>
         </div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Localisation</CardTitle>
-          <CardDescription>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              {listing.location}
-            </div>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <LocationMap location={listing.location} />
-        </CardContent>
-      </Card>
     </div>
   );
 };
