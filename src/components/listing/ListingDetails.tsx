@@ -151,59 +151,63 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         <div className="space-y-6">
           <ListingImages images={listing.images} title={listing.title} isHovered={false} />
 
-          <Card className="bg-black/10 border-gray-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-gray-800">
-                <Shield className="h-6 w-6 text-gray-600" />
-                Protection Tradecoiner
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 text-sm">
-                <PackageOpen className="h-5 w-5 text-gray-600" />
-                <p className="text-gray-700">Votre argent est sécurisé et versé au bon moment</p>
+          <div className="space-y-6 bg-white rounded-lg border border-gray-200">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <img
+                  src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
+                  alt="Tradecoiner"
+                  className="w-32 h-auto"
+                />
+                <h2 className="text-xl font-semibold">Protection Tradecoiner</h2>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <SmilePlus className="h-5 w-5 text-gray-600" />
-                <p className="text-gray-700">Notre service client dédié vous accompagne</p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <PackageOpen className="h-5 w-5 text-gray-600" />
+                  <p className="text-gray-700">Votre argent est sécurisé et versé au bon moment</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <SmilePlus className="h-5 w-5 text-gray-600" />
+                  <p className="text-gray-700">Notre service client dédié vous accompagne</p>
+                </div>
+                <a href="#" className="text-primary hover:underline block mt-4">
+                  En savoir plus →
+                </a>
               </div>
-              <a href="#" className="text-gray-600 hover:text-gray-800 hover:underline text-sm font-medium">
-                En savoir plus →
-              </a>
-            </CardContent>
-          </Card>
-          
+            </div>
+
+            <Separator />
+            
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Handshake className="h-6 w-6 text-gray-600" />
+                <h2 className="text-xl font-semibold">Remise en main propre sécurisée</h2>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-gray-600" />
+                  <p className="text-gray-700">Réservez ce bien jusqu'au rendez-vous avec le vendeur</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-gray-600" />
+                  <p className="text-gray-700">Restez libre de refuser ce bien s'il ne correspond pas à vos attentes</p>
+                </div>
+                <button 
+                  onClick={() => setShowHowItWorks(true)}
+                  className="text-primary hover:underline block mt-2"
+                >
+                  Comment ça marche ?
+                </button>
+              </div>
+            </div>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle>Description</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-black/10 border-gray-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-gray-800">
-                <Handshake className="h-6 w-6 text-gray-600" />
-                Remise en main propre sécurisée
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 text-sm">
-                <Calendar className="h-5 w-5 text-gray-600" />
-                <p className="text-gray-700">Réservez ce bien jusqu'au rendez-vous avec le vendeur</p>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Phone className="h-5 w-5 text-gray-600" />
-                <p className="text-gray-700">Restez libre de refuser ce bien s'il ne correspond pas à vos attentes</p>
-              </div>
-              <button 
-                onClick={() => setShowHowItWorks(true)}
-                className="text-gray-600 hover:text-gray-800 hover:underline text-sm font-medium"
-              >
-                Comment ça marche ?
-              </button>
             </CardContent>
           </Card>
 

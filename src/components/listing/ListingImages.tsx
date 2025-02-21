@@ -28,18 +28,6 @@ export const ListingImages = ({
     e.currentTarget.src = "/placeholder.svg";
   };
 
-  const getRandomCorner = () => {
-    const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
-    return corners[Math.floor(Math.random() * corners.length)];
-  };
-
-  const cornerClasses = {
-    'top-left': 'top-4 left-4',
-    'top-right': 'top-4 right-4',
-    'bottom-left': 'bottom-4 left-4',
-    'bottom-right': 'bottom-4 right-4'
-  };
-
   return (
     <div className="relative h-[500px] bg-gray-100 rounded-lg overflow-hidden">
       {images.length > 0 ? (
@@ -54,11 +42,11 @@ export const ListingImages = ({
                   onClick={(e) => onImageClick?.(e, image)}
                   onError={handleImageError}
                 />
-                <div className={`absolute ${cornerClasses[getRandomCorner() as keyof typeof cornerClasses]}`}>
+                <div className="absolute top-4 left-4">
                   <img
                     src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
                     alt="Tradecoiner"
-                    className="w-8 h-8 opacity-70"
+                    className="w-24 h-auto opacity-90"
                   />
                 </div>
               </CarouselItem>
