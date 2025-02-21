@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork, useAccount } from "wagmi";
@@ -33,7 +34,9 @@ export function EscrowActions({
   const isMobile = useIsMobile();
   const { connector, isConnected } = useAccount();
 
-  const canConfirmTransaction = false; // On force à false pour empêcher la libération des fonds
+  const canConfirmTransaction = transaction.funds_secured && 
+    !transaction.buyer_confirmation && 
+    (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
   const initializeProvider = async () => {
     try {
@@ -183,7 +186,7 @@ export function EscrowActions({
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsProcessing(false);
     }
   };
 
