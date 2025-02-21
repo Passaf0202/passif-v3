@@ -32,7 +32,7 @@ export const LocationMap = ({ location }: LocationMapProps) => {
             attribution: '© OpenStreetMap contributors'
           }).addTo(mapRef.current);
 
-          // Créer une icône personnalisée pour le marqueur
+          // Créer une icône personnalisée avec un pin noir
           const customIcon = L.divIcon({
             className: 'custom-div-icon',
             html: `
@@ -40,14 +40,10 @@ export const LocationMap = ({ location }: LocationMapProps) => {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background-color: #3b82f6;
-                border: 2px solid white;
-                border-radius: 50%;
                 width: 32px;
                 height: 32px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
               ">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                   <circle cx="12" cy="10" r="3"></circle>
                 </svg>
@@ -57,7 +53,6 @@ export const LocationMap = ({ location }: LocationMapProps) => {
             iconAnchor: [16, 32]
           });
 
-          // Ajouter le marqueur avec l'icône personnalisée
           markerRef.current = L.marker([lat, lon], { icon: customIcon }).addTo(mapRef.current);
         }
       } catch (error) {

@@ -56,7 +56,7 @@ export const ListingImages = ({
                 />
                 <div className={`absolute ${cornerClasses[getRandomCorner() as keyof typeof cornerClasses]}`}>
                   <img
-                    src="/tradecoiner-logo.png"
+                    src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
                     alt="Tradecoiner"
                     className="w-8 h-8 opacity-70"
                   />
