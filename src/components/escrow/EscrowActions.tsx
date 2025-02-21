@@ -33,9 +33,7 @@ export function EscrowActions({
   const isMobile = useIsMobile();
   const { connector, isConnected } = useAccount();
 
-  const canConfirmTransaction = transaction.funds_secured && 
-    !transaction.buyer_confirmation && 
-    (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
+  const canConfirmTransaction = false; // On force à false pour empêcher la libération des fonds
 
   const initializeProvider = async () => {
     try {
@@ -207,7 +205,7 @@ export function EscrowActions({
     <Button
       onClick={handleConfirmTransaction}
       disabled={isLoading || !canConfirmTransaction}
-      className="w-full bg-purple-500 hover:bg-purple-600"
+      className="w-full bg-black hover:bg-black/90"
     >
       {isLoading ? (
         <>
