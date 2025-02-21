@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus, Home, ChevronRight } from "lucide-react";
 import { ListingImages } from "./ListingImages";
@@ -53,6 +54,7 @@ interface ListingDetailsProps {
     crit_air?: string;
     emission_class?: string;
     shipping_method?: string;
+    category?: string; // Ajout de la propriété category
   };
 }
 
