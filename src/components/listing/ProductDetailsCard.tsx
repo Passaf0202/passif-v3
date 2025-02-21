@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 
 interface ProductDetailsProps {
@@ -16,11 +17,12 @@ interface ProductDetailsProps {
     shipping_method?: string;
     crypto_currency?: string;
   };
+  className?: string; // Ajout de la prop className
 }
 
-export const ProductDetailsCard = ({ details }: ProductDetailsProps) => {
+export const ProductDetailsCard = ({ details, className }: ProductDetailsProps) => {
   return (
-    <Card>
+    <Card className={className}>
       <CardContent className="pt-6">
         <h2 className="text-xl font-semibold mb-4">Détails du produit</h2>
         <div className="grid grid-cols-2 gap-4">
