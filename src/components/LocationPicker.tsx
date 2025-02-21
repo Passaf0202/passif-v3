@@ -29,11 +29,10 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
       popupAnchor: [1, -34],
     });
 
-    // Initialize map with lower z-index
     mapRef.current = L.map(mapContainerRef.current, {
       zoomControl: true,
       scrollWheelZoom: !readOnly
-    }).setView([46.603354, 1.888334], 6);
+    });
 
     // Ensure map container and controls have lower z-index
     mapContainerRef.current.style.zIndex = "0";
@@ -48,17 +47,23 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
 
     // If we have a default location, center the map on it
     if (defaultLocation) {
+      console.log('Geocoding location:', defaultLocation);
       fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(defaultLocation)}`)
         .then(res => res.json())
         .then(data => {
+          console.log('Geocoding response:', data);
           if (data.length > 0) {
             const { lat, lon } = data[0];
-            mapRef.current?.setView([parseFloat(lat), parseFloat(lon)], 13);
+            const latitude = parseFloat(lat);
+            const longitude = parseFloat(lon);
+            
+            console.log('Setting view to:', latitude, longitude);
+            mapRef.current?.setView([latitude, longitude], 14);
             
             if (markerRef.current) {
-              markerRef.current.setLatLng([parseFloat(lat), parseFloat(lon)]);
+              markerRef.current.setLatLng([latitude, longitude]);
             } else {
-              markerRef.current = L.marker([parseFloat(lat), parseFloat(lon)], { 
+              markerRef.current = L.marker([latitude, longitude], { 
                 icon: blackIcon 
               }).addTo(mapRef.current!);
             }
@@ -69,34 +74,13 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
         });
     }
 
-    // Add click handler only if not readOnly
-    if (!readOnly) {
-      mapRef.current.on('click', (e) => {
-        const { lat, lng } = e.latlng;
-        
-        if (markerRef.current) {
-          markerRef.current.setLatLng([lat, lng]);
-        } else {
-          markerRef.current = L.marker([lat, lng], { icon: blackIcon }).addTo(mapRef.current!);
-        }
-
-        // Reverse geocode
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-          .then(res => res.json())
-          .then(data => {
-            const location = data.display_name;
-            onLocationChange(location);
-          });
-      });
-    }
-
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-  }, [onLocationChange, readOnly, defaultLocation]);
+  }, [defaultLocation, readOnly]);
 
   const handleAddressSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (readOnly) return;
@@ -114,10 +98,13 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
 
       if (data.length > 0) {
         const { lat, lon } = data[0];
-        mapRef.current?.setView([parseFloat(lat), parseFloat(lon)], 13);
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lon);
+        
+        mapRef.current?.setView([latitude, longitude], 14);
 
         if (markerRef.current) {
-          markerRef.current.setLatLng([parseFloat(lat), parseFloat(lon)]);
+          markerRef.current.setLatLng([latitude, longitude]);
         } else {
           const blackIcon = new L.Icon({
             iconUrl: 'data:image/svg+xml;base64,' + btoa(`
@@ -129,7 +116,7 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
             iconAnchor: [12, 41],
             popupAnchor: [1, -34],
           });
-          markerRef.current = L.marker([parseFloat(lat), parseFloat(lon)], { 
+          markerRef.current = L.marker([latitude, longitude], { 
             icon: blackIcon 
           }).addTo(mapRef.current!);
         }

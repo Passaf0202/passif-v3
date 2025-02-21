@@ -30,6 +30,10 @@ export const ListingImages = ({
     setIsZoomed(true);
   };
 
+  const handleBackClick = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="relative">
       {/* Boutons Retour et Favoris */}
@@ -38,7 +42,7 @@ export const ListingImages = ({
           variant="ghost" 
           size="icon"
           className="bg-white/80 hover:bg-white"
-          onClick={() => navigate(-1)}
+          onClick={handleBackClick}
         >
           <ArrowLeft className="h-5 w-5 text-gray-700" />
         </Button>
