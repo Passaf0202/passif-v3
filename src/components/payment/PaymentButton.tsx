@@ -22,8 +22,6 @@ interface PaymentButtonProps {
 export function PaymentButton({ 
   isProcessing: externalIsProcessing, 
   isConnected, 
-  cryptoAmount, 
-  cryptoCurrency = 'POL',
   onClick,
   disabled = false,
   sellerAddress,
@@ -31,7 +29,7 @@ export function PaymentButton({
 }: PaymentButtonProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
+  const { isWrongNetwork } = useNetworkSwitch();
   const { handlePayment, isProcessing } = usePaymentTransaction({
     listingId,
     address: sellerAddress,
@@ -42,7 +40,7 @@ export function PaymentButton({
   });
   const isMobile = useIsMobile();
 
-  const buttonDisabled = isProcessing || externalIsProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress || !listingId;
+  const buttonDisabled = isProcessing || externalIsProcessing || !isConnected || disabled || !sellerAddress || !listingId;
 
   if (isMobile) {
     return (
@@ -75,7 +73,7 @@ export function PaymentButton({
         ) : !sellerAddress ? (
           "Adresse du vendeur manquante"
         ) : (
-          `Payer ${cryptoAmount?.toFixed(6)} POL sur Polygon Amoy`
+          "Payer"
         )}
       </Button>
 
