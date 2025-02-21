@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { MapPin } from 'lucide-react';
 
 interface LocationMapProps {
   location: string;
@@ -31,25 +32,29 @@ export const LocationMap = ({ location }: LocationMapProps) => {
             attribution: '© OpenStreetMap contributors'
           }).addTo(mapRef.current);
 
-          // Créer une icône personnalisée avec un texte "Mark"
+          // Créer une icône personnalisée pour le marqueur
           const customIcon = L.divIcon({
             className: 'custom-div-icon',
             html: `
               <div style="
-                background-color: white;
-                border: 2px solid #3b82f6;
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-size: 12px;
-                font-weight: 500;
-                color: #1e40af;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #3b82f6;
+                border: 2px solid white;
+                border-radius: 50%;
+                width: 32px;
+                height: 32px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
               ">
-                Mark
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
               </div>
             `,
-            iconSize: [50, 30],
-            iconAnchor: [25, 15]
+            iconSize: [32, 32],
+            iconAnchor: [16, 32]
           });
 
           // Ajouter le marqueur avec l'icône personnalisée
