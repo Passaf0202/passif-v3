@@ -1,4 +1,3 @@
-
 import { useRef } from "react";
 import { useOrganizedCategories } from "./categories/useOrganizedCategories";
 import { useVisibleCategories } from "./categories/useVisibleCategories";
@@ -7,7 +6,7 @@ import { CategoryContent } from "./components/CategoryContent";
 import { NavbarCategoriesProps } from "./types/categories";
 
 export function NavbarCategories({
-  categories = [], // Ajout d'une valeur par défaut
+  categories = [],
   isMobile
 }: NavbarCategoriesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,7 +27,6 @@ export function NavbarCategories({
   const organizedCategories = useOrganizedCategories(categories);
   const visibleCategories = useVisibleCategories(organizedCategories, !!isMobile, containerRef);
 
-  // Ajout d'une vérification pour s'assurer que les catégories existent
   const hiddenCategories = organizedCategories?.filter(
     cat => !visibleCategories?.find(visible => visible?.id === cat?.id)
   ) || [];
@@ -47,7 +45,6 @@ export function NavbarCategories({
     return null;
   }
 
-  // Trouver la catégorie actuelle
   const currentCategory = displayedCategories.find(cat => cat?.id === menuState.currentCategory);
 
   return (
@@ -57,7 +54,7 @@ export function NavbarCategories({
           <div className="h-full flex items-center justify-center" ref={containerRef}>
             <ul className="inline-flex items-center gap-1" ref={menuContainerRef}>
               {displayedCategories.map((category, index) => (
-                category && ( // Ajout d'une vérification
+                category && (
                   <li 
                     key={category.id} 
                     ref={el => categoryRefs.current[category.id] = el}
@@ -89,10 +86,10 @@ export function NavbarCategories({
         </div>
       </div>
 
-      {menuState.isOpen && currentCategory && ( // Modification ici pour utiliser currentCategory
+      {menuState.isOpen && currentCategory && (
         <div 
           ref={menuRef}
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-[100]"
           style={{ top: '96px' }}
           onMouseLeave={handleMenuZoneLeave}
           onClick={handleBackdropClick}
