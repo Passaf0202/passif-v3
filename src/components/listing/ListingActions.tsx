@@ -1,10 +1,10 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ContactModal } from "@/components/ContactModal";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from 'wagmi';
-import { PaymentButton } from "../payment/PaymentButton";
 
 interface ListingActionsProps {
   listingId: string;
@@ -75,16 +75,12 @@ export const ListingActions = ({
           {cryptoAmount?.toFixed(6)} {cryptoCurrency} sur Polygon Amoy
         </Button>
 
-        <Button variant="outline" className="w-full" asChild>
-          <ContactModal
-            listingId={listingId}
-            sellerId={sellerId}
-            listingTitle={title}
-          >
-            Contacter le vendeur
-          </ContactModal>
-        </Button>
+        <ContactModal
+          listingId={listingId}
+          sellerId={sellerId}
+          listingTitle={title}
+        />
       </div>
     </div>
   );
-}
+};

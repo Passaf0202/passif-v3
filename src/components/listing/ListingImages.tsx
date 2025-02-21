@@ -74,7 +74,7 @@ export const ListingImages = ({
   return (
     <div className="relative h-[500px] bg-gray-100 rounded-lg overflow-hidden">
       {images.length > 0 ? (
-        <Carousel className="w-full h-full" onSelect={setCurrentImage}>
+        <Carousel className="w-full h-full">
           <CarouselContent>
             {images.map((image, index) => (
               <CarouselItem key={index} className="relative">
