@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -29,13 +28,25 @@ export const ListingImages = ({
     e.currentTarget.src = "/placeholder.svg";
   };
 
+  const getRandomCorner = () => {
+    const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+    return corners[Math.floor(Math.random() * corners.length)];
+  };
+
+  const cornerClasses = {
+    'top-left': 'top-4 left-4',
+    'top-right': 'top-4 right-4',
+    'bottom-left': 'bottom-4 left-4',
+    'bottom-right': 'bottom-4 right-4'
+  };
+
   return (
     <div className="relative h-[500px] bg-gray-100 rounded-lg overflow-hidden">
       {images.length > 0 ? (
         <Carousel className="w-full h-full">
           <CarouselContent>
             {images.map((image, index) => (
-              <CarouselItem key={index}>
+              <CarouselItem key={index} className="relative">
                 <img
                   src={image}
                   alt={`${title} - Image ${index + 1}`}
@@ -43,6 +54,13 @@ export const ListingImages = ({
                   onClick={(e) => onImageClick?.(e, image)}
                   onError={handleImageError}
                 />
+                <div className={`absolute ${cornerClasses[getRandomCorner() as keyof typeof cornerClasses]}`}>
+                  <img
+                    src="/tradecoiner-logo.png"
+                    alt="Tradecoiner"
+                    className="w-8 h-8 opacity-70"
+                  />
+                </div>
               </CarouselItem>
             ))}
           </CarouselContent>

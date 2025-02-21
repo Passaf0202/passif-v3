@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus } from "lucide-react";
+import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus, Home, ChevronRight } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
@@ -13,6 +12,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useQuery } from "@tanstack/react-query";
 import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -117,29 +117,59 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
 
+  const breadcrumbs = [
+    { label: 'Accueil', href: '/' },
+    { label: 'Vêtements', href: '/categories/vetements' },
+    { label: 'Alsace', href: '/region/alsace' },
+    { label: 'Bas-Rhin', href: '/departement/bas-rhin' },
+    { label: 'Strasbourg 67000', href: '/ville/strasbourg-67000' },
+    { label: listing.title, href: '#' }
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+      <nav className="mb-6">
+        <ol className="flex flex-wrap items-center gap-2 text-sm">
+          {breadcrumbs.map((item, index) => (
+            <React.Fragment key={index}>
+              {index > 0 && <ChevronRight className="h-4 w-4 text-gray-400" />}
+              <li>
+                {index === breadcrumbs.length - 1 ? (
+                  <span className="text-gray-500">{item.label}</span>
+                ) : (
+                  <Link to={item.href} className="text-gray-600 hover:text-gray-900">
+                    {item.label}
+                  </Link>
+                )}
+              </li>
+            </React.Fragment>
+          ))}
+        </ol>
+      </nav>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">
           <ListingImages images={listing.images} title={listing.title} isHovered={false} />
 
-          <Card className="border-blue-100 bg-blue-50/50">
+          <Card className="bg-black/95 border-gray-800">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-900">
-                <Shield className="h-6 w-6 text-blue-500" />
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Shield className="h-6 w-6 text-gray-300" />
                 Protection Tradecoiner
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3 text-sm">
-                <PackageOpen className="h-5 w-5 text-blue-500" />
-                <p className="text-blue-900">Votre argent est sécurisé et versé au bon moment</p>
+                <PackageOpen className="h-5 w-5 text-gray-300" />
+                <p className="text-gray-300">Votre argent est sécurisé et versé au bon moment</p>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <SmilePlus className="h-5 w-5 text-blue-500" />
-                <p className="text-blue-900">Notre service client dédié vous accompagne</p>
+                <SmilePlus className="h-5 w-5 text-gray-300" />
+                <p className="text-gray-300">Notre service client dédié vous accompagne</p>
               </div>
-              <a href="#" className="text-blue-600 hover:text-blue-700 hover:underline text-sm font-medium">En savoir plus →</a>
+              <a href="#" className="text-gray-300 hover:text-white hover:underline text-sm font-medium">
+                En savoir plus →
+              </a>
             </CardContent>
           </Card>
           
@@ -152,25 +182,25 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
             </CardContent>
           </Card>
 
-          <Card className="border-purple-100 bg-purple-50/50">
+          <Card className="bg-black/95 border-gray-800">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-purple-900">
-                <Handshake className="h-6 w-6 text-purple-500" />
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Handshake className="h-6 w-6 text-gray-300" />
                 Remise en main propre sécurisée
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3 text-sm">
-                <Shield className="h-5 w-5 text-purple-500" />
-                <p className="text-purple-900">Réservez ce bien jusqu'au rendez-vous avec le vendeur</p>
+                <Calendar className="h-5 w-5 text-gray-300" />
+                <p className="text-gray-300">Réservez ce bien jusqu'au rendez-vous avec le vendeur</p>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <Shield className="h-5 w-5 text-purple-500" />
-                <p className="text-purple-900">Restez libre de refuser ce bien s'il ne correspond pas à vos attentes</p>
+                <Phone className="h-5 w-5 text-gray-300" />
+                <p className="text-gray-300">Restez libre de refuser ce bien s'il ne correspond pas à vos attentes</p>
               </div>
               <button 
                 onClick={() => setShowHowItWorks(true)}
-                className="text-purple-600 hover:text-purple-700 hover:underline text-sm font-medium"
+                className="text-gray-300 hover:text-white hover:underline text-sm font-medium"
               >
                 Comment ça marche ?
               </button>
@@ -256,30 +286,30 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       </div>
 
       <Dialog open={showHowItWorks} onOpenChange={setShowHowItWorks}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="bg-black/95 border-gray-800 text-white">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-blue-900 mb-6">
+            <DialogTitle className="text-xl font-bold text-white mb-6">
               Les étapes de la remise en main propre avec paiement sécurisé
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-6">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <SmilePlus className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+                <SmilePlus className="w-5 h-5 text-gray-300" />
               </div>
-              <p>En réservant l'article, le vendeur vous confirme la disponibilité de l'article</p>
+              <p className="text-gray-300">En réservant l'article, le vendeur vous confirme la disponibilité de l'article</p>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-5 h-5 text-gray-300" />
               </div>
-              <p>Vous vous organisez avec le vendeur pour définir le lieu et la date de votre rendez-vous</p>
+              <p className="text-gray-300">Vous vous organisez avec le vendeur pour définir le lieu et la date de votre rendez-vous</p>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <Phone className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+                <Phone className="w-5 h-5 text-gray-300" />
               </div>
-              <p>Pensez à prendre votre téléphone portable pour déclencher le paiement depuis votre messagerie Tradecoiner pendant le rendez-vous</p>
+              <p className="text-gray-300">Pensez à prendre votre téléphone portable pour déclencher le paiement depuis votre messagerie Tradecoiner pendant le rendez-vous</p>
             </div>
           </div>
         </DialogContent>
