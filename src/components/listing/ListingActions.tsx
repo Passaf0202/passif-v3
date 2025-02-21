@@ -71,8 +71,8 @@ export const ListingActions = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <Button className="w-full h-auto py-2 px-4 whitespace-normal text-sm" onClick={handleCryptoPayment}>
-          {cryptoAmount?.toFixed(6)} {cryptoCurrency} sur Polygon Amoy
+        <Button className="w-full h-auto py-2 px-4" onClick={handleCryptoPayment}>
+          Payer
         </Button>
 
         <Button variant="outline" className="w-full h-auto py-2 px-4" asChild>
