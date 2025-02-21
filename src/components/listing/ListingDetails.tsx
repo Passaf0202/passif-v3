@@ -56,6 +56,8 @@ interface ListingDetailsProps {
     emission_class?: string;
     shipping_method?: string;
     category?: string;
+    subcategory?: string;
+    subsubcategory?: string;
   };
 }
 
