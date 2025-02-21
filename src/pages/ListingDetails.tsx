@@ -68,12 +68,12 @@ export default function ListingDetailsPage() {
       <Navbar />
       <div className="container mx-auto py-8 relative">
         <Button 
-          onClick={handleBack}
+          onClick={() => navigate('/search')}
           variant="ghost" 
+          size="icon"
           className="absolute left-6 top-4 md:left-8 md:top-12 z-10 hover:bg-white/80 bg-white/60 backdrop-blur-sm"
         >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Retour aux résultats
+          <ArrowLeft className="h-5 w-5" />
         </Button>
         <ListingDetailsComponent listing={listing} />
       </div>

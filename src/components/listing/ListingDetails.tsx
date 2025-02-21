@@ -1,20 +1,19 @@
-import { Shield, ArrowLeft } from "lucide-react";
+import { Shield, Lock, Headphones, Calendar, ThumbsUp } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
 import { ListingActions } from "./ListingActions";
 import { ProductDetailsCard } from "./ProductDetailsCard";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "../ui/card";
 import { LocationPicker } from "../LocationPicker";
-import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 
 interface ListingDetailsProps {
   listing: {
@@ -108,7 +107,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       <div className="space-y-8">
         <div className="flex gap-4 items-start">
           <div className="p-3 bg-gray-100 rounded-lg">
-            <Shield className="h-6 w-6 text-gray-700" />
+            <Lock className="h-6 w-6 text-gray-700" />
           </div>
           <div>
             <p className="text-lg font-semibold mb-1">Paiement sécurisé</p>
@@ -117,7 +116,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         </div>
         <div className="flex gap-4 items-start">
           <div className="p-3 bg-gray-100 rounded-lg">
-            <Shield className="h-6 w-6 text-gray-700" />
+            <Headphones className="h-6 w-6 text-gray-700" />
           </div>
           <div>
             <p className="text-lg font-semibold mb-1">Support dédié</p>
@@ -134,7 +133,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       <div className="space-y-8">
         <div className="flex gap-4 items-start">
           <div className="p-3 bg-gray-100 rounded-lg">
-            <Shield className="h-6 w-6 text-gray-700" />
+            <Calendar className="h-6 w-6 text-gray-700" />
           </div>
           <div>
             <p className="text-lg font-semibold mb-1">Réservation garantie</p>
@@ -143,7 +142,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         </div>
         <div className="flex gap-4 items-start">
           <div className="p-3 bg-gray-100 rounded-lg">
-            <Shield className="h-6 w-6 text-gray-700" />
+            <ThumbsUp className="h-6 w-6 text-gray-700" />
           </div>
           <div>
             <p className="text-lg font-semibold mb-1">Liberté de choix</p>
@@ -171,6 +170,11 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       </div>
       
       <div className="px-4">
+        <Separator className="my-8" />
+        {renderSecurityInfo()}
+        <Separator className="my-8" />
+        {renderHandDeliveryInfo()}
+        <Separator className="my-8" />
         <ListingHeader 
           title={listing.title}
           price={listing.price}
@@ -212,9 +216,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
             />
           </div>
         </div>
-
-        {renderSecurityInfo()}
-        {renderHandDeliveryInfo()}
 
         <div className="mt-6">
           <SellerInfo 
