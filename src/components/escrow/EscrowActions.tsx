@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useNetwork, useSwitchNetwork, useAccount } from "wagmi";
@@ -48,7 +47,7 @@ export function EscrowActions({
       } else if (isConnected && connector) {
         console.log("[EscrowActions] Using WalletConnect provider");
         const connectorProvider = await connector.getProvider();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre que le provider soit prêt
         provider = new ethers.providers.Web3Provider(connectorProvider);
       }
 
@@ -67,6 +66,7 @@ export function EscrowActions({
     try {
       setIsLoading(true);
 
+      // Vérifications préliminaires plus strictes
       if (!user?.id) {
         throw new Error("Utilisateur non connecté");
       }
@@ -80,6 +80,7 @@ export function EscrowActions({
         throw new Error("Adresse du vendeur manquante");
       }
 
+      // Log détaillé des adresses pour le debug
       console.log("[EscrowActions] Transaction wallet addresses:", {
         sellerWalletAddress: transaction.seller_wallet_address,
         transactionSellerId: transaction.seller?.id,
@@ -87,6 +88,14 @@ export function EscrowActions({
         buyerId: transaction.buyer?.id
       });
 
+      // Vérification que la transaction peut être confirmée
+      if (transaction.seller_wallet_address !== transaction.listing?.wallet_address) {
+        throw new Error("L'adresse du vendeur ne correspond pas à celle de l'annonce");
+      }
+
+      console.log("[EscrowActions] Starting transaction confirmation...");
+
+      // 2. Vérifier et changer de réseau si nécessaire
       if (chain?.id !== amoy.id) {
         if (!switchNetwork) {
           throw new Error("Impossible de changer de réseau automatiquement");
@@ -96,6 +105,7 @@ export function EscrowActions({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
+      // 3. Initialiser le provider et le signer
       console.log("[EscrowActions] Initializing provider...");
       const provider = await initializeProvider();
       const signer = provider.getSigner();
@@ -104,26 +114,47 @@ export function EscrowActions({
       const signerAddress = await signer.getAddress();
       console.log("[EscrowActions] Connected with address:", signerAddress);
 
+      // 4. Initialiser le contrat
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
         ESCROW_ABI,
         signer
       );
 
+      if (!transaction.blockchain_txn_id) {
+        throw new Error("ID de transaction blockchain manquant");
+      }
+
+      const txnId = Number(transaction.blockchain_txn_id);
+      console.log("[EscrowActions] Using blockchain transaction ID:", txnId);
+
+      // 5. Vérifier la transaction
+      console.log("[EscrowActions] Checking transaction on blockchain...");
+      const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
+      
+      if (!isFunded) {
+        throw new Error("La transaction n'est pas financée sur la blockchain");
+      }
+
+      if (isCompleted) {
+        throw new Error("La transaction est déjà complétée sur la blockchain");
+      }
+
       // 6. Estimer le gaz
-      console.log("[EscrowActions] Estimating gas for confirmTransaction...");
-      const gasEstimate = await contract.estimateGas.confirmTransaction();
+      console.log("[EscrowActions] Estimating gas...");
+      const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
       const gasLimit = gasEstimate.mul(120).div(100); // +20% marge
 
       // 7. Envoyer la transaction
-      console.log("[EscrowActions] Sending confirmation transaction...");
-      const tx = await contract.confirmTransaction({ gasLimit });
+      console.log("[EscrowActions] Sending release transaction...");
+      const tx = await contract.releaseFunds(txnId, { gasLimit });
       console.log("[EscrowActions] Transaction sent:", tx.hash);
       
       const receipt = await tx.wait();
       console.log("[EscrowActions] Transaction receipt:", receipt);
 
       if (receipt.status === 1) {
+        // 8. Mise à jour de la base de données
         const { error: updateError } = await supabase
           .from('transactions')
           .update({
@@ -176,7 +207,7 @@ export function EscrowActions({
     <Button
       onClick={handleConfirmTransaction}
       disabled={isLoading || !canConfirmTransaction}
-      className="w-full bg-black hover:bg-black/90"
+      className="w-full bg-purple-500 hover:bg-purple-600"
     >
       {isLoading ? (
         <>
