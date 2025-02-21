@@ -31,8 +31,8 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <>
-      <WagmiConfig config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <WagmiConfig config={wagmiConfig}>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -51,8 +51,8 @@ function App() {
             </Routes>
             <Toaster />
           </BrowserRouter>
-        </QueryClientProvider>
-      </WagmiConfig>
+        </WagmiConfig>
+      </QueryClientProvider>
       <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
     </>
   );
