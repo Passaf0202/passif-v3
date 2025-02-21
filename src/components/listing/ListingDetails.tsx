@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Shield, Star, MapPin, PackageOpen, Handshake, Calendar, Phone, SmilePlus, Home, ArrowLeft, Heart } from "lucide-react";
 import { ListingImages } from "./ListingImages";
@@ -110,13 +111,15 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   return (
     <div className="pb-32 md:pb-0">
-      {/* Images en mobile avec nouvelle hauteur et boutons */}
-      <div className="md:hidden relative">
-        <div className="h-[250px]">
-          <ListingImages images={listing.images} title={listing.title} />
+      {/* Version mobile */}
+      <div className="md:hidden">
+        <div className="relative">
+          <div className="h-[250px] w-full">
+            <ListingImages images={listing.images} title={listing.title} />
+          </div>
           
-          {/* Boutons sur l'image */}
-          <div className="absolute top-4 left-4">
+          {/* Boutons de navigation */}
+          <div className="absolute top-0 left-0 right-0 p-4 flex justify-between z-20">
             <Button
               variant="secondary"
               size="icon"
@@ -125,9 +128,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
             >
               <ArrowLeft className="h-5 w-5 text-gray-700" />
             </Button>
-          </div>
-          
-          <div className="absolute top-4 right-4 flex gap-2">
+            
             <Button
               variant="secondary"
               size="icon"
@@ -136,39 +137,84 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
               <Heart className="h-5 w-5 text-gray-700" />
             </Button>
           </div>
-
-          {/* Indicateur de position dans le carousel */}
-          <div className="absolute bottom-4 right-4 bg-black/60 text-white px-2 py-1 rounded-full text-sm">
-            1/{listing.images.length}
-          </div>
         </div>
 
-        {/* Informations principales directement sous l'image */}
-        <div className="p-4 space-y-4 bg-white">
-          <div>
-            <h1 className="text-xl font-semibold mb-2">{listing.title}</h1>
-            <div className="flex flex-col space-y-1">
-              <p className="text-2xl font-bold">{listing.price} €</p>
-              {cryptoDetails && (
-                <p className="text-sm text-gray-600">
-                  ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
-                </p>
-              )}
+        {/* Contenu principal */}
+        <div className="px-4 -mt-6 relative z-10 bg-white rounded-t-3xl">
+          <div className="space-y-4 pt-6">
+            <div>
+              <h1 className="text-xl font-semibold mb-2">{listing.title}</h1>
+              <div className="flex flex-col space-y-1">
+                <p className="text-2xl font-bold">{listing.price} €</p>
+                {cryptoDetails && (
+                  <p className="text-sm text-gray-600">
+                    ≈ {cryptoDetails.amount.toFixed(8)} {cryptoDetails.currency}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-            {listing.category && <Badge variant="secondary">{listing.category}</Badge>}
-            <div className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              <span>{listing.location}</span>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+              {listing.category && <Badge variant="secondary">{listing.category}</Badge>}
+              <div className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                <span>{listing.location}</span>
+              </div>
+              <span>{timeAgo}</span>
             </div>
-            <span>{timeAgo}</span>
+
+            {/* Reste du contenu */}
+            <ProductDetailsCard details={listing} />
+
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold">Description</h2>
+              <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold">Localisation</h2>
+              <p className="text-gray-600 flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                {listing.location}
+              </p>
+              <div className="h-[200px] rounded-lg overflow-hidden">
+                <LocationMap location={listing.location} />
+              </div>
+            </div>
+
+            <SellerInfo 
+              seller={listing.user} 
+              location={listing.location} 
+              walletAddress={listingData?.wallet_address || listing.wallet_address}
+            />
+
+            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+              <h2 className="font-semibold flex items-center gap-2">
+                <Shield className="h-5 w-5 text-blue-600" />
+                Protection acheteur Tradecoiner
+              </h2>
+              <div className="grid gap-4">
+                <div className="flex items-start gap-3">
+                  <PackageOpen className="h-5 w-5 text-gray-600 mt-1" />
+                  <div>
+                    <p className="font-medium">Paiement sécurisé</p>
+                    <p className="text-sm text-gray-600">Votre argent est sécurisé jusqu'à la réception</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <SmilePlus className="h-5 w-5 text-gray-600 mt-1" />
+                  <div>
+                    <p className="font-medium">Support dédié</p>
+                    <p className="text-sm text-gray-600">Une équipe à votre écoute 7j/7</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Version desktop des images */}
+      {/* Version desktop */}
       <div className="hidden md:block">
         <ListingImages images={listing.images} title={listing.title} />
       </div>
@@ -243,4 +289,3 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       </div>
     </div>
   );
-};
