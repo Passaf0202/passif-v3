@@ -128,21 +128,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
               <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Localisation</CardTitle>
-              <CardDescription>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  {listing.location}
-                </div>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <LocationMap location={listing.location} />
-            </CardContent>
-          </Card>
         </div>
 
         <div className="space-y-6">
@@ -206,6 +191,21 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           </div>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Localisation</CardTitle>
+          <CardDescription>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              {listing.location}
+            </div>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LocationMap location={listing.location} />
+        </CardContent>
+      </Card>
     </div>
   );
 };
