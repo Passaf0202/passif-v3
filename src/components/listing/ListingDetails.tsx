@@ -17,6 +17,7 @@ import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ContactModal } from "@/components/ContactModal";
 
 interface ListingDetailsProps {
   listing: {
