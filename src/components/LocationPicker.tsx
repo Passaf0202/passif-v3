@@ -82,13 +82,23 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
   }, [defaultLocation, readOnly]);
 
   return (
-    <div 
-      ref={mapContainerRef} 
-      className="h-[400px] rounded-lg relative" 
-      style={{ 
-        zIndex: 0,
-        isolation: 'isolate'
-      }} 
-    />
+    <div className="space-y-4">
+      {defaultLocation && (
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+          </svg>
+          <span>{defaultLocation}</span>
+        </div>
+      )}
+      <div 
+        ref={mapContainerRef} 
+        className="h-[400px] rounded-lg relative" 
+        style={{ 
+          zIndex: 0,
+          isolation: 'isolate'
+        }} 
+      />
+    </div>
   );
 }
