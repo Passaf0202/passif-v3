@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "../ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ListingDetailsProps {
   listing: {
@@ -64,6 +66,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const [showHowItWorks, setShowHowItWorks] = React.useState(false);
   
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
+  const isMobile = useIsMobile();
 
   const { data: listingData } = useQuery({
     queryKey: ['listing-wallet', listing.id],
@@ -135,6 +138,109 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   };
 
   const breadcrumbs = generateBreadcrumbs();
+
+  const categories = [
+    listing.category,
+    listing.subcategory,
+    listing.subsubcategory
+  ].filter(Boolean);
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-white space-y-4 pb-8">
+        {/* Image principale */}
+        <div className="w-full">
+          <ListingImages images={listing.images} title={listing.title} />
+        </div>
+
+        {/* Informations principales */}
+        <div className="px-4 space-y-6">
+          <div>
+            <ListingHeader 
+              title={listing.title} 
+              price={listing.price} 
+              cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+              cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+            />
+            <div className="mt-4">
+              {categories.map((category, index) => (
+                <Badge key={index} variant="secondary" className="mr-2 mb-2">
+                  {category}
+                </Badge>
+              ))}
+            </div>
+            <ListingActions
+              listingId={listing.id}
+              sellerId={listing.user_id}
+              sellerAddress={sellerWalletAddress}
+              title={listing.title}
+              price={listing.price}
+              cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+              cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+              handleBuyClick={handleBuyClick}
+            />
+          </div>
+
+          {/* Détails du produit */}
+          <ProductDetailsCard details={listing} />
+
+          {/* Description */}
+          <section className="bg-white rounded-xl">
+            <h2 className="text-xl font-semibold mb-4">Description</h2>
+            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+              {listing.description}
+            </p>
+          </section>
+
+          {/* Carte */}
+          <section className="bg-white rounded-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">Localisation</h2>
+                <div className="flex items-center gap-2 text-gray-600 mt-1">
+                  <MapPin className="h-4 w-4" />
+                  <span>{listing.location}</span>
+                </div>
+              </div>
+            </div>
+            <LocationMap location={listing.location} />
+          </section>
+
+          {/* Protection acheteur */}
+          <section className="bg-white rounded-xl space-y-4">
+            <h2 className="text-xl font-semibold">Protection Tradecoiner</h2>
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
+                  <PackageOpen className="h-5 w-5 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium">Paiement sécurisé</h3>
+                  <p className="text-sm text-gray-600">
+                    Votre argent est sécurisé jusqu'à la réception
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Profil vendeur */}
+          <Card className="bg-white rounded-xl">
+            <CardHeader>
+              <CardTitle>Profil Vendeur</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SellerInfo 
+                seller={listing.user} 
+                location={listing.location} 
+                walletAddress={sellerWalletAddress}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">

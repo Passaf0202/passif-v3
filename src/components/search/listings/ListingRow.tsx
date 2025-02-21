@@ -61,9 +61,16 @@ export function ListingRow({ listing, date }: ListingRowProps) {
               <h3 className="text-base font-medium line-clamp-2 flex-1 pr-2">
                 {listing.title}
               </h3>
-              <p className="text-lg font-semibold whitespace-nowrap">
-                {formatPrice(listing.price)}
-              </p>
+              <div className="text-right">
+                <p className="text-lg font-semibold whitespace-nowrap">
+                  {formatPrice(listing.price)} €
+                </p>
+                {listing.crypto_amount && listing.crypto_currency && (
+                  <p className="text-xs text-gray-500">
+                    ≈ {listing.crypto_amount.toFixed(8)} {listing.crypto_currency}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center text-sm text-gray-600">
