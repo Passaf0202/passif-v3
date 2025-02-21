@@ -29,23 +29,43 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
       popupAnchor: [1, -34],
     });
 
-    // Initialize map
-    mapRef.current = L.map(mapContainerRef.current).setView([46.603354, 1.888334], 6);
+    // Initialize map with lower z-index
+    mapRef.current = L.map(mapContainerRef.current, {
+      zoomControl: true,
+      scrollWheelZoom: !readOnly
+    }).setView([46.603354, 1.888334], 6);
+
+    // Ensure map container and controls have lower z-index
+    mapContainerRef.current.style.zIndex = "0";
+    const zoomControl = document.querySelector('.leaflet-control-zoom');
+    if (zoomControl) {
+      (zoomControl as HTMLElement).style.zIndex = "0";
+    }
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(mapRef.current);
 
-    if (defaultLocation && !readOnly) {
-      // Geocode default location
+    // If we have a default location, center the map on it
+    if (defaultLocation) {
       fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(defaultLocation)}`)
         .then(res => res.json())
         .then(data => {
           if (data.length > 0) {
             const { lat, lon } = data[0];
-            mapRef.current?.setView([lat, lon], 13);
-            markerRef.current = L.marker([lat, lon], { icon: blackIcon }).addTo(mapRef.current!);
+            mapRef.current?.setView([parseFloat(lat), parseFloat(lon)], 13);
+            
+            if (markerRef.current) {
+              markerRef.current.setLatLng([parseFloat(lat), parseFloat(lon)]);
+            } else {
+              markerRef.current = L.marker([parseFloat(lat), parseFloat(lon)], { 
+                icon: blackIcon 
+              }).addTo(mapRef.current!);
+            }
           }
+        })
+        .catch(error => {
+          console.error('Error geocoding location:', error);
         });
     }
 
@@ -94,10 +114,10 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
 
       if (data.length > 0) {
         const { lat, lon } = data[0];
-        mapRef.current?.setView([lat, lon], 13);
+        mapRef.current?.setView([parseFloat(lat), parseFloat(lon)], 13);
 
         if (markerRef.current) {
-          markerRef.current.setLatLng([lat, lon]);
+          markerRef.current.setLatLng([parseFloat(lat), parseFloat(lon)]);
         } else {
           const blackIcon = new L.Icon({
             iconUrl: 'data:image/svg+xml;base64,' + btoa(`
@@ -109,7 +129,9 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
             iconAnchor: [12, 41],
             popupAnchor: [1, -34],
           });
-          markerRef.current = L.marker([lat, lon], { icon: blackIcon }).addTo(mapRef.current!);
+          markerRef.current = L.marker([parseFloat(lat), parseFloat(lon)], { 
+            icon: blackIcon 
+          }).addTo(mapRef.current!);
         }
       }
     } catch (error) {
@@ -126,7 +148,14 @@ export function LocationPicker({ onLocationChange, readOnly = false, defaultLoca
           onChange={handleAddressSearch}
         />
       )}
-      <div ref={mapContainerRef} className="h-[400px] rounded-lg" />
+      <div 
+        ref={mapContainerRef} 
+        className="h-[400px] rounded-lg relative" 
+        style={{ 
+          zIndex: 0,
+          isolation: 'isolate'
+        }} 
+      />
     </div>
   );
 }
