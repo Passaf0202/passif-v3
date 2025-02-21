@@ -10,6 +10,7 @@ interface LocationMapProps {
 export const LocationMap = ({ location }: LocationMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -30,7 +31,29 @@ export const LocationMap = ({ location }: LocationMapProps) => {
             attribution: '© OpenStreetMap contributors'
           }).addTo(mapRef.current);
 
-          L.marker([lat, lon]).addTo(mapRef.current);
+          // Créer une icône personnalisée avec un texte "Mark"
+          const customIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: `
+              <div style="
+                background-color: white;
+                border: 2px solid #3b82f6;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 12px;
+                font-weight: 500;
+                color: #1e40af;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              ">
+                Mark
+              </div>
+            `,
+            iconSize: [50, 30],
+            iconAnchor: [25, 15]
+          });
+
+          // Ajouter le marqueur avec l'icône personnalisée
+          markerRef.current = L.marker([lat, lon], { icon: customIcon }).addTo(mapRef.current);
         }
       } catch (error) {
         console.error('Error initializing map:', error);
@@ -44,10 +67,36 @@ export const LocationMap = ({ location }: LocationMapProps) => {
         mapRef.current.remove();
         mapRef.current = null;
       }
+      if (markerRef.current) {
+        markerRef.current.remove();
+        markerRef.current = null;
+      }
     };
   }, [location]);
 
   return (
-    <div ref={mapContainerRef} className="h-[300px] rounded-lg shadow-md" />
+    <div className="relative">
+      <div 
+        ref={mapContainerRef} 
+        className="h-[300px] rounded-lg shadow-md"
+        style={{ zIndex: 1 }} // S'assure que la carte est au-dessus des autres éléments
+      />
+      <style jsx global>{`
+        .leaflet-container {
+          z-index: 1;
+        }
+        .leaflet-pane {
+          z-index: 1;
+        }
+        .leaflet-top,
+        .leaflet-bottom {
+          z-index: 1;
+        }
+        .custom-div-icon {
+          background: none;
+          border: none;
+        }
+      `}</style>
+    </div>
   );
 };
