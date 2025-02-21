@@ -1,10 +1,10 @@
-import { Shield, Lock, Headphones, Calendar, ThumbsUp } from "lucide-react";
+import { Shield, Lock, Headphones, Calendar, ThumbsUp, ArrowLeft } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
 import { ListingActions } from "./ListingActions";
 import { ProductDetailsCard } from "./ProductDetailsCard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "../ui/card";
 import { LocationPicker } from "../LocationPicker";
 import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
 
 interface ListingDetailsProps {
   listing: {
