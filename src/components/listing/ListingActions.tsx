@@ -71,7 +71,11 @@ export const ListingActions = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <Button className="w-full h-auto py-2 px-4" onClick={handleCryptoPayment}>
+        <Button 
+          className="w-full h-auto py-2 px-4" 
+          onClick={handleCryptoPayment}
+          disabled={isProcessing}
+        >
           Payer
         </Button>
 
