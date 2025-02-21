@@ -289,3 +289,4 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       </div>
     </div>
   );
+};
