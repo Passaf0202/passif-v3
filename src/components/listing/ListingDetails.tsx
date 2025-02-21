@@ -1,17 +1,25 @@
 
-import { Shield } from "lucide-react";
+import { Shield, Star, MapPin } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
 import { ListingActions } from "./ListingActions";
 import { ProductDetailsCard } from "./ProductDetailsCard";
+import { LocationMap } from "./LocationMap";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface ListingDetailsProps {
   listing: {
@@ -106,57 +114,97 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
 
-  console.log("[ListingDetails] Seller wallet details:", {
-    fromListing: listing.wallet_address,
-    fromListingData: listingData?.wallet_address,
-    finalAddress: sellerWalletAddress
-  });
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <ListingImages images={listing.images} title={listing.title} isHovered={false} />
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <ListingImages images={listing.images} title={listing.title} isHovered={false} />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+            </CardContent>
+          </Card>
 
-      <div className="space-y-6">
-        <ListingHeader 
-          title={listing.title} 
-          price={listing.price} 
-          cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
-          cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-        />
-        
-        <SellerInfo 
-          seller={listing.user} 
-          location={listing.location} 
-          walletAddress={sellerWalletAddress}
-        />
+          <Card>
+            <CardHeader>
+              <CardTitle>Localisation</CardTitle>
+              <CardDescription>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  {listing.location}
+                </div>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LocationMap location={listing.location} />
+            </CardContent>
+          </Card>
+        </div>
 
-        <div className="p-4 bg-blue-50 rounded-lg flex items-start space-x-3">
-          <Shield className="h-5 w-5 text-blue-500 mt-0.5" />
-          <div>
-            <p className="font-semibold text-blue-700">Protection Acheteurs</p>
-            <p className="text-sm text-blue-600">
-              Paiement sécurisé via notre plateforme
-            </p>
+        <div className="space-y-6">
+          <div className="sticky top-4">
+            <Card>
+              <CardContent className="p-6">
+                <ListingHeader 
+                  title={listing.title} 
+                  price={listing.price} 
+                  cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+                  cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+                />
+                
+                <Separator className="my-6" />
+                
+                <div className="space-y-6">
+                  <div className="p-4 bg-blue-50 rounded-lg flex items-start space-x-3">
+                    <Shield className="h-5 w-5 text-blue-500 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-blue-700">Protection Acheteurs</p>
+                      <p className="text-sm text-blue-600">
+                        Paiement sécurisé via notre plateforme avec escrow
+                      </p>
+                    </div>
+                  </div>
+
+                  <ListingActions
+                    listingId={listing.id}
+                    sellerId={listing.user_id}
+                    sellerAddress={sellerWalletAddress}
+                    title={listing.title}
+                    price={listing.price}
+                    cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+                    cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+                    handleBuyClick={handleBuyClick}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span>Profil Vendeur</span>
+                  <div className="flex items-center text-yellow-500">
+                    <Star className="h-4 w-4 fill-current" />
+                    <span className="ml-1 text-sm">5.0</span>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SellerInfo 
+                  seller={listing.user} 
+                  location={listing.location} 
+                  walletAddress={sellerWalletAddress}
+                />
+              </CardContent>
+            </Card>
+
+            <ProductDetailsCard details={listing} className="mt-6" />
           </div>
         </div>
-
-        <ListingActions
-          listingId={listing.id}
-          sellerId={listing.user_id}
-          sellerAddress={sellerWalletAddress}
-          title={listing.title}
-          price={listing.price}
-          cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
-          cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-          handleBuyClick={handleBuyClick}
-        />
-
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Description</h2>
-          <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
-        </div>
-
-        <ProductDetailsCard details={listing} />
       </div>
     </div>
   );

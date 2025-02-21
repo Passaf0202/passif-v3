@@ -1,4 +1,15 @@
 
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+
 interface ListingImagesProps {
   images: string[];
   title: string;
@@ -12,27 +23,55 @@ export const ListingImages = ({
   isHovered = false,
   onImageClick 
 }: ListingImagesProps) => {
+  const [currentImage, setCurrentImage] = useState(0);
+  
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = "/placeholder.svg";
   };
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <img
-        src={images[0] || "/placeholder.svg"}
-        alt={title}
-        className="h-full w-full object-cover transition-transform duration-300 cursor-pointer"
-        onClick={(e) => onImageClick?.(e, images[0])}
-        onError={handleImageError}
-      />
-      {isHovered && images.length > 1 && (
-        <img
-          src={images[1]}
-          alt={`${title} - Image 2`}
-          className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100 cursor-pointer"
-          onClick={(e) => onImageClick?.(e, images[1])}
-          onError={handleImageError}
-        />
+    <div className="relative h-[500px] bg-gray-100 rounded-lg overflow-hidden">
+      {images.length > 0 ? (
+        <Carousel className="w-full h-full">
+          <CarouselContent>
+            {images.map((image, index) => (
+              <CarouselItem key={index}>
+                <img
+                  src={image}
+                  alt={`${title} - Image ${index + 1}`}
+                  className="w-full h-[500px] object-contain"
+                  onClick={(e) => onImageClick?.(e, image)}
+                  onError={handleImageError}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+          
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+            {images.map((_, index) => (
+              <Button
+                key={index}
+                variant="ghost"
+                size="sm"
+                className={`w-2 h-2 rounded-full p-0 ${
+                  currentImage === index ? 'bg-primary' : 'bg-gray-300'
+                }`}
+                onClick={() => setCurrentImage(index)}
+              />
+            ))}
+          </div>
+        </Carousel>
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <img
+            src="/placeholder.svg"
+            alt={title}
+            className="max-h-full"
+            onError={handleImageError}
+          />
+        </div>
       )}
     </div>
   );
