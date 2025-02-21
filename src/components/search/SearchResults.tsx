@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchFilters } from "./types";
@@ -13,12 +13,14 @@ import { FavoriteButton } from "../listing/FavoriteButton";
 
 export const SearchResults = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const query = searchParams.get("q") || "";
   const titleOnly = searchParams.get("titleOnly") === "true";
   const isMobile = useIsMobile();
   
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState<SearchFilters>({});
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -50,6 +52,20 @@ export const SearchResults = () => {
         queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
       }
 
+      // Application des filtres
+      if (filters.minPrice) {
+        queryBuilder = queryBuilder.gte("price", filters.minPrice);
+      }
+      if (filters.maxPrice) {
+        queryBuilder = queryBuilder.lte("price", filters.maxPrice);
+      }
+      if (filters.location) {
+        queryBuilder = queryBuilder.ilike("location", `%${filters.location}%`);
+      }
+      if (filters.shipping_method) {
+        queryBuilder = queryBuilder.eq("shipping_method", filters.shipping_method);
+      }
+
       const { data, error } = await queryBuilder.order("created_at", { ascending: false });
 
       if (error) {
@@ -62,24 +78,51 @@ export const SearchResults = () => {
     };
 
     fetchListings();
-  }, [query, titleOnly]);
+  }, [query, titleOnly, filters]);
 
   const truncateAddress = (address?: string | null) => {
     if (!address) return '';
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  const handleListingClick = (listingId: string, event: React.MouseEvent) => {
+    // Évite la navigation si on clique sur le bouton favori
+    if ((event.target as HTMLElement).closest('.favorite-button')) {
+      return;
+    }
+    navigate(`/listings/${listingId}`);
+  };
+
   const renderFilterButtons = () => (
     <div className={`flex gap-2 mb-6 ${isMobile ? 'overflow-x-auto pb-2' : ''}`}>
-      <Button variant="outline" size={isMobile ? "sm" : "default"} className="flex items-center gap-2 whitespace-nowrap">
+      <Button 
+        variant="outline" 
+        size={isMobile ? "sm" : "default"} 
+        className="flex items-center gap-2 whitespace-nowrap"
+        onClick={() => setFilters({ ...filters, location: filters.location ? undefined : "France" })}
+      >
         <MapPin className="h-4 w-4" />
         Toute la France
       </Button>
-      <Button variant="outline" size={isMobile ? "sm" : "default"} className="flex items-center gap-2 whitespace-nowrap">
+      <Button 
+        variant="outline" 
+        size={isMobile ? "sm" : "default"} 
+        className="flex items-center gap-2 whitespace-nowrap"
+        onClick={() => setFilters({ 
+          ...filters, 
+          minPrice: filters.minPrice ? undefined : 0,
+          maxPrice: filters.maxPrice ? undefined : 1000
+        })}
+      >
         <Euro className="h-4 w-4" />
         Prix
       </Button>
-      <Button variant="outline" size={isMobile ? "sm" : "default"} className="flex items-center gap-2 whitespace-nowrap">
+      <Button 
+        variant="outline" 
+        size={isMobile ? "sm" : "default"} 
+        className="flex items-center gap-2 whitespace-nowrap"
+        onClick={() => setFilters({ ...filters, shipping_method: filters.shipping_method ? undefined : "hand-delivery" })}
+      >
         <Package2 className="h-4 w-4" />
         Mode de livraison
       </Button>
@@ -87,14 +130,17 @@ export const SearchResults = () => {
   );
 
   const ListingCardMobile = ({ listing }: { listing: any }) => (
-    <Card className="overflow-hidden mb-4">
+    <Card 
+      className="overflow-hidden mb-4"
+      onClick={(e) => handleListingClick(listing.id, e)}
+    >
       <div className="relative">
         <img
           src={listing.images?.[0] || "/placeholder.svg"}
           alt={listing.title}
           className="w-full h-48 object-cover"
         />
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 favorite-button">
           <FavoriteButton listingId={listing.id} isHovered={true} />
         </div>
       </div>
@@ -134,14 +180,17 @@ export const SearchResults = () => {
   );
 
   const ListingCardDesktop = ({ listing }: { listing: any }) => (
-    <Card className="flex mb-4 hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
+    <Card 
+      className="flex mb-4 hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+      onClick={(e) => handleListingClick(listing.id, e)}
+    >
       <div className="relative w-72 h-48 flex-shrink-0">
         <img
           src={listing.images?.[0] || "/placeholder.svg"}
           alt={listing.title}
           className="w-full h-full object-cover"
         />
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 favorite-button">
           <FavoriteButton listingId={listing.id} isHovered={true} />
         </div>
       </div>
