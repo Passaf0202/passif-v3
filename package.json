@@ -46,6 +46,7 @@
     "@react-three/fiber": "^8.17.14",
     "@reown/appkit": "^1.6.8",
     "@reown/appkit-adapter-wagmi": "^1.6.8",
+    "@reown/appkit-wagmi": "^1.0.7",
     "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
