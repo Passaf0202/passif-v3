@@ -1,4 +1,3 @@
-
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,8 @@ export function MobileMenu() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -46,106 +47,157 @@ export function MobileMenu() {
     navigate("/create");
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      // Sauvegarder la recherche
+      const searches = JSON.parse(localStorage.getItem("savedSearches") || "[]");
+      const newSearch = {
+        query: searchInput,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem(
+        "savedSearches",
+        JSON.stringify([...searches, newSearch].slice(-10))
+      );
+
+      navigate(`/search?q=${encodeURIComponent(searchInput)}`);
+      setShowSearch(false);
+    }
+  };
+
+  const handleSavedSearches = () => {
+    const searches = JSON.parse(localStorage.getItem("savedSearches") || "[]");
+    if (searches.length === 0) {
+      toast({
+        title: "Aucune recherche sauvegardée",
+        description: "Vos recherches seront automatiquement sauvegardées quand vous en effectuerez.",
+      });
+      return;
+    }
+    navigate("/saved-searches");
+  };
+
   const renderMainContent = () => (
     <>
-      {/* Actions principales */}
-      <div className="space-y-6 p-4">
-        <Button 
-          onClick={handleCreateListing}
-          className="w-full bg-black hover:bg-black/90 text-white rounded-md h-12 flex items-center gap-3 text-base font-normal"
-        >
-          <Plus className="h-5 w-5" />
-          Déposer une annonce
-        </Button>
-
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/search")}
-          className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
-        >
-          <Search className="h-5 w-5 mr-3" />
-          Rechercher
-        </Button>
-
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/messages")}
-          className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
-        >
-          <MessageCircle className="h-5 w-5 mr-3" />
-          Messages
-        </Button>
-
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/favorites")}
-          className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
-        >
-          <Heart className="h-5 w-5 mr-3" />
-          Favoris
-        </Button>
-
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/saved-searches")}
-          className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
-        >
-          <Save className="h-5 w-5 mr-3" />
-          Recherches sauvegardées
-        </Button>
-      </div>
-
-      {/* Séparateur */}
-      <div className="h-2 bg-gray-100" />
-
-      {/* Liste des catégories */}
-      <div className="py-4">
-        <h3 className="px-4 text-sm font-semibold text-gray-500 mb-2">Catégories</h3>
-        {categories?.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => setSelectedCategory(category)}
-            className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-left"
-          >
-            <span className="text-base">{capitalizeFirstLetter(category.name)}</span>
-            <ChevronRight className="h-5 w-5 text-gray-400" />
-          </button>
-        ))}
-      </div>
-
-      {/* Séparateur */}
-      <div className="h-2 bg-gray-100" />
-
-      {/* Connexion et liens pratiques */}
-      <div className="py-4">
-        {!user && (
-          <Link
-            to="/auth"
-            className="flex items-center justify-between px-4 py-3 font-medium text-primary hover:bg-gray-50"
-          >
-            Se connecter
-            <ChevronRight className="h-5 w-5" />
-          </Link>
-        )}
-
-        <div className="mt-4">
-          <h3 className="px-4 text-sm font-semibold text-gray-500 mb-2">Informations pratiques</h3>
-          <Link
-            to="/help"
-            className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
-          >
-            <span className="text-base">Centre d'aide</span>
-            <ChevronRight className="h-5 w-5 text-gray-400" />
-          </Link>
-          <Link
-            to="/about"
-            className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
-          >
-            <span className="text-base">À propos</span>
-            <ChevronRight className="h-5 w-5 text-gray-400" />
-          </Link>
+      {showSearch ? (
+        <div className="p-4">
+          <form onSubmit={handleSearch} className="space-y-4">
+            <Input
+              type="text"
+              placeholder="Que recherchez-vous ?"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="h-12"
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1">
+                Rechercher
+              </Button>
+              <Button variant="outline" onClick={() => setShowSearch(false)}>
+                Annuler
+              </Button>
+            </div>
+          </form>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="space-y-6 p-4">
+            <Button 
+              onClick={handleCreateListing}
+              className="w-full bg-black hover:bg-black/90 text-white rounded-full h-12 flex items-center gap-3 text-base font-normal"
+            >
+              <Plus className="h-5 w-5" />
+              Déposer une annonce
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={() => setShowSearch(true)}
+              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
+            >
+              <Search className="h-5 w-5 mr-3" />
+              Rechercher
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/messages")}
+              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
+            >
+              <MessageCircle className="h-5 w-5 mr-3" />
+              Messages
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/favorites")}
+              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
+            >
+              <Heart className="h-5 w-5 mr-3" />
+              Favoris
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={handleSavedSearches}
+              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
+            >
+              <Save className="h-5 w-5 mr-3" />
+              Recherches sauvegardées
+            </Button>
+          </div>
+
+          <div className="h-2 bg-gray-100" />
+
+          <div className="py-4">
+            <h3 className="px-4 text-sm font-semibold text-gray-500 mb-2">Catégories</h3>
+            {categories?.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category)}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-left"
+              >
+                <span className="text-base">{capitalizeFirstLetter(category.name)}</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </button>
+            ))}
+          </div>
+
+          <div className="h-2 bg-gray-100" />
+
+          <div className="py-4">
+            {!user && (
+              <Link
+                to="/auth"
+                className="flex items-center justify-between px-4 py-3 font-medium text-primary hover:bg-gray-50"
+              >
+                Se connecter
+                <ChevronRight className="h-5 w-5" />
+              </Link>
+            )}
+
+            <div className="mt-4">
+              <h3 className="px-4 text-sm font-semibold text-gray-500 mb-2">Informations pratiques</h3>
+              <Link
+                to="/help"
+                className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+              >
+                <span className="text-base">Centre d'aide</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </Link>
+              <Link
+                to="/about"
+                className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+              >
+                <span className="text-base">À propos</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </Link>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 
