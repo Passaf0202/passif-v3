@@ -17,7 +17,6 @@ import { UserProfile } from "@/components/UserProfile";
 import Search from "@/pages/Search";
 import Admin from "@/pages/Admin";
 import { AdminRoute } from "@/components/admin/AdminRoute";
-import { createConfig } from 'wagmi';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,12 +27,10 @@ const queryClient = new QueryClient({
   },
 });
 
-const wagmiConfig = createConfig(adapter.wagmiConfig);
-
 function App() {
   return (
     <>
-      <WagmiProvider config={wagmiConfig}>
+      <WagmiProvider config={adapter.wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <Routes>
