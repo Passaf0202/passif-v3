@@ -16,29 +16,29 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
-const queryClient = new QueryClient();
-
 // Configure wagmi config
-export const wagmiConfig = createConfig({
+export const config = createConfig({
   chains: [amoy],
   connectors: [
-    walletConnect({ projectId, metadata, showQrModal: false }),
+    walletConnect({ projectId, showQrModal: false }),
     injected(),
   ],
   transports: {
-    [amoy.id]: http('https://rpc-amoy.polygon.technology'),
+    [amoy.id]: http(),
   },
   ssr: false,
-  syncConnectedChain: true,
-  queryClient,
 });
 
 // Create web3modal instance
 createWeb3Modal({
-  wagmiConfig,
+  wagmiConfig: config,
   projectId,
-  enableAnalytics: true,
+  chains: [amoy],
   themeMode: 'light',
+  themeVariables: {
+    '--w3m-accent': 'rgb(147, 51, 234)',
+    '--w3m-border-radius-master': '0.75rem'
+  },
   defaultChain: amoy,
   tokens: {
     [amoy.id]: {

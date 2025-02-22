@@ -16,7 +16,7 @@ import { UserProfile } from "@/components/UserProfile";
 import Search from "@/pages/Search";
 import Admin from "@/pages/Admin";
 import { AdminRoute } from "@/components/admin/AdminRoute";
-import { wagmiConfig } from './config/walletkit';
+import { config } from './config/walletkit';
 import { amoy } from './config/chains';
 
 const queryClient = new QueryClient({
@@ -37,7 +37,7 @@ const initialState = {
 
 function App() {
   return (
-    <WagmiProvider config={wagmiConfig} initialState={initialState}>
+    <WagmiProvider config={config} initialState={initialState}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <Routes>
