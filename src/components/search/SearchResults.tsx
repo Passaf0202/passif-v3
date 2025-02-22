@@ -11,74 +11,33 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "../ui/card";
 import { FavoriteButton } from "../listing/FavoriteButton";
 
-export const SearchResults = () => {
+interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  location: string;
+  images: string[];
+  user_id: string;
+  shipping_method: string;
+  crypto_amount: number;
+  crypto_currency: string;
+  category: string;
+  subcategory: string;
+  created_at: string;
+  wallet_address: string;
+}
+
+interface SearchResultsProps {
+  listings: Listing[];
+  showFilters?: boolean;
+}
+
+export const SearchResults = ({ listings, showFilters = true }: SearchResultsProps) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const query = searchParams.get("q") || "";
-  const titleOnly = searchParams.get("titleOnly") === "true";
   const isMobile = useIsMobile();
-  
-  const [listings, setListings] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<SearchFilters>({});
-
-  useEffect(() => {
-    const fetchListings = async () => {
-      setIsLoading(true);
-      console.log("Fetching listings with query:", query, "titleOnly:", titleOnly);
-
-      let queryBuilder = supabase
-        .from("listings")
-        .select(`
-          id,
-          title,
-          price,
-          location,
-          images,
-          user_id,
-          created_at,
-          shipping_method,
-          crypto_amount,
-          crypto_currency,
-          wallet_address,
-          category,
-          subcategory
-        `)
-        .eq("status", "active");
-
-      if (titleOnly) {
-        queryBuilder = queryBuilder.ilike("title", `%${query}%`);
-      } else {
-        queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
-      }
-
-      // Application des filtres
-      if (filters.minPrice) {
-        queryBuilder = queryBuilder.gte("price", filters.minPrice);
-      }
-      if (filters.maxPrice) {
-        queryBuilder = queryBuilder.lte("price", filters.maxPrice);
-      }
-      if (filters.location) {
-        queryBuilder = queryBuilder.ilike("location", `%${filters.location}%`);
-      }
-      if (filters.shipping_method) {
-        queryBuilder = queryBuilder.eq("shipping_method", filters.shipping_method);
-      }
-
-      const { data, error } = await queryBuilder.order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching listings:", error);
-      } else {
-        console.log("Fetched listings:", data);
-        setListings(data || []);
-      }
-      setIsLoading(false);
-    };
-
-    fetchListings();
-  }, [query, titleOnly, filters]);
 
   const truncateAddress = (address?: string | null) => {
     if (!address) return '';
@@ -86,7 +45,6 @@ export const SearchResults = () => {
   };
 
   const handleListingClick = (listingId: string, event: React.MouseEvent) => {
-    // Évite la navigation si on clique sur le bouton favori
     if ((event.target as HTMLElement).closest('.favorite-button')) {
       return;
     }
@@ -129,7 +87,7 @@ export const SearchResults = () => {
     </div>
   );
 
-  const ListingCardMobile = ({ listing }: { listing: any }) => (
+  const ListingCardMobile = ({ listing }: { listing: Listing }) => (
     <Card 
       className="overflow-hidden mb-4"
       onClick={(e) => handleListingClick(listing.id, e)}
@@ -179,7 +137,7 @@ export const SearchResults = () => {
     </Card>
   );
 
-  const ListingCardDesktop = ({ listing }: { listing: any }) => (
+  const ListingCardDesktop = ({ listing }: { listing: Listing }) => (
     <Card 
       className="flex mb-4 hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
       onClick={(e) => handleListingClick(listing.id, e)}
@@ -233,24 +191,16 @@ export const SearchResults = () => {
 
   return (
     <div className={`max-w-7xl mx-auto ${isMobile ? 'px-4' : 'px-6'} py-6`}>
-      <h1 className="text-2xl font-bold mb-6">{listings.length} annonces</h1>
-      {renderFilterButtons()}
-      
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        <div>
-          {listings.map((listing) => (
-            isMobile ? (
-              <ListingCardMobile key={listing.id} listing={listing} />
-            ) : (
-              <ListingCardDesktop key={listing.id} listing={listing} />
-            )
-          ))}
-        </div>
-      )}
+      {showFilters && renderFilterButtons()}
+      <div>
+        {listings.map((listing) => (
+          isMobile ? (
+            <ListingCardMobile key={listing.id} listing={listing} />
+          ) : (
+            <ListingCardDesktop key={listing.id} listing={listing} />
+          )
+        ))}
+      </div>
     </div>
   );
 };
