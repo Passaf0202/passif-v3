@@ -11,19 +11,18 @@ export function useVisibleCategories(
 
   const calculateVisibleCategories = useCallback(() => {
     const container = containerRef.current;
-    if (!container) return;
-
-    const containerWidth = container.offsetWidth;
-    let currentWidth = 0;
     const tempVisible: Category[] = [];
     
-    // Paramètres d'espacement optimisés
-    const buttonPadding = 16;
-    const dotSpacing = 4;
-    const charWidth = 6;
-    const reservedSpace = 70;
+    if (container && categories) {
+      const containerWidth = container.offsetWidth;
+      let currentWidth = 0;
+      
+      // Paramètres d'espacement optimisés
+      const buttonPadding = 16;
+      const dotSpacing = 4;
+      const charWidth = 6;
+      const reservedSpace = 70;
 
-    if (categories) {
       for (const category of categories) {
         const textWidth = category.name.length * charWidth;
         const totalWidth = textWidth + buttonPadding + dotSpacing;
@@ -41,37 +40,40 @@ export function useVisibleCategories(
   }, [categories, containerRef]);
 
   useEffect(() => {
-    if (!isMobile && categories) {
-      // Initial calculation
-      calculateVisibleCategories();
-
-      // Debounced resize handler with RAF
-      let rafId: number;
-      let lastWidth = 0;
-
-      const handleResize = () => {
-        cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(() => {
-          const container = containerRef.current;
-          if (!container) return;
-          
-          const currentWidth = container.offsetWidth;
-          if (currentWidth !== lastWidth) {
-            lastWidth = currentWidth;
-            calculateVisibleCategories();
-          }
-        });
-      };
-
-      window.addEventListener('resize', handleResize);
-      
-      return () => {
-        window.removeEventListener('resize', handleResize);
-        cancelAnimationFrame(rafId);
-      };
-    } else {
+    if (isMobile) {
       setVisibleCategories(categories || []);
+      return;
     }
+
+    // Initial calculation
+    calculateVisibleCategories();
+
+    // Debounced resize handler with RAF
+    let rafId: number;
+    let lastWidth = 0;
+
+    const handleResize = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const container = containerRef.current;
+        if (!container) return;
+        
+        const currentWidth = container.offsetWidth;
+        if (currentWidth !== lastWidth) {
+          lastWidth = currentWidth;
+          calculateVisibleCategories();
+        }
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, [isMobile, categories, calculateVisibleCategories]);
 
   return visibleCategories;
