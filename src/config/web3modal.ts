@@ -18,4 +18,26 @@ export const wagmiConfig = createConfig({
 });
 
 export const ethereumClient = new EthereumClient(wagmiConfig, chains);
-export { Web3Modal };
+
+// Configuration de Web3Modal avec thème et métadonnées
+const web3modalConfig = {
+  projectId,
+  ethereumClient,
+  themeMode: 'light',
+  themeVariables: {
+    '--w3m-font-family': 'Inter, sans-serif',
+    '--w3m-accent-color': '#7C3AED', // Violet principal
+    '--w3m-background-color': '#F9FAFB',
+  },
+  metadata: {
+    name: 'AnnonceoSwap',
+    description: 'Connectez votre wallet pour commencer',
+    url: window.location.origin,
+    icons: ['https://avatars.githubusercontent.com/u/37784886'],
+  },
+  defaultChain: amoy,
+};
+
+export const Web3ModalComponent = () => {
+  return <Web3Modal {...web3modalConfig} />;
+};
