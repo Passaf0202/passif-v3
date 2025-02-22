@@ -1,8 +1,9 @@
 
-import { WalletKit } from '@reown/appkit';
+import { createWalletKitCore } from '@reown/appkit';
+import { wagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { amoy } from './chains';
 
-export const walletkit = new WalletKit({
+export const walletkit = createWalletKitCore({
   projectId: '3225e25c4d47b78232829662814a3d58',
   chains: [amoy],
   metadata: {
@@ -10,5 +11,6 @@ export const walletkit = new WalletKit({
     description: 'Connectez votre wallet pour commencer',
     url: window.location.origin,
     icons: ['https://avatars.githubusercontent.com/u/37784886']
-  }
+  },
+  adapter: wagmiAdapter(),
 });
