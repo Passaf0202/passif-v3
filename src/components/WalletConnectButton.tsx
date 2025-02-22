@@ -99,14 +99,21 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
     }
   };
 
-  return (
+  return minimal ? (
+    <Button 
+      onClick={handleConnect}
+      variant="ghost" 
+      size="icon" 
+      className="rounded-full"
+    >
+      <Wallet className="h-5 w-5" />
+    </Button>
+  ) : (
     <Button 
       onClick={handleConnect}
       disabled={isConnecting}
       variant="outline"
-      className={`${
-        minimal ? 'w-full max-w-[200px]' : 'w-full'
-      } h-10 rounded-full border-2 hover:bg-gray-100 font-medium flex items-center justify-center gap-2 transition-all duration-200`}
+      className="w-full h-10 rounded-full border-2 hover:bg-gray-100 font-medium flex items-center justify-center gap-2 transition-all duration-200"
     >
       {isConnecting ? (
         <>
