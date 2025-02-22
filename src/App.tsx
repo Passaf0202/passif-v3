@@ -3,10 +3,8 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { WagmiConfig } from 'wagmi';
-import { Web3Modal } from '@web3modal/react';
-import { wagmiConfig, ethereumClient, projectId } from './config/web3modal';
-import { amoy } from './config/chains';
+import { AppKitProvider } from '@reown/appkit';
+import { config } from './config/web3modal';
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import CreateListing from "@/pages/CreateListing";
@@ -31,7 +29,7 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <WagmiConfig config={wagmiConfig}>
+    <AppKitProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <Routes>
@@ -51,19 +49,8 @@ function App() {
           </Routes>
           <Toaster />
         </BrowserRouter>
-        <Web3Modal 
-          projectId={projectId} 
-          ethereumClient={ethereumClient}
-          defaultChain={amoy}
-          themeMode="dark"
-          themeVariables={{
-            '--w3m-font-family': 'Inter, sans-serif',
-            '--w3m-accent-color': '#3898FF',
-            '--w3m-background-color': '#000000'
-          }}
-        />
       </QueryClientProvider>
-    </WagmiConfig>
+    </AppKitProvider>
   );
 }
 

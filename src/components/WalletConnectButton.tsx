@@ -1,9 +1,8 @@
 
-import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
+import { useWallet, useAddress, useNetwork } from '@reown/appkit';
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useWeb3Modal } from '@web3modal/react';
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback } from 'react';
 import { useAuth } from "@/hooks/useAuth";
@@ -14,33 +13,11 @@ interface WalletConnectButtonProps {
 }
 
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
+  const { connect, disconnect, isConnecting } = useWallet();
+  const address = useAddress();
   const { chain } = useNetwork();
-  const { switchNetwork } = useSwitchNetwork();
-  const { open } = useWeb3Modal();
   const { toast } = useToast();
   const { user } = useAuth();
-
-  useEffect(() => {
-    const handleNetworkSwitch = async () => {
-      if (isConnected && chain?.id !== amoy.id && switchNetwork) {
-        try {
-          console.log('Switching to Amoy network...');
-          await switchNetwork(amoy.id);
-        } catch (error) {
-          console.error('Network switch error:', error);
-          toast({
-            title: "Erreur de réseau",
-            description: "Impossible de changer de réseau",
-            variant: "destructive",
-          });
-        }
-      }
-    };
-
-    handleNetworkSwitch();
-  }, [isConnected, chain?.id, switchNetwork, toast]);
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
     if (!user?.id) return;
@@ -69,16 +46,16 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   }, [user?.id, toast]);
 
   useEffect(() => {
-    if (isConnected && address && user) {
+    if (address && user) {
       updateUserProfile(address);
     }
-  }, [isConnected, address, user, updateUserProfile]);
+  }, [address, user, updateUserProfile]);
 
   const handleConnect = async () => {
     console.log("handleConnect appelé");
     
     try {
-      if (isConnected) {
+      if (address) {
         console.log("Déconnexion du wallet...");
         await disconnect();
         if (user) {
@@ -102,8 +79,8 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
         return;
       }
 
-      console.log("Ouverture de Web3Modal...");
-      await open();
+      console.log("Connexion du wallet...");
+      await connect();
       
     } catch (error) {
       console.error('Connection error:', error);
@@ -119,21 +96,32 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
     <Button 
       onClick={handleConnect}
       variant="ghost" 
-      size="icon" 
+      size="icon"
+      disabled={isConnecting}
       className="rounded-full"
     >
-      <Wallet className="h-5 w-5" />
+      {isConnecting ? (
+        <Loader2 className="h-5 w-5 animate-spin" />
+      ) : (
+        <Wallet className="h-5 w-5" />
+      )}
     </Button>
   ) : (
     <Button 
       onClick={handleConnect}
       variant="outline"
+      disabled={isConnecting}
       className="w-full h-10 rounded-full border-2 hover:bg-gray-100 font-medium flex items-center justify-center gap-2 transition-all duration-200"
     >
-      {isConnected ? (
+      {isConnecting ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>Connexion en cours...</span>
+        </>
+      ) : address ? (
         <>
           <Wallet className="h-4 w-4" />
-          <span>{`${address?.slice(0, 4)}...${address?.slice(-4)}`}</span>
+          <span>{`${address.slice(0, 4)}...${address.slice(-4)}`}</span>
         </>
       ) : (
         <>
