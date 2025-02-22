@@ -1,22 +1,28 @@
 
-import { createConfig, configureChains } from 'wagmi';
-import { amoy } from './chains';
-import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
-import { publicProvider } from 'wagmi/providers/public';
+import { defaultWagmiConfig, createWeb3Modal } from '@web3modal/wagmi/react'
+import { amoy } from './chains'
 
-export const projectId = '3225e25c4d47b78232829662814a3d58';
+// Project ID from WalletConnect Cloud
+export const projectId = '3225e25c4d47b78232829662814a3d58'
 
-// Configuration des chaînes avec Amoy
-const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [amoy],
-  [w3mProvider({ projectId }), publicProvider()]
-);
+const metadata = {
+  name: 'Reown',
+  description: 'Reown Application',
+  url: 'https://reown.app',
+  icons: ['https://avatars.githubusercontent.com/u/37784886']
+}
 
-export const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors: w3mConnectors({ chains, projectId }),
-  publicClient,
-  webSocketPublicClient,
-});
+export const wagmiConfig = defaultWagmiConfig({
+  chains: [amoy],
+  projectId,
+  metadata,
+})
 
-export const ethereumClient = new EthereumClient(wagmiConfig, chains);
+// Initialize modal
+createWeb3Modal({
+  wagmiConfig,
+  projectId,
+  chains: [amoy],
+  defaultChain: amoy,
+  themeMode: 'light'
+})
