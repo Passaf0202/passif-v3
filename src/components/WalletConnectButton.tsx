@@ -18,7 +18,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   const { disconnect } = useDisconnect();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
-  const { open, isOpen } = useWeb3Modal();
+  const { open } = useWeb3Modal();
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -75,13 +75,11 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   }, [isConnected, address, user, updateUserProfile]);
 
   const handleConnect = async () => {
+    console.log("handleConnect appelé");
+    
     try {
-      if (isOpen) return;
-
-      console.log("Tentative de connexion au wallet...");
-      
       if (isConnected) {
-        console.log("Disconnecting wallet...");
+        console.log("Déconnexion du wallet...");
         await disconnect();
         if (user) {
           await supabase
@@ -104,7 +102,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
         return;
       }
 
-      console.log("Opening Web3Modal...");
+      console.log("Ouverture de Web3Modal...");
       await open();
       
     } catch (error) {
@@ -123,27 +121,16 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       variant="ghost" 
       size="icon" 
       className="rounded-full"
-      disabled={isOpen}
     >
-      {isOpen ? (
-        <Loader2 className="h-5 w-5 animate-spin" />
-      ) : (
-        <Wallet className="h-5 w-5" />
-      )}
+      <Wallet className="h-5 w-5" />
     </Button>
   ) : (
     <Button 
       onClick={handleConnect}
-      disabled={isOpen}
       variant="outline"
       className="w-full h-10 rounded-full border-2 hover:bg-gray-100 font-medium flex items-center justify-center gap-2 transition-all duration-200"
     >
-      {isOpen ? (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Connexion...</span>
-        </>
-      ) : isConnected ? (
+      {isConnected ? (
         <>
           <Wallet className="h-4 w-4" />
           <span>{`${address?.slice(0, 4)}...${address?.slice(-4)}`}</span>
