@@ -1,4 +1,3 @@
-
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { capitalizeFirstLetter } from "@/utils/textUtils";
 import { useState } from "react";
 import { CategoryContent } from "../components/CategoryContent";
 import { NavbarLogo } from "../NavbarLogo";
+import { SearchInput } from "@/components/search/SearchInput";
 
 export function MobileMenu() {
   const { user } = useAuth();
@@ -85,13 +85,12 @@ export function MobileMenu() {
       {showSearch ? (
         <div className="p-4">
           <form onSubmit={handleSearch} className="space-y-4">
-            <Input
-              type="text"
-              placeholder="Que recherchez-vous ?"
+            <SearchInput
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="h-12"
-              autoFocus
+              onChange={setSearchInput}
+              titleOnly={false}
+              onTitleOnlyChange={() => {}}
+              showCheckbox={false}
             />
             <div className="flex gap-2">
               <Button type="submit" className="flex-1">
