@@ -23,11 +23,10 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 
 // Configuration Wagmi avec gestion d'erreur améliorée
 export const wagmiConfig = createConfig({
-  autoConnect: false, // Désactivé pour éviter les problèmes de reconnexion automatique
+  autoConnect: false,
   connectors: w3mConnectors({ 
     projectId,
     chains,
-    version: '2', // Utilisation de la dernière version
     options: {
       showQrModal: true,
       qrModalOptions: { themeMode: 'light' }
