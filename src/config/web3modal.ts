@@ -1,5 +1,5 @@
 
-import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi';
+import { defaultWagmiConfig } from '@web3modal/wagmi';
 import { amoy } from './chains';
 
 // 1. Get projectId
@@ -15,17 +15,3 @@ const metadata = {
 
 const chains = [amoy];
 export const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata });
-
-// 3. Create modal
-createWeb3Modal({
-  wagmiConfig,
-  projectId,
-  chains,
-  themeMode: 'light',
-  themeVariables: {
-    '--w3m-font-family': 'Roboto, sans-serif',
-    '--w3m-accent': '#000000',
-    '--w3m-border-radius-master': '10px'
-  }
-});
-
