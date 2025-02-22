@@ -7,3 +7,4 @@ export const config = createReownConfig({
   defaultChain: amoy,
   projectId: '3225e25c4d47b78232829662814a3d58'
 });
+
