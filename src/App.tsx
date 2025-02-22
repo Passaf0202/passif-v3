@@ -30,7 +30,7 @@ const queryClient = new QueryClient({
 
 const initialState = {
   chainId: amoy.id,
-  connections: [],
+  connections: new Map(),
   current: undefined,
   status: "disconnected" as const,
 };

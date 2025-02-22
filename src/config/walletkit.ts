@@ -3,6 +3,7 @@ import { createConfig, http } from 'wagmi';
 import { createWeb3Modal } from '@web3modal/wagmi/react';
 import { walletConnect, injected } from 'wagmi/connectors';
 import { amoy } from './chains';
+import { QueryClient } from '@tanstack/react-query';
 
 // Project ID from WalletConnect Cloud
 const projectId = '3225e25c4d47b78232829662814a3d58';
@@ -15,6 +16,8 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
+const queryClient = new QueryClient();
+
 // Configure wagmi config
 export const wagmiConfig = createConfig({
   chains: [amoy],
@@ -25,6 +28,9 @@ export const wagmiConfig = createConfig({
   transports: {
     [amoy.id]: http('https://rpc-amoy.polygon.technology'),
   },
+  ssr: false,
+  syncConnectedChain: true,
+  queryClient,
 });
 
 // Create web3modal instance
