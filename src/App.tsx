@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { WagmiConfig } from 'wagmi';
-import { wagmiConfig } from './config/web3modal';
+import { wagmiConfig } from './config/wagmi';
 import { AppkitProvider } from '@reown/appkit';
 import { appkitConfig } from './config/appkit';
 import Index from "@/pages/Index";
