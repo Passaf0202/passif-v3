@@ -15,9 +15,10 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 );
 
 export const wagmiConfig = createConfig({
-  autoConnect: true,
+  autoConnect: false, // Désactivation de l'autoConnect pour éviter les problèmes
   connectors: w3mConnectors({ 
     projectId,
+    version: '2', // Spécification explicite de la version
     chains
   }),
   publicClient,

@@ -47,11 +47,8 @@ export function Navbar() {
                     </div>
                   </div>
 
-                  {/* Actions à droite avec Wallet pour mobile */}
-                  <div className="flex items-center gap-2">
-                    {user && <WalletConnectButton minimal />}
-                    <NavbarActions />
-                  </div>
+                  {/* Actions à droite */}
+                  <NavbarActions />
                 </>
               ) : (
                 <>

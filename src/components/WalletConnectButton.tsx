@@ -24,9 +24,17 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
-    if (isConnected && chain?.id !== amoy.id) {
-      switchNetwork?.(amoy.id);
-    }
+    const handleNetworkSwitch = async () => {
+      if (isConnected && chain?.id !== amoy.id && switchNetwork) {
+        try {
+          await switchNetwork(amoy.id);
+        } catch (error) {
+          console.error('Network switch error:', error);
+        }
+      }
+    };
+
+    handleNetworkSwitch();
   }, [isConnected, chain?.id, switchNetwork]);
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
@@ -46,11 +54,6 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       });
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le profil",
-        variant: "destructive",
-      });
     }
   }, [user?.id, toast]);
 
@@ -61,15 +64,8 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   }, [isConnected, address, user, updateUserProfile]);
 
   const handleConnect = async () => {
-    if (!user) {
-      toast({
-        title: "Connexion requise 😊",
-        description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille",
-      });
-      return;
-    }
-
     try {
+      console.log("Tentative de connexion au wallet...");
       setIsConnecting(true);
       
       if (isConnected) {
@@ -85,6 +81,13 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           description: "Votre portefeuille a été déconnecté",
         });
       } else {
+        if (!user) {
+          toast({
+            title: "Connexion requise 😊",
+            description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille",
+          });
+          return;
+        }
         await open();
       }
     } catch (error) {
@@ -105,8 +108,13 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       variant="ghost" 
       size="icon" 
       className="rounded-full"
+      disabled={isConnecting}
     >
-      <Wallet className="h-5 w-5" />
+      {isConnecting ? (
+        <Loader2 className="h-5 w-5 animate-spin" />
+      ) : (
+        <Wallet className="h-5 w-5" />
+      )}
     </Button>
   ) : (
     <Button 
