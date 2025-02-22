@@ -1,19 +1,22 @@
 
-import { useSwitchChain, useChainId } from 'wagmi';
+import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { amoy } from '@/config/chains';
 
 export const useNetworkSwitch = () => {
-  const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
 
   const ensureCorrectNetwork = async () => {
-    if (chainId !== amoy.id) {
-      await switchChain({ chainId: amoy.id });
+    if (chain?.id !== amoy.id) {
+      if (!switchNetwork) {
+        throw new Error("Impossible de changer de réseau automatiquement");
+      }
+      await switchNetwork(amoy.id);
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   };
 
-  const isWrongNetwork = chainId !== amoy.id;
+  const isWrongNetwork = chain?.id !== amoy.id;
 
   return {
     isWrongNetwork,

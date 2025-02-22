@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Info } from "lucide-react";
@@ -9,7 +8,8 @@ import { Loader2 } from "lucide-react";
 export function WalletSection() {
   const { address, isConnected } = useAccount();
   const { data: balance, isLoading: isBalanceLoading } = useBalance({
-    address,
+    address: address,
+    watch: true,
   });
 
   console.log("Balance data:", balance); // Pour le debugging

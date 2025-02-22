@@ -1,20 +1,20 @@
+import { Chain } from 'wagmi';
 
-import { Chain } from 'viem';
-
-export const amoy = {
+export const amoy: Chain = {
   id: 80_002,
   name: 'Polygon Amoy',
+  network: 'polygon_amoy',
   nativeCurrency: {
     decimals: 18,
     name: 'MATIC',
     symbol: 'MATIC',
   },
   rpcUrls: {
-    default: { http: ['https://rpc-amoy.polygon.technology'] },
     public: { http: ['https://rpc-amoy.polygon.technology'] },
+    default: { http: ['https://rpc-amoy.polygon.technology'] },
   },
   blockExplorers: {
     default: { name: 'PolygonScan', url: 'https://www.oklink.com/amoy' },
   },
-  testnet: true
-} as const satisfies Chain;
+  testnet: true,
+};
