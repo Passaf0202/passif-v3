@@ -5,7 +5,7 @@ import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react';
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { amoy } from '@/config/chains';
 
@@ -22,6 +22,18 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   const { toast } = useToast();
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
+  const connectTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const clearConnectTimeout = () => {
+    if (connectTimeoutRef.current) {
+      clearTimeout(connectTimeoutRef.current);
+      connectTimeoutRef.current = undefined;
+    }
+  };
+
+  useEffect(() => {
+    return () => clearConnectTimeout();
+  }, []);
 
   useEffect(() => {
     const handleNetworkSwitch = async () => {
@@ -31,12 +43,17 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           await switchNetwork(amoy.id);
         } catch (error) {
           console.error('Network switch error:', error);
+          toast({
+            title: "Erreur de réseau",
+            description: "Impossible de changer de réseau",
+            variant: "destructive",
+          });
         }
       }
     };
 
     handleNetworkSwitch();
-  }, [isConnected, chain?.id, switchNetwork]);
+  }, [isConnected, chain?.id, switchNetwork, toast]);
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
     if (!user?.id) return;
@@ -56,12 +73,19 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       });
     } catch (error) {
       console.error('Error updating profile:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour votre profil",
+        variant: "destructive",
+      });
     }
   }, [user?.id, toast]);
 
   useEffect(() => {
     if (isConnected && address && user) {
       updateUserProfile(address);
+      setIsConnecting(false);
+      clearConnectTimeout();
     }
   }, [isConnected, address, user, updateUserProfile]);
 
@@ -83,18 +107,32 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           title: "Déconnecté",
           description: "Votre portefeuille a été déconnecté",
         });
-      } else {
-        if (!user) {
-          toast({
-            title: "Connexion requise 😊",
-            description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille",
-          });
-          return;
-        }
-
-        console.log("Opening Web3Modal...");
-        await open();
+        return;
       }
+
+      if (!user) {
+        toast({
+          title: "Connexion requise 😊",
+          description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille",
+        });
+        setIsConnecting(false);
+        return;
+      }
+
+      clearConnectTimeout();
+      connectTimeoutRef.current = setTimeout(() => {
+        console.log("Connection timeout");
+        setIsConnecting(false);
+        toast({
+          title: "Erreur de connexion",
+          description: "La connexion au portefeuille a échoué. Veuillez réessayer.",
+          variant: "destructive",
+        });
+      }, 30000); // 30 secondes timeout
+
+      console.log("Opening Web3Modal...");
+      await open();
+      
     } catch (error) {
       console.error('Connection error:', error);
       toast({
@@ -102,8 +140,8 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
         description: "Impossible de se connecter au portefeuille",
         variant: "destructive",
       });
-    } finally {
       setIsConnecting(false);
+      clearConnectTimeout();
     }
   };
 

@@ -60,6 +60,7 @@ function App() {
             '--w3m-background-color': '#ffffff',
             '--w3m-z-index': '1000'
           }}
+          defaultChain={amoy}
         />
       </QueryClientProvider>
     </WagmiConfig>
