@@ -1,10 +1,11 @@
+
 import { useCallback, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { appKit } from '@/config/walletkit';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
@@ -13,7 +14,9 @@ interface WalletConnectButtonProps {
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { address, isConnecting } = appKit.useAccount();
+  const { address, isConnecting } = useAccount();
+  const { connectAsync } = useConnect();
+  const { disconnectAsync } = useDisconnect();
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
     if (!user?.id) return;
@@ -51,7 +54,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
     try {
       if (address) {
         console.log("Déconnexion du wallet...");
-        await appKit.disconnect();
+        await disconnectAsync();
         if (user) {
           await supabase
             .from('profiles')
@@ -74,7 +77,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       }
 
       console.log("Ouverture du connecteur de wallet...");
-      await appKit.connect();
+      await connectAsync();
       
     } catch (error) {
       console.error('Connection error:', error);

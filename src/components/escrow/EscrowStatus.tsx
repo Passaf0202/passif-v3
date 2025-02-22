@@ -1,159 +1,90 @@
-
 import { Button } from "@/components/ui/button";
+import { Shield } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { ethers } from "ethers";
-import { useNetwork, useSwitchNetwork } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 import { amoy } from "@/config/chains";
 
-const ESCROW_ABI = [
-  "function releaseFunds(uint256 txnId)",
-  "function transactions(uint256) view returns (address buyer, address seller, uint256 amount, bool isFunded, bool isCompleted)"
-];
-
-const ESCROW_CONTRACT_ADDRESS = "0xe35a0cebf608bff98bcf99093b02469eea2cb38c";
-
 interface EscrowStatusProps {
-  transactionId: string;
-  buyerId: string;
-  sellerId: string;
-  currentUserId: string;
+  status: string;
+  escrow_status: string;
 }
 
-export function EscrowStatus({
-  transactionId,
-  buyerId,
-  sellerId,
-  currentUserId,
-}: EscrowStatusProps) {
-  const [isLoading, setIsLoading] = useState(false);
+export function EscrowStatus({ status, escrow_status }: EscrowStatusProps) {
+  const { address } = useAccount();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
   const { toast } = useToast();
-  const isUserBuyer = currentUserId === buyerId;
-  const { chain } = useNetwork();
-  const { switchNetwork } = useSwitchNetwork();
 
-  const handleConfirm = async () => {
+  const isWrongNetwork = chainId !== amoy.id;
+
+  const handleSwitchNetwork = async () => {
     try {
-      setIsLoading(true);
-
-      if (chain?.id !== amoy.id) {
-        if (!switchNetwork) {
-          throw new Error("Impossible de changer de réseau automatiquement");
-        }
-        await switchNetwork(amoy.id);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-
-      if (!window.ethereum) {
-        throw new Error("MetaMask n'est pas installé");
-      }
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const signerAddress = await signer.getAddress();
-
-      console.log('Connected wallet address:', signerAddress);
-
-      const { data: transaction, error: txError } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('id', transactionId)
-        .single();
-
-      if (txError || !transaction) {
-        throw new Error("Transaction non trouvée");
-      }
-
-      if (!transaction.funds_secured) {
-        throw new Error("Les fonds n'ont pas encore été sécurisés");
-      }
-
-      if (!transaction.blockchain_txn_id || transaction.blockchain_txn_id === "0") {
-        throw new Error("Transaction blockchain non trouvée");
-      }
-
-      if (!isUserBuyer) {
-        throw new Error("Seul l'acheteur peut libérer les fonds");
-      }
-
-      const contract = new ethers.Contract(ESCROW_CONTRACT_ADDRESS, ESCROW_ABI, signer);
-      const txnId = Number(transaction.blockchain_txn_id);
-      const txData = await contract.transactions(txnId);
-
-      if (txData.buyer.toLowerCase() !== signerAddress.toLowerCase()) {
-        throw new Error("Adresse de wallet incorrecte");
-      }
-
-      if (!txData.isFunded) {
-        throw new Error("Les fonds n'ont pas été déposés");
-      }
-
-      if (txData.isCompleted) {
-        throw new Error("Les fonds ont déjà été libérés");
-      }
-
-      const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
-      const gasLimit = gasEstimate.mul(150).div(100);
-      const gasPrice = await provider.getGasPrice();
-      const adjustedGasPrice = gasPrice.mul(120).div(100);
-
-      const balance = await provider.getBalance(signerAddress);
-      const gasCost = gasLimit.mul(adjustedGasPrice);
-      if (balance.lt(gasCost)) {
-        throw new Error("Solde insuffisant pour les frais de transaction");
-      }
-
-      const tx = await contract.releaseFunds(txnId, {
-        gasLimit,
-        gasPrice: adjustedGasPrice
-      });
-
-      const receipt = await tx.wait();
-
-      if (receipt.status === 1) {
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            buyer_confirmation: true,
-            status: 'completed',
-            escrow_status: 'completed',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', transactionId);
-
-        if (updateError) throw updateError;
-
-        toast({
-          title: "Succès",
-          description: "Les fonds ont été libérés avec succès.",
-        });
+      if (switchChain) {
+        await switchChain({ chainId: amoy.id });
       } else {
-        throw new Error("La libération des fonds a échoué");
+        toast({
+          title: "Erreur",
+          description: "Impossible de changer de réseau automatiquement",
+          variant: "destructive",
+        });
       }
-    } catch (error: any) {
-      console.error('Error releasing funds:', error);
-      
+    } catch (error) {
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue",
+        description: "Une erreur est survenue lors du changement de réseau",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  if (!isUserBuyer) return null;
+  const getStatusMessage = () => {
+    switch (escrow_status) {
+      case "pending":
+        return "En attente du paiement de l'acheteur";
+      case "funded":
+        return "Fonds sécurisés, en attente de confirmation";
+      case "completed":
+        return "Transaction complétée";
+      case "cancelled":
+        return "Transaction annulée";
+      default:
+        return "Statut inconnu";
+    }
+  };
+
+  const getStatusColor = () => {
+    switch (escrow_status) {
+      case "pending":
+        return "text-gray-500";
+      case "funded":
+        return "text-yellow-500";
+      case "completed":
+        return "text-green-500";
+      case "cancelled":
+        return "text-red-500";
+      default:
+        return "text-gray-500";
+    }
+  };
 
   return (
-    <Button
-      onClick={handleConfirm}
-      disabled={isLoading}
-      className="w-full bg-purple-500 hover:bg-purple-600"
-    >
-      {isLoading ? "Libération des fonds en cours..." : "Confirmer la réception"}
-    </Button>
+    <div className="rounded-md border p-4">
+      <div className="flex items-center space-x-3">
+        <Shield className={`h-5 w-5 ${getStatusColor()}`} />
+        <p className="text-sm font-medium">
+          Statut de la transaction: <span className={getStatusColor()}>{getStatusMessage()}</span>
+        </p>
+      </div>
+      {isWrongNetwork && address && (
+        <div className="mt-2">
+          <p className="text-sm text-red-500">
+            Vous êtes sur le mauvais réseau. Veuillez passer au réseau Polygon Amoy pour continuer.
+          </p>
+          <Button onClick={handleSwitchNetwork} variant="secondary" size="sm">
+            Changer de réseau
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

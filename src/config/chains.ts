@@ -1,7 +1,7 @@
 
-import { defineChain } from 'viem/chains';
+import { Chain } from 'viem';
 
-export const amoy = defineChain({
+export const amoy = {
   id: 80_002,
   name: 'Polygon Amoy',
   network: 'polygon_amoy',
@@ -18,4 +18,4 @@ export const amoy = defineChain({
     default: { name: 'PolygonScan', url: 'https://www.oklink.com/amoy' },
   },
   testnet: true
-});
+} as const satisfies Chain;
