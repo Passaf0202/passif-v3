@@ -28,16 +28,10 @@ const queryClient = new QueryClient({
   },
 });
 
-// Config Wagmi avec QueryClient
-const configuredWagmiConfig = {
-  ...wagmiConfig,
-  queryClient
-};
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <WagmiConfig config={configuredWagmiConfig}>
+      <WagmiConfig config={wagmiConfig}>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
