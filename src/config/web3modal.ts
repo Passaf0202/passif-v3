@@ -18,8 +18,7 @@ export const wagmiConfig = createConfig({
   autoConnect: true,
   connectors: w3mConnectors({ 
     projectId,
-    chains,
-    version: 2
+    chains
   }),
   publicClient,
   webSocketPublicClient,
