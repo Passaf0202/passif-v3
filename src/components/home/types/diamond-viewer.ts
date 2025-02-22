@@ -17,7 +17,7 @@ export interface ModelViewerElementAttributes {
   'auto-rotate'?: boolean;
   'camera-controls'?: boolean;
   'rotation-per-second'?: string;
-  'interaction-prompt'?: 'auto' | 'none' | 'when-focused';
+  'interaction-prompt'?: 'auto' | 'none';
   'interaction-prompt-style'?: 'basic' | 'wiggle';
   'interaction-prompt-threshold'?: string;
   'auto-rotate-delay'?: number;

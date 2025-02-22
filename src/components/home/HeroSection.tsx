@@ -141,7 +141,7 @@ export function HeroSection() {
                 <img 
                   src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
                   alt="Tradecoiner"
-                  className="h-5 w-5 mr-2 flex-shrink-0"
+                  className="h-4 w-4 mr-2 flex-shrink-0"
                 />
                 <span className="truncate">Explorer les annonces</span>
               </Button>

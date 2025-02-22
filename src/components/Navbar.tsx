@@ -9,15 +9,12 @@ import { useRef } from "react";
 import { useAdaptiveLayout } from "@/hooks/use-adaptive-layout";
 import { MobileCategoryBar } from "./navbar/MobileCategoryBar";
 import { MobileMenu } from "./navbar/mobile/MobileMenu";
-import { WalletConnectButton } from "./WalletConnectButton";
-import { useAuth } from "@/hooks/useAuth";
 
 export function Navbar() {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const { data: categories } = useCategoriesData();
-  const { user } = useAuth();
   
   const isMobile = useAdaptiveLayout(containerRef, categoriesRef);
 
@@ -48,7 +45,9 @@ export function Navbar() {
                   </div>
 
                   {/* Actions à droite */}
-                  <NavbarActions />
+                  <div className="flex-shrink-0">
+                    <NavbarActions />
+                  </div>
                 </>
               ) : (
                 <>

@@ -1,10 +1,9 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { AnimatedEmailInput } from "./AnimatedEmailInput";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const emailSchema = z.object({
   email: z.string().email("Veuillez entrer une adresse email valide"),
@@ -25,11 +24,20 @@ export function EmailStep({ onSubmit }: EmailStepProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <AnimatedEmailInput form={form} />
-        <Button 
-          type="submit" 
-          className="w-full bg-black hover:bg-black/90 text-white rounded-full"
-        >
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>E-mail</FormLabel>
+              <FormControl>
+                <Input placeholder="votre@email.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600">
           Continuer
         </Button>
       </form>

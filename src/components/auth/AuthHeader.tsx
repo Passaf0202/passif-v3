@@ -1,26 +1,11 @@
-
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { NavbarLogo } from "@/components/navbar/NavbarLogo";
-import { useIsMobile } from "@/hooks/use-mobile";
-
-export function AuthHeader() {
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
-
+export function AuthHeader({ step }: { step: "email" | "password" | "register" }) {
   return (
-    <div className="w-full px-4 py-3 flex items-center">
-      <Button 
-        variant="ghost" 
-        className="-ml-3" 
-        onClick={() => navigate('/')}
-      >
-        <ArrowLeft className="h-6 w-6" />
-      </Button>
-      <div className={`flex-1 flex ${isMobile ? 'justify-center' : 'justify-start ml-4'}`}>
-        <NavbarLogo />
-      </div>
+    <div className="sm:mx-auto sm:w-full sm:max-w-md">
+      <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+        {step === "register" 
+          ? "Créez votre compte"
+          : "Connectez-vous ou créez votre compte"}
+      </h2>
     </div>
   );
 }

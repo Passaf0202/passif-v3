@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ethers } from "ethers";
 import { useToast } from "@/components/ui/use-toast";
@@ -5,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { useTransactionCreation } from "@/hooks/useTransactionCreation";
 import { TransactionError, TransactionErrorCodes } from "@/utils/escrow/transactionErrors";
-import { useAccount, useConnect } from 'wagmi';
 
 interface UsePaymentTransactionProps {
   listingId: string;
@@ -35,8 +35,6 @@ export function usePaymentTransaction({
   const { toast } = useToast();
   const { ensureCorrectNetwork } = useNetworkSwitch();
   const { createTransaction, updateTransactionWithBlockchain } = useTransactionCreation();
-  const { connector, isConnected } = useAccount();
-  const { data: connectData } = useConnect();
 
   const verifyTransactionAmount = (expectedAmount: ethers.BigNumber, actualAmount: ethers.BigNumber) => {
     console.log("Verifying amounts:", {
@@ -55,7 +53,7 @@ export function usePaymentTransaction({
   const handlePayment = async () => {
     if (!address) {
       throw new TransactionError(
-        "L'adresse du vendeur n'est pas disponible",
+        "Veuillez connecter votre portefeuille pour continuer",
         TransactionErrorCodes.SELLER_ADDRESS_MISSING
       );
     }
@@ -63,10 +61,7 @@ export function usePaymentTransaction({
     try {
       setIsProcessing(true);
       setError(null);
-      console.log('[usePaymentTransaction] Starting payment process:', {
-        listingId,
-        sellerAddress: address
-      });
+      console.log('Starting payment process for listing:', listingId);
 
       // 1. Récupérer les détails de l'annonce
       const { data: listing, error: listingError } = await supabase
@@ -89,17 +84,16 @@ export function usePaymentTransaction({
         );
       }
 
-      // 2. Vérifier que l'adresse correspond bien à celle de l'annonce
-      if (listing.wallet_address !== address) {
-        console.error('Address mismatch:', {
-          listingAddress: listing.wallet_address,
-          providedAddress: address
-        });
+      // 2. Vérifier l'adresse du vendeur
+      const sellerAddress = listing.user?.wallet_address;
+      if (!sellerAddress) {
         throw new TransactionError(
-          "L'adresse du vendeur ne correspond pas à celle de l'annonce",
-          TransactionErrorCodes.SELLER_ADDRESS_MISMATCH
+          "L'adresse du vendeur n'est pas disponible",
+          TransactionErrorCodes.SELLER_ADDRESS_MISSING
         );
       }
+
+      console.log("Seller wallet address:", sellerAddress);
 
       // 3. S'assurer d'être sur le bon réseau
       await ensureCorrectNetwork();
@@ -117,7 +111,7 @@ export function usePaymentTransaction({
         listingId,
         listing.crypto_amount,
         'POL',
-        address
+        sellerAddress
       );
 
       if (onTransactionCreated) {
@@ -125,23 +119,7 @@ export function usePaymentTransaction({
       }
 
       // 6. Initialiser le contrat
-      let provider;
-      if (typeof window !== 'undefined' && window.ethereum) {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-      } else if (isConnected && connector) {
-        const connectorProvider = await connector.getProvider();
-        provider = new ethers.providers.Web3Provider(connectorProvider);
-      }
-
-      if (!provider) {
-        throw new TransactionError(
-          "Impossible d'initialiser le provider. Veuillez vous connecter à votre wallet.",
-          TransactionErrorCodes.PROVIDER_ERROR
-        );
-      }
-
-      console.log("Provider initialized successfully");
-
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
         ESCROW_CONTRACT_ADDRESS,
@@ -150,8 +128,7 @@ export function usePaymentTransaction({
       );
 
       // 7. Vérifier le solde
-      const userAddress = await signer.getAddress();
-      const balance = await provider.getBalance(userAddress);
+      const balance = await provider.getBalance(address);
       const amount = ethers.utils.parseEther(listing.crypto_amount.toString());
       
       if (balance.lt(amount)) {
@@ -168,7 +145,7 @@ export function usePaymentTransaction({
 
       // 8. Envoyer la transaction blockchain
       console.log("Sending transaction with amount:", ethers.utils.formatEther(amount));
-      const tx = await contract.createTransaction(address, { value: amount });
+      const tx = await contract.createTransaction(sellerAddress, { value: amount });
       console.log("Transaction sent:", tx.hash);
 
       if (onTransactionHash) {
@@ -214,6 +191,7 @@ export function usePaymentTransaction({
     } catch (error: any) {
       console.error('Payment error:', error);
       
+      // Gérer les erreurs spécifiques
       if (error instanceof TransactionError) {
         setError(error.message);
         toast({
@@ -229,8 +207,6 @@ export function usePaymentTransaction({
           variant: "destructive",
         });
       }
-
-      throw error;
     } finally {
       setIsProcessing(false);
     }
