@@ -29,28 +29,30 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <WagmiConfig config={wagmiConfig}>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/create" element={<CreateListing />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/listings/:id" element={<ListingDetails />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/payment/:id" element={<Payment />} />
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="/search" element={<Search />} />
-            <Route element={<AdminRoute />}>
-              <Route path="/admin" element={<Admin />} />
-            </Route>
-          </Routes>
-          <Toaster />
-        </BrowserRouter>
-      </WagmiConfig>
-    </QueryClientProvider>
+    <>
+      <QueryClientProvider client={queryClient}>
+        <WagmiConfig config={wagmiConfig}>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/create" element={<CreateListing />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/listings/:id" element={<ListingDetails />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/:id" element={<Payment />} />
+              <Route path="/profile" element={<UserProfile />} />
+              <Route path="/search" element={<Search />} />
+              <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<Admin />} />
+              </Route>
+            </Routes>
+            <Toaster />
+          </BrowserRouter>
+        </WagmiConfig>
+      </QueryClientProvider>
+    </>
   );
 }
 
