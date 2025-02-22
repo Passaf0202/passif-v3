@@ -28,10 +28,16 @@ const queryClient = new QueryClient({
   },
 });
 
+// Config Wagmi avec QueryClient
+const configuredWagmiConfig = {
+  ...wagmiConfig,
+  queryClient
+};
+
 function App() {
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <WagmiConfig config={configuredWagmiConfig}>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -51,8 +57,8 @@ function App() {
           <Toaster />
         </BrowserRouter>
         <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
-      </QueryClientProvider>
-    </WagmiConfig>
+      </WagmiConfig>
+    </QueryClientProvider>
   );
 }
 
