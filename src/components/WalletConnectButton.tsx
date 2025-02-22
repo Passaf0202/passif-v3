@@ -18,7 +18,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   const { disconnect } = useDisconnect();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
-  const { open } = useWeb3Modal();
+  const { open, isOpen } = useWeb3Modal();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
@@ -34,6 +34,14 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   useEffect(() => {
     return () => clearConnectTimeout();
   }, []);
+
+  // Reset isConnecting if modal is closed without connecting
+  useEffect(() => {
+    if (!isOpen && isConnecting) {
+      setIsConnecting(false);
+      clearConnectTimeout();
+    }
+  }, [isOpen, isConnecting]);
 
   useEffect(() => {
     const handleNetworkSwitch = async () => {
@@ -91,6 +99,10 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
 
   const handleConnect = async () => {
     try {
+      if (isOpen || isConnecting) {
+        return;
+      }
+
       console.log("Tentative de connexion au wallet...");
       setIsConnecting(true);
       
@@ -107,6 +119,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           title: "Déconnecté",
           description: "Votre portefeuille a été déconnecté",
         });
+        setIsConnecting(false);
         return;
       }
 
@@ -128,10 +141,10 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           description: "La connexion au portefeuille a échoué. Veuillez réessayer.",
           variant: "destructive",
         });
-      }, 30000); // 30 secondes timeout
+      }, 30000);
 
       console.log("Opening Web3Modal...");
-      await open();
+      await open({ route: 'ConnectWallet' });
       
     } catch (error) {
       console.error('Connection error:', error);
