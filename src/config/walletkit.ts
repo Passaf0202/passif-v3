@@ -1,6 +1,7 @@
 
-import { createConfig, http } from 'wagmi';
-import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
+import { createConfig } from 'wagmi';
+import { createWeb3Modal } from '@web3modal/wagmi/react';
+import { http } from 'viem';
 import { amoy } from './chains';
 
 // Project ID from WalletConnect Cloud
@@ -14,15 +15,12 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
-// Configure all chains you want to support
-const chains = [amoy];
-
-// Create wagmi config with required properties
-export const wagmiConfig = defaultWagmiConfig({
-  chains,
-  projectId,
-  metadata,
-  enableWalletConnect: true,
+// Configure wagmi config
+export const wagmiConfig = createConfig({
+  chains: [amoy],
+  transports: {
+    [amoy.id]: http('https://rpc-amoy.polygon.technology'),
+  },
 });
 
 // Create web3modal instance
