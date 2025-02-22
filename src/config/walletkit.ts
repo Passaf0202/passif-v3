@@ -1,8 +1,9 @@
 
 import { createConfig, http } from 'wagmi';
 import { createWeb3Modal } from '@web3modal/wagmi/react';
-import { walletConnect, injected } from 'wagmi/connectors';
-import { mainnet } from 'wagmi/chains';
+import { mainnet } from 'viem/chains';
+import { injected } from '@wagmi/core/connectors';
+import { walletConnect } from '@wagmi/connectors';
 
 // Project ID from WalletConnect Cloud
 const projectId = '3225e25c4d47b78232829662814a3d58';
