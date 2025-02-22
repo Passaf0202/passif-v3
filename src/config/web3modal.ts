@@ -8,27 +8,19 @@ export const projectId = '3225e25c4d47b78232829662814a3d58';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [amoy],
-  [
-    w3mProvider({ projectId }), 
-    publicProvider()
-  ],
-  {
-    batch: { multicall: true },
-    retryCount: 3,
-    pollingInterval: 5000,
-  }
+  [w3mProvider({ projectId }), publicProvider()],
 );
 
 const connectors = w3mConnectors({ 
   projectId, 
-  chains
+  chains,
 });
 
 export const wagmiConfig = createConfig({
   autoConnect: true,
   connectors,
   publicClient,
-  webSocketPublicClient
+  webSocketPublicClient,
 });
 
 export const ethereumClient = new EthereumClient(wagmiConfig, chains);

@@ -5,7 +5,7 @@ import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react';
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useCallback, useState, useRef } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { amoy } from '@/config/chains';
 
@@ -21,27 +21,6 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   const { open, isOpen } = useWeb3Modal();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [isConnecting, setIsConnecting] = useState(false);
-  const connectTimeoutRef = useRef<NodeJS.Timeout>();
-
-  const clearConnectTimeout = () => {
-    if (connectTimeoutRef.current) {
-      clearTimeout(connectTimeoutRef.current);
-      connectTimeoutRef.current = undefined;
-    }
-  };
-
-  useEffect(() => {
-    return () => clearConnectTimeout();
-  }, []);
-
-  // Reset isConnecting if modal is closed without connecting
-  useEffect(() => {
-    if (!isOpen && isConnecting) {
-      setIsConnecting(false);
-      clearConnectTimeout();
-    }
-  }, [isOpen, isConnecting]);
 
   useEffect(() => {
     const handleNetworkSwitch = async () => {
@@ -92,19 +71,14 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   useEffect(() => {
     if (isConnected && address && user) {
       updateUserProfile(address);
-      setIsConnecting(false);
-      clearConnectTimeout();
     }
   }, [isConnected, address, user, updateUserProfile]);
 
   const handleConnect = async () => {
     try {
-      if (isOpen || isConnecting) {
-        return;
-      }
+      if (isOpen) return;
 
       console.log("Tentative de connexion au wallet...");
-      setIsConnecting(true);
       
       if (isConnected) {
         console.log("Disconnecting wallet...");
@@ -119,7 +93,6 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           title: "Déconnecté",
           description: "Votre portefeuille a été déconnecté",
         });
-        setIsConnecting(false);
         return;
       }
 
@@ -128,23 +101,11 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           title: "Connexion requise 😊",
           description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille",
         });
-        setIsConnecting(false);
         return;
       }
 
-      clearConnectTimeout();
-      connectTimeoutRef.current = setTimeout(() => {
-        console.log("Connection timeout");
-        setIsConnecting(false);
-        toast({
-          title: "Erreur de connexion",
-          description: "La connexion au portefeuille a échoué. Veuillez réessayer.",
-          variant: "destructive",
-        });
-      }, 30000);
-
       console.log("Opening Web3Modal...");
-      await open({ route: 'ConnectWallet' });
+      await open();
       
     } catch (error) {
       console.error('Connection error:', error);
@@ -153,8 +114,6 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
         description: "Impossible de se connecter au portefeuille",
         variant: "destructive",
       });
-      setIsConnecting(false);
-      clearConnectTimeout();
     }
   };
 
@@ -164,9 +123,9 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       variant="ghost" 
       size="icon" 
       className="rounded-full"
-      disabled={isConnecting}
+      disabled={isOpen}
     >
-      {isConnecting ? (
+      {isOpen ? (
         <Loader2 className="h-5 w-5 animate-spin" />
       ) : (
         <Wallet className="h-5 w-5" />
@@ -175,11 +134,11 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   ) : (
     <Button 
       onClick={handleConnect}
-      disabled={isConnecting}
+      disabled={isOpen}
       variant="outline"
       className="w-full h-10 rounded-full border-2 hover:bg-gray-100 font-medium flex items-center justify-center gap-2 transition-all duration-200"
     >
-      {isConnecting ? (
+      {isOpen ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
           <span>Connexion...</span>
