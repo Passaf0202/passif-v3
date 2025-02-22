@@ -1,9 +1,14 @@
 
-import { createConfig } from 'wagmi';
+import { createConfig, configureChains } from 'wagmi';
+import { publicProvider } from 'wagmi/providers/public';
 import { amoy } from './chains';
 
+const { chains, publicClient } = configureChains(
+  [amoy],
+  [publicProvider()]
+);
+
 export const config = createConfig({
-  chains: [amoy],
-  defaultChain: amoy,
-  projectId: '3225e25c4d47b78232829662814a3d58'
+  autoConnect: true,
+  publicClient,
 });
