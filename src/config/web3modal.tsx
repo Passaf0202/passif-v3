@@ -3,6 +3,7 @@ import { configureChains, createConfig } from 'wagmi';
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
 import { Web3Modal } from '@web3modal/react';
 import { amoy } from './chains';
+import React from 'react';
 
 // Projet ID de WalletConnect
 export const projectId = '3225e25c4d47b78232829662814a3d58';
@@ -23,7 +24,7 @@ export const ethereumClient = new EthereumClient(wagmiConfig, chains);
 const web3modalConfig = {
   projectId,
   ethereumClient,
-  themeMode: 'light',
+  themeMode: 'light' as const,
   themeVariables: {
     '--w3m-font-family': 'Inter, sans-serif',
     '--w3m-accent-color': '#7C3AED', // Violet principal
@@ -38,6 +39,6 @@ const web3modalConfig = {
   defaultChain: amoy,
 };
 
-export const Web3ModalComponent = () => {
+export const Web3ModalComponent: React.FC = () => {
   return <Web3Modal {...web3modalConfig} />;
 };
