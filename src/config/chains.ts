@@ -1,3 +1,4 @@
+
 import { Chain } from 'wagmi';
 
 export const amoy: Chain = {
@@ -17,4 +18,5 @@ export const amoy: Chain = {
     default: { name: 'PolygonScan', url: 'https://www.oklink.com/amoy' },
   },
   testnet: true,
+  iconUrl: 'https://polygon.technology/favicon.ico'
 };

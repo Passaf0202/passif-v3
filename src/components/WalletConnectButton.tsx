@@ -1,5 +1,5 @@
 
-import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
+import { useAccount, useDisconnect, useNetwork, useSwitchNetwork, useConnect } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -18,15 +18,17 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   const { disconnect } = useDisconnect();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
-  const { open } = useWeb3Modal();
+  const { open, close } = useWeb3Modal();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
+  const { connect, connectors } = useConnect();
 
   useEffect(() => {
     const handleNetworkSwitch = async () => {
       if (isConnected && chain?.id !== amoy.id && switchNetwork) {
         try {
+          console.log('Switching to Amoy network...');
           await switchNetwork(amoy.id);
         } catch (error) {
           console.error('Network switch error:', error);
@@ -41,6 +43,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
     if (!user?.id) return;
 
     try {
+      console.log('Updating user profile with wallet address:', walletAddress);
       const { error } = await supabase
         .from('profiles')
         .update({ wallet_address: walletAddress })
@@ -69,6 +72,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       setIsConnecting(true);
       
       if (isConnected) {
+        console.log("Disconnecting wallet...");
         await disconnect();
         if (user) {
           await supabase
@@ -88,7 +92,22 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           });
           return;
         }
-        await open();
+
+        // Essayer d'abord le connecteur WalletConnect
+        const walletConnectConnector = connectors.find(c => c.id === 'walletConnect');
+        if (walletConnectConnector) {
+          console.log("Trying WalletConnect connector...");
+          try {
+            await connect({ connector: walletConnectConnector });
+          } catch (error) {
+            console.error("WalletConnect error:", error);
+            // Si WalletConnect échoue, on ouvre la modale Web3
+            await open();
+          }
+        } else {
+          console.log("Opening Web3Modal...");
+          await open();
+        }
       }
     } catch (error) {
       console.error('Connection error:', error);
