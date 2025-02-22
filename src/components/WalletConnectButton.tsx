@@ -3,28 +3,27 @@ import { useAccount, useDisconnect } from 'wagmi'
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback, useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
-import { useAppkit } from '@reown/appkit';
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
 }
 
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
-  const { address, isConnected, isConnecting: wagmiConnecting } = useAccount()
+  const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
-  const { connect } = useAppkit()
+  const { open, isOpen } = useWeb3Modal()
   const { toast } = useToast()
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
-  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
+    // Réinitialiser l'état de connexion quand isConnected change
     if (isConnected) {
       setIsConnecting(false);
-      setHasError(false);
     }
   }, [isConnected]);
 
@@ -37,7 +36,9 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
 
       const { error } = await supabase
         .from('profiles')
-        .update({ wallet_address: walletAddress })
+        .update({ 
+          wallet_address: walletAddress,
+        })
         .eq('id', user.id);
 
       if (error) {
@@ -87,25 +88,12 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
         setIsConnecting(false);
       } else {
         setIsConnecting(true);
-        setHasError(false);
         console.log('Tentative de connexion au wallet...');
-        
-        try {
-          await connect();
-        } catch (error) {
-          console.error('Erreur lors de la connexion:', error);
-          setHasError(true);
-          toast({
-            title: "Erreur de connexion",
-            description: "Impossible de se connecter au wallet. Veuillez réessayer.",
-            variant: "destructive",
-          });
-        }
+        await open();
       }
     } catch (error) {
       console.error('Connection error:', error);
       setIsConnecting(false);
-      setHasError(true);
       toast({
         title: "Erreur",
         description: "Impossible de se connecter au portefeuille. Veuillez réessayer.",
@@ -114,30 +102,30 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
     }
   };
 
-  const buttonText = isConnected 
-    ? minimal 
-      ? undefined 
-      : `${address?.slice(0, 4)}...${address?.slice(-4)}`
-    : minimal 
-      ? undefined 
-      : 'Connecter Wallet';
-
   return (
     <Button 
       onClick={handleConnect}
-      disabled={isConnecting || wagmiConnecting}
+      disabled={isOpen || isConnecting}
       variant={isConnected ? "outline" : "default"}
-      className={`h-8 ${minimal ? 'w-8 p-0' : 'px-3'} rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm ${hasError ? 'border-red-500' : ''}`}
+      className={`h-8 ${minimal ? 'w-8 p-0' : 'px-3'} rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm`}
     >
-      {(isConnecting || wagmiConnecting) ? (
+      {isOpen || isConnecting ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
           {!minimal && <span className="ml-2">Connexion...</span>}
         </>
+      ) : isConnected ? (
+        minimal ? (
+          <Wallet className="h-4 w-4" />
+        ) : (
+          `${address?.slice(0, 4)}...${address?.slice(-4)}`
+        )
       ) : (
         minimal ? (
           <Wallet className="h-4 w-4" />
-        ) : buttonText
+        ) : (
+          'Connecter Wallet'
+        )
       )}
     </Button>
   );
