@@ -165,6 +165,11 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       </div>
       
       <div className="px-4">
+        <Separator className="my-8" />
+        {renderSecurityInfo()}
+        <Separator className="my-8" />
+        {renderHandDeliveryInfo()}
+        <Separator className="my-8" />
         <ListingHeader 
           title={listing.title}
           price={listing.price}
@@ -206,12 +211,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
             />
           </div>
         </div>
-
-        <Separator className="my-8" />
-        {renderSecurityInfo()}
-        <Separator className="my-8" />
-        {renderHandDeliveryInfo()}
-        <Separator className="my-8" />
 
         <div className="mt-6">
           <SellerInfo 

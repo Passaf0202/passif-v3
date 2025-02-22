@@ -1,9 +1,7 @@
-
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Check, CheckCheck, FileText, Image as ImageIcon } from "lucide-react";
-import { Button } from "./ui/button";
+import { Check, CheckCheck } from "lucide-react";
 
 interface MessageThreadProps {
   message: {
@@ -34,68 +32,58 @@ export function MessageThread({ message, currentUserId }: MessageThreadProps) {
   const isUserSender = message.sender.id === currentUserId;
   const otherUser = isUserSender ? message.receiver : message.sender;
 
-  const isImage = (file: string) => {
-    return file.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-  };
-
   return (
     <div
       className={`flex gap-4 ${
         isUserSender ? "flex-row-reverse" : "flex-row"
-      } mb-6`}
+      } mb-4`}
     >
-      <Avatar className="h-8 w-8 flex-shrink-0">
+      <Avatar className="h-8 w-8">
         <AvatarImage src={otherUser.avatar_url || undefined} alt={otherUser.full_name} />
         <AvatarFallback>
           {otherUser.full_name.split(" ").map(n => n[0]).join("")}
         </AvatarFallback>
       </Avatar>
-
-      <div className={`flex flex-col max-w-[80%] md:max-w-[70%] gap-1 ${
-        isUserSender ? "items-end" : "items-start"
-      }`}>
+      <div className="flex flex-col max-w-[70%]">
         <div
-          className={`rounded-2xl p-4 ${
+          className={`rounded-lg p-3 ${
             isUserSender
               ? "bg-primary text-primary-foreground"
               : "bg-muted"
           }`}
         >
-          <p className="text-sm md:text-base whitespace-pre-wrap break-words">
-            {message.content}
-          </p>
-
+          <p className="text-sm">{message.content}</p>
           {message.files && message.files.length > 0 && (
-            <div className="mt-3 space-y-2">
-              {message.files.map((file, index) => (
-                isImage(file) ? (
+            <div className="mt-2 space-y-2">
+              {message.files.map((file, index) => {
+                const isImage = file.match(/\.(jpg|jpeg|png|gif)$/i);
+                return isImage ? (
                   <img
                     key={index}
                     src={file}
-                    alt="Pièce jointe"
-                    className="max-w-full rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
-                    onClick={() => window.open(file, '_blank')}
+                    alt="Message attachment"
+                    className="max-w-full rounded-lg"
                   />
                 ) : (
-                  <Button
+                  <a
                     key={index}
-                    variant="secondary"
-                    size="sm"
-                    className="w-full flex items-center gap-2"
-                    onClick={() => window.open(file, '_blank')}
+                    href={file}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-500 hover:underline"
                   >
-                    <FileText className="h-4 w-4" />
-                    Voir le fichier
-                  </Button>
-                )
-              ))}
+                    Télécharger le fichier
+                  </a>
+                );
+              })}
             </div>
           )}
         </div>
-
         <div
-          className={`text-xs text-muted-foreground flex items-center gap-1 ${
-            isUserSender ? "flex-row" : "flex-row-reverse"
+          className={`text-xs mt-1 ${
+            isUserSender ? "text-right" : "text-left"
+          } text-muted-foreground flex items-center gap-1 ${
+            isUserSender ? "justify-end" : "justify-start"
           }`}
         >
           {formatDistanceToNow(new Date(message.created_at), {

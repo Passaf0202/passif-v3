@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { Heart } from "lucide-react";
+import { ArrowLeft, Heart } from "lucide-react";
 import { Button } from "../ui/button";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "../ui/dialog";
 
 interface ListingImagesProps {
@@ -18,6 +19,7 @@ export const ListingImages = ({
 }: ListingImagesProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
+  const navigate = useNavigate();
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = "/placeholder.svg";
@@ -28,9 +30,23 @@ export const ListingImages = ({
     setIsZoomed(true);
   };
 
+  const handleBackClick = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="relative">
-      {/* Bouton Favoris */}
+      {/* Boutons Retour et Favoris */}
+      <div className="absolute top-4 left-4 z-10">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="bg-white/80 hover:bg-white"
+          onClick={handleBackClick}
+        >
+          <ArrowLeft className="h-5 w-5 text-gray-700" />
+        </Button>
+      </div>
       <div className="absolute top-4 right-4 z-10 favorite-button">
         <Button 
           variant="ghost" 
