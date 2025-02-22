@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useNetwork, useSwitchNetwork, useAccount } from "wagmi";
+import { useChainId, useSwitchChain, useAccount } from "wagmi";
 import { amoy } from "@/config/chains";
 import { ethers } from "ethers";
 import { ESCROW_CONTRACT_ADDRESS, ESCROW_ABI } from "./types/escrow";
@@ -26,8 +26,8 @@ export function EscrowActions({
   onRelease,
   transactionId 
 }: EscrowActionsProps) {
-  const { chain } = useNetwork();
-  const { switchNetwork } = useSwitchNetwork();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
   const { toast } = useToast();
   const { user } = useAuth();
   const isMobile = useIsMobile();
@@ -96,12 +96,12 @@ export function EscrowActions({
       console.log("[EscrowActions] Starting transaction confirmation...");
 
       // 2. Vérifier et changer de réseau si nécessaire
-      if (chain?.id !== amoy.id) {
-        if (!switchNetwork) {
+      if (chainId !== amoy.id) {
+        if (!switchChain) {
           throw new Error("Impossible de changer de réseau automatiquement");
         }
         console.log("[EscrowActions] Switching network to Amoy...");
-        await switchNetwork(amoy.id);
+        await switchChain(amoy.id);
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 

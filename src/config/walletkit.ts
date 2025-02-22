@@ -26,7 +26,7 @@ const wagmiAdapter = new WagmiAdapter({
 // Create AppKit instance
 export const appKit = createAppKit({
   adapters: [wagmiAdapter],
-  networks,
+  networks: [amoy],
   projectId,
   metadata,
   features: {
@@ -36,3 +36,6 @@ export const appKit = createAppKit({
 
 // Export the adapter for provider setup
 export const adapter = wagmiAdapter;
+
+// Export the walletkit for components
+export const walletkit = appKit;
