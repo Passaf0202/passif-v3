@@ -55,18 +55,11 @@ function App() {
           projectId={projectId} 
           ethereumClient={ethereumClient}
           defaultChain={amoy}
-          explorerRecommendedWalletIds={[
-            'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
-            '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0'  // Trust Wallet
-          ]}
-          explorerExcludedWalletIds="ALL"
-          themeMode="light"
+          themeMode="dark"
           themeVariables={{
             '--w3m-font-family': 'Inter, sans-serif',
-            '--w3m-accent-color': '#000000',
-            '--w3m-background-color': '#ffffff',
-            '--w3m-z-index': '1000',
-            '--w3m-border-radius-master': '10px',
+            '--w3m-accent-color': '#3898FF',
+            '--w3m-background-color': '#000000'
           }}
         />
       </QueryClientProvider>

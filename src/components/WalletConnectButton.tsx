@@ -105,7 +105,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       }
 
       console.log("Opening Web3Modal...");
-      await open({ route: 'ConnectWallet' });
+      await open();
       
     } catch (error) {
       console.error('Connection error:', error);
