@@ -1,14 +1,21 @@
 
-import { createConfig, configureChains } from 'wagmi';
-import { publicProvider } from 'wagmi/providers/public';
+import { configureChains, createConfig } from 'wagmi';
+import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
+import { Web3Modal } from '@web3modal/react';
 import { amoy } from './chains';
 
-const { chains, publicClient } = configureChains(
-  [amoy],
-  [publicProvider()]
-);
+// Projet ID de WalletConnect
+const projectId = '3225e25c4d47b78232829662814a3d58';
 
-export const config = createConfig({
+const chains = [amoy];
+
+const { publicClient } = configureChains(chains, [w3mProvider({ projectId })]);
+
+export const wagmiConfig = createConfig({
   autoConnect: true,
-  publicClient,
+  connectors: w3mConnectors({ projectId, chains }),
+  publicClient
 });
+
+export const ethereumClient = new EthereumClient(wagmiConfig, chains);
+export { Web3Modal };
