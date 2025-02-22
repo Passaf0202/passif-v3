@@ -1,23 +1,20 @@
 
-import { useAccount, useDisconnect } from 'wagmi';
+import { useCallback, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useCallback } from 'react';
 import { useAuth } from "@/hooks/useAuth";
-import { useWeb3Modal } from '@web3modal/react';
+import { walletkit } from '@/config/walletkit';
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
 }
 
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
-  const { open: openWeb3Modal } = useWeb3Modal();
-  const { disconnect } = useDisconnect();
-  const { address, isConnecting } = useAccount();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { address, isConnecting } = walletkit.useAccount();
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
     if (!user?.id) return;
@@ -52,12 +49,10 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   }, [address, user, updateUserProfile]);
 
   const handleConnect = async () => {
-    console.log("handleConnect appelé");
-    
     try {
       if (address) {
         console.log("Déconnexion du wallet...");
-        await disconnect();
+        await walletkit.disconnect();
         if (user) {
           await supabase
             .from('profiles')
@@ -79,8 +74,8 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
         return;
       }
 
-      console.log("Ouverture de la modale Web3...");
-      await openWeb3Modal();
+      console.log("Ouverture du connecteur de wallet...");
+      await walletkit.connect();
       
     } catch (error) {
       console.error('Connection error:', error);

@@ -3,8 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { WagmiConfig } from 'wagmi';
-import { Web3ModalComponent, wagmiConfig } from './config/web3modal';
+import { walletkit } from './config/walletkit';
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import CreateListing from "@/pages/CreateListing";
@@ -31,7 +30,7 @@ function App() {
   return (
     <>
       <QueryClientProvider client={queryClient}>
-        <WagmiConfig config={wagmiConfig}>
+        <walletkit.Provider>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -50,9 +49,8 @@ function App() {
             </Routes>
             <Toaster />
           </BrowserRouter>
-        </WagmiConfig>
+        </walletkit.Provider>
       </QueryClientProvider>
-      <Web3ModalComponent />
     </>
   );
 }
