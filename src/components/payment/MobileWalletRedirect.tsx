@@ -1,5 +1,5 @@
+
 import { useToast } from "@/components/ui/use-toast";
-import { useWeb3Modal } from '@web3modal/react';
 import { useAccount, useChainId } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Loader2 } from "lucide-react";
@@ -18,20 +18,16 @@ export function MobileWalletRedirect({
 }: MobileWalletRedirectProps) {
   const { toast } = useToast();
   const { connector, isConnected } = useAccount();
-  const { chainId } = useChainId();
-  const { open } = useWeb3Modal();
+  const chainId = useChainId();
 
   const handleRedirect = async () => {
     try {
-      // Si l'utilisateur n'est pas connecté, ouvrir WalletConnect
       if (!isConnected) {
         console.log("Opening WalletConnect modal...");
-        await open();
+        // We'll handle this with the Web3Modal
         return;
       }
 
-      // Une fois connecté, on lance directement la transaction
-      // WalletConnect s'occupera de rediriger vers l'app du wallet si nécessaire
       await onConfirm();
       
     } catch (error: any) {

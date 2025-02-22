@@ -4,7 +4,6 @@ import { Chain } from 'viem';
 export const amoy = {
   id: 80_002,
   name: 'Polygon Amoy',
-  network: 'polygon_amoy',
   nativeCurrency: {
     decimals: 18,
     name: 'MATIC',
