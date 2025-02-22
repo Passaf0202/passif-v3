@@ -1,3 +1,4 @@
+
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { useState } from "react";
 import { CategoryContent } from "../components/CategoryContent";
 import { NavbarLogo } from "../NavbarLogo";
 import { SearchInput } from "@/components/search/SearchInput";
+import { WalletConnectButton } from "@/components/WalletConnectButton";
 
 export function MobileMenu() {
   const { user } = useAuth();
@@ -112,6 +114,12 @@ export function MobileMenu() {
               <Plus className="h-5 w-5" />
               Déposer une annonce
             </Button>
+
+            {user && (
+              <div className="flex justify-center">
+                <WalletConnectButton />
+              </div>
+            )}
 
             <Button
               variant="ghost"
