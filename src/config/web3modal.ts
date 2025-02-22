@@ -14,12 +14,6 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 const connectors = w3mConnectors({ 
   projectId, 
   chains,
-  metadata: {
-    name: 'Tradecoiner',
-    description: 'Application de trading avec cryptomonnaies',
-    url: window.location.host,
-    icons: ['https://avatars.githubusercontent.com/u/37784886']
-  }
 });
 
 export const wagmiConfig = createConfig({
