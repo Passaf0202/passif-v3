@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { WagmiConfig } from 'wagmi';
-import { wagmiConfig, projectId } from './config/web3modal';
-import { createWeb3Modal } from '@web3modal/wagmi';
+import { Web3Modal } from '@web3modal/react';
+import { wagmiConfig, ethereumClient, projectId } from './config/web3modal';
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import CreateListing from "@/pages/CreateListing";
@@ -19,7 +19,6 @@ import Search from "@/pages/Search";
 import Admin from "@/pages/Admin";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 
-// Create the query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -27,18 +26,6 @@ const queryClient = new QueryClient({
       retry: 1,
     },
   },
-});
-
-// Initialize web3modal
-createWeb3Modal({
-  wagmiConfig,
-  projectId,
-  themeMode: 'light',
-  themeVariables: {
-    '--w3m-font-family': 'Roboto, sans-serif',
-    '--w3m-accent': '#000000',
-    '--w3m-border-radius-master': '10px'
-  }
 });
 
 function App() {
@@ -63,6 +50,7 @@ function App() {
           </Routes>
           <Toaster />
         </BrowserRouter>
+        <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
       </QueryClientProvider>
     </WagmiConfig>
   );

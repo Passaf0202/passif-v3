@@ -1,9 +1,9 @@
 
-import { useAccount, useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi'
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback, useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
@@ -13,14 +13,15 @@ interface WalletConnectButtonProps {
 }
 
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
-  const { open } = useWeb3Modal();
-  const { toast } = useToast();
+  const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
+  const { open, isOpen } = useWeb3Modal()
+  const { toast } = useToast()
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
+    // Réinitialiser l'état de connexion quand isConnected change
     if (isConnected) {
       setIsConnecting(false);
     }
@@ -104,11 +105,11 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   return (
     <Button 
       onClick={handleConnect}
-      disabled={isConnecting}
+      disabled={isOpen || isConnecting}
       variant={isConnected ? "outline" : "default"}
       className={`h-8 ${minimal ? 'w-8 p-0' : 'px-3'} rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm`}
     >
-      {isConnecting ? (
+      {isOpen || isConnecting ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
           {!minimal && <span className="ml-2">Connexion...</span>}
