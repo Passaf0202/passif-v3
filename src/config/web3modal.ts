@@ -13,8 +13,7 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 
 const connectors = w3mConnectors({ 
   projectId, 
-  chains,
-  version: 2
+  chains
 });
 
 export const wagmiConfig = createConfig({
