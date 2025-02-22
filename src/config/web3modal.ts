@@ -1,10 +1,9 @@
 
-import { createConfig } from '@reown/appkit';
+import { createReownConfig } from '@reown/appkit';
 import { amoy } from './chains';
 
-export const config = createConfig({
+export const config = createReownConfig({
   chains: [amoy],
   defaultChain: amoy,
   projectId: '3225e25c4d47b78232829662814a3d58'
 });
-
