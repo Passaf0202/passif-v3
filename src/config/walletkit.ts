@@ -17,16 +17,15 @@ const metadata = {
 const chains = [amoy];
 
 // Create wagmi config with required properties
-export const config = defaultWagmiConfig({
+export const wagmiConfig = defaultWagmiConfig({
   chains,
   projectId,
   metadata,
-  ssr: false,
 });
 
 // Create web3modal instance
 createWeb3Modal({
-  wagmiConfig: config,
+  wagmiConfig,
   projectId,
   enableAnalytics: true,
   themeMode: 'light',
