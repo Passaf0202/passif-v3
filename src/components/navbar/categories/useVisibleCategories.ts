@@ -8,18 +8,12 @@ export function useVisibleCategories(
   containerRef: RefObject<HTMLDivElement>
 ) {
   const [visibleCategories, setVisibleCategories] = useState<Category[]>([]);
-  const [previousWidth, setPreviousWidth] = useState<number>(0);
 
   const calculateVisibleCategories = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const containerWidth = container.offsetWidth;
-    
-    // Skip calculation if width hasn't changed
-    if (containerWidth === previousWidth) return;
-    setPreviousWidth(containerWidth);
-
     let currentWidth = 0;
     const tempVisible: Category[] = [];
     
@@ -44,25 +38,36 @@ export function useVisibleCategories(
     }
 
     setVisibleCategories(tempVisible);
-  }, [categories, previousWidth]);
+  }, [categories, containerRef]);
 
   useEffect(() => {
     if (!isMobile && categories) {
       // Initial calculation
       calculateVisibleCategories();
 
-      // Debounced resize handler
-      let timeoutId: NodeJS.Timeout;
+      // Debounced resize handler with RAF
+      let rafId: number;
+      let lastWidth = 0;
+
       const handleResize = () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(calculateVisibleCategories, 100);
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          const container = containerRef.current;
+          if (!container) return;
+          
+          const currentWidth = container.offsetWidth;
+          if (currentWidth !== lastWidth) {
+            lastWidth = currentWidth;
+            calculateVisibleCategories();
+          }
+        });
       };
 
       window.addEventListener('resize', handleResize);
       
       return () => {
         window.removeEventListener('resize', handleResize);
-        clearTimeout(timeoutId);
+        cancelAnimationFrame(rafId);
       };
     } else {
       setVisibleCategories(categories || []);
