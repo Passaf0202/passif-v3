@@ -1,5 +1,5 @@
 
-import { useWallet, useAddress, useNetwork } from '@reown/appkit';
+import { useAccount, useConnect, useDisconnect, useNetwork } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,8 +13,9 @@ interface WalletConnectButtonProps {
 }
 
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
-  const { connect, disconnect, isConnecting } = useWallet();
-  const address = useAddress();
+  const { connect: connectWallet, isLoading: isConnecting } = useConnect();
+  const { disconnect } = useDisconnect();
+  const { address } = useAccount();
   const { chain } = useNetwork();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -80,7 +81,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       }
 
       console.log("Connexion du wallet...");
-      await connect();
+      await connectWallet();
       
     } catch (error) {
       console.error('Connection error:', error);

@@ -3,7 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { AppKitProvider } from '@reown/appkit';
+import { WagmiConfig } from 'wagmi';
 import { config } from './config/web3modal';
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
@@ -29,7 +29,7 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <AppKitProvider config={config}>
+    <WagmiConfig config={config}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <Routes>
@@ -50,7 +50,7 @@ function App() {
           <Toaster />
         </BrowserRouter>
       </QueryClientProvider>
-    </AppKitProvider>
+    </WagmiConfig>
   );
 }
 
