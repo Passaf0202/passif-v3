@@ -1,7 +1,7 @@
 
-import { createConfig } from 'wagmi';
+import { createConfig, http } from 'wagmi';
 import { createWeb3Modal } from '@web3modal/wagmi/react';
-import { http } from 'viem';
+import { walletConnect, injected } from 'wagmi/connectors';
 import { amoy } from './chains';
 
 // Project ID from WalletConnect Cloud
@@ -18,6 +18,10 @@ const metadata = {
 // Configure wagmi config
 export const wagmiConfig = createConfig({
   chains: [amoy],
+  connectors: [
+    walletConnect({ projectId, metadata, showQrModal: false }),
+    injected(),
+  ],
   transports: {
     [amoy.id]: http('https://rpc-amoy.polygon.technology'),
   },
