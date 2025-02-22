@@ -1,5 +1,5 @@
 
-import { useAccount, useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -7,6 +7,7 @@ import { useWeb3Modal } from '@web3modal/react';
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback, useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
+import { amoy } from '@/config/chains';
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
@@ -15,22 +16,21 @@ interface WalletConnectButtonProps {
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
   const { open } = useWeb3Modal();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
-    if (isConnected) {
-      setIsConnecting(false);
+    if (isConnected && chain?.id !== amoy.id) {
+      switchNetwork?.(amoy.id);
     }
-  }, [isConnected]);
+  }, [isConnected, chain?.id, switchNetwork]);
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
-    if (!user?.id) {
-      console.log('No user ID available for profile update');
-      return;
-    }
+    if (!user?.id) return;
 
     try {
       const { error } = await supabase
@@ -70,6 +70,8 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
     }
 
     try {
+      setIsConnecting(true);
+      
       if (isConnected) {
         await disconnect();
         if (user) {
@@ -83,7 +85,6 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           description: "Votre portefeuille a été déconnecté",
         });
       } else {
-        setIsConnecting(true);
         await open();
       }
     } catch (error) {
@@ -102,10 +103,10 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
     <Button 
       onClick={handleConnect}
       disabled={isConnecting}
-      variant="default"
+      variant="outline"
       className={`${
         minimal ? 'w-full max-w-[200px]' : 'w-full'
-      } h-10 rounded-full bg-black hover:bg-black/90 text-white font-normal flex items-center justify-center gap-2`}
+      } h-10 rounded-full border-2 hover:bg-gray-100 font-medium flex items-center justify-center gap-2 transition-all duration-200`}
     >
       {isConnecting ? (
         <>
