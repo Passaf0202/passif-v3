@@ -21,8 +21,7 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 
 const connectors = w3mConnectors({ 
   projectId, 
-  chains,
-  chainImages: {}
+  chains
 });
 
 export const wagmiConfig = createConfig({
