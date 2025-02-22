@@ -1,7 +1,7 @@
 
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
-import { WagmiProvider } from 'wagmi';
 import { amoy } from './chains';
+import { createConfig } from 'wagmi';
 
 // Project ID from WalletConnect Cloud
 const projectId = '3225e25c4d47b78232829662814a3d58';
@@ -18,7 +18,7 @@ const metadata = {
 const chains = [amoy];
 
 // Create wagmi config
-export const config = defaultWagmiConfig({
+const wagmiConfig = defaultWagmiConfig({
   chains,
   projectId,
   metadata,
@@ -29,7 +29,7 @@ export const config = defaultWagmiConfig({
 
 // Create web3modal instance
 createWeb3Modal({
-  wagmiConfig: config,
+  wagmiConfig,
   projectId,
   enableAnalytics: true,
   themeMode: 'light',
@@ -43,5 +43,5 @@ createWeb3Modal({
 });
 
 export const adapter = {
-  wagmiConfig: config
+  wagmiConfig: createConfig(wagmiConfig)
 };
