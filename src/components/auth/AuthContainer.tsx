@@ -1,9 +1,14 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { getErrorMessage } from "@/utils/authUtils";
 import { AuthHeader } from "./AuthHeader";
 import { AuthFormContainer } from "./AuthFormContainer";
+import { DiamondViewer } from "../home/DiamondViewer";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AuthContainer() {
   const {
@@ -15,30 +20,31 @@ export function AuthContainer() {
     setUserEmail
   } = useAuthState();
 
+  const [hoverGoogle, setHoverGoogle] = useState(false);
+  const [hoverApple, setHoverApple] = useState(false);
+  const isMobile = useIsMobile();
+
   useAuthSession(setErrorMessage);
 
   const handleEmailSubmit = async (values: { email: string }) => {
     try {
-      setErrorMessage(""); // Clear any previous errors
+      setErrorMessage("");
       console.log("Checking email:", values.email);
       
-      // Try to sign in with OTP to check if the account exists
       const { error } = await supabase.auth.signInWithOtp({
         email: values.email,
         options: {
-          shouldCreateUser: false // This ensures we only check for existing users
+          shouldCreateUser: false
         }
       });
 
       console.log("Email check response:", error);
 
       if (error?.message.includes("Email not found")) {
-        // User doesn't exist, direct to register
         console.log("Email not found, directing to register");
         setUserEmail(values.email);
         setStep("register");
       } else {
-        // User exists, direct to login
         console.log("Email exists, directing to login");
         setUserEmail(values.email);
         setStep("password");
@@ -46,8 +52,6 @@ export function AuthContainer() {
       
     } catch (error) {
       console.error("Error checking email:", error);
-      // If we can't verify the email status, assume it's new and direct to register
-      console.log("Error occurred, directing to register by default");
       setUserEmail(values.email);
       setStep("register");
     }
@@ -56,33 +60,129 @@ export function AuthContainer() {
   const handleLoginSubmit = async (values: { email: string; password: string }) => {
     try {
       setErrorMessage("");
-      console.log("Attempting login for email:", values.email);
-      
       const { error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       });
 
       if (error) {
-        console.error("Login error:", error);
         setErrorMessage(getErrorMessage(error));
       }
     } catch (error) {
-      console.error("Error signing in:", error);
+      console.error("Login error:", error);
       setErrorMessage("Une erreur est survenue lors de la connexion");
     }
   };
 
+  const handleSocialLogin = async (provider: 'google' | 'apple') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin + '/auth/callback'
+        }
+      });
+
+      if (error) {
+        console.error(`${provider} login error:`, error);
+        setErrorMessage(getErrorMessage(error));
+      }
+    } catch (error) {
+      console.error(`Error signing in with ${provider}:`, error);
+      setErrorMessage(`Une erreur est survenue lors de la connexion avec ${provider}`);
+    }
+  };
+
+  const handleSocialInteraction = (provider: 'google' | 'apple', isActive: boolean) => {
+    if (provider === 'google') {
+      setHoverGoogle(isActive);
+    } else {
+      setHoverApple(isActive);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <AuthHeader step={step} />
-      <AuthFormContainer
-        step={step}
-        errorMessage={errorMessage}
-        userEmail={userEmail}
-        onEmailSubmit={handleEmailSubmit}
-        onLoginSubmit={handleLoginSubmit}
-      />
+    <div className="min-h-screen bg-white md:bg-gray-50">
+      <AuthHeader />
+      <div className="mx-auto px-4 md:max-w-xl pt-2 md:pt-4">
+        <div className="text-center">
+          <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-2 md:mb-4 text-center`}>
+            Connectez-vous ou créez votre compte{" "}
+            <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
+              transform: "skew(-12deg)",
+              display: "inline-block",
+            }}>
+              <span style={{ display: "inline-block", transform: "skew(12deg)" }}>
+                Tradecoiner
+              </span>
+            </span>
+          </h2>
+        </div>
+
+        <div className="h-36 md:h-44 -mb-4">
+          <DiamondViewer state="initial" />
+        </div>
+
+        <div className="space-y-4">
+          <AuthFormContainer
+            step={step}
+            errorMessage={errorMessage}
+            userEmail={userEmail}
+            onEmailSubmit={handleEmailSubmit}
+            onLoginSubmit={handleLoginSubmit}
+          />
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-muted-foreground">
+                Ou continuez avec
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col space-y-3">
+            <Button 
+              className="w-full bg-white hover:bg-black text-black hover:text-white rounded-full border border-black transition-all duration-200 h-10"
+              onMouseEnter={() => handleSocialInteraction('google', true)}
+              onMouseLeave={() => handleSocialInteraction('google', false)}
+              onTouchStart={() => handleSocialInteraction('google', true)}
+              onTouchEnd={() => handleSocialInteraction('google', false)}
+              onClick={() => handleSocialLogin('google')}
+            >
+              <img 
+                src={hoverGoogle 
+                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google%20(1).png"
+                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google.png"
+                } 
+                alt="Google" 
+                className="w-4 h-4 mr-2"
+              />
+              Google
+            </Button>
+            <Button 
+              className="w-full bg-white hover:bg-black text-black hover:text-white rounded-full border border-black transition-all duration-200 h-10"
+              onMouseEnter={() => handleSocialInteraction('apple', true)}
+              onMouseLeave={() => handleSocialInteraction('apple', false)}
+              onTouchStart={() => handleSocialInteraction('apple', true)}
+              onTouchEnd={() => handleSocialInteraction('apple', false)}
+              onClick={() => handleSocialLogin('apple')}
+            >
+              <img 
+                src={hoverApple 
+                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo%20(1).png"
+                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo.png"
+                } 
+                alt="Apple" 
+                className="w-4 h-4 mr-2"
+              />
+              Apple
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

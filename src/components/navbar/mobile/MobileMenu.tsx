@@ -1,26 +1,29 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+
+import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  Accordion, 
-  AccordionContent, 
-  AccordionItem, 
-  AccordionTrigger 
-} from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
-import { Plus, Heart, MessageCircle, Bell, Settings, User, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { Category } from "@/types/category";
 import { capitalizeFirstLetter } from "@/utils/textUtils";
+import { useState } from "react";
+import { CategoryContent } from "../components/CategoryContent";
+import { NavbarLogo } from "../NavbarLogo";
+import { SearchInput } from "@/components/search/SearchInput";
+import { WalletConnectButton } from "@/components/WalletConnectButton";
 
 export function MobileMenu() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -36,22 +39,6 @@ export function MobileMenu() {
     }
   });
 
-  const { data: userProfile } = useQuery({
-    queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('username, first_name, full_name')
-        .eq('id', user.id)
-        .single();
-      return data;
-    },
-    enabled: !!user
-  });
-
-  const displayName = userProfile?.username || userProfile?.first_name || userProfile?.full_name;
-
   const handleCreateListing = () => {
     if (!user) {
       toast({
@@ -64,21 +51,189 @@ export function MobileMenu() {
     navigate("/create");
   };
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de se déconnecter",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Déconnexion réussie",
-        description: "À bientôt !",
-      });
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      // Sauvegarder la recherche
+      const searches = JSON.parse(localStorage.getItem("savedSearches") || "[]");
+      const newSearch = {
+        query: searchInput,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem(
+        "savedSearches",
+        JSON.stringify([...searches, newSearch].slice(-10))
+      );
+
+      navigate(`/search?q=${encodeURIComponent(searchInput)}`);
+      setShowSearch(false);
     }
   };
+
+  const handleSavedSearches = () => {
+    const searches = JSON.parse(localStorage.getItem("savedSearches") || "[]");
+    if (searches.length === 0) {
+      toast({
+        title: "Aucune recherche sauvegardée",
+        description: "Vos recherches seront automatiquement sauvegardées quand vous en effectuerez.",
+      });
+      return;
+    }
+    navigate("/saved-searches");
+  };
+
+  const renderMainContent = () => (
+    <>
+      {showSearch ? (
+        <div className="p-4">
+          <form onSubmit={handleSearch} className="space-y-4">
+            <SearchInput
+              value={searchInput}
+              onChange={setSearchInput}
+              titleOnly={false}
+              onTitleOnlyChange={() => {}}
+              showCheckbox={false}
+            />
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1">
+                Rechercher
+              </Button>
+              <Button variant="outline" onClick={() => setShowSearch(false)}>
+                Annuler
+              </Button>
+            </div>
+          </form>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-6 p-4">
+            <Button 
+              onClick={handleCreateListing}
+              className="w-full bg-black hover:bg-black/90 text-white rounded-full h-12 flex items-center gap-3 text-base font-normal"
+            >
+              <Plus className="h-5 w-5" />
+              Déposer une annonce
+            </Button>
+
+            {user && (
+              <div className="flex justify-center">
+                <WalletConnectButton />
+              </div>
+            )}
+
+            <Button
+              variant="ghost"
+              onClick={() => setShowSearch(true)}
+              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
+            >
+              <Search className="h-5 w-5 mr-3" />
+              Rechercher
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/messages")}
+              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
+            >
+              <MessageCircle className="h-5 w-5 mr-3" />
+              Messages
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/favorites")}
+              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
+            >
+              <Heart className="h-5 w-5 mr-3" />
+              Favoris
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={handleSavedSearches}
+              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
+            >
+              <Save className="h-5 w-5 mr-3" />
+              Recherches sauvegardées
+            </Button>
+          </div>
+
+          <div className="h-2 bg-gray-100" />
+
+          <div className="py-4">
+            <h3 className="px-4 text-sm font-semibold text-gray-500 mb-2">Catégories</h3>
+            {categories?.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category)}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-left"
+              >
+                <span className="text-base">{capitalizeFirstLetter(category.name)}</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </button>
+            ))}
+          </div>
+
+          <div className="h-2 bg-gray-100" />
+
+          <div className="py-4">
+            {!user && (
+              <Link
+                to="/auth"
+                className="flex items-center justify-between px-4 py-3 font-medium text-primary hover:bg-gray-50"
+              >
+                Se connecter
+                <ChevronRight className="h-5 w-5" />
+              </Link>
+            )}
+
+            <div className="mt-4">
+              <h3 className="px-4 text-sm font-semibold text-gray-500 mb-2">Informations pratiques</h3>
+              <Link
+                to="/help"
+                className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+              >
+                <span className="text-base">Centre d'aide</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </Link>
+              <Link
+                to="/about"
+                className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+              >
+                <span className="text-base">À propos</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </Link>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+
+  const renderCategoryContent = () => (
+    <div className="h-full flex flex-col">
+      <SheetHeader className="h-14 px-4 flex flex-row items-center justify-between border-b">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => setSelectedCategory(null)}
+          className="absolute left-4"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex-1 flex justify-center">
+          <span className="text-lg font-medium">
+            {capitalizeFirstLetter(selectedCategory?.name || "")}
+          </span>
+        </div>
+      </SheetHeader>
+      <div className="flex-1 overflow-y-auto">
+        {selectedCategory && (
+          <CategoryContent category={selectedCategory} />
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <Sheet>
@@ -87,156 +242,22 @@ export function MobileMenu() {
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[300px] p-0">
-        <SheetHeader className="p-4 border-b">
-          <SheetTitle className="text-left">Menu</SheetTitle>
-        </SheetHeader>
-        <div className="overflow-y-auto">
-          <Accordion type="single" collapsible className="w-full">
-            {/* Section Déposer une annonce */}
-            <div className="p-4 border-b">
-              <Button 
-                onClick={handleCreateListing}
-                className="w-full bg-primary hover:bg-primary/90 rounded-full py-2 h-auto"
-              >
-                <Plus className="h-4 w-4 mr-2 stroke-[2.5]" />
-                Déposer une annonce
-              </Button>
-            </div>
-
-            {/* Section Mon compte */}
-            {user ? (
-              <AccordionItem value="account" className="border-b">
-                <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2" />
-                    Mon compte
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-1 p-2">
-                    <Link 
-                      to="/profile" 
-                      className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 rounded-md"
-                    >
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 mr-2" />
-                        <span>Mon profil</span>
-                      </div>
-                      {displayName && (
-                        <span className="text-sm text-muted-foreground">
-                          {displayName}
-                        </span>
-                      )}
-                    </Link>
-                    <Link 
-                      to="/messages" 
-                      className="flex items-center px-4 py-2 hover:bg-gray-100 rounded-md"
-                    >
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Messages
-                    </Link>
-                    <Link 
-                      to="/favorites" 
-                      className="flex items-center px-4 py-2 hover:bg-gray-100 rounded-md"
-                    >
-                      <Heart className="h-4 w-4 mr-2" />
-                      Favoris
-                    </Link>
-                    <Link 
-                      to="/notifications" 
-                      className="flex items-center px-4 py-2 hover:bg-gray-100 rounded-md"
-                    >
-                      <Bell className="h-4 w-4 mr-2" />
-                      Notifications
-                    </Link>
-                    <Link 
-                      to="/settings" 
-                      className="flex items-center px-4 py-2 hover:bg-gray-100 rounded-md"
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Paramètres
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 hover:bg-gray-100 rounded-md text-left"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Déconnexion
-                    </button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ) : (
-              <div className="p-4 border-b">
-                <Link 
-                  to="/auth"
-                  className="flex items-center text-primary hover:underline"
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Se connecter
-                </Link>
-              </div>
-            )}
-
-            {/* Section Catégories */}
-            {categories?.map((category) => (
-              <AccordionItem key={category.id} value={category.id} className="border-b">
-                <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
-                  {capitalizeFirstLetter(category.name)}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-1 p-2">
-                    <Link
-                      to={`/category/${category.name.toLowerCase()}`}
-                      className="block px-4 py-2 text-primary hover:underline"
-                    >
-                      Voir tout {category.name.toLowerCase()}
-                    </Link>
-                    {category.subcategories?.map((subcategory) => (
-                      <div key={subcategory.id} className="space-y-1">
-                        <Link
-                          to={`/category/${category.name.toLowerCase()}/${subcategory.name.toLowerCase()}`}
-                          className="block px-4 py-2 hover:bg-gray-100 rounded-md"
-                        >
-                          {capitalizeFirstLetter(subcategory.name)}
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-
-            {/* Section Informations pratiques */}
-            <AccordionItem value="info" className="border-b">
-              <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
-                Informations pratiques
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-1 p-2">
-                  <Link 
-                    to="/help" 
-                    className="block px-4 py-2 hover:bg-gray-100 rounded-md"
-                  >
-                    Centre d'aide
-                  </Link>
-                  <Link 
-                    to="/contact" 
-                    className="block px-4 py-2 hover:bg-gray-100 rounded-md"
-                  >
-                    Nous contacter
-                  </Link>
-                  <Link 
-                    to="/about" 
-                    className="block px-4 py-2 hover:bg-gray-100 rounded-md"
-                  >
-                    À propos
-                  </Link>
+      <SheetContent side="left" className="w-full p-0 border-0">
+        <div className="h-full flex flex-col">
+          {selectedCategory ? (
+            renderCategoryContent()
+          ) : (
+            <>
+              <SheetHeader className="h-14 px-4 flex flex-row items-center justify-between border-b">
+                <div className="flex-1 flex justify-center">
+                  <NavbarLogo />
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto">
+                {renderMainContent()}
+              </div>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>
