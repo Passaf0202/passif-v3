@@ -17,6 +17,5 @@ export const amoy: Chain = {
   blockExplorers: {
     default: { name: 'PolygonScan', url: 'https://www.oklink.com/amoy' },
   },
-  testnet: true,
-  iconUrl: 'https://polygon.technology/favicon.ico'
+  testnet: true
 };
