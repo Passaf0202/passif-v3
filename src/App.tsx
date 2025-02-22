@@ -32,8 +32,7 @@ const config = createConfig({
   chains: [amoy],
   transports: {
     [amoy.id]: http()
-  },
-  queryClient,
+  }
 });
 
 function App() {

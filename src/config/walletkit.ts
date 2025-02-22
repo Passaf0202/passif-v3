@@ -25,7 +25,6 @@ const wagmiConfig = defaultWagmiConfig({
   enableWalletConnect: true,
   enableInjected: true,
   enableEIP6963: true,
-  queryClient: new QueryClient(),
 });
 
 // Create web3modal instance
