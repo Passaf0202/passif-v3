@@ -5,7 +5,7 @@ import { Web3Modal } from '@web3modal/react';
 import { amoy } from './chains';
 
 // Projet ID de WalletConnect
-const projectId = '3225e25c4d47b78232829662814a3d58';
+export const projectId = '3225e25c4d47b78232829662814a3d58';
 
 const chains = [amoy];
 
