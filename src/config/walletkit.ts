@@ -1,9 +1,9 @@
 
-import { createWalletKitCore } from '@reown/appkit';
-import { wagmiAdapter } from '@reown/appkit-adapter-wagmi';
+import { WalletKitCore } from '@reown/appkit';
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { amoy } from './chains';
 
-export const walletkit = createWalletKitCore({
+export const walletkit = new WalletKitCore({
   projectId: '3225e25c4d47b78232829662814a3d58',
   chains: [amoy],
   metadata: {
@@ -12,5 +12,5 @@ export const walletkit = createWalletKitCore({
     url: window.location.origin,
     icons: ['https://avatars.githubusercontent.com/u/37784886']
   },
-  adapter: wagmiAdapter(),
+  adapter: new WagmiAdapter(),
 });
