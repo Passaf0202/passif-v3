@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { CATEGORY_HIGHLIGHTS } from "../constants/categoryHighlights";
 import { CategoryHighlight } from "../types/categories";
+import { getCategoryIcon } from "@/utils/categoryIcons"; // Ajout de l'import manquant
 
 interface CategoryContentProps {
   category: Category;
