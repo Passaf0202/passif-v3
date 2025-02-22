@@ -1,9 +1,9 @@
 
-import { useAccount, useDisconnect } from 'wagmi'
+import { useAccount, useDisconnect } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useWeb3Modal } from '@web3modal/react'
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback, useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
@@ -13,10 +13,10 @@ interface WalletConnectButtonProps {
 }
 
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
-  const { address, isConnected } = useAccount()
-  const { disconnect } = useDisconnect()
-  const { open, isOpen } = useWeb3Modal()
-  const { toast } = useToast()
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { open, isOpen } = useWeb3Modal();
+  const { toast } = useToast();
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
 
