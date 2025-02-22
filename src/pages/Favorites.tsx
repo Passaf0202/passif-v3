@@ -1,9 +1,10 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ListingCard } from "@/components/ListingCard";
 import { Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { SearchResults } from "@/components/search/SearchResults";
 
 const Favorites = () => {
   const { user } = useAuth();
@@ -20,11 +21,18 @@ const Favorites = () => {
           listings (
             id,
             title,
+            description,
             price,
             location,
             images,
             user_id,
-            shipping_method
+            shipping_method,
+            crypto_amount,
+            crypto_currency,
+            category,
+            subcategory,
+            created_at,
+            wallet_address
           )
         `)
         .eq("user_id", user.id);
@@ -50,22 +58,9 @@ const Favorites = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : favorites && favorites.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {favorites.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                id={listing.id}
-                title={listing.title}
-                price={listing.price}
-                location={listing.location}
-                image={listing.images?.[0] || "/placeholder.svg"}
-                sellerId={listing.user_id}
-                shipping_method={listing.shipping_method}
-              />
-            ))}
-          </div>
+          <SearchResults listings={favorites} showFilters={false} />
         ) : (
-          <p className="text-center text-gray-500">
+          <p className="text-center text-gray-500 py-8">
             Vous n'avez pas encore d'annonces en favoris
           </p>
         )}
