@@ -5,7 +5,8 @@ import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { useAccount, useDisconnect } from 'wagmi';
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
@@ -15,7 +16,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   const { toast } = useToast();
   const { user } = useAuth();
   const { address, isConnecting } = useAccount();
-  const { connectAsync } = useConnect();
+  const { open } = useWeb3Modal();
   const { disconnectAsync } = useDisconnect();
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
@@ -76,8 +77,8 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
         return;
       }
 
-      console.log("Ouverture du connecteur de wallet...");
-      await connectAsync();
+      console.log("Ouverture du modal de connexion wallet...");
+      await open();
       
     } catch (error) {
       console.error('Connection error:', error);
@@ -95,7 +96,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       variant="ghost" 
       size="icon"
       disabled={isConnecting}
-      className="rounded-full"
+      className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
     >
       {isConnecting ? (
         <Loader2 className="h-5 w-5 animate-spin" />
@@ -108,7 +109,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       onClick={handleConnect}
       variant="outline"
       disabled={isConnecting}
-      className="w-full h-10 rounded-full border-2 hover:bg-gray-100 font-medium flex items-center justify-center gap-2 transition-all duration-200"
+      className="w-full h-10 rounded-full border-2 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium flex items-center justify-center gap-2 transition-all duration-200"
     >
       {isConnecting ? (
         <>

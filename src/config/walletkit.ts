@@ -1,9 +1,9 @@
 
-import { createAppKit } from '@reown/appkit/react';
-import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
+import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
+import { WagmiProvider } from 'wagmi';
 import { amoy } from './chains';
 
-// Project ID from reown.com
+// Project ID from WalletConnect Cloud
 const projectId = '3225e25c4d47b78232829662814a3d58';
 
 // Metadata configuration
@@ -14,28 +14,34 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
-// Configure networks
-const networks = [amoy];
+// Configure all chains you want to support
+const chains = [amoy];
 
-// Create Wagmi Adapter
-const wagmiAdapter = new WagmiAdapter({
-  networks,
-  projectId
-});
-
-// Create AppKit instance
-export const appKit = createAppKit({
-  adapters: [wagmiAdapter],
-  networks: [amoy],
+// Create wagmi config
+export const config = defaultWagmiConfig({
+  chains,
   projectId,
   metadata,
-  features: {
-    analytics: true
+  enableWalletConnect: true,
+  enableInjected: true,
+  enableEIP6963: true,
+});
+
+// Create web3modal instance
+createWeb3Modal({
+  wagmiConfig: config,
+  projectId,
+  enableAnalytics: true,
+  themeMode: 'light',
+  defaultChain: amoy,
+  tokens: {
+    [amoy.id]: {
+      address: '0x0000000000000000000000000000000000000000',
+      image: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0/logo.png'
+    }
   }
 });
 
-// Export the adapter for provider setup
-export const adapter = wagmiAdapter;
-
-// Export the walletkit for components
-export const walletkit = appKit;
+export const adapter = {
+  wagmiConfig: config
+};
