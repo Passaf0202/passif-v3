@@ -11,22 +11,21 @@ export function useVisibleCategories(
 
   useEffect(() => {
     if (!isMobile && categories) {
-      const updateVisibleCategories = () => {
-        const container = containerRef.current;
-        if (!container) return;
+      const container = containerRef.current;
+      if (!container) return;
 
+      const updateVisibleCategories = () => {
         const containerWidth = container.offsetWidth;
         let currentWidth = 0;
         const tempVisible: Category[] = [];
         
         // Paramètres d'espacement optimisés
-        const buttonPadding = 16; // 8px de chaque côté (px-2)
-        const dotSpacing = 4; // 2px de chaque côté du point
-        const charWidth = 6; // Largeur moyenne plus précise d'un caractère
-        const reservedSpace = 70; // Espace réduit pour "Autres"
+        const buttonPadding = 16;
+        const dotSpacing = 4;
+        const charWidth = 6;
+        const reservedSpace = 70;
 
         for (const category of categories) {
-          // Calculer la largeur estimée pour cette catégorie
           const textWidth = category.name.length * charWidth;
           const totalWidth = textWidth + buttonPadding + dotSpacing;
 
@@ -38,19 +37,39 @@ export function useVisibleCategories(
           }
         }
 
-        setVisibleCategories(tempVisible);
+        // Vérifier si les catégories visibles ont réellement changé
+        const hasChanged = tempVisible.length !== visibleCategories.length ||
+          tempVisible.some((cat, index) => visibleCategories[index]?.id !== cat.id);
+
+        if (hasChanged) {
+          setVisibleCategories(tempVisible);
+        }
       };
 
+      // Appel initial
       updateVisibleCategories();
-      window.addEventListener('resize', updateVisibleCategories);
+
+      // Gestionnaire de redimensionnement optimisé avec debounce
+      let resizeTimeout: number;
+      const handleResize = () => {
+        if (resizeTimeout) {
+          window.clearTimeout(resizeTimeout);
+        }
+        resizeTimeout = window.setTimeout(updateVisibleCategories, 100);
+      };
+
+      window.addEventListener('resize', handleResize);
       
       return () => {
-        window.removeEventListener('resize', updateVisibleCategories);
+        window.removeEventListener('resize', handleResize);
+        if (resizeTimeout) {
+          window.clearTimeout(resizeTimeout);
+        }
       };
     } else {
       setVisibleCategories(categories || []);
     }
-  }, [categories, isMobile, containerRef]);
+  }, [categories, isMobile]); // Retiré containerRef des dépendances
 
   return visibleCategories;
 }
