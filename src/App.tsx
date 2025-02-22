@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { WagmiConfig } from 'wagmi';
 import { Web3Modal } from '@web3modal/react';
 import { wagmiConfig, ethereumClient, projectId } from './config/web3modal';
+import { amoy } from './config/chains';
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import CreateListing from "@/pages/CreateListing";
