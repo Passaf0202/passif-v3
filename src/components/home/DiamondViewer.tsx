@@ -20,20 +20,29 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         ref={modelRef}
         src={MODEL_PATH}
         auto-rotate
+        camera-controls
         rotation-per-second={getRotationSpeed()}
         rotation-axis="0 1 0"
         orientation="0deg 270deg 0deg"
         interaction-prompt="none"
-        camera-orbit="35deg 85deg 1.2m"
-        min-camera-orbit="35deg 85deg 1.2m"
-        max-camera-orbit="35deg 85deg 1.2m"
+        camera-orbit="35deg 75deg 105%"
+        min-camera-orbit="auto auto 75%"
+        max-camera-orbit="auto auto 150%"
+        camera-target="0 0 0"
+        orbit-sensitivity="1"
+        interpolation-decay="100"
+        min-field-of-view="10deg"
+        max-field-of-view="30deg"
         auto-rotate-delay={0}
         shadow-intensity="0"
         exposure="0.8"
         environment-image="neutral"
-        field-of-view="18deg"
+        field-of-view="20deg"
         bounds="tight"
-        scale="2.5 2.5 2.5"
+        scale="3.5 3.5 3.5"
+        min-scale="3.5"
+        max-scale="3.5"
+        disable-zoom
         loading="eager"
         style={{
           width: '100%',

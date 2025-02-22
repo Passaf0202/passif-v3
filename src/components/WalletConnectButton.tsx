@@ -1,51 +1,62 @@
 
-import { useAccount, useDisconnect } from 'wagmi'
+import { useAccount, useDisconnect, useNetwork, useSwitchNetwork, useConnect } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useWeb3Modal } from '@web3modal/react'
+import { useWeb3Modal } from '@web3modal/react';
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
+import { amoy } from '@/config/chains';
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
 }
 
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
-  const { address, isConnected } = useAccount()
-  const { disconnect } = useDisconnect()
-  const { open, isOpen } = useWeb3Modal()
-  const { toast } = useToast()
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
+  const { open, close } = useWeb3Modal();
+  const { toast } = useToast();
   const { user } = useAuth();
+  const [isConnecting, setIsConnecting] = useState(false);
+  const { connect, connectors } = useConnect();
+
+  useEffect(() => {
+    const handleNetworkSwitch = async () => {
+      if (isConnected && chain?.id !== amoy.id && switchNetwork) {
+        try {
+          console.log('Switching to Amoy network...');
+          await switchNetwork(amoy.id);
+        } catch (error) {
+          console.error('Network switch error:', error);
+        }
+      }
+    };
+
+    handleNetworkSwitch();
+  }, [isConnected, chain?.id, switchNetwork]);
 
   const updateUserProfile = useCallback(async (walletAddress: string) => {
-    try {
-      if (!user?.id) {
-        console.log('No user ID available for profile update');
-        return;
-      }
+    if (!user?.id) return;
 
+    try {
+      console.log('Updating user profile with wallet address:', walletAddress);
       const { error } = await supabase
         .from('profiles')
-        .update({ 
-          wallet_address: walletAddress,
-        })
+        .update({ wallet_address: walletAddress })
         .eq('id', user.id);
 
-      if (error) {
-        console.error('Error updating profile:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('Profile updated with wallet address:', walletAddress);
+      toast({
+        title: "Portefeuille connecté",
+        description: "Votre portefeuille a été lié à votre profil",
+      });
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le profil",
-        variant: "destructive",
-      });
     }
   }, [user?.id, toast]);
 
@@ -57,15 +68,11 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
 
   const handleConnect = async () => {
     try {
-      if (!user) {
-        toast({
-          title: "Connexion requise 😊",
-          description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille",
-        });
-        return;
-      }
-
+      console.log("Tentative de connexion au wallet...");
+      setIsConnecting(true);
+      
       if (isConnected) {
+        console.log("Disconnecting wallet...");
         await disconnect();
         if (user) {
           await supabase
@@ -78,43 +85,78 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           description: "Votre portefeuille a été déconnecté",
         });
       } else {
-        console.log('Tentative de connexion au wallet...');
-        await open();
+        if (!user) {
+          toast({
+            title: "Connexion requise 😊",
+            description: "Veuillez vous connecter à votre compte avant d'ajouter un portefeuille",
+          });
+          return;
+        }
+
+        // Essayer d'abord le connecteur WalletConnect
+        const walletConnectConnector = connectors.find(c => c.id === 'walletConnect');
+        if (walletConnectConnector) {
+          console.log("Trying WalletConnect connector...");
+          try {
+            await connect({ connector: walletConnectConnector });
+          } catch (error) {
+            console.error("WalletConnect error:", error);
+            // Si WalletConnect échoue, on ouvre la modale Web3
+            await open();
+          }
+        } else {
+          console.log("Opening Web3Modal...");
+          await open();
+        }
       }
     } catch (error) {
       console.error('Connection error:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de se connecter au portefeuille. Veuillez réessayer.",
+        description: "Impossible de se connecter au portefeuille",
         variant: "destructive",
       });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
-  return (
+  return minimal ? (
     <Button 
       onClick={handleConnect}
-      disabled={isOpen}
-      variant={isConnected ? "outline" : "default"}
-      className={`h-8 ${minimal ? 'w-8 p-0' : 'px-3'} rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm`}
+      variant="ghost" 
+      size="icon" 
+      className="rounded-full"
+      disabled={isConnecting}
     >
-      {isOpen ? (
+      {isConnecting ? (
+        <Loader2 className="h-5 w-5 animate-spin" />
+      ) : (
+        <Wallet className="h-5 w-5" />
+      )}
+    </Button>
+  ) : (
+    <Button 
+      onClick={handleConnect}
+      disabled={isConnecting}
+      variant="outline"
+      className="w-full h-10 rounded-full border-2 hover:bg-gray-100 font-medium flex items-center justify-center gap-2 transition-all duration-200"
+    >
+      {isConnecting ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
-          {!minimal && <span className="ml-2">Connexion...</span>}
+          <span>Connexion...</span>
         </>
       ) : isConnected ? (
-        minimal ? (
+        <>
           <Wallet className="h-4 w-4" />
-        ) : (
-          `${address?.slice(0, 4)}...${address?.slice(-4)}`
-        )
+          <span>{`${address?.slice(0, 4)}...${address?.slice(-4)}`}</span>
+        </>
       ) : (
-        minimal ? (
+        <>
           <Wallet className="h-4 w-4" />
-        ) : (
-          'Connecter Wallet'
-        )
+          <span>Connecter Wallet</span>
+        </>
       )}
     </Button>
   );

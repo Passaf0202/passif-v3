@@ -5,8 +5,10 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { getErrorMessage } from "@/utils/authUtils";
 import { AuthHeader } from "./AuthHeader";
 import { AuthFormContainer } from "./AuthFormContainer";
-import { DiamondWall } from "./DiamondWall";
+import { DiamondViewer } from "../home/DiamondViewer";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AuthContainer() {
   const {
@@ -17,6 +19,10 @@ export function AuthContainer() {
     userEmail,
     setUserEmail
   } = useAuthState();
+
+  const [hoverGoogle, setHoverGoogle] = useState(false);
+  const [hoverApple, setHoverApple] = useState(false);
+  const isMobile = useIsMobile();
 
   useAuthSession(setErrorMessage);
 
@@ -87,26 +93,37 @@ export function AuthContainer() {
     }
   };
 
+  const handleSocialInteraction = (provider: 'google' | 'apple', isActive: boolean) => {
+    if (provider === 'google') {
+      setHoverGoogle(isActive);
+    } else {
+      setHoverApple(isActive);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white md:bg-gray-50">
       <AuthHeader />
-      <div className="md:hidden">
-        <DiamondWall />
-      </div>
-      <div className="px-4 md:mt-8">
-        <h2 className="text-xl md:text-3xl font-bold tracking-tight text-center mb-8">
-          Connectez-vous ou créez votre compte{" "}
-          <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
-            transform: "skew(-12deg)",
-            display: "inline-block",
-          }}>
-            <span style={{ display: "inline-block", transform: "skew(12deg)" }}>
-              Tradecoiner
+      <div className="mx-auto px-4 md:max-w-xl pt-2 md:pt-4">
+        <div className="text-center">
+          <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-2 md:mb-4 text-center`}>
+            Connectez-vous ou créez votre compte{" "}
+            <span className="relative inline-block px-1 bg-[#CDCDCD] text-black" style={{
+              transform: "skew(-12deg)",
+              display: "inline-block",
+            }}>
+              <span style={{ display: "inline-block", transform: "skew(12deg)" }}>
+                Tradecoiner
+              </span>
             </span>
-          </span>
-        </h2>
+          </h2>
+        </div>
 
-        <div className="space-y-6 max-w-sm mx-auto">
+        <div className="h-36 md:h-44 -mb-4">
+          <DiamondViewer state="initial" />
+        </div>
+
+        <div className="space-y-4">
           <AuthFormContainer
             step={step}
             errorMessage={errorMessage}
@@ -126,21 +143,41 @@ export function AuthContainer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col space-y-3">
             <Button 
-              variant="outline" 
-              className="w-full"
+              className="w-full bg-white hover:bg-black text-black hover:text-white rounded-full border border-black transition-all duration-200 h-10"
+              onMouseEnter={() => handleSocialInteraction('google', true)}
+              onMouseLeave={() => handleSocialInteraction('google', false)}
+              onTouchStart={() => handleSocialInteraction('google', true)}
+              onTouchEnd={() => handleSocialInteraction('google', false)}
               onClick={() => handleSocialLogin('google')}
             >
-              <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2" />
+              <img 
+                src={hoverGoogle 
+                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google%20(1).png"
+                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//google.png"
+                } 
+                alt="Google" 
+                className="w-4 h-4 mr-2"
+              />
               Google
             </Button>
             <Button 
-              variant="outline" 
-              className="w-full"
+              className="w-full bg-white hover:bg-black text-black hover:text-white rounded-full border border-black transition-all duration-200 h-10"
+              onMouseEnter={() => handleSocialInteraction('apple', true)}
+              onMouseLeave={() => handleSocialInteraction('apple', false)}
+              onTouchStart={() => handleSocialInteraction('apple', true)}
+              onTouchEnd={() => handleSocialInteraction('apple', false)}
               onClick={() => handleSocialLogin('apple')}
             >
-              <img src="/apple.svg" alt="Apple" className="w-5 h-5 mr-2" />
+              <img 
+                src={hoverApple 
+                  ? "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo%20(1).png"
+                  : "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//apple-logo.png"
+                } 
+                alt="Apple" 
+                className="w-4 h-4 mr-2"
+              />
               Apple
             </Button>
           </div>

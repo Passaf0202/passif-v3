@@ -5,6 +5,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileWalletRedirect } from "./MobileWalletRedirect";
 
 interface PaymentButtonProps {
   isProcessing: boolean;
@@ -20,8 +22,6 @@ interface PaymentButtonProps {
 export function PaymentButton({ 
   isProcessing: externalIsProcessing, 
   isConnected, 
-  cryptoAmount, 
-  cryptoCurrency = 'POL',
   onClick,
   disabled = false,
   sellerAddress,
@@ -29,7 +29,7 @@ export function PaymentButton({
 }: PaymentButtonProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isWrongNetwork, ensureCorrectNetwork } = useNetworkSwitch();
+  const { isWrongNetwork } = useNetworkSwitch();
   const { handlePayment, isProcessing } = usePaymentTransaction({
     listingId,
     address: sellerAddress,
@@ -38,40 +38,24 @@ export function PaymentButton({
       navigate(`/payment/${transactionId}`);
     }
   });
+  const isMobile = useIsMobile();
 
-  const handleClick = async () => {
-    if (!isConnected || !sellerAddress || !cryptoAmount || !listingId) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez connecter votre wallet et vérifier les informations de paiement",
-        variant: "destructive",
-      });
-      return;
-    }
+  const buttonDisabled = isProcessing || externalIsProcessing || !isConnected || disabled || !sellerAddress || !listingId;
 
-    try {
-      // 1. S'assurer d'être sur le bon réseau avant tout
-      await ensureCorrectNetwork();
-
-      // 2. Lancer le processus de paiement
-      await handlePayment();
-
-    } catch (error: any) {
-      console.error('Transaction error:', error);
-      toast({
-        title: "Erreur de transaction",
-        description: error.message || "La transaction a échoué. Veuillez réessayer.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const buttonDisabled = isProcessing || externalIsProcessing || !isConnected || !cryptoAmount || disabled || !sellerAddress || !listingId;
+  if (isMobile) {
+    return (
+      <MobileWalletRedirect 
+        isProcessing={isProcessing || externalIsProcessing}
+        onConfirm={handlePayment}
+        action="payment"
+      />
+    );
+  }
 
   return (
     <div className="w-full space-y-2">
       <Button 
-        onClick={handleClick} 
+        onClick={handlePayment} 
         disabled={buttonDisabled}
         className="w-full bg-primary hover:bg-primary/90"
       >
@@ -89,7 +73,7 @@ export function PaymentButton({
         ) : !sellerAddress ? (
           "Adresse du vendeur manquante"
         ) : (
-          `Payer ${cryptoAmount?.toFixed(6)} POL sur Polygon Amoy`
+          "Payer"
         )}
       </Button>
 
