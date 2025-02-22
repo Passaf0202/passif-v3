@@ -1,5 +1,5 @@
 
-import { ArrowLeft, LockIcon, HeadphonesIcon, CalendarIcon, ThumbsUpIcon } from "lucide-react";
+import { Shield } from "lucide-react";
 import { ListingImages } from "./ListingImages";
 import { ListingHeader } from "./ListingHeader";
 import { SellerInfo } from "./SellerInfo";
@@ -10,12 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { validateAndUpdateCryptoAmount } from "@/hooks/escrow/useCryptoAmount";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Card } from "../ui/card";
-import { LocationPicker } from "../LocationPicker";
-import { Separator } from "../ui/separator";
-import { Button } from "../ui/button";
 
 interface ListingDetailsProps {
   listing: {
@@ -37,8 +33,16 @@ interface ListingDetailsProps {
     wallet_address?: string;
     brand?: string;
     model?: string;
-    category?: string;
-    subcategory?: string;
+    year?: number;
+    mileage?: number;
+    condition?: string;
+    color?: string[];
+    transmission?: string;
+    fuel_type?: string;
+    doors?: number;
+    crit_air?: string;
+    emission_class?: string;
+    shipping_method?: string;
   };
 }
 
@@ -46,10 +50,10 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
   
   const cryptoDetails = useCryptoConversion(listing.price, listing.crypto_currency);
 
+  // Fetch and validate crypto amount before allowing purchase
   const { data: listingData } = useQuery({
     queryKey: ['listing-wallet', listing.id],
     queryFn: async () => {
@@ -92,217 +96,63 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     });
   };
 
-  const handleBackClick = () => {
-    navigate(-1);
-  };
-
-  const categories = [listing.category, listing.subcategory].filter(Boolean);
-
-  const renderSecurityInfo = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-semibold mb-6">Protection Tradecoiner</h2>
-      <div className="space-y-8">
-        <div className="flex gap-4 items-start">
-          <div className="p-3 bg-gray-100 rounded-lg">
-            <LockIcon className="h-6 w-6 text-gray-700" />
-          </div>
-          <div>
-            <p className="text-lg font-semibold mb-1">Paiement sécurisé</p>
-            <p className="text-gray-600">Votre argent est sécurisé et versé au bon moment</p>
-          </div>
-        </div>
-        <div className="flex gap-4 items-start">
-          <div className="p-3 bg-gray-100 rounded-lg">
-            <HeadphonesIcon className="h-6 w-6 text-gray-700" />
-          </div>
-          <div>
-            <p className="text-lg font-semibold mb-1">Support dédié</p>
-            <p className="text-gray-600">Notre service client dédié vous accompagne</p>
-          </div>
-        </div>
+  if (!listing.user) {
+    console.error("User information is missing from the listing");
+    return (
+      <div className="text-center p-4">
+        <p>Information du vendeur non disponible</p>
       </div>
-    </div>
-  );
+    );
+  }
 
-  const renderHandDeliveryInfo = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-semibold mb-6">Remise en main propre sécurisée</h2>
-      <div className="space-y-8">
-        <div className="flex gap-4 items-start">
-          <div className="p-3 bg-gray-100 rounded-lg">
-            <CalendarIcon className="h-6 w-6 text-gray-700" />
-          </div>
-          <div>
-            <p className="text-lg font-semibold mb-1">Réservation garantie</p>
-            <p className="text-gray-600">Réservez ce bien jusqu'au rendez-vous avec le vendeur</p>
-          </div>
-        </div>
-        <div className="flex gap-4 items-start">
-          <div className="p-3 bg-gray-100 rounded-lg">
-            <ThumbsUpIcon className="h-6 w-6 text-gray-700" />
-          </div>
-          <div>
-            <p className="text-lg font-semibold mb-1">Liberté de choix</p>
-            <p className="text-gray-600">Restez libre de refuser ce bien s'il ne correspond pas à vos attentes</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const sellerWalletAddress = listingData?.wallet_address || listing.wallet_address;
 
-  const MobileLayout = () => (
-    <div className="space-y-6">
-      <div className="relative">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
-          onClick={handleBackClick}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <ListingImages images={listing.images} title={listing.title} />
-      </div>
-      
-      <div className="px-4">
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <ListingImages images={listing.images} title={listing.title} isHovered={false} />
+
+      <div className="space-y-6">
         <ListingHeader 
+          title={listing.title} 
+          price={listing.price} 
+          cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+          cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+        />
+        
+        <SellerInfo 
+          seller={listing.user} 
+          location={listing.location} 
+          walletAddress={sellerWalletAddress}
+        />
+
+        <div className="p-4 bg-blue-50 rounded-lg flex items-start space-x-3">
+          <Shield className="h-5 w-5 text-blue-500 mt-0.5" />
+          <div>
+            <p className="font-semibold text-blue-700">Protection Acheteurs</p>
+            <p className="text-sm text-blue-600">
+              Paiement sécurisé via notre plateforme
+            </p>
+          </div>
+        </div>
+
+        <ListingActions
+          listingId={listing.id}
+          sellerId={listing.user_id}
+          sellerAddress={sellerWalletAddress || ''}
           title={listing.title}
           price={listing.price}
           cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
           cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-          categories={categories}
-          isMobile={true}
+          handleBuyClick={handleBuyClick}
         />
 
-        <div className="py-4">
-          <ListingActions
-            listingId={listing.id}
-            sellerId={listing.user_id}
-            sellerAddress={listingData?.wallet_address || listing.wallet_address}
-            title={listing.title}
-            price={listing.price}
-            cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
-            cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-            handleBuyClick={handleBuyClick}
-            isMobile={true}
-          />
-        </div>
-
-        <ProductDetailsCard details={listing} />
-        
-        <div className="my-6">
-          <h2 className="text-xl font-semibold mb-4">Description</h2>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Description</h2>
           <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Localisation</h2>
-          <p className="text-gray-700 mb-4">{listing.location}</p>
-          <div className="h-[300px] rounded-lg overflow-hidden">
-            <LocationPicker 
-              onLocationChange={() => {}} 
-              defaultLocation={listing.location}
-              readOnly={true}
-            />
-          </div>
-        </div>
-
-        <Separator className="my-8" />
-        {renderSecurityInfo()}
-        <Separator className="my-8" />
-        {renderHandDeliveryInfo()}
-        <Separator className="my-8" />
-
-        <div className="mt-6">
-          <SellerInfo 
-            seller={listing.user}
-            location={listing.location}
-            walletAddress={listingData?.wallet_address || listing.wallet_address}
-          />
-        </div>
+        <ProductDetailsCard details={listing} />
       </div>
     </div>
   );
-
-  const DesktopLayout = () => (
-    <div className="relative">
-      <Button 
-        variant="ghost" 
-        size="icon"
-        className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
-        onClick={handleBackClick}
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </Button>
-      <div className="grid grid-cols-[2fr,1fr] gap-8 px-6 py-8">
-        <div className="space-y-8">
-          <ListingImages images={listing.images} title={listing.title} />
-          
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Description</h2>
-            <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Localisation</h2>
-            <p className="text-gray-700 mb-4">{listing.location}</p>
-            <div className="h-[400px] rounded-lg overflow-hidden">
-              <LocationPicker 
-                onLocationChange={() => {}} 
-                defaultLocation={listing.location}
-                readOnly={true}
-              />
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            {renderSecurityInfo()}
-          </Card>
-
-          <Card className="p-6">
-            {renderHandDeliveryInfo()}
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <div className="sticky top-6">
-            <Card className="p-6">
-              <ListingHeader 
-                title={listing.title}
-                price={listing.price}
-                cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
-                cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-                categories={categories}
-              />
-
-              <div className="py-4">
-                <ListingActions
-                  listingId={listing.id}
-                  sellerId={listing.user_id}
-                  sellerAddress={listingData?.wallet_address || listing.wallet_address}
-                  title={listing.title}
-                  price={listing.price}
-                  cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
-                  cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-                  handleBuyClick={handleBuyClick}
-                />
-              </div>
-
-              <ProductDetailsCard details={listing} />
-
-              <div className="mt-6 pt-6 border-t">
-                <SellerInfo 
-                  seller={listing.user}
-                  location={listing.location}
-                  walletAddress={listingData?.wallet_address || listing.wallet_address}
-                />
-              </div>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  return isMobile ? <MobileLayout /> : <DesktopLayout />;
 };

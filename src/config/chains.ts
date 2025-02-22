@@ -1,4 +1,3 @@
-
 import { Chain } from 'wagmi';
 
 export const amoy: Chain = {
@@ -17,5 +16,5 @@ export const amoy: Chain = {
   blockExplorers: {
     default: { name: 'PolygonScan', url: 'https://www.oklink.com/amoy' },
   },
-  testnet: true
+  testnet: true,
 };

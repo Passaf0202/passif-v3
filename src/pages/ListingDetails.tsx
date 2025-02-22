@@ -1,15 +1,12 @@
-
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { ListingDetails as ListingDetailsComponent } from "@/components/listing/ListingDetails";
-import { Loader2, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function ListingDetailsPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const { data: listing, isLoading } = useQuery({
     queryKey: ["listing", id],
@@ -32,10 +29,6 @@ export default function ListingDetailsPage() {
       return data;
     },
   });
-
-  const handleBack = () => {
-    navigate('/search');
-  };
 
   if (isLoading) {
     return (
@@ -66,15 +59,7 @@ export default function ListingDetailsPage() {
   return (
     <div>
       <Navbar />
-      <div className="container mx-auto py-8 relative">
-        <Button 
-          onClick={() => navigate('/search')}
-          variant="ghost" 
-          size="icon"
-          className="absolute left-6 top-4 md:left-8 md:top-12 z-10 hover:bg-white/80 bg-white/60 backdrop-blur-sm"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+      <div className="container mx-auto px-4 py-8">
         <ListingDetailsComponent listing={listing} />
       </div>
     </div>
