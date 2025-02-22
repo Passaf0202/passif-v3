@@ -1,6 +1,7 @@
 
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
 import { amoy } from './chains';
+import { QueryClient } from '@tanstack/query-core';
 
 // Project ID from WalletConnect Cloud
 const projectId = '3225e25c4d47b78232829662814a3d58';
@@ -16,7 +17,7 @@ const metadata = {
 // Configure all chains you want to support
 const chains = [amoy];
 
-// Create wagmi config
+// Create wagmi config with required properties
 const wagmiConfig = defaultWagmiConfig({
   chains,
   projectId,
@@ -24,6 +25,7 @@ const wagmiConfig = defaultWagmiConfig({
   enableWalletConnect: true,
   enableInjected: true,
   enableEIP6963: true,
+  queryClient: new QueryClient(),
 });
 
 // Create web3modal instance
