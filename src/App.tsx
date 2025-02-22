@@ -17,7 +17,7 @@ import Search from "@/pages/Search";
 import Admin from "@/pages/Admin";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import { wagmiConfig } from './config/walletkit';
-import { Web3Modal } from '@web3modal/wagmi/react';
+import { createWeb3Modal } from '@web3modal/wagmi/react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,7 +52,6 @@ function App() {
             <Toaster />
           </BrowserRouter>
         </QueryClientProvider>
-        <Web3Modal />
       </WagmiProvider>
     </>
   );
