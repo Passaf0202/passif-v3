@@ -50,7 +50,17 @@ function App() {
           </Routes>
           <Toaster />
         </BrowserRouter>
-        <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+        <Web3Modal 
+          projectId={projectId} 
+          ethereumClient={ethereumClient}
+          themeMode="light"
+          themeVariables={{
+            '--w3m-font-family': 'Inter, sans-serif',
+            '--w3m-accent-color': '#000000',
+            '--w3m-background-color': '#ffffff',
+            '--w3m-z-index': '1000'
+          }}
+        />
       </QueryClientProvider>
     </WagmiConfig>
   );

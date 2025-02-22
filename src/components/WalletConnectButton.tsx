@@ -1,5 +1,5 @@
 
-import { useAccount, useDisconnect, useNetwork, useSwitchNetwork, useConnect } from 'wagmi';
+import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -18,11 +18,10 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   const { disconnect } = useDisconnect();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
-  const { open, close } = useWeb3Modal();
+  const { open } = useWeb3Modal();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
-  const { connect, connectors } = useConnect();
 
   useEffect(() => {
     const handleNetworkSwitch = async () => {
@@ -93,21 +92,8 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
           return;
         }
 
-        // Essayer d'abord le connecteur WalletConnect
-        const walletConnectConnector = connectors.find(c => c.id === 'walletConnect');
-        if (walletConnectConnector) {
-          console.log("Trying WalletConnect connector...");
-          try {
-            await connect({ connector: walletConnectConnector });
-          } catch (error) {
-            console.error("WalletConnect error:", error);
-            // Si WalletConnect échoue, on ouvre la modale Web3
-            await open();
-          }
-        } else {
-          console.log("Opening Web3Modal...");
-          await open();
-        }
+        console.log("Opening Web3Modal...");
+        await open();
       }
     } catch (error) {
       console.error('Connection error:', error);
