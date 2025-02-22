@@ -3,10 +3,10 @@ import { useAccount, useDisconnect } from 'wagmi'
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useWeb3Modal } from '@web3modal/react'
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback, useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
+import { useAppkit } from '@reown/appkit';
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
@@ -15,13 +15,12 @@ interface WalletConnectButtonProps {
 export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
   const { address, isConnected, isConnecting: wagmiConnecting } = useAccount()
   const { disconnect } = useDisconnect()
-  const { open, isOpen } = useWeb3Modal()
+  const { connect } = useAppkit()
   const { toast } = useToast()
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  // Réinitialiser les états d'erreur et de connexion quand isConnected change
   useEffect(() => {
     if (isConnected) {
       setIsConnecting(false);
@@ -57,7 +56,6 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
     }
   }, [user?.id, toast]);
 
-  // Mettre à jour le profil quand l'adresse change
   useEffect(() => {
     if (isConnected && address && user) {
       updateUserProfile(address);
@@ -93,13 +91,13 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
         console.log('Tentative de connexion au wallet...');
         
         try {
-          await open();
+          await connect();
         } catch (error) {
-          console.error('Erreur lors de l\'ouverture du modal:', error);
+          console.error('Erreur lors de la connexion:', error);
           setHasError(true);
           toast({
             title: "Erreur de connexion",
-            description: "Impossible d'ouvrir le wallet. Veuillez réessayer.",
+            description: "Impossible de se connecter au wallet. Veuillez réessayer.",
             variant: "destructive",
           });
         }
@@ -127,11 +125,11 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
   return (
     <Button 
       onClick={handleConnect}
-      disabled={isOpen || isConnecting || wagmiConnecting}
+      disabled={isConnecting || wagmiConnecting}
       variant={isConnected ? "outline" : "default"}
       className={`h-8 ${minimal ? 'w-8 p-0' : 'px-3'} rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm ${hasError ? 'border-red-500' : ''}`}
     >
-      {(isOpen || isConnecting || wagmiConnecting) ? (
+      {(isConnecting || wagmiConnecting) ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
           {!minimal && <span className="ml-2">Connexion...</span>}
