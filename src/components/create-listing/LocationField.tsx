@@ -1,5 +1,6 @@
 
 import { UseFormReturn } from "react-hook-form";
+import { useState, useEffect } from "react";
 import {
   FormField,
   FormItem,
@@ -8,6 +9,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { MapPin } from "lucide-react";
 import { LocationPicker } from "@/components/LocationPicker";
 
 interface LocationFieldProps {
@@ -16,26 +19,66 @@ interface LocationFieldProps {
 }
 
 export function LocationField({ form, shippingMethod }: LocationFieldProps) {
+  const [currentLocation, setCurrentLocation] = useState<string>("");
+
   const handleLocationChange = (location: string) => {
+    setCurrentLocation(location);
     form.setValue("location", location);
+  };
+
+  const handleGeolocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await response.json();
+          const city = data.address.city || data.address.town || data.address.village;
+          if (city) {
+            handleLocationChange(city);
+          }
+        } catch (error) {
+          console.error("Erreur de géolocalisation:", error);
+        }
+      });
+    }
   };
 
   return (
     <FormField
       control={form.control}
       name="location"
-      render={() => (
-        <FormItem>
+      render={({ field }) => (
+        <FormItem className="space-y-4">
           <FormLabel>Localisation</FormLabel>
           <FormControl>
-            {shippingMethod === "inPerson" ? (
-              <LocationPicker onLocationChange={handleLocationChange} />
-            ) : (
-              <Input
-                placeholder="Votre ville"
-                onChange={(e) => handleLocationChange(e.target.value)}
-              />
-            )}
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Votre ville"
+                  value={currentLocation}
+                  onChange={(e) => handleLocationChange(e.target.value)}
+                  className="flex-1"
+                />
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={handleGeolocation}
+                  className="flex items-center gap-2"
+                >
+                  <MapPin className="h-4 w-4" />
+                  Me localiser
+                </Button>
+              </div>
+              <div className="h-[300px] rounded-lg overflow-hidden border">
+                <LocationPicker
+                  onLocationChange={handleLocationChange}
+                  defaultLocation={currentLocation}
+                />
+              </div>
+            </div>
           </FormControl>
           <FormMessage />
         </FormItem>

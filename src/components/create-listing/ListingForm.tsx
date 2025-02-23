@@ -8,6 +8,8 @@ import { ShippingLocationSection } from "./ShippingLocationSection";
 import { PhotosSection } from "./PhotosSection";
 import { WalletSection } from "./WalletSection";
 import { useListingForm } from "./useListingForm";
+import { PriceDetails } from "@/components/listing/PriceDetails";
+import { useCryptoConversion } from "@/hooks/useCryptoConversion";
 
 interface ListingFormProps {
   onSubmit: (values: any) => Promise<void>;
@@ -30,27 +32,38 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
     shippingDetails,
   } = useListingForm({ onSubmit });
 
+  const price = form.watch("price");
+  const cryptoAmount = useCryptoConversion(Number(price));
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="max-w-4xl mx-auto space-y-6">
         <div className="space-y-6">
-          {/* Section 1: Informations de base */}
           <BasicInfoSection 
             form={form} 
             onCategoryChange={handleCategoryChange} 
           />
 
-          {/* Section 2: Description et Prix */}
           <DescriptionSection form={form} />
 
-          {/* Section 3: Photos */}
+          {/* Bloc Prix et Crypto */}
+          {price && (
+            <div className="bg-white rounded-lg border p-4">
+              <PriceDetails 
+                price={Number(price)} 
+                protectionFee={0} 
+                cryptoAmount={cryptoAmount?.amount}
+                cryptoCurrency={cryptoAmount?.currency}
+              />
+            </div>
+          )}
+
           <PhotosSection
             images={images}
             onImagesChange={setImages}
             category={category}
           />
 
-          {/* Section 4: Détails du produit */}
           <ProductDetails
             category={category}
             subcategory={subcategory}
@@ -58,7 +71,6 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
             onDetailsChange={setProductDetails}
           />
 
-          {/* Section 5: Livraison et localisation */}
           <ShippingLocationSection
             form={form}
             shippingMethod={shippingDetails.method}
@@ -66,7 +78,6 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
             category={category}
           />
 
-          {/* Section 6: Wallet */}
           <WalletSection />
         </div>
 
