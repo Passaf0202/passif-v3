@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -158,7 +159,7 @@ export default function CreateListing() {
   };
 
   const handleClose = () => {
-    navigate(-1);
+    navigate("/");
   };
 
   if (loading) {
@@ -202,7 +203,7 @@ export default function CreateListing() {
             </div>
             <div className="relative px-4 py-6">
               <h1 className="text-2xl font-bold text-center">
-                Déposer une annonce
+                Créer une annonce
               </h1>
             </div>
           </div>
@@ -218,22 +219,32 @@ export default function CreateListing() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="relative h-64 overflow-hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 right-4 z-10 bg-white hover:bg-gray-100"
+          onClick={handleClose}
+        >
+          <X className="h-6 w-6" />
+        </Button>
         <div className="absolute inset-0">
           <DiamondViewer state="processing" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-4xl font-bold">
+            <h1 className="text-4xl font-bold highlight-stabilo inline-block">
               Créer une annonce
             </h1>
-            <p className="mt-2 text-gray-600">
-              Décrivez votre article pour le mettre en vente
-            </p>
           </div>
         </div>
       </div>
 
       <div className="container max-w-7xl mx-auto px-4 -mt-12 pb-16">
+        <div className="text-center mb-8">
+          <p className="text-xl text-gray-600">
+            Décrivez votre article pour le mettre en vente
+          </p>
+        </div>
         <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
           <div className="p-8 md:p-12">
             <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
