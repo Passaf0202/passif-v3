@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -7,9 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from 'wagmi';
 import DiamondViewer from "@/components/home/DiamondViewer";
+import { Loader2 } from "lucide-react";
 
 export default function CreateListing() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { address } = useAccount();
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,7 +19,8 @@ export default function CreateListing() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!user) {
+    // Seulement rediriger si le chargement est terminé et qu'il n'y a pas d'utilisateur
+    if (!loading && !user) {
       localStorage.setItem('redirectAfterAuth', location.pathname);
       navigate("/auth");
       toast({
@@ -25,7 +28,7 @@ export default function CreateListing() {
         description: "Veuillez vous connecter pour créer une annonce",
       });
     }
-  }, [user, navigate, location.pathname, toast]);
+  }, [user, loading, navigate, location.pathname, toast]);
 
   const uploadImages = async (images: File[]) => {
     try {
@@ -153,6 +156,19 @@ export default function CreateListing() {
     }
   };
 
+  // Afficher un état de chargement pendant la vérification de l'authentification
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="mt-2 text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Ne rendre le composant que si l'utilisateur est connecté
   if (!user) return null;
 
   return (
