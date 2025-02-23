@@ -2,7 +2,7 @@
 import { useModelViewer } from "./hooks/useModelViewer";
 import type { DiamondViewerProps } from "./types/diamond-viewer";
 
-export function DiamondViewer({ state }: DiamondViewerProps) {
+export function DiamondViewer({ state, scale = 3.5 }: DiamondViewerProps) {
   const {
     modelRef,
     isModelViewerReady,
@@ -39,9 +39,9 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         environment-image="neutral"
         field-of-view="20deg"
         bounds="tight"
-        scale="4.5 4.5 4.5"
-        min-scale="4.5"
-        max-scale="4.5"
+        scale={`${scale} ${scale} ${scale}`}
+        min-scale={scale}
+        max-scale={scale}
         disable-zoom
         loading="eager"
         style={{

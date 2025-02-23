@@ -10,6 +10,7 @@ export type DiamondViewerState =
 
 export interface DiamondViewerProps {
   state: DiamondViewerState;
+  scale?: number;
 }
 
 export interface ModelViewerElementAttributes {

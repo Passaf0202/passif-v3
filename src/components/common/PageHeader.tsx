@@ -7,15 +7,16 @@ import { DiamondViewer } from "@/components/home/DiamondViewer";
 interface PageHeaderProps {
   title: string;
   showBackButton?: boolean;
+  diamondScale?: number;
 }
 
-export function PageHeader({ title, showBackButton = true }: PageHeaderProps) {
+export function PageHeader({ title, showBackButton = true, diamondScale = 3.5 }: PageHeaderProps) {
   const navigate = useNavigate();
 
   return (
     <div className="relative">
       <div className="absolute inset-0">
-        <DiamondViewer state="initial" />
+        <DiamondViewer state="initial" scale={diamondScale} />
       </div>
       
       {showBackButton && (
