@@ -65,20 +65,15 @@
   display: inline-block;
   padding: 0 4px;
   z-index: 1;
+  background: linear-gradient(120deg, #9b87f580 0%, #9b87f580 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 0.4em;
+  background-position: 0 88%;
+  transition: background-size 0.25s ease-in;
 }
 
-.highlight-stabilo::after {
-  content: "";
-  position: absolute;
-  left: -4px;
-  right: -4px;
-  bottom: 0.1em;
-  height: 65%;
-  background-color: #CDCDCD;
-  opacity: 0.95;
-  z-index: -1;
-  transform: skew(-12deg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+.highlight-stabilo:hover {
+  background-size: 100% 100%;
 }
 
 .pure-black-bg {
