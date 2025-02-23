@@ -72,9 +72,9 @@
   position: absolute;
   left: -4px;
   right: -4px;
-  top: -2px;
-  bottom: -2px;
-  background: #E5E7EB;
+  top: -1px;
+  bottom: -1px;
+  background: #8A898C;
   z-index: -1;
   transform: skew(-12deg);
 }
