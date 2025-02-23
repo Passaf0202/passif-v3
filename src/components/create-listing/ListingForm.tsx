@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +22,11 @@ const formSchema = z.object({
     message: "Le prix doit être un nombre positif",
   }),
   location: z.string().min(2, "La localisation est requise"),
+  crypto_currency: z.string().default("POL"),
+  crypto_amount: z.number().default(0),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface ListingFormProps {
   onSubmit: (values: any) => Promise<void>;
@@ -29,7 +34,7 @@ interface ListingFormProps {
 }
 
 export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
@@ -68,7 +73,7 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
     setSubsubcategory(subsub || "");
   };
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: FormValues) => {
     if (!isConnected || !address) {
       toast({
         title: "Wallet requis",
@@ -87,7 +92,6 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
       ...shippingDetails,
       images,
       wallet_address: address,
-      crypto_currency: "POL",
       status: "active",
     };
 
