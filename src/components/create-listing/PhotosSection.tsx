@@ -13,14 +13,14 @@ export function PhotosSection({ images, onImagesChange, category }: PhotosSectio
   const isVehicle = category === "Véhicules";
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardContent className="pt-6">
-        <div className="space-y-4">
-          <div className="text-center space-y-2">
-            <h3 className="text-lg font-semibold">Photos de l'annonce</h3>
-            <div className="flex items-center justify-center gap-2 text-primary">
+        <div className="space-y-6">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-semibold">Photos de l'annonce</h2>
+            <div className="inline-flex items-center gap-2 text-primary bg-primary/5 px-4 py-2 rounded-full">
               <Lightbulb className="h-5 w-5" />
-              <p className="text-sm">
+              <p className="text-sm font-medium">
                 Ajoutez un maximum de photos pour augmenter le nombre de contacts
               </p>
             </div>
@@ -42,12 +42,12 @@ export function PhotosSection({ images, onImagesChange, category }: PhotosSectio
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <ImageUpload
               images={images}
               onImagesChange={onImagesChange}
             />
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm text-muted-foreground text-center">
               Maximum 5 photos - Glissez-déposez vos images ici
             </p>
           </div>
