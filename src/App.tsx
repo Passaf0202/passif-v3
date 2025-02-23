@@ -11,7 +11,6 @@ import CreateListing from "@/pages/CreateListing";
 import Messages from "@/pages/Messages";
 import ListingDetails from "@/pages/ListingDetails";
 import Favorites from "@/pages/Favorites";
-import MyListings from "@/pages/MyListings";
 import Checkout from "@/pages/Checkout";
 import Payment from "@/pages/Payment";
 import { UserProfile } from "@/components/UserProfile";
@@ -40,7 +39,6 @@ function App() {
             <Route path="/messages" element={<Messages />} />
             <Route path="/listings/:id" element={<ListingDetails />} />
             <Route path="/favorites" element={<Favorites />} />
-            <Route path="/my-listings" element={<MyListings />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/payment/:id" element={<Payment />} />
             <Route path="/profile" element={<UserProfile />} />
