@@ -1,5 +1,6 @@
+
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft, Wallet } from "lucide-react";
+import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft, Wallet, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -122,12 +123,29 @@ export function MobileMenu() {
               Déposer une annonce
             </Button>
 
-            {user && (
-              <div className="flex justify-center">
+            {user ? (
+              <div className="flex flex-col gap-3">
                 <div className="w-full">
                   <WalletConnectButton className="w-full h-12 border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 flex items-center justify-center gap-2 rounded-full" />
                 </div>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/profile")}
+                  className="w-full h-12 border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 flex items-center justify-center gap-2 rounded-full"
+                >
+                  <User className="h-5 w-5" />
+                  Mon Profil
+                </Button>
               </div>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => navigate("/auth")}
+                className="w-full h-12 border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 flex items-center justify-center gap-2 rounded-full"
+              >
+                <User className="h-5 w-5" />
+                Se connecter
+              </Button>
             )}
 
             <Button

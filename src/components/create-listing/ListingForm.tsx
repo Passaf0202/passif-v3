@@ -36,10 +36,12 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
       description: "",
       price: "",
       location: "",
+      crypto_currency: "POL",
+      crypto_amount: 0,
     },
   });
 
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { toast } = useToast();
   const [category, setCategory] = useState<string>("");
   const [subcategory, setSubcategory] = useState<string>("");
@@ -67,7 +69,7 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
   };
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!isConnected) {
+    if (!isConnected || !address) {
       toast({
         title: "Wallet requis",
         description: "Veuillez connecter votre wallet avant de créer une annonce",
@@ -75,15 +77,21 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
       });
       return;
     }
-    await onSubmit({
+
+    const finalValues = {
       ...values,
       category,
       subcategory,
       subsubcategory,
       ...productDetails,
       ...shippingDetails,
-      images
-    });
+      images,
+      wallet_address: address,
+      crypto_currency: "POL",
+      status: "active",
+    };
+
+    await onSubmit(finalValues);
   };
 
   return (
@@ -142,7 +150,11 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting || !isConnected} size="lg">
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || !isConnected} 
+            size="lg"
+          >
             {isSubmitting ? "Création en cours..." : "Créer l'annonce"}
           </Button>
         </div>
