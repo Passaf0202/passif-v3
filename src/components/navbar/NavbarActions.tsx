@@ -48,9 +48,12 @@ export const NavbarActions = () => {
         title: "Connexion requise",
         description: "Vous devez être connecté pour déposer une annonce",
       });
+      // Sauvegarder l'URL de retour avant la redirection
+      localStorage.setItem('redirectAfterAuth', '/create');
       navigate("/auth");
       return;
     }
+    // Si l'utilisateur est connecté, naviguer directement vers la page de création
     navigate("/create");
   };
 
