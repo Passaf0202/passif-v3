@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -101,63 +100,59 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <div className="lg:grid lg:grid-cols-3 lg:gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <BasicInfoSection 
-              form={form} 
-              onCategoryChange={handleCategoryChange} 
-            />
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-8">
+            <div className="bg-gradient-to-br from-purple-50/50 to-transparent p-6 rounded-2xl">
+              <BasicInfoSection 
+                form={form} 
+                onCategoryChange={handleCategoryChange} 
+              />
+            </div>
 
-            <ProductDetails
-              category={category}
-              subcategory={subcategory}
-              subsubcategory={subsubcategory}
-              onDetailsChange={setProductDetails}
-            />
+            <div className="bg-gradient-to-br from-blue-50/50 to-transparent p-6 rounded-2xl">
+              <ProductDetails
+                category={category}
+                subcategory={subcategory}
+                subsubcategory={subsubcategory}
+                onDetailsChange={setProductDetails}
+              />
+            </div>
 
-            <DescriptionSection form={form} />
-
-            <ShippingLocationSection
-              form={form}
-              shippingMethod={shippingDetails.method}
-              onShippingChange={setShippingDetails}
-              category={category}
-            />
-
-            <PhotosSection
-              images={images}
-              onImagesChange={setImages}
-              category={category}
-            />
-
-            <WalletSection />
+            <div className="bg-gradient-to-br from-indigo-50/50 to-transparent p-6 rounded-2xl">
+              <DescriptionSection form={form} />
+            </div>
           </div>
 
-          <div className="hidden lg:block">
-            <div className="sticky top-8 space-y-6">
-              <div className="bg-muted p-6 rounded-lg space-y-4">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <h3 className="font-medium">Conseils pour une annonce efficace</h3>
-                    <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-                      <li>• Choisissez un titre clair et descriptif</li>
-                      <li>• Détaillez l'état et les caractéristiques</li>
-                      <li>• Ajoutez des photos de qualité</li>
-                      <li>• Fixez un prix cohérent avec le marché</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+          <div className="space-y-8">
+            <div className="bg-gradient-to-br from-pink-50/50 to-transparent p-6 rounded-2xl">
+              <ShippingLocationSection
+                form={form}
+                shippingMethod={shippingDetails.method}
+                onShippingChange={setShippingDetails}
+                category={category}
+              />
+            </div>
+
+            <div className="bg-gradient-to-br from-orange-50/50 to-transparent p-6 rounded-2xl">
+              <PhotosSection
+                images={images}
+                onImagesChange={setImages}
+                category={category}
+              />
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50/50 to-transparent p-6 rounded-2xl">
+              <WalletSection />
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-6 border-t border-gray-100">
           <Button 
             type="submit" 
             disabled={isSubmitting || !isConnected} 
             size="lg"
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 rounded-full transition-all duration-200 transform hover:scale-105"
           >
             {isSubmitting ? "Création en cours..." : "Créer l'annonce"}
           </Button>
