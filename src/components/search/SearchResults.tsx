@@ -31,9 +31,10 @@ interface Listing {
 interface SearchResultsProps {
   listings: Listing[];
   showFilters?: boolean;
+  actionButtons?: (listingId: string) => React.ReactNode;
 }
 
-export const SearchResults = ({ listings, showFilters = true }: SearchResultsProps) => {
+export const SearchResults = ({ listings, showFilters = true, actionButtons }: SearchResultsProps) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -133,6 +134,11 @@ export const SearchResults = ({ listings, showFilters = true }: SearchResultsPro
           </span>
           <span>Wallet: {truncateAddress(listing.wallet_address)}</span>
         </div>
+        {actionButtons && (
+          <div className="mt-4">
+            {actionButtons(listing.id)}
+          </div>
+        )}
       </div>
     </Card>
   );
@@ -185,6 +191,11 @@ export const SearchResults = ({ listings, showFilters = true }: SearchResultsPro
           </span>
           <span>Wallet: {truncateAddress(listing.wallet_address)}</span>
         </div>
+        {actionButtons && (
+          <div className="mt-4">
+            {actionButtons(listing.id)}
+          </div>
+        )}
       </div>
     </Card>
   );
