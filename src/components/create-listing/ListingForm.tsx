@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -99,51 +100,53 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-12">
-        <div className="grid md:grid-cols-2 gap-12">
-          <div className="space-y-12">
-            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
-              <BasicInfoSection 
-                form={form} 
-                onCategoryChange={handleCategoryChange} 
-              />
-            </div>
-
-            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
-              <ProductDetails
-                category={category}
-                subcategory={subcategory}
-                subsubcategory={subsubcategory}
-                onDetailsChange={setProductDetails}
-              />
-            </div>
-
-            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
-              <DescriptionSection form={form} />
-            </div>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="max-w-4xl mx-auto space-y-8">
+        <div className="space-y-8">
+          {/* Section 1: Informations de base */}
+          <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl transition-shadow hover:shadow-md">
+            <BasicInfoSection 
+              form={form} 
+              onCategoryChange={handleCategoryChange} 
+            />
           </div>
 
-          <div className="space-y-12">
-            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
-              <ShippingLocationSection
-                form={form}
-                shippingMethod={shippingDetails.method}
-                onShippingChange={setShippingDetails}
-                category={category}
-              />
-            </div>
+          {/* Section 2: Description et Prix */}
+          <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl transition-shadow hover:shadow-md">
+            <DescriptionSection form={form} />
+          </div>
 
-            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
-              <PhotosSection
-                images={images}
-                onImagesChange={setImages}
-                category={category}
-              />
-            </div>
+          {/* Section 3: Photos */}
+          <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl transition-shadow hover:shadow-md">
+            <PhotosSection
+              images={images}
+              onImagesChange={setImages}
+              category={category}
+            />
+          </div>
 
-            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
-              <WalletSection />
-            </div>
+          {/* Section 4: Détails du produit */}
+          <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl transition-shadow hover:shadow-md">
+            <ProductDetails
+              category={category}
+              subcategory={subcategory}
+              subsubcategory={subsubcategory}
+              onDetailsChange={setProductDetails}
+            />
+          </div>
+
+          {/* Section 5: Livraison et localisation */}
+          <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl transition-shadow hover:shadow-md">
+            <ShippingLocationSection
+              form={form}
+              shippingMethod={shippingDetails.method}
+              onShippingChange={setShippingDetails}
+              category={category}
+            />
+          </div>
+
+          {/* Section 6: Wallet */}
+          <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl transition-shadow hover:shadow-md">
+            <WalletSection />
           </div>
         </div>
 

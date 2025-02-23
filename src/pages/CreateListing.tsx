@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListingForm } from "@/components/create-listing/ListingForm";
@@ -12,8 +12,20 @@ export default function CreateListing() {
   const { user } = useAuth();
   const { address } = useAccount();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      localStorage.setItem('redirectAfterAuth', location.pathname);
+      navigate("/auth");
+      toast({
+        title: "Connexion requise",
+        description: "Veuillez vous connecter pour créer une annonce",
+      });
+    }
+  }, [user, navigate, location.pathname, toast]);
 
   const uploadImages = async (images: File[]) => {
     try {
@@ -141,10 +153,7 @@ export default function CreateListing() {
     }
   };
 
-  if (!user) {
-    navigate("/auth");
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -166,81 +175,31 @@ export default function CreateListing() {
 
       <div className="container max-w-7xl mx-auto px-4 -mt-12 pb-16">
         <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
-          <div className="md:flex">
-            <div className="md:flex-1 p-8 md:p-12">
-              <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
-            </div>
-
-            <div className="hidden md:block md:w-96 bg-gray-50 border-l border-gray-100">
-              <div className="p-8 sticky top-0 space-y-8">
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                  <h3 className="font-semibold text-lg text-black mb-6">Comment ça marche ?</h3>
-                  <div className="space-y-6">
-                    <div className="flex gap-4">
-                      <div className="flex-none">
-                        <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">1</div>
-                      </div>
-                      <div>
-                        <p className="text-gray-600 leading-relaxed">
-                          Décrivez votre article en détail et ajoutez des photos de qualité
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex-none">
-                        <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">2</div>
-                      </div>
-                      <div>
-                        <p className="text-gray-600 leading-relaxed">
-                          Définissez un prix juste et les options de livraison
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex-none">
-                        <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">3</div>
-                      </div>
-                      <div>
-                        <p className="text-gray-600 leading-relaxed">
-                          Connectez votre wallet pour recevoir les paiements
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                  <h3 className="font-semibold text-lg text-black mb-6">Conseils de vente</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-black mt-2 flex-none" />
-                      <p className="text-gray-600 leading-relaxed">
-                        Utilisez des mots-clés pertinents pour une meilleure visibilité
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-black mt-2 flex-none" />
-                      <p className="text-gray-600 leading-relaxed">
-                        Prenez des photos sous plusieurs angles en bonne luminosité
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-black mt-2 flex-none" />
-                      <p className="text-gray-600 leading-relaxed">
-                        Mentionnez l'état exact du produit et ses éventuels défauts
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-black mt-2 flex-none" />
-                      <p className="text-gray-600 leading-relaxed">
-                        Répondez rapidement aux messages des acheteurs potentiels
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="p-8 md:p-12">
+            <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
           </div>
+        </div>
+
+        <div className="md:hidden mt-8 space-y-6">
+          <Card className="bg-white shadow-sm">
+            <CardContent className="p-6">
+              <h3 className="font-semibold text-lg mb-4">Conseils rapides</h3>
+              <ul className="space-y-3 text-sm text-gray-600">
+                <li className="flex items-start gap-2">
+                  <span className="font-medium">•</span>
+                  Ajoutez des photos de qualité
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-medium">•</span>
+                  Décrivez précisément l'état
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-medium">•</span>
+                  Fixez un prix réaliste
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
