@@ -1,9 +1,8 @@
 
-import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Camera, ImagePlus, Lightbulb, X } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
+import { X } from "lucide-react";
 
 interface ImageUploadProps {
   images: File[];
@@ -40,14 +39,10 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     }
 
     const validImageFiles = acceptedFiles.filter(validateFile);
-
     const newImages = [...images, ...validImageFiles].slice(0, MAX_IMAGES);
     onImagesChange(newImages);
 
-    // Create preview URLs
     const urls = newImages.map(file => URL.createObjectURL(file));
-    
-    // Cleanup old URLs
     previewUrls.forEach(url => URL.revokeObjectURL(url));
     setPreviewUrls(urls);
   }, [images, onImagesChange, previewUrls]);
@@ -74,96 +69,44 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     setPreviewUrls(newUrls);
   };
 
-  // Cleanup preview URLs when component unmounts
   useEffect(() => {
     return () => {
       previewUrls.forEach(url => URL.revokeObjectURL(url));
     };
   }, [previewUrls]);
 
-  const isVehicle = category === "Véhicules";
-  const vehiclePhotoTypes = [
-    { label: "3/4 avant gauche", required: true },
-    { label: "3/4 arrière droit", required: true },
-    { label: "Intérieur conducteur", required: false },
-    { label: "Intérieur passager", required: false },
-    { label: "Profil gauche", required: false },
-  ];
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Photos de l'annonce</h3>
-          <p className="text-sm text-gray-500">
-            Maximum {MAX_IMAGES} photos - Glissez-déposez vos images ici
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-primary">
-          <Lightbulb className="h-5 w-5" />
-          <p className="text-sm">
-            Ajoutez un maximum de photos pour augmenter le nombre de contacts
-          </p>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div
+        {...getRootProps()}
+        className={`relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 border-dashed ${
+          isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300'
+        }`}
+      >
+        <input {...getInputProps()} />
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <ImagePlus className="h-8 w-8 mb-2 text-gray-400" />
+          <span className="text-sm text-center text-gray-500">
+            {isDragActive ? 'Déposez les images ici' : 'Glissez ou cliquez pour ajouter'}
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div
-          {...getRootProps()}
-          className={`relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 border-dashed ${
-            isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300'
-          }`}
-        >
-          <input {...getInputProps()} />
-          <div className="flex flex-col items-center justify-center h-full p-4">
-            <Camera className="h-8 w-8 mb-2 text-gray-400" />
-            <span className="text-sm text-center text-gray-500">
-              {isDragActive ? 'Déposez les images ici' : 'Glissez ou cliquez pour ajouter'}
-            </span>
-          </div>
-        </div>
-
-        {previewUrls.map((url, index) => (
-          <div key={index} className="relative aspect-square">
-            <img
-              src={url}
-              alt={`Image ${index + 1}`}
-              className="w-full h-full object-cover rounded-lg"
-            />
-            <button
-              onClick={() => removeImage(index)}
-              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
-
-        {isVehicle && vehiclePhotoTypes.map((type, index) => (
-          <Card 
-            key={index}
-            className={`relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 ${
-              type.required ? 'border-primary border-dashed' : 'border-gray-200 border-dashed'
-            }`}
+      {previewUrls.map((url, index) => (
+        <div key={index} className="relative aspect-square">
+          <img
+            src={url}
+            alt={`Image ${index + 1}`}
+            className="w-full h-full object-cover rounded-lg"
+          />
+          <button
+            onClick={() => removeImage(index)}
+            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
           >
-            <CardContent className="flex flex-col items-center justify-center h-full p-4">
-              <ImagePlus className="h-8 w-8 mb-2 text-gray-400" />
-              <span className="text-sm text-center text-gray-500">
-                {type.label}
-                {type.required && <span className="text-primary">*</span>}
-              </span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {images.length > 0 && (
-        <div className="mt-4">
-          <p className="text-sm text-gray-500">
-            {images.length} photo{images.length > 1 ? 's' : ''} sélectionnée{images.length > 1 ? 's' : ''}
-          </p>
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      )}
+      ))}
     </div>
   );
 }
