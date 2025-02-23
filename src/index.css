@@ -65,10 +65,16 @@
   display: inline-block;
   padding: 0 4px;
   z-index: 1;
+  transform: skew(-12deg);
   background: #8E919680;
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-position: 0 0;
+}
+
+.highlight-stabilo > * {
+  transform: skew(12deg);
+  display: inline-block;
 }
 
 .highlight-stabilo:hover {
