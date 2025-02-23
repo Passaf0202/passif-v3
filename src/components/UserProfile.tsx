@@ -6,6 +6,7 @@ import { useProfile } from "./profile/useProfile";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "./common/PageHeader";
+import { useState } from "react";
 
 export function UserProfile() {
   const {
@@ -18,6 +19,9 @@ export function UserProfile() {
     updateProfile,
     handleAvatarUpdate
   } = useProfile();
+  
+  // Ajout d'un état pour forcer le rafraîchissement de l'avatar
+  const [avatarKey, setAvatarKey] = useState(0);
 
   if (loading) {
     return <div>Chargement...</div>;
@@ -43,7 +47,10 @@ export function UserProfile() {
               <div className="flex flex-col items-center mb-8">
                 <div className="relative group">
                   <Avatar className="h-32 w-32 cursor-pointer">
-                    <AvatarImage src={profile.avatar_url || undefined} />
+                    <AvatarImage 
+                      key={avatarKey} 
+                      src={profile.avatar_url || undefined}
+                    />
                     <AvatarFallback className="text-2xl">
                       {profile.first_name?.[0]}{profile.last_name?.[0]}
                     </AvatarFallback>
@@ -72,7 +79,9 @@ export function UserProfile() {
                               .from('avatars')
                               .getPublicUrl(data.path);
 
-                            handleAvatarUpdate(publicUrl);
+                            await handleAvatarUpdate(publicUrl);
+                            // Force le rafraîchissement de l'avatar
+                            setAvatarKey(prev => prev + 1);
                           }
                         }}
                       />
