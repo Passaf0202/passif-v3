@@ -1,6 +1,7 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageUpload } from "./ImageUpload";
-import { Info } from "lucide-react";
+import { Info, Lightbulb } from "lucide-react";
 
 interface PhotosSectionProps {
   images: File[];
@@ -15,6 +16,21 @@ export function PhotosSection({ images, onImagesChange, category }: PhotosSectio
     <Card>
       <CardContent className="pt-6">
         <div className="space-y-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-lg font-semibold">Photos de l'annonce</h3>
+              <p className="text-sm text-gray-500">
+                Maximum 5 photos - Glissez-déposez vos images ici
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-primary">
+              <Lightbulb className="h-5 w-5" />
+              <p className="text-sm">
+                Ajoutez un maximum de photos pour augmenter le nombre de contacts
+              </p>
+            </div>
+          </div>
+
           {isVehicle && (
             <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted p-4 rounded-lg">
               <Info className="h-5 w-5 flex-shrink-0 mt-0.5" />
@@ -30,6 +46,7 @@ export function PhotosSection({ images, onImagesChange, category }: PhotosSectio
               </div>
             </div>
           )}
+
           <ImageUpload
             images={images}
             onImagesChange={onImagesChange}

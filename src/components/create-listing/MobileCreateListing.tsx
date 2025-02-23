@@ -33,11 +33,11 @@ export function MobileCreateListing({ onClose, onSubmit, isSubmitting }: MobileC
 
       <main className="pt-14">
         <div className="relative bg-background">
-          <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0">
             <DiamondViewer state="processing" />
           </div>
           <div className="relative px-4 py-6">
-            <h1 className="text-2xl font-bold text-center">
+            <h1 className="text-2xl font-bold text-center highlight-stabilo inline-block">
               Créer une annonce
             </h1>
           </div>
