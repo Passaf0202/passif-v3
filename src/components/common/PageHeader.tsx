@@ -8,9 +8,17 @@ interface PageHeaderProps {
   title: string;
   showBackButton?: boolean;
   diamondScale?: number;
+  showLogo?: boolean;
+  titleClassName?: string;
 }
 
-export function PageHeader({ title, showBackButton = true, diamondScale = 3.5 }: PageHeaderProps) {
+export function PageHeader({ 
+  title, 
+  showBackButton = true, 
+  diamondScale = 3.5,
+  showLogo = true,
+  titleClassName = "px-4"
+}: PageHeaderProps) {
   const navigate = useNavigate();
 
   return (
@@ -32,12 +40,14 @@ export function PageHeader({ title, showBackButton = true, diamondScale = 3.5 }:
 
       <div className="relative pt-16 pb-8 text-center flex flex-col items-center justify-center min-h-[200px]">
         <div className="flex items-center gap-4">
-          <img 
-            src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
-            alt="Tradecoiner"
-            className="h-10 w-10"
-          />
-          <h1 className="text-3xl font-bold highlight-stabilo inline-block px-4 py-1">
+          {showLogo && (
+            <img 
+              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg" 
+              alt="Tradecoiner"
+              className="h-10 w-10"
+            />
+          )}
+          <h1 className={`text-3xl font-bold highlight-stabilo inline-block py-1 ${titleClassName}`}>
             {title}
           </h1>
         </div>

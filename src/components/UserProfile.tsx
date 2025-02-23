@@ -29,7 +29,12 @@ export function UserProfile() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader title="Profil utilisateur" diamondScale={4.5} />
+      <PageHeader 
+        title="Profil utilisateur" 
+        diamondScale={4.5} 
+        showLogo={false}
+        titleClassName="px-2"
+      />
 
       <div className="container max-w-4xl py-8 relative z-10">
         <div className="space-y-8">
