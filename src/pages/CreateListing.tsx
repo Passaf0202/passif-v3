@@ -163,10 +163,10 @@ export default function CreateListing() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="mt-2 text-gray-600">Chargement...</p>
+          <p className="mt-2 text-muted-foreground">Chargement...</p>
         </div>
       </div>
     );
@@ -176,11 +176,11 @@ export default function CreateListing() {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="relative h-14 bg-white border-b flex items-center px-4">
+      <div className="min-h-screen bg-background">
+        <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b flex items-center px-4">
           <div className="absolute left-0 right-0 flex justify-center">
             <img 
-              src="/logo-icon.png" 
+              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
               alt="Tradecoiner" 
               className="h-8 w-auto"
             />
@@ -195,12 +195,22 @@ export default function CreateListing() {
           </Button>
         </header>
 
-        <div className="px-4 py-6">
-          <h1 className="text-2xl font-bold text-center mb-8">
-            Déposer une annonce
-          </h1>
-          <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
-        </div>
+        <main className="pt-14">
+          <div className="relative bg-background">
+            <div className="absolute inset-0 opacity-10">
+              <DiamondViewer state="processing" />
+            </div>
+            <div className="relative px-4 py-6">
+              <h1 className="text-2xl font-bold text-center">
+                Déposer une annonce
+              </h1>
+            </div>
+          </div>
+
+          <div className="px-4 pb-16">
+            <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -228,28 +238,6 @@ export default function CreateListing() {
           <div className="p-8 md:p-12">
             <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
           </div>
-        </div>
-
-        <div className="md:hidden mt-8 space-y-6">
-          <Card className="bg-white shadow-sm">
-            <CardContent className="p-6">
-              <h3 className="font-semibold text-lg mb-4">Conseils rapides</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li className="flex items-start gap-2">
-                  <span className="font-medium">•</span>
-                  Ajoutez des photos de qualité
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-medium">•</span>
-                  Décrivez précisément l'état
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-medium">•</span>
-                  Fixez un prix réaliste
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
