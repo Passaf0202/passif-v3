@@ -2,6 +2,7 @@
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { DiamondViewer } from "@/components/home/DiamondViewer";
 
 interface PageHeaderProps {
   title: string;
