@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -71,9 +72,9 @@
   position: absolute;
   left: -4px;
   right: -4px;
-  top: 0;
-  bottom: 0;
-  background: #8E919680;
+  top: -2px;
+  bottom: -2px;
+  background: #E5E7EB;
   z-index: -1;
   transform: skew(-12deg);
 }
