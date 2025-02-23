@@ -39,9 +39,9 @@ export function DiamondViewer({ state }: DiamondViewerProps) {
         environment-image="neutral"
         field-of-view="20deg"
         bounds="tight"
-        scale="3.5 3.5 3.5"
-        min-scale="3.5"
-        max-scale="3.5"
+        scale="4.5 4.5 4.5"
+        min-scale="4.5"
+        max-scale="4.5"
         disable-zoom
         loading="eager"
         style={{
