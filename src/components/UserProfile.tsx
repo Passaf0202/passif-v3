@@ -8,6 +8,7 @@ import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import DiamondViewer from "./home/DiamondViewer";
+import { supabase } from "@/integrations/supabase/client";
 
 export function UserProfile() {
   const navigate = useNavigate();
