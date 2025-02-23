@@ -10,9 +10,10 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
+  className?: string;
 }
 
-export function WalletConnectButton({ minimal = false }: WalletConnectButtonProps) {
+export function WalletConnectButton({ minimal = false, className }: WalletConnectButtonProps) {
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const { open } = useWeb3Modal()
@@ -105,7 +106,7 @@ export function WalletConnectButton({ minimal = false }: WalletConnectButtonProp
       onClick={handleConnect}
       disabled={isConnecting}
       variant={isConnected ? "outline" : "default"}
-      className={`h-8 ${minimal ? 'w-8 p-0' : 'px-3'} rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm`}
+      className={`h-8 ${minimal ? 'w-8 p-0' : 'px-3'} rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm ${className || ''}`}
     >
       {isConnecting ? (
         <>
