@@ -106,7 +106,8 @@ export function MobileMenu() {
         </div>
       ) : (
         <>
-          <div className="space-y-6 p-4">
+          {/* Top Block */}
+          <div className="space-y-4 p-4 border-b border-gray-200">
             <Button 
               onClick={handleCreateListing}
               className="w-full bg-black hover:bg-black/90 text-white rounded-full h-12 flex items-center gap-3 text-base font-normal"
@@ -129,37 +130,41 @@ export function MobileMenu() {
               <Search className="h-5 w-5 mr-3" />
               Rechercher
             </Button>
-
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/messages")}
-              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
-            >
-              <MessageCircle className="h-5 w-5 mr-3" />
-              Messages
-            </Button>
-
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/favorites")}
-              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
-            >
-              <Heart className="h-5 w-5 mr-3" />
-              Favoris
-            </Button>
-
-            <Button
-              variant="ghost"
-              onClick={handleSavedSearches}
-              className="w-full justify-start h-12 px-0 hover:bg-transparent hover:text-primary text-base font-normal"
-            >
-              <Save className="h-5 w-5 mr-3" />
-              Recherches sauvegardées
-            </Button>
           </div>
 
-          <div className="h-2 bg-gray-100" />
+          {/* Actions Block */}
+          <div className="py-4 border-b border-gray-200 bg-gray-50/50">
+            <div className="space-y-1">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/messages")}
+                className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+              >
+                <MessageCircle className="h-5 w-5 mr-3" />
+                Messages
+              </Button>
 
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/favorites")}
+                className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+              >
+                <Heart className="h-5 w-5 mr-3" />
+                Favoris
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={handleSavedSearches}
+                className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+              >
+                <Save className="h-5 w-5 mr-3" />
+                Recherches sauvegardées
+              </Button>
+            </div>
+          </div>
+
+          {/* Categories Block */}
           <div className="py-4">
             <h3 className="px-4 text-sm font-semibold text-gray-500 mb-2">Catégories</h3>
             {categories?.map((category) => (
@@ -174,9 +179,8 @@ export function MobileMenu() {
             ))}
           </div>
 
-          <div className="h-2 bg-gray-100" />
-
-          <div className="py-4">
+          {/* Bottom Block */}
+          <div className="py-4 border-t border-gray-200">
             {!user && (
               <Link
                 to="/auth"
