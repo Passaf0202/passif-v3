@@ -147,14 +147,14 @@ export default function CreateListing() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="relative h-48 md:h-64 bg-gradient-to-r from-purple-50 to-blue-50 overflow-hidden">
+    <div className="min-h-screen bg-gray-50">
+      <div className="relative h-48 md:h-64 bg-white overflow-hidden">
         <div className="absolute inset-0 opacity-40">
           <DiamondViewer state="processing" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+            <h1 className="text-3xl md:text-4xl font-bold text-black">
               Créer une annonce
             </h1>
             <p className="mt-2 text-gray-600">
@@ -165,61 +165,83 @@ export default function CreateListing() {
       </div>
 
       <div className="container max-w-7xl mx-auto px-4 -mt-12 pb-16">
-        <Card className="shadow-xl border-0 overflow-hidden backdrop-blur-sm bg-white/95">
-          <CardContent className="p-0">
-            <div className="md:flex">
-              <div className="md:flex-1 p-6 md:p-8">
-                <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
-              </div>
+        <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
+          <div className="md:flex">
+            <div className="md:flex-1 p-8 md:p-12">
+              <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+            </div>
 
-              <div className="hidden md:block md:w-80 bg-gradient-to-b from-gray-50 to-white border-l">
-                <div className="p-8 sticky top-0">
+            <div className="hidden md:block md:w-96 bg-gray-50 border-l border-gray-100">
+              <div className="p-8 sticky top-0 space-y-8">
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                  <h3 className="font-semibold text-lg text-black mb-6">Comment ça marche ?</h3>
                   <div className="space-y-6">
-                    <div className="bg-blue-50 rounded-2xl p-6">
-                      <h3 className="font-medium text-lg mb-4">Comment ça marche ?</h3>
-                      <ul className="space-y-4 text-sm">
-                        <li className="flex gap-3">
-                          <div className="flex-none w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">1</div>
-                          <p>Décrivez votre article en détail et ajoutez des photos de qualité</p>
-                        </li>
-                        <li className="flex gap-3">
-                          <div className="flex-none w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">2</div>
-                          <p>Définissez un prix juste et les options de livraison</p>
-                        </li>
-                        <li className="flex gap-3">
-                          <div className="flex-none w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">3</div>
-                          <p>Connectez votre wallet pour recevoir les paiements</p>
-                        </li>
-                      </ul>
+                    <div className="flex gap-4">
+                      <div className="flex-none">
+                        <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">1</div>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 leading-relaxed">
+                          Décrivez votre article en détail et ajoutez des photos de qualité
+                        </p>
+                      </div>
                     </div>
+                    <div className="flex gap-4">
+                      <div className="flex-none">
+                        <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">2</div>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 leading-relaxed">
+                          Définissez un prix juste et les options de livraison
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-none">
+                        <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">3</div>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 leading-relaxed">
+                          Connectez votre wallet pour recevoir les paiements
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                    <div className="bg-purple-50 rounded-2xl p-6">
-                      <h3 className="font-medium text-lg mb-4">Conseils de vente</h3>
-                      <ul className="space-y-3 text-sm">
-                        <li className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                          <span>Utilisez des mots-clés pertinents</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                          <span>Prenez des photos sous plusieurs angles</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                          <span>Mentionnez l'état exact du produit</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                          <span>Répondez rapidement aux messages</span>
-                        </li>
-                      </ul>
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                  <h3 className="font-semibold text-lg text-black mb-6">Conseils de vente</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-black mt-2 flex-none" />
+                      <p className="text-gray-600 leading-relaxed">
+                        Utilisez des mots-clés pertinents pour une meilleure visibilité
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-black mt-2 flex-none" />
+                      <p className="text-gray-600 leading-relaxed">
+                        Prenez des photos sous plusieurs angles en bonne luminosité
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-black mt-2 flex-none" />
+                      <p className="text-gray-600 leading-relaxed">
+                        Mentionnez l'état exact du produit et ses éventuels défauts
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-black mt-2 flex-none" />
+                      <p className="text-gray-600 leading-relaxed">
+                        Répondez rapidement aux messages des acheteurs potentiels
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

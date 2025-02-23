@@ -99,17 +99,17 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="space-y-8">
-            <div className="bg-gradient-to-br from-purple-50/50 to-transparent p-6 rounded-2xl">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-12">
+        <div className="grid md:grid-cols-2 gap-12">
+          <div className="space-y-12">
+            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
               <BasicInfoSection 
                 form={form} 
                 onCategoryChange={handleCategoryChange} 
               />
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50/50 to-transparent p-6 rounded-2xl">
+            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
               <ProductDetails
                 category={category}
                 subcategory={subcategory}
@@ -118,13 +118,13 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
               />
             </div>
 
-            <div className="bg-gradient-to-br from-indigo-50/50 to-transparent p-6 rounded-2xl">
+            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
               <DescriptionSection form={form} />
             </div>
           </div>
 
-          <div className="space-y-8">
-            <div className="bg-gradient-to-br from-pink-50/50 to-transparent p-6 rounded-2xl">
+          <div className="space-y-12">
+            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
               <ShippingLocationSection
                 form={form}
                 shippingMethod={shippingDetails.method}
@@ -133,7 +133,7 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
               />
             </div>
 
-            <div className="bg-gradient-to-br from-orange-50/50 to-transparent p-6 rounded-2xl">
+            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
               <PhotosSection
                 images={images}
                 onImagesChange={setImages}
@@ -141,18 +141,18 @@ export function ListingForm({ onSubmit, isSubmitting }: ListingFormProps) {
               />
             </div>
 
-            <div className="bg-gradient-to-br from-green-50/50 to-transparent p-6 rounded-2xl">
+            <div className="bg-white shadow-sm border border-gray-100 p-8 rounded-xl">
               <WalletSection />
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end pt-6 border-t border-gray-100">
+        <div className="flex justify-end pt-8 border-t border-gray-100">
           <Button 
             type="submit" 
             disabled={isSubmitting || !isConnected} 
             size="lg"
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 rounded-full transition-all duration-200 transform hover:scale-105"
+            className="bg-black hover:bg-black/90 text-white px-8 py-3 rounded-full transition-all duration-200 transform hover:scale-105 min-w-[200px]"
           >
             {isSubmitting ? "Création en cours..." : "Créer l'annonce"}
           </Button>
