@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -65,7 +66,7 @@
   display: inline-block;
   padding: 0 4px;
   z-index: 1;
-  background: linear-gradient(120deg, #9b87f580 0%, #9b87f580 100%);
+  background: linear-gradient(120deg, #8E919680 0%, #8E919680 100%);
   background-repeat: no-repeat;
   background-size: 100% 0.4em;
   background-position: 0 88%;
