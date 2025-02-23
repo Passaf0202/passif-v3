@@ -7,7 +7,7 @@ import { CategoryContent } from "./components/CategoryContent";
 import { NavbarCategoriesProps } from "./types/categories";
 
 export function NavbarCategories({
-  categories = [], // Ajout d'une valeur par défaut
+  categories = [],
   isMobile
 }: NavbarCategoriesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,7 +28,6 @@ export function NavbarCategories({
   const organizedCategories = useOrganizedCategories(categories);
   const visibleCategories = useVisibleCategories(organizedCategories, !!isMobile, containerRef);
 
-  // Ajout d'une vérification pour s'assurer que les catégories existent
   const hiddenCategories = organizedCategories?.filter(
     cat => !visibleCategories?.find(visible => visible?.id === cat?.id)
   ) || [];
@@ -49,12 +48,12 @@ export function NavbarCategories({
 
   return (
     <nav className="relative w-full border-b border-gray-200/80">
-      <div className="sticky top-0 z-51 bg-white border-b border-gray-200/80">
+      <div className="sticky top-0 z-50 bg-white border-b border-gray-200/80">
         <div className="max-w-[1440px] h-12 mx-auto px-4 md:px-8">
           <div className="h-full flex items-center justify-center" ref={containerRef}>
             <ul className="inline-flex items-center gap-1" ref={menuContainerRef}>
               {displayedCategories.map((category, index) => (
-                category && ( // Ajout d'une vérification
+                category && (
                   <li 
                     key={category.id} 
                     ref={el => categoryRefs.current[category.id] = el}
@@ -76,7 +75,7 @@ export function NavbarCategories({
                     </button>
                     
                     {index < displayedCategories.length - 1 && (
-                      <span className="text-gray-400 select-none">•</span>
+                      <span className="text-gray-400 select-none mx-1">•</span>
                     )}
                   </li>
                 )
@@ -86,7 +85,7 @@ export function NavbarCategories({
         </div>
       </div>
 
-      {menuState.isOpen && menuState.currentCategory && ( // Ajout d'une vérification
+      {menuState.isOpen && menuState.currentCategory && (
         <div 
           ref={menuRef}
           className="fixed inset-0 z-40"
@@ -99,7 +98,7 @@ export function NavbarCategories({
           <div className="relative max-w-[1440px] mx-auto px-4 md:px-8">
             <div 
               ref={menuZoneRef}
-              className="bg-white border border-gray-200/60 shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-b-2xl backdrop-blur-sm"
+              className="bg-white border border-gray-200/80 rounded-b-2xl shadow-lg"
               style={{ 
                 width: menuContainerRef.current?.offsetWidth,
                 marginLeft: menuContainerRef.current?.offsetLeft ? menuContainerRef.current.offsetLeft - 32 : 0
