@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -159,7 +158,7 @@ export default function CreateListing() {
   };
 
   const handleClose = () => {
-    navigate("/"); // Redirection vers la page d'accueil
+    navigate(-1);
   };
 
   if (loading) {
@@ -177,8 +176,8 @@ export default function CreateListing() {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white/80 backdrop-blur-md border-b flex items-center px-4">
+      <div className="min-h-screen bg-background">
+        <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b flex items-center px-4">
           <div className="absolute left-0 right-0 flex justify-center">
             <img 
               src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
@@ -189,7 +188,7 @@ export default function CreateListing() {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 hover:bg-gray-100/80"
+            className="absolute right-2"
             onClick={handleClose}
           >
             <X className="h-6 w-6" />
@@ -197,24 +196,19 @@ export default function CreateListing() {
         </header>
 
         <main className="pt-14">
-          <div className="relative h-56 flex items-center justify-center bg-gradient-to-b from-white to-gray-50">
-            <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative bg-background">
+            <div className="absolute inset-0 opacity-10">
               <DiamondViewer state="processing" />
             </div>
-            <div className="relative z-10 text-center px-6 mt-4">
-              <h1 className="text-4xl font-bold mb-3 bg-white/95 backdrop-blur-md px-6 py-3 rounded-2xl inline-block shadow-sm">
-                Créer une annonce
+            <div className="relative px-4 py-6">
+              <h1 className="text-2xl font-bold text-center">
+                Déposer une annonce
               </h1>
-              <p className="text-lg text-gray-700 bg-white/95 backdrop-blur-md px-6 py-3 rounded-2xl inline-block shadow-sm max-w-sm mx-auto">
-                Décrivez votre article pour le mettre en vente
-              </p>
             </div>
           </div>
 
-          <div className="px-4 pb-16 -mt-6 relative z-20">
-            <div className="bg-white shadow-xl rounded-2xl border border-gray-100 p-6">
-              <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
-            </div>
+          <div className="px-4 pb-16">
+            <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
           </div>
         </main>
       </div>
@@ -222,34 +216,25 @@ export default function CreateListing() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="relative h-96 overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50">
+      <div className="relative h-64 overflow-hidden">
+        <div className="absolute inset-0">
           <DiamondViewer state="processing" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-white/60 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center z-10 -mt-8">
-            <h1 className="text-6xl font-bold mb-6 bg-white/95 backdrop-blur-xl px-12 py-4 rounded-2xl inline-block shadow-sm transform hover:scale-105 transition-transform duration-300">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold">
               Créer une annonce
             </h1>
-            <p className="text-2xl text-gray-700 bg-white/95 backdrop-blur-xl px-12 py-4 rounded-2xl inline-block shadow-sm max-w-2xl mx-auto transform hover:scale-105 transition-transform duration-300">
+            <p className="mt-2 text-gray-600">
               Décrivez votre article pour le mettre en vente
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl hover:bg-white shadow-sm rounded-full w-12 h-12 transition-all duration-300 hover:scale-110"
-          onClick={handleClose}
-        >
-          <X className="h-6 w-6" />
-        </Button>
       </div>
 
-      <div className="container max-w-7xl mx-auto px-4 -mt-20 pb-16 relative z-10">
-        <div className="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+      <div className="container max-w-7xl mx-auto px-4 -mt-12 pb-16">
+        <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
           <div className="p-8 md:p-12">
             <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
           </div>
