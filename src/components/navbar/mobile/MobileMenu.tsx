@@ -1,4 +1,3 @@
-
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -82,6 +81,13 @@ export function MobileMenu() {
     navigate("/saved-searches");
   };
 
+  const handleWalletConnection = () => {
+    const walletButton = document.querySelector('[data-testid="web3modal-connect-button"]');
+    if (walletButton instanceof HTMLElement) {
+      walletButton.click();
+    }
+  };
+
   const renderMainContent = () => (
     <>
       {showSearch ? (
@@ -119,19 +125,7 @@ export function MobileMenu() {
             {user && (
               <div className="flex justify-center">
                 <div className="md:hidden w-full">
-                  <Button
-                    onClick={() => {
-                      const walletButton = document.querySelector('[data-testid="web3modal-connect-button"]');
-                      if (walletButton instanceof HTMLElement) {
-                        walletButton.click();
-                      }
-                    }}
-                    variant="outline"
-                    className="w-full h-12 border-2 border-black bg-white hover:bg-gray-50 text-black rounded-full flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <Wallet className="h-5 w-5" />
-                    <span className="font-medium">Wallet</span>
-                  </Button>
+                  <WalletConnectButton minimal={false} />
                 </div>
               </div>
             )}
