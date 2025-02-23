@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -8,7 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccount } from 'wagmi';
 import DiamondViewer from "@/components/home/DiamondViewer";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function CreateListing() {
   const { user, loading } = useAuth();
@@ -17,9 +18,9 @@ export default function CreateListing() {
   const location = useLocation();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    // Seulement rediriger si le chargement est terminé et qu'il n'y a pas d'utilisateur
     if (!loading && !user) {
       localStorage.setItem('redirectAfterAuth', location.pathname);
       navigate("/auth");
@@ -156,7 +157,10 @@ export default function CreateListing() {
     }
   };
 
-  // Afficher un état de chargement pendant la vérification de l'authentification
+  const handleClose = () => {
+    navigate(-1);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -168,18 +172,48 @@ export default function CreateListing() {
     );
   }
 
-  // Ne rendre le composant que si l'utilisateur est connecté
   if (!user) return null;
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="relative h-14 bg-white border-b flex items-center px-4">
+          <div className="absolute left-0 right-0 flex justify-center">
+            <img 
+              src="/logo-icon.png" 
+              alt="Tradecoiner" 
+              className="h-8 w-auto"
+            />
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2"
+            onClick={handleClose}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        </header>
+
+        <div className="px-4 py-6">
+          <h1 className="text-2xl font-bold text-center mb-8">
+            Déposer une annonce
+          </h1>
+          <ListingForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="relative h-48 md:h-64 bg-white overflow-hidden">
-        <div className="absolute inset-0 opacity-40">
+      <div className="relative h-64 overflow-hidden">
+        <div className="absolute inset-0">
           <DiamondViewer state="processing" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-black">
+            <h1 className="text-4xl font-bold">
               Créer une annonce
             </h1>
             <p className="mt-2 text-gray-600">
