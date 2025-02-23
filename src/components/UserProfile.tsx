@@ -19,9 +19,9 @@ export function UserProfile() {
     updateProfile,
     handleAvatarUpdate
   } = useProfile();
-  
-  // Ajout d'un état pour forcer le rafraîchissement de l'avatar
-  const [avatarKey, setAvatarKey] = useState(0);
+
+  // État pour gérer l'URL de l'avatar avec timestamp
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   if (loading) {
     return <div>Chargement...</div>;
@@ -30,6 +30,13 @@ export function UserProfile() {
   if (!profile) {
     return <div>Profil non trouvé</div>;
   }
+
+  // Ajouter un timestamp à l'URL pour éviter la mise en cache
+  const getAvatarUrl = (url: string | null) => {
+    if (!url) return undefined;
+    const timestamp = new Date().getTime();
+    return `${url}?t=${timestamp}`;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,8 +55,7 @@ export function UserProfile() {
                 <div className="relative group">
                   <Avatar className="h-32 w-32 cursor-pointer">
                     <AvatarImage 
-                      key={avatarKey} 
-                      src={profile.avatar_url || undefined}
+                      src={getAvatarUrl(avatarUrl || profile.avatar_url)}
                     />
                     <AvatarFallback className="text-2xl">
                       {profile.first_name?.[0]}{profile.last_name?.[0]}
@@ -66,22 +72,43 @@ export function UserProfile() {
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
+                            // Créer un nom de fichier unique avec timestamp
+                            const timestamp = Date.now();
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${profile.id}/${timestamp}.${fileExt}`;
+
+                            // Supprimer l'ancien avatar s'il existe
+                            if (profile.avatar_url) {
+                              const oldPath = profile.avatar_url.split('/').pop();
+                              if (oldPath) {
+                                await supabase.storage
+                                  .from('avatars')
+                                  .remove([`${profile.id}/${oldPath}`]);
+                              }
+                            }
+
+                            // Upload du nouveau fichier
                             const { data, error } = await supabase.storage
                               .from('avatars')
-                              .upload(`${profile.id}/${Date.now()}`, file);
+                              .upload(fileName, file, {
+                                upsert: true,
+                                cacheControl: 'no-cache'
+                              });
                               
                             if (error) {
                               console.error('Error uploading avatar:', error);
                               return;
                             }
 
+                            // Récupération de l'URL publique
                             const { data: { publicUrl } } = supabase.storage
                               .from('avatars')
-                              .getPublicUrl(data.path);
+                              .getPublicUrl(fileName);
 
+                            // Mise à jour du profil avec la nouvelle URL
                             await handleAvatarUpdate(publicUrl);
-                            // Force le rafraîchissement de l'avatar
-                            setAvatarKey(prev => prev + 1);
+                            // Mise à jour de l'URL locale avec timestamp
+                            setAvatarUrl(publicUrl);
                           }
                         }}
                       />
