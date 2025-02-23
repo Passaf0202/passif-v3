@@ -1,3 +1,4 @@
+
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -124,9 +125,14 @@ export function MobileMenu() {
 
             {user && (
               <div className="flex justify-center">
-                <div className="md:hidden w-full">
-                  <WalletConnectButton minimal={false} />
-                </div>
+                <Button
+                  onClick={handleWalletConnection}
+                  variant="outline"
+                  className="w-full h-12 border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 flex items-center justify-center gap-2 rounded-full"
+                >
+                  <Wallet className="h-5 w-5" />
+                  <span>Connecter Wallet</span>
+                </Button>
               </div>
             )}
 
