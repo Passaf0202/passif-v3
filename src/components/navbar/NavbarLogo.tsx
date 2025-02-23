@@ -61,7 +61,7 @@ export const NavbarLogo = () => {
           console.error('Logo loading error, falling back to placeholder');
           e.currentTarget.src = FALLBACK_LOGO;
         }}
-        className="h-7 max-h-[32px] w-auto object-contain transition-all duration-200"
+        className="h-7 w-auto md:h-8 min-h-[28px] min-w-[120px] max-h-[32px] object-contain transition-all duration-200"
       />
     </Link>
   );
