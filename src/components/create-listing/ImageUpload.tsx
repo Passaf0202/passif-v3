@@ -13,7 +13,63 @@ interface ImageUploadProps {
 export function ImageUpload({ images, onImagesChange, category }: ImageUploadProps) {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const MAX_IMAGES = 5;
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // Réduit à 2MB au lieu de 5MB
+
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Réduire la taille si nécessaire
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          
+          if (width > height && width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          } else if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('Could not create blob'));
+                return;
+              }
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            },
+            'image/jpeg',
+            0.7 // Qualité de compression
+          );
+        };
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   const validateFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -29,7 +85,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     return true;
   };
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     console.log("Dropped files:", acceptedFiles.map(f => ({ name: f.name, type: f.type, size: f.size })));
     
     const totalImages = images.length + acceptedFiles.length;
@@ -38,21 +94,28 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       return;
     }
 
-    const validImageFiles = acceptedFiles.filter(validateFile);
-    const newImages = [...images, ...validImageFiles].slice(0, MAX_IMAGES);
-    onImagesChange(newImages);
+    try {
+      const compressedFiles = await Promise.all(
+        acceptedFiles.filter(validateFile).map(compressImage)
+      );
 
-    const urls = newImages.map(file => URL.createObjectURL(file));
-    previewUrls.forEach(url => URL.revokeObjectURL(url));
-    setPreviewUrls(urls);
+      const newImages = [...images, ...compressedFiles].slice(0, MAX_IMAGES);
+      onImagesChange(newImages);
+
+      const urls = newImages.map(file => URL.createObjectURL(file));
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      setPreviewUrls(urls);
+    } catch (error) {
+      console.error('Error processing images:', error);
+      alert('Une erreur est survenue lors du traitement des images');
+    }
   }, [images, onImagesChange, previewUrls]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-      'image/gif': ['.gif']
+      'image/png': ['.png']
     },
     maxFiles: MAX_IMAGES,
     maxSize: MAX_FILE_SIZE
@@ -88,6 +151,9 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
           <ImagePlus className="h-8 w-8 mb-2 text-gray-400" />
           <span className="text-sm text-center text-gray-500">
             {isDragActive ? 'Déposez les images ici' : 'Glissez ou cliquez pour ajouter'}
+          </span>
+          <span className="text-xs text-gray-400 mt-2">
+            Max {MAX_IMAGES} images, {MAX_FILE_SIZE/1024/1024}MB par image
           </span>
         </div>
       </div>
