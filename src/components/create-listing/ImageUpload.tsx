@@ -18,10 +18,12 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   const validateFile = (file: File) => {
-    if (!file.type.startsWith('image/')) {
+    // Vérifier le type MIME
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
       toast({
         title: "Type de fichier non valide",
-        description: `Le fichier ${file.name} n'est pas une image`,
+        description: `Le fichier ${file.name} doit être au format JPG, PNG ou WEBP`,
         variant: "destructive",
       });
       return false;
@@ -40,12 +42,6 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    console.log("Files dropped:", acceptedFiles.map(f => ({ 
-      name: f.name, 
-      type: f.type, 
-      size: f.size 
-    })));
-    
     const totalImages = images.length + acceptedFiles.length;
     if (totalImages > MAX_IMAGES) {
       toast({
@@ -56,17 +52,22 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       return;
     }
 
-    const validImageFiles = acceptedFiles.filter(validateFile);
-    if (validImageFiles.length === 0) {
-      return;
-    }
+    const validFiles = acceptedFiles.filter(validateFile);
+    if (validFiles.length === 0) return;
 
-    const newImages = [...images, ...validImageFiles].slice(0, MAX_IMAGES);
+    const newImages = [...images, ...validFiles].slice(0, MAX_IMAGES);
     onImagesChange(newImages);
 
-    const urls = newImages.map(file => URL.createObjectURL(file));
+    // Génération des URL de prévisualisation
+    const newUrls = newImages.map(file => URL.createObjectURL(file));
     previewUrls.forEach(url => URL.revokeObjectURL(url));
-    setPreviewUrls(urls);
+    setPreviewUrls(newUrls);
+
+    console.log("Images acceptées:", newImages.map(f => ({
+      name: f.name,
+      type: f.type,
+      size: Math.round(f.size / 1024) + 'KB'
+    })));
   }, [images, onImagesChange, previewUrls, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -96,6 +97,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     });
   };
 
+  // Nettoyage des URLs de prévisualisation
   useEffect(() => {
     return () => {
       previewUrls.forEach(url => URL.revokeObjectURL(url));
@@ -106,7 +108,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       <div
         {...getRootProps()}
-        className={`relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 border-dashed ${
+        className={`relative aspect-square cursor-pointer hover:opacity-75 transition-opacity border-2 border-dashed rounded-lg ${
           isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300'
         }`}
       >
