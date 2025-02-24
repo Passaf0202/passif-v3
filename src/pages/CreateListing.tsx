@@ -43,23 +43,31 @@ export default function CreateListing() {
 
         const fileExt = image.name.split('.').pop()?.toLowerCase() || '';
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `user-${user?.id}/${fileName}`;
+
         console.log("Uploading image:", fileName, "type:", image.type);
 
         const { error: uploadError, data } = await supabase.storage
           .from("listings-images")
-          .upload(fileName, image, {
+          .upload(filePath, image, {
             contentType: image.type,
-            upsert: false
+            upsert: true,
+            cacheControl: '3600'
           });
 
         if (uploadError) {
           console.error("Error uploading image:", uploadError);
+          toast({
+            title: "Erreur",
+            description: "Impossible de télécharger l'image. Veuillez réessayer.",
+            variant: "destructive",
+          });
           throw uploadError;
         }
 
         const { data: { publicUrl } } = supabase.storage
           .from("listings-images")
-          .getPublicUrl(fileName);
+          .getPublicUrl(filePath);
 
         console.log("Image uploaded successfully:", publicUrl);
         uploadedUrls.push(publicUrl);
@@ -95,6 +103,7 @@ export default function CreateListing() {
     try {
       setIsSubmitting(true);
       let imageUrls: string[] = [];
+      
       if (values.images?.length > 0) {
         imageUrls = await uploadImages(values.images);
       }
@@ -121,11 +130,12 @@ export default function CreateListing() {
           crypto_currency: values.crypto_currency,
           crypto_amount: values.crypto_amount,
           wallet_address: address
-        })
-        .select('*')
-        .single();
+        });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Error inserting listing:", insertError);
+        throw insertError;
+      }
       
       toast({
         title: "Succès",
@@ -137,7 +147,7 @@ export default function CreateListing() {
       console.error("Error in form submission:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la création de l'annonce",
+        description: "Une erreur est survenue lors de la création de l'annonce. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
