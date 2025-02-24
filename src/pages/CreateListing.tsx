@@ -43,7 +43,7 @@ export default function CreateListing() {
 
         const fileExt = image.name.split('.').pop()?.toLowerCase() || '';
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `${user?.id}/${fileName}`;
+        const filePath = `${user?.id}/${fileName}`; // Utiliser l'ID de l'utilisateur comme dossier
 
         console.log("Uploading file:", {
           name: image.name,
