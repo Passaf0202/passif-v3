@@ -43,47 +43,31 @@ export default function CreateListing() {
 
         const fileExt = image.name.split('.').pop()?.toLowerCase() || '';
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `${user?.id}/${fileName}`; // Utiliser l'ID de l'utilisateur comme dossier
-
-        console.log("Uploading file:", {
-          name: image.name,
-          type: image.type,
-          size: image.size,
-          path: filePath
-        });
+        console.log("Uploading image:", fileName, "type:", image.type);
 
         const { error: uploadError, data } = await supabase.storage
-          .from('listings-images')
-          .upload(filePath, image, {
+          .from("listings-images")
+          .upload(fileName, image, {
             contentType: image.type,
-            upsert: true,
-            cacheControl: '3600'
+            upsert: false
           });
 
         if (uploadError) {
-          console.error("Upload error:", uploadError);
-          throw new Error(uploadError.message);
+          console.error("Error uploading image:", uploadError);
+          throw uploadError;
         }
 
-        console.log("Upload successful, data:", data);
-
         const { data: { publicUrl } } = supabase.storage
-          .from('listings-images')
-          .getPublicUrl(filePath);
+          .from("listings-images")
+          .getPublicUrl(fileName);
 
-        console.log("Generated public URL:", publicUrl);
+        console.log("Image uploaded successfully:", publicUrl);
         uploadedUrls.push(publicUrl);
       }
 
-      console.log("All images uploaded successfully:", uploadedUrls);
       return uploadedUrls;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error in uploadImages:", error);
-      toast({
-        title: "Erreur lors de l'upload",
-        description: error.message || "Une erreur est survenue lors de l'upload des images",
-        variant: "destructive",
-      });
       throw error;
     }
   };
@@ -111,22 +95,9 @@ export default function CreateListing() {
     try {
       setIsSubmitting(true);
       let imageUrls: string[] = [];
-      
       if (values.images?.length > 0) {
-        console.log("Processing images:", values.images.length);
-        try {
-          imageUrls = await uploadImages(values.images);
-          console.log("Images uploaded successfully:", imageUrls);
-        } catch (error) {
-          console.error("Failed to upload images:", error);
-          return;
-        }
+        imageUrls = await uploadImages(values.images);
       }
-
-      console.log("Creating listing with data:", {
-        ...values,
-        imageUrls
-      });
 
       const { error: insertError } = await supabase
         .from("listings")
@@ -147,15 +118,14 @@ export default function CreateListing() {
           material: values.material,
           shipping_method: values.shipping_method,
           shipping_weight: values.shipping_weight,
-          crypto_currency: values.crypto_currency || 'POL',
-          crypto_amount: values.crypto_amount || 0,
+          crypto_currency: values.crypto_currency,
+          crypto_amount: values.crypto_amount,
           wallet_address: address
-        });
+        })
+        .select('*')
+        .single();
 
-      if (insertError) {
-        console.error("Error inserting listing:", insertError);
-        throw insertError;
-      }
+      if (insertError) throw insertError;
       
       toast({
         title: "Succès",
@@ -163,11 +133,11 @@ export default function CreateListing() {
       });
 
       navigate("/");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error in form submission:", error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la création de l'annonce",
+        description: "Une erreur est survenue lors de la création de l'annonce",
         variant: "destructive",
       });
     } finally {

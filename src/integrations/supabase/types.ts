@@ -680,13 +680,6 @@ export type Database = {
       }
     }
     Functions: {
-      check_user_role: {
-        Args: {
-          user_id: string
-          role_name: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: boolean
-      }
       get_listings: {
         Args: {
           page_number?: number
