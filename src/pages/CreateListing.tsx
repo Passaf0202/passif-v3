@@ -35,43 +35,23 @@ export default function CreateListing() {
       console.log("Starting image upload process");
       const uploadedUrls: string[] = [];
 
-      // Vérifier d'abord si le bucket existe
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const listingsBucket = buckets?.find(b => b.name === 'listings-images');
-      
-      if (!listingsBucket) {
-        throw new Error("Le bucket de stockage n'existe pas");
-      }
-
       for (const image of images) {
         if (!image.type.startsWith('image/')) {
           console.error(`File ${image.name} is not an image (type: ${image.type})`);
           continue;
         }
 
-        // Validation de la taille du fichier (5MB max)
-        if (image.size > 5 * 1024 * 1024) {
-          throw new Error(`L'image ${image.name} est trop grande (max 5MB)`);
-        }
-
         const fileExt = image.name.split('.').pop()?.toLowerCase() || '';
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
         const filePath = `${user?.id}/${fileName}`;
 
-        console.log("Attempting to upload:", filePath);
+        console.log("Uploading file:", {
+          name: image.name,
+          type: image.type,
+          size: image.size,
+          path: filePath
+        });
 
-        // Vérifier si le fichier existe déjà
-        const { data: existingFile } = await supabase.storage
-          .from('listings-images')
-          .list(user?.id || '', {
-            search: fileName
-          });
-
-        if (existingFile && existingFile.length > 0) {
-          console.log("File already exists, will overwrite");
-        }
-
-        // Upload avec gestion explicite des erreurs
         const { error: uploadError, data } = await supabase.storage
           .from('listings-images')
           .upload(filePath, image, {
@@ -81,42 +61,29 @@ export default function CreateListing() {
           });
 
         if (uploadError) {
-          console.error("Upload error details:", uploadError);
-          
-          // Erreur spécifique pour les problèmes de permission
-          if (uploadError.message.includes("permission")) {
-            throw new Error("Vous n'avez pas les permissions nécessaires pour uploader des images");
-          }
-          
-          throw uploadError;
+          console.error("Upload error:", uploadError);
+          throw new Error(uploadError.message);
         }
 
-        // Récupérer l'URL publique seulement si l'upload a réussi
-        if (data?.path) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('listings-images')
-            .getPublicUrl(filePath);
+        console.log("Upload successful, data:", data);
 
-          console.log("Successfully uploaded, public URL:", publicUrl);
-          uploadedUrls.push(publicUrl);
-        }
+        const { data: { publicUrl } } = supabase.storage
+          .from('listings-images')
+          .getPublicUrl(filePath);
+
+        console.log("Generated public URL:", publicUrl);
+        uploadedUrls.push(publicUrl);
       }
 
+      console.log("All images uploaded successfully:", uploadedUrls);
       return uploadedUrls;
     } catch (error: any) {
       console.error("Error in uploadImages:", error);
-      
-      // Message d'erreur personnalisé selon le type d'erreur
-      const errorMessage = error.message.includes("permission") 
-        ? "Problème de permissions lors de l'upload. Veuillez vous reconnecter."
-        : "Impossible de télécharger les images. Veuillez réessayer.";
-        
       toast({
-        title: "Erreur d'upload",
-        description: errorMessage,
+        title: "Erreur lors de l'upload",
+        description: error.message || "Une erreur est survenue lors de l'upload des images",
         variant: "destructive",
       });
-      
       throw error;
     }
   };
@@ -146,15 +113,21 @@ export default function CreateListing() {
       let imageUrls: string[] = [];
       
       if (values.images?.length > 0) {
+        console.log("Processing images:", values.images.length);
         try {
           imageUrls = await uploadImages(values.images);
+          console.log("Images uploaded successfully:", imageUrls);
         } catch (error) {
           console.error("Failed to upload images:", error);
-          return; // Arrêter la création si l'upload échoue
+          return;
         }
       }
 
-      // Créer l'annonce seulement si les images ont été uploadées avec succès
+      console.log("Creating listing with data:", {
+        ...values,
+        imageUrls
+      });
+
       const { error: insertError } = await supabase
         .from("listings")
         .insert({
