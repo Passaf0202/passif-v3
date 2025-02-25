@@ -13,23 +13,21 @@ serve(async (req) => {
   }
 
   try {
-    const formData = await req.formData()
-    const file = formData.get('file')
-
-    if (!file) {
-      throw new Error('No file uploaded')
-    }
-
-    // Configuration de Cloudinary
+    // Configuration de Cloudinary avec vos identifiants
     cloudinary.config({
       cloud_name: Deno.env.get('CLOUDINARY_CLOUD_NAME'),
       api_key: Deno.env.get('CLOUDINARY_API_KEY'),
       api_secret: Deno.env.get('CLOUDINARY_API_SECRET')
     })
 
-    // Convertir le fichier en buffer
-    const arrayBuffer = await (file as File).arrayBuffer()
-    const buffer = new Uint8Array(arrayBuffer)
+    const { file } = await req.json()
+    if (!file) {
+      throw new Error('No file data provided')
+    }
+
+    // Convertir le base64 en buffer
+    const base64Data = file.split(',')[1]
+    const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))
 
     // Upload vers Cloudinary
     const result = await new Promise((resolve, reject) => {

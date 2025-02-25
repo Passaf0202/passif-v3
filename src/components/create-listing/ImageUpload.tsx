@@ -1,3 +1,4 @@
+
 import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
@@ -95,23 +96,15 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
 
   const uploadImage = async (file: File): Promise<string> => {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'reown_listings'); // Preset non-signé de Cloudinary
+      // Utilisation de l'Edge Function Supabase pour l'upload Cloudinary
+      const { data, error } = await supabase.functions.invoke('upload-image', {
+        body: { file },
+      });
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
+      if (error || !data?.secure_url) {
         throw new Error('Upload failed');
       }
 
-      const data = await response.json();
       console.log('Image uploaded successfully:', data.secure_url);
       return data.secure_url;
     } catch (error) {
@@ -137,10 +130,15 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       const validFiles = acceptedFiles.filter(validateFile);
       const compressedFiles = await Promise.all(validFiles.map(compressImage));
       
+      // Upload des images vers Cloudinary via l'Edge Function
+      const uploadedUrls = await Promise.all(compressedFiles.map(uploadImage));
+      console.log('Uploaded URLs:', uploadedUrls);
+
+      // Mettre à jour l'état avec les URLs Cloudinary
       const newImages = [...images, ...compressedFiles].slice(0, MAX_IMAGES);
       onImagesChange(newImages);
 
-      const urls = newImages.map(file => URL.createObjectURL(file));
+      const urls = uploadedUrls;
       previewUrls.forEach(url => URL.revokeObjectURL(url));
       setPreviewUrls(urls);
     } catch (error) {
@@ -169,14 +167,17 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     onImagesChange(newImages);
 
     const newUrls = [...previewUrls];
-    URL.revokeObjectURL(newUrls[index]);
     newUrls.splice(index, 1);
     setPreviewUrls(newUrls);
   };
 
   useEffect(() => {
     return () => {
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      previewUrls.forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
     };
   }, [previewUrls]);
 
