@@ -1,9 +1,7 @@
-
 import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
 interface ImageUploadProps {
@@ -95,24 +93,27 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     return true;
   };
 
-  const uploadImage = async (file: File) => {
+  const uploadImage = async (file: File): Promise<string> => {
     try {
-      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from('listings-images')
-        .upload(fileName, file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'reown_listings'); // Preset non-signé de Cloudinary
 
-      if (uploadError) {
-        console.error('Error uploading image:', uploadError);
-        throw uploadError;
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('listings-images')
-        .getPublicUrl(fileName);
-
-      return publicUrl;
+      const data = await response.json();
+      console.log('Image uploaded successfully:', data.secure_url);
+      return data.secure_url;
     } catch (error) {
       console.error('Error uploading image:', error);
       throw error;
