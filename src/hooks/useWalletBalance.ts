@@ -35,9 +35,9 @@ export function useWalletBalance() {
       return formattedBalance;
     },
     enabled: !!address,
-    refetchInterval: 5 * 60 * 1000, // Réduit à toutes les 5 minutes au lieu de 30 secondes
-    staleTime: 4 * 60 * 1000, // Les données sont considérées comme "fraîches" pendant 4 minutes
-    cacheTime: 10 * 60 * 1000, // Cache les données pendant 10 minutes
+    refetchInterval: 5 * 60 * 1000, // Toutes les 5 minutes
+    staleTime: 4 * 60 * 1000, // Données "fraîches" pendant 4 minutes
+    gcTime: 10 * 60 * 1000, // Garbage collection après 10 minutes (anciennement cacheTime)
   });
 
   return {
