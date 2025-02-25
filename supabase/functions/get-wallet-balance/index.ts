@@ -1,5 +1,5 @@
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from 'https://deno.fresh.dev/server/live'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,121 +7,78 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      headers: corsHeaders,
-      status: 204
-    });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    if (req.method !== 'POST') {
-      return new Response(
-        JSON.stringify({ error: 'Method not allowed' }),
-        { 
-          status: 405,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
     const { address } = await req.json()
-
     if (!address) {
-      return new Response(
-        JSON.stringify({ error: 'Wallet address is required' }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
+      throw new Error('Address is required')
     }
 
-    console.log('Fetching balance for wallet:', address)
-    
-    const zerionApiKey = Deno.env.get('ZERION_API_KEY')
-    if (!zerionApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'Service configuration error' }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+    // Cache les données pendant 5 minutes
+    const cacheKey = `balance:${address}`
+    const cachedData = await getCachedData(cacheKey)
+    if (cachedData) {
+      console.log('Returning cached balance for address:', address)
+      return new Response(JSON.stringify(cachedData), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
-    const credentials = btoa(`${zerionApiKey}:`)
-    console.log('Making request to Zerion API');
-
-    try {
-      const response = await fetch(
-        `https://api.zerion.io/v1/wallets/${address}/portfolio`,
-        {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': `Basic ${credentials}`
-          }
-        }
-      )
-
-      if (!response.ok) {
-        const errorData = await response.text()
-        console.error('Zerion API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorData
-        })
-        
-        return new Response(
-          JSON.stringify({ 
-            error: `Zerion API error: ${response.status} ${response.statusText}`,
-            details: errorData
-          }),
-          { 
-            status: response.status,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        );
-      }
-
-      const data = await response.json()
-      console.log('Zerion API response received successfully');
-
-      const totalValue = data.data.attributes.total.positions
-
-      return new Response(
-        JSON.stringify({ total_value_usd: totalValue }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200
-        }
-      )
-    } catch (fetchError) {
-      console.error('Error fetching from Zerion API:', fetchError);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Failed to fetch wallet data from Zerion API',
-          details: fetchError.message
-        }),
-        { 
-          status: 502,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-  } catch (error) {
-    console.error('Error in get-wallet-balance:', error)
-    return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error',
-        details: error.message
-      }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    // Si pas de cache, obtenir les nouvelles données
+    const response = await fetch(
+      `https://api.zerion.io/v1/wallets/${address}/portfolio?currency=usd`,
+      {
+        headers: {
+          accept: 'application/json',
+          authorization: `Basic ${Deno.env.get('ZERION_API_KEY')}`,
+        },
       }
     )
+
+    const data = await response.json()
+    console.log('Fresh balance data for address:', address)
+
+    // Mettre en cache pour 5 minutes
+    await setCacheData(cacheKey, data, 300)
+
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  } catch (error) {
+    console.error('Error:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 })
+
+// Fonctions de cache
+async function getCachedData(key: string) {
+  const kv = await Deno.openKv()
+  const result = await kv.get(['cache', key])
+  await kv.close()
+  
+  if (!result.value) return null
+  
+  const { data, expiry } = result.value
+  if (Date.now() > expiry) {
+    // Cache expired
+    const kv = await Deno.openKv()
+    await kv.delete(['cache', key])
+    await kv.close()
+    return null
+  }
+  
+  return data
+}
+
+async function setCacheData(key: string, data: any, ttl: number) {
+  const kv = await Deno.openKv()
+  const expiry = Date.now() + (ttl * 1000)
+  await kv.set(['cache', key], { data, expiry })
+  await kv.close()
+}

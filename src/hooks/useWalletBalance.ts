@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccount } from "wagmi";
@@ -34,7 +35,9 @@ export function useWalletBalance() {
       return formattedBalance;
     },
     enabled: !!address,
-    refetchInterval: 30000 // Rafraîchir toutes les 30 secondes
+    refetchInterval: 5 * 60 * 1000, // Réduit à toutes les 5 minutes au lieu de 30 secondes
+    staleTime: 4 * 60 * 1000, // Les données sont considérées comme "fraîches" pendant 4 minutes
+    cacheTime: 10 * 60 * 1000, // Cache les données pendant 10 minutes
   });
 
   return {
