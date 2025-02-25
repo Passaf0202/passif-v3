@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,7 +17,7 @@ serve(async (req) => {
       throw new Error('Address is required')
     }
 
-    // Cache les données pendant 5 minutes
+    // Cache les données pendant 15 minutes
     const cacheKey = `balance:${address}`
     const cachedData = await getCachedData(cacheKey)
     if (cachedData) {
@@ -39,13 +38,23 @@ serve(async (req) => {
       }
     )
 
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
+
     const data = await response.json()
+    
+    // Réduire les données avant mise en cache
+    const minimalData = {
+      total_value_usd: data.total_value_usd
+    };
+
     console.log('Fresh balance data for address:', address)
 
-    // Mettre en cache pour 5 minutes
-    await setCacheData(cacheKey, data, 300)
+    // Mettre en cache pour 15 minutes
+    await setCacheData(cacheKey, minimalData, 900) // 15 minutes en secondes
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify(minimalData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
