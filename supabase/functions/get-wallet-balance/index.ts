@@ -1,5 +1,6 @@
-import { serve } from 'https://deno.fresh.dev/server/live'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0'
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,7 +57,7 @@ serve(async (req) => {
   }
 })
 
-// Fonctions de cache
+// Fonctions de cache KV
 async function getCachedData(key: string) {
   const kv = await Deno.openKv()
   const result = await kv.get(['cache', key])
