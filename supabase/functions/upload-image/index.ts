@@ -8,42 +8,44 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Configuration de Cloudinary avec vos identifiants
+    // Configure Cloudinary
     cloudinary.config({
       cloud_name: Deno.env.get('CLOUDINARY_CLOUD_NAME'),
       api_key: Deno.env.get('CLOUDINARY_API_KEY'),
       api_secret: Deno.env.get('CLOUDINARY_API_SECRET')
     })
 
-    const { file } = await req.json()
-    if (!file) {
-      throw new Error('No file data provided')
+    const { file, filename } = await req.json()
+    
+    if (!file || !filename) {
+      throw new Error('Missing file or filename')
     }
 
-    // Convertir le base64 en buffer
-    const base64Data = file.split(',')[1]
-    const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))
+    console.log('Uploading file:', filename);
 
-    // Upload vers Cloudinary
+    // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: 'listings',
-          resource_type: 'auto',
-        },
-        (error, result) => {
-          if (error) reject(error)
-          else resolve(result)
+      cloudinary.uploader.upload(file, {
+        folder: 'listings',
+        resource_type: 'auto',
+        filename_override: filename,
+      }, (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          reject(error);
+        } else {
+          resolve(result);
         }
-      )
+      });
+    });
 
-      uploadStream.end(buffer)
-    })
+    console.log('Upload successful, returning URL');
 
     return new Response(
       JSON.stringify(result),
@@ -56,9 +58,13 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error in upload-image function:', error);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.toString()
+      }),
       { 
         headers: { 
           ...corsHeaders,

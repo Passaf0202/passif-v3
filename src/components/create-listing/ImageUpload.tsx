@@ -18,6 +18,21 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const MAX_IMAGES = 5;
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to convert file to base64'));
+        }
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -97,13 +112,24 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
 
   const uploadImage = async (file: File): Promise<string> => {
     try {
-      // Utilisation de l'Edge Function Supabase pour l'upload Cloudinary
+      console.log('Starting image upload for:', file.name);
+      const base64 = await fileToBase64(file);
+      
       const { data, error } = await supabase.functions.invoke('upload-image', {
-        body: { file },
+        body: { 
+          file: base64,
+          filename: file.name
+        }
       });
 
-      if (error || !data?.secure_url) {
+      if (error) {
+        console.error('Supabase function error:', error);
         throw new Error('Upload failed');
+      }
+
+      if (!data?.secure_url) {
+        console.error('No secure_url in response:', data);
+        throw new Error('Invalid response from upload');
       }
 
       console.log('Image uploaded successfully:', data.secure_url);
@@ -140,8 +166,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       onImagesChange(newImages);
 
       const urls = uploadedUrls;
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
-      setPreviewUrls(urls);
+      setPreviewUrls(prev => [...prev, ...urls]);
     } catch (error) {
       console.error('Error processing images:', error);
       toast({
@@ -150,7 +175,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         variant: "destructive",
       });
     }
-  }, [images, onImagesChange, previewUrls, toast]);
+  }, [images, onImagesChange, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
