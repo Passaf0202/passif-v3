@@ -3,8 +3,8 @@ import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { X } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ImageUploadProps {
   images: File[];
@@ -17,21 +17,6 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const { toast } = useToast();
   const MAX_IMAGES = 5;
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error('Failed to convert file to base64'));
-        }
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  };
 
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -110,30 +95,24 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     return true;
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
+  const uploadImage = async (file: File) => {
     try {
-      console.log('Starting image upload for:', file.name);
-      const base64 = await fileToBase64(file);
-      
-      const { data, error } = await supabase.functions.invoke('upload-image', {
-        body: { 
-          file: base64,
-          filename: file.name
-        }
-      });
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('listings-images')
+        .upload(fileName, file);
 
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error('Upload failed');
+      if (uploadError) {
+        console.error('Error uploading image:', uploadError);
+        throw uploadError;
       }
 
-      if (!data?.secure_url) {
-        console.error('No secure_url in response:', data);
-        throw new Error('Invalid response from upload');
-      }
+      const { data: { publicUrl } } = supabase.storage
+        .from('listings-images')
+        .getPublicUrl(fileName);
 
-      console.log('Image uploaded successfully:', data.secure_url);
-      return data.secure_url;
+      return publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
       throw error;
@@ -157,16 +136,12 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       const validFiles = acceptedFiles.filter(validateFile);
       const compressedFiles = await Promise.all(validFiles.map(compressImage));
       
-      // Upload des images vers Cloudinary via l'Edge Function
-      const uploadedUrls = await Promise.all(compressedFiles.map(uploadImage));
-      console.log('Uploaded URLs:', uploadedUrls);
-
-      // Mettre à jour l'état avec les URLs Cloudinary
       const newImages = [...images, ...compressedFiles].slice(0, MAX_IMAGES);
       onImagesChange(newImages);
 
-      const urls = uploadedUrls;
-      setPreviewUrls(prev => [...prev, ...urls]);
+      const urls = newImages.map(file => URL.createObjectURL(file));
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      setPreviewUrls(urls);
     } catch (error) {
       console.error('Error processing images:', error);
       toast({
@@ -175,7 +150,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         variant: "destructive",
       });
     }
-  }, [images, onImagesChange, toast]);
+  }, [images, onImagesChange, previewUrls, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -193,17 +168,14 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     onImagesChange(newImages);
 
     const newUrls = [...previewUrls];
+    URL.revokeObjectURL(newUrls[index]);
     newUrls.splice(index, 1);
     setPreviewUrls(newUrls);
   };
 
   useEffect(() => {
     return () => {
-      previewUrls.forEach(url => {
-        if (url.startsWith('blob:')) {
-          URL.revokeObjectURL(url);
-        }
-      });
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
     };
   }, [previewUrls]);
 
