@@ -3,6 +3,7 @@ import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImageUploadProps {
   images: File[];
@@ -83,6 +84,29 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     }
 
     return true;
+  };
+
+  const uploadImage = async (file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('listings-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: 'image/jpeg'
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      return fileName;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
   };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
