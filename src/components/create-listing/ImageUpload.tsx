@@ -17,6 +17,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const { toast } = useToast();
   const MAX_IMAGES = 5;
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  const TARGET_FILE_SIZE = 200 * 1024; // Viser 200KB par image
 
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -30,15 +31,20 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
           let width = img.width;
           let height = img.height;
 
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
+          // Réduire la taille de l'image si elle est trop grande
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
           
-          if (width > height && width > MAX_WIDTH) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
-          } else if (height > MAX_HEIGHT) {
-            width = Math.round((width * MAX_HEIGHT) / height);
-            height = MAX_HEIGHT;
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
           }
 
           canvas.width = width;
@@ -52,21 +58,39 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
           
           ctx.drawImage(img, 0, 0, width, height);
 
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                reject(new Error('Could not create blob'));
-                return;
-              }
-              const compressedFile = new File([blob], file.name, {
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-              });
-              resolve(compressedFile);
-            },
-            'image/jpeg',
-            0.7
-          );
+          // Ajuster la qualité de compression en fonction de la taille
+          let quality = 0.7;
+          const maxAttempts = 5;
+          let attempts = 0;
+
+          const compressWithQuality = (q: number) => {
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject(new Error('Could not create blob'));
+                  return;
+                }
+
+                // Si la taille est encore trop grande et qu'on n'a pas dépassé le nombre max de tentatives
+                if (blob.size > TARGET_FILE_SIZE && attempts < maxAttempts) {
+                  attempts++;
+                  quality = Math.max(0.1, quality - 0.1); // Réduire la qualité mais pas en dessous de 0.1
+                  compressWithQuality(quality);
+                  return;
+                }
+
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              },
+              'image/jpeg',
+              q
+            );
+          };
+
+          compressWithQuality(quality);
         };
       };
       reader.onerror = (error) => reject(error);
@@ -95,30 +119,6 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     return true;
   };
 
-  const uploadImage = async (file: File) => {
-    try {
-      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from('listings-images')
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error('Error uploading image:', uploadError);
-        throw uploadError;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('listings-images')
-        .getPublicUrl(fileName);
-
-      return publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      throw error;
-    }
-  };
-
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     console.log("Dropped files:", acceptedFiles.map(f => ({ name: f.name, type: f.type, size: f.size })));
     
@@ -136,6 +136,11 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       const validFiles = acceptedFiles.filter(validateFile);
       const compressedFiles = await Promise.all(validFiles.map(compressImage));
       
+      console.log('Tailles des fichiers compressés:', compressedFiles.map(f => ({
+        name: f.name,
+        size: `${(f.size / 1024).toFixed(2)}KB`
+      })));
+
       const newImages = [...images, ...compressedFiles].slice(0, MAX_IMAGES);
       onImagesChange(newImages);
 
@@ -194,7 +199,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
             {isDragActive ? 'Déposez les images ici' : 'Glissez ou cliquez pour ajouter'}
           </span>
           <span className="text-xs text-gray-400 mt-2">
-            Max {MAX_IMAGES} images, {MAX_FILE_SIZE/1024/1024}MB par image
+            Max {MAX_IMAGES} images optimisées automatiquement
           </span>
         </div>
       </div>
