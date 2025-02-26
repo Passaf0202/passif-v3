@@ -1,4 +1,3 @@
-
 import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
@@ -16,6 +15,9 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const { toast } = useToast();
   const MAX_IMAGES = 5;
   const MAX_FILE_SIZE = 500 * 1024; // 500KB
+  
+  const CLOUDINARY_CLOUD_NAME = "dz3dswxup"; // Votre cloud name Cloudinary
+  const UPLOAD_PRESET = "Tradecoiner"; // Votre upload preset
 
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -98,9 +100,9 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('upload_preset', 'reown_preset'); // Remplacer par votre upload preset Cloudinary
+      formData.append('upload_preset', UPLOAD_PRESET);
 
-      const response = await fetch(`https://api.cloudinary.com/v1_1/votre_cloud_name/image/upload`, {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
         method: 'POST',
         body: formData,
       });
