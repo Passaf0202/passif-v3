@@ -16,7 +16,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const { toast } = useToast();
   const MAX_IMAGES = 5;
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  const MAX_FILE_SIZE = 500 * 1024; // Réduit à 500KB au lieu de 2MB
 
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -30,8 +30,9 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
           let width = img.width;
           let height = img.height;
 
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
+          // Réduire la résolution maximale
+          const MAX_WIDTH = 800; // Réduit de 1200 à 800
+          const MAX_HEIGHT = 800; // Réduit de 1200 à 800
           
           if (width > height && width > MAX_WIDTH) {
             height = Math.round((height * MAX_WIDTH) / width);
@@ -65,7 +66,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
               resolve(compressedFile);
             },
             'image/jpeg',
-            0.7
+            0.6 // Augmenter la compression (réduit de 0.7 à 0.6)
           );
         };
       };
@@ -86,7 +87,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     if (file.size > MAX_FILE_SIZE) {
       toast({
         title: "Fichier trop volumineux",
-        description: `${file.name} dépasse la taille maximale de ${MAX_FILE_SIZE/1024/1024}MB`,
+        description: `${file.name} dépasse la taille maximale de ${MAX_FILE_SIZE/1024}KB`,
         variant: "destructive",
       });
       return false;
@@ -104,7 +105,6 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         .upload(fileName, file);
 
       if (uploadError) {
-        console.error('Error uploading image:', uploadError);
         throw uploadError;
       }
 
