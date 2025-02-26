@@ -95,8 +95,20 @@ export default function CreateListing() {
     try {
       setIsSubmitting(true);
       let imageUrls: string[] = [];
+      
       if (values.images?.length > 0) {
-        imageUrls = await uploadImages(values.images);
+        try {
+          imageUrls = await uploadImages(values.images);
+        } catch (error) {
+          console.error("Error uploading images:", error);
+          toast({
+            title: "Erreur",
+            description: "Une erreur est survenue lors de l'upload des images. Veuillez réessayer.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       const { error: insertError } = await supabase
