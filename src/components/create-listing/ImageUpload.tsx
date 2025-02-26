@@ -1,3 +1,4 @@
+
 import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
@@ -16,8 +17,8 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const MAX_IMAGES = 5;
   const MAX_FILE_SIZE = 500 * 1024; // 500KB
   
-  const CLOUDINARY_CLOUD_NAME = "dz3dswxup"; // Votre cloud name Cloudinary
-  const UPLOAD_PRESET = "Tradecoiner"; // Votre upload preset
+  const CLOUDINARY_CLOUD_NAME = "dz3dswxup";
+  const UPLOAD_PRESET = "Tradecoiner";
 
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -98,6 +99,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
 
   const uploadImage = async (file: File): Promise<string> => {
     try {
+      console.log("Starting upload for file:", file.name);
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', UPLOAD_PRESET);
@@ -107,11 +109,14 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         body: formData,
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Upload failed');
+        console.error('Upload error response:', data);
+        throw new Error(data.error?.message || 'Upload failed');
       }
 
-      const data = await response.json();
+      console.log('Upload successful:', data);
       return data.secure_url;
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -134,7 +139,10 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
 
     try {
       const validFiles = acceptedFiles.filter(validateFile);
+      console.log('Valid files:', validFiles.map(f => f.name));
+      
       const compressedFiles = await Promise.all(validFiles.map(compressImage));
+      console.log('Compressed files:', compressedFiles.map(f => f.name));
       
       // Upload to Cloudinary
       const uploadedUrls = await Promise.all(compressedFiles.map(uploadImage));
