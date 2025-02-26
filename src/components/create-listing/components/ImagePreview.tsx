@@ -24,3 +24,4 @@ export function ImagePreview({ url, index, onRemove }: ImagePreviewProps) {
     </div>
   );
 }
+

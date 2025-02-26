@@ -102,3 +102,4 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     </div>
   );
 }
+

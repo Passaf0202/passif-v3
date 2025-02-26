@@ -51,3 +51,4 @@ export function PhotosSection({ images, onImagesChange, category }: PhotosSectio
     </Card>
   );
 }
+

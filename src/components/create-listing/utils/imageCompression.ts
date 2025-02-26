@@ -74,3 +74,4 @@ export const compressImage = async (file: File): Promise<File> => {
     reader.onerror = (error) => reject(error);
   });
 };
+
