@@ -3,7 +3,6 @@ import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
 interface ImageUploadProps {
@@ -16,7 +15,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const { toast } = useToast();
   const MAX_IMAGES = 5;
-  const MAX_FILE_SIZE = 500 * 1024; // Réduit à 500KB au lieu de 2MB
+  const MAX_FILE_SIZE = 500 * 1024; // 500KB
 
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -30,9 +29,8 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
           let width = img.width;
           let height = img.height;
 
-          // Réduire la résolution maximale
-          const MAX_WIDTH = 800; // Réduit de 1200 à 800
-          const MAX_HEIGHT = 800; // Réduit de 1200 à 800
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
           
           if (width > height && width > MAX_WIDTH) {
             height = Math.round((height * MAX_WIDTH) / width);
@@ -66,7 +64,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
               resolve(compressedFile);
             },
             'image/jpeg',
-            0.6 // Augmenter la compression (réduit de 0.7 à 0.6)
+            0.6
           );
         };
       };
@@ -96,23 +94,23 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     return true;
   };
 
-  const uploadImage = async (file: File) => {
+  const uploadImage = async (file: File): Promise<string> => {
     try {
-      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from('listings-images')
-        .upload(fileName, file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'reown_preset'); // Remplacer par votre upload preset Cloudinary
 
-      if (uploadError) {
-        throw uploadError;
+      const response = await fetch(`https://api.cloudinary.com/v1_1/votre_cloud_name/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('listings-images')
-        .getPublicUrl(fileName);
-
-      return publicUrl;
+      const data = await response.json();
+      return data.secure_url;
     } catch (error) {
       console.error('Error uploading image:', error);
       throw error;
@@ -136,12 +134,14 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       const validFiles = acceptedFiles.filter(validateFile);
       const compressedFiles = await Promise.all(validFiles.map(compressImage));
       
+      // Upload to Cloudinary
+      const uploadedUrls = await Promise.all(compressedFiles.map(uploadImage));
+      console.log('Uploaded URLs:', uploadedUrls);
+
       const newImages = [...images, ...compressedFiles].slice(0, MAX_IMAGES);
       onImagesChange(newImages);
 
-      const urls = newImages.map(file => URL.createObjectURL(file));
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
-      setPreviewUrls(urls);
+      setPreviewUrls(prev => [...prev, ...uploadedUrls]);
     } catch (error) {
       console.error('Error processing images:', error);
       toast({
@@ -150,7 +150,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         variant: "destructive",
       });
     }
-  }, [images, onImagesChange, previewUrls, toast]);
+  }, [images, onImagesChange, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -168,7 +168,6 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     onImagesChange(newImages);
 
     const newUrls = [...previewUrls];
-    URL.revokeObjectURL(newUrls[index]);
     newUrls.splice(index, 1);
     setPreviewUrls(newUrls);
   };
@@ -194,7 +193,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
             {isDragActive ? 'Déposez les images ici' : 'Glissez ou cliquez pour ajouter'}
           </span>
           <span className="text-xs text-gray-400 mt-2">
-            Max {MAX_IMAGES} images, {MAX_FILE_SIZE/1024/1024}MB par image
+            Max {MAX_IMAGES} images, {MAX_FILE_SIZE/1024}KB par image
           </span>
         </div>
       </div>
