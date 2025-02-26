@@ -1,4 +1,3 @@
-
 import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
@@ -18,7 +17,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const MAX_FILE_SIZE = 500 * 1024; // 500KB
   
   const CLOUDINARY_CLOUD_NAME = "dz3dswxup";
-  const UPLOAD_PRESET = "Tradecoiner";
+  const UPLOAD_PRESET = "tradecoiner";
 
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
