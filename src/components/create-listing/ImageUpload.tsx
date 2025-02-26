@@ -1,7 +1,9 @@
+
 import { ImagePlus } from "lucide-react";
 import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
 interface ImageUploadProps {
@@ -14,10 +16,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const { toast } = useToast();
   const MAX_IMAGES = 5;
-  const MAX_FILE_SIZE = 500 * 1024; // 500KB
-  
-  const CLOUDINARY_CLOUD_NAME = "dz3dswxup";
-  const UPLOAD_PRESET = "tradecoiner";
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -31,8 +30,8 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
           let width = img.width;
           let height = img.height;
 
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
           
           if (width > height && width > MAX_WIDTH) {
             height = Math.round((height * MAX_WIDTH) / width);
@@ -66,7 +65,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
               resolve(compressedFile);
             },
             'image/jpeg',
-            0.6
+            0.7
           );
         };
       };
@@ -87,7 +86,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     if (file.size > MAX_FILE_SIZE) {
       toast({
         title: "Fichier trop volumineux",
-        description: `${file.name} dépasse la taille maximale de ${MAX_FILE_SIZE/1024}KB`,
+        description: `${file.name} dépasse la taille maximale de ${MAX_FILE_SIZE/1024/1024}MB`,
         variant: "destructive",
       });
       return false;
@@ -96,27 +95,24 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     return true;
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
+  const uploadImage = async (file: File) => {
     try {
-      console.log("Starting upload for file:", file.name);
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', UPLOAD_PRESET);
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('listings-images')
+        .upload(fileName, file);
 
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        console.error('Upload error response:', data);
-        throw new Error(data.error?.message || 'Upload failed');
+      if (uploadError) {
+        console.error('Error uploading image:', uploadError);
+        throw uploadError;
       }
 
-      console.log('Upload successful:', data);
-      return data.secure_url;
+      const { data: { publicUrl } } = supabase.storage
+        .from('listings-images')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
       throw error;
@@ -138,19 +134,14 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
 
     try {
       const validFiles = acceptedFiles.filter(validateFile);
-      console.log('Valid files:', validFiles.map(f => f.name));
-      
       const compressedFiles = await Promise.all(validFiles.map(compressImage));
-      console.log('Compressed files:', compressedFiles.map(f => f.name));
       
-      // Upload to Cloudinary
-      const uploadedUrls = await Promise.all(compressedFiles.map(uploadImage));
-      console.log('Uploaded URLs:', uploadedUrls);
-
       const newImages = [...images, ...compressedFiles].slice(0, MAX_IMAGES);
       onImagesChange(newImages);
 
-      setPreviewUrls(prev => [...prev, ...uploadedUrls]);
+      const urls = newImages.map(file => URL.createObjectURL(file));
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      setPreviewUrls(urls);
     } catch (error) {
       console.error('Error processing images:', error);
       toast({
@@ -159,7 +150,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         variant: "destructive",
       });
     }
-  }, [images, onImagesChange, toast]);
+  }, [images, onImagesChange, previewUrls, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -177,6 +168,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     onImagesChange(newImages);
 
     const newUrls = [...previewUrls];
+    URL.revokeObjectURL(newUrls[index]);
     newUrls.splice(index, 1);
     setPreviewUrls(newUrls);
   };
@@ -202,7 +194,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
             {isDragActive ? 'Déposez les images ici' : 'Glissez ou cliquez pour ajouter'}
           </span>
           <span className="text-xs text-gray-400 mt-2">
-            Max {MAX_IMAGES} images, {MAX_FILE_SIZE/1024}KB par image
+            Max {MAX_IMAGES} images, {MAX_FILE_SIZE/1024/1024}MB par image
           </span>
         </div>
       </div>
