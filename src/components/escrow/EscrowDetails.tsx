@@ -22,7 +22,6 @@ import { DiamondViewer } from "@/components/home/DiamondViewer";
 import { DiamondViewerState } from "@/components/home/types/diamond-viewer";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EscrowDetailsProps {
   transactionId: string;
@@ -38,7 +37,6 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   } = useEscrowDetailsTransaction(transactionId);
   const navigate = useNavigate();
   const [diamondState, setDiamondState] = useState<DiamondViewerState>("initial");
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     console.log("Fetching transaction details for:", transactionId);
@@ -112,7 +110,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           Retour
         </Button>
         
-        <Card className={isMobile ? "shadow-md rounded-lg" : ""}>
+        <Card>
           <CardHeader>
             <CardTitle>Confirmer la réception du produit</CardTitle>
           </CardHeader>
@@ -136,7 +134,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           Retour
         </Button>
         
-        <Card className={isMobile ? "shadow-md rounded-lg" : ""}>
+        <Card>
           <CardHeader>
             <CardTitle>Confirmer la réception du produit</CardTitle>
           </CardHeader>
@@ -181,8 +179,8 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         <h1 className="text-3xl font-bold">Confirmer la réception du produit</h1>
       </div>
       
-      <Card className={`w-full ${isMobile ? "shadow-md rounded-lg" : ""}`}>
-        <CardContent className="p-6 md:p-8 space-y-6">
+      <Card className="w-full">
+        <CardContent className="p-8 space-y-6">
           <div className="flex items-center justify-between space-x-4">
             {/* Image à gauche */}
             <div className="h-20 w-20 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden shadow-sm">
@@ -258,7 +256,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           {transaction.transaction_hash && (
             <Button 
               variant="outline" 
-              className="w-full flex items-center justify-center gap-2 rounded-md py-5 h-auto"
+              className="w-full flex items-center justify-center gap-2"
               onClick={openBlockchainExplorer}
             >
               <ExternalLink className="h-4 w-4" />
@@ -290,7 +288,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
                   Protection acheteur
                 </button>
               </DialogTrigger>
-              <DialogContent className={`${isMobile ? "max-w-[350px]" : "sm:max-w-md"} rounded-lg`}>
+              <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold mb-4">Protection acheteur</DialogTitle>
                 </DialogHeader>
@@ -320,7 +318,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
                   Paiement sécurisé
                 </button>
               </DialogTrigger>
-              <DialogContent className={`${isMobile ? "max-w-[350px]" : "sm:max-w-md"} rounded-lg`}>
+              <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold mb-4">Smart Contract</DialogTitle>
                 </DialogHeader>
