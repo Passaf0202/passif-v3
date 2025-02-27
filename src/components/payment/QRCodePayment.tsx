@@ -25,84 +25,96 @@ export function QRCodePayment({
   isConnected,
   listingId
 }: QRCodePaymentProps) {
+  // États locaux
   const [status, setStatus] = useState<'idle' | 'scanning' | 'completed'>('idle');
   const [transactionId, setTransactionId] = useState<string | null>(null);
-  const [walletConnectUri, setWalletConnectUri] = useState<string | null>(null);
+  const [qrCodeValue, setQrCodeValue] = useState<string>("");
+  
+  // Hook pour ouvrir le modal Web3
   const { open } = useWeb3Modal();
   
-  // Utiliser le même hook que pour le paiement direct
+  // Hook de transaction
   const { isProcessing, handlePayment } = usePaymentTransaction({
     listingId,
     address: sellerAddress,
     onTransactionHash: (hash: string) => {
-      console.log('QR code payment transaction hash:', hash);
+      console.log('Transaction hash obtenu:', hash);
     },
     onPaymentComplete: (txId: string) => {
-      console.log('QR code payment complete:', txId);
+      console.log('Paiement QR terminé:', txId);
       setTransactionId(txId);
       setStatus('completed');
     },
     onTransactionCreated: (id: string) => {
-      console.log('QR code transaction created:', id);
+      console.log('Transaction ID créée:', id);
     }
   });
 
-  // Générer une URI directe pour les wallets mobiles (au format ethereum:<address>@<chainId>)
-  const getDirectWalletUri = () => {
-    // Polygon Amoy testnet chainId
-    const chainId = '80002';
+  // Créer l'URI pour rediriger vers le wallet mobile
+  const generateMobileWalletUri = () => {
+    // Format standard pour les transactions Ethereum
+    const chainId = '80002'; // Polygon Amoy testnet
     
-    // Formats compatibles avec la plupart des wallets
-    if (cryptoAmount) {
-      return `ethereum:${sellerAddress}@${chainId}/transfer?value=${cryptoAmount}&gas=21000`;
+    if (cryptoAmount && sellerAddress) {
+      // Format: ethereum:<address>@<chainId>/transfer?value=<amount>
+      const valueInWei = cryptoAmount * 1e18; // Convertir en wei
+      return `ethereum:${sellerAddress}@${chainId}/transfer?value=${valueInWei}`;
     }
     
+    // URI simple sans montant spécifié
     return `ethereum:${sellerAddress}@${chainId}`;
   };
 
-  const handleStartScan = async () => {
+  // Initialiser l'URI du QR code
+  useEffect(() => {
+    if (isConnected && sellerAddress) {
+      const uri = generateMobileWalletUri();
+      console.log("URI générée pour QR code:", uri);
+      setQrCodeValue(uri);
+    }
+  }, [isConnected, sellerAddress, cryptoAmount]);
+
+  // Fonction pour lancer le processus sur mobile
+  const handleMobileWalletProcess = async () => {
+    console.log("Démarrage du processus de paiement mobile");
     setStatus('scanning');
     
     try {
-      // Ouvrir directement le modal WalletConnect pour la connexion mobile
+      // Ouvrir le modal WalletConnect
       await open();
       
-      // Après connexion, déclencher le paiement
+      // Démarrer le processus de paiement après un court délai
+      // pour laisser le temps à la connexion de s'établir
       setTimeout(async () => {
         try {
           await handlePayment();
         } catch (error) {
-          console.error('Error during payment after scan:', error);
+          console.error('Erreur pendant le paiement:', error);
           setStatus('idle');
         }
-      }, 1000);
+      }, 1500);
     } catch (error) {
-      console.error('Error during QR payment:', error);
+      console.error('Erreur de connexion au wallet:', error);
       setStatus('idle');
     }
   };
 
+  // Réinitialiser l'état
   const handleReset = () => {
     setStatus('idle');
     setTransactionId(null);
   };
 
-  useEffect(() => {
-    // Générer automatiquement l'URI pour le QR code
-    if (isConnected && !walletConnectUri) {
-      setWalletConnectUri(getDirectWalletUri());
-    }
-  }, [isConnected, walletConnectUri]);
-
+  // Affichage conditionnel si non connecté
   if (!isConnected) {
     return (
       <Card className="w-full">
         <CardContent className="pt-6 text-center">
           <p className="text-sm text-muted-foreground mb-4">
-            Veuillez connecter votre portefeuille pour générer un QR code de paiement
+            Connectez votre wallet pour afficher le QR code de paiement
           </p>
           <Button disabled className="w-full" variant="outline">
-            Connexion requise
+            Wallet non connecté
           </Button>
         </CardContent>
       </Card>
@@ -112,18 +124,21 @@ export function QRCodePayment({
   return (
     <Card className="w-full h-full">
       <CardContent className="p-6 flex flex-col items-center justify-center h-full">
-        <h3 className="text-lg font-medium mb-4">Payer avec un wallet mobile</h3>
+        <h3 className="text-lg font-medium mb-4">Paiement via wallet mobile</h3>
         
+        {/* État initial - Affichage du QR code */}
         {status === 'idle' && (
           <>
             <div className="text-center mb-6">
               <p className="text-sm text-muted-foreground mb-4">
-                Scannez ce QR code avec votre wallet mobile pour payer directement
+                Scannez ce QR code avec votre wallet mobile pour effectuer le paiement
               </p>
-              <div className="bg-white p-3 rounded-xl inline-block mb-1">
-                {walletConnectUri ? (
+              
+              {/* QR Code */}
+              <div className="bg-white p-4 rounded-xl inline-block mb-2">
+                {qrCodeValue ? (
                   <QRCodeSVG 
-                    value={walletConnectUri} 
+                    value={qrCodeValue} 
                     size={180} 
                     level="H"
                     includeMargin={true}
@@ -140,21 +155,35 @@ export function QRCodePayment({
                   </div>
                 )}
               </div>
+              
               <p className="text-xs text-gray-500 mb-4">
-                Format compatible: WalletConnect, MetaMask, et autres wallets Ethereum
+                Compatible avec MetaMask, WalletConnect et autres wallets Ethereum
               </p>
+              
+              {/* Bouton pour continuer avec le wallet */}
               <div className="mt-2">
-                <Button onClick={handleStartScan} className="w-full" variant="default">
+                <Button 
+                  onClick={handleMobileWalletProcess} 
+                  className="w-full" 
+                  variant="default"
+                  disabled={isProcessing}
+                >
                   <Smartphone className="mr-2 h-4 w-4" />
-                  Continuer avec mon wallet mobile
+                  {isProcessing ? "Connexion..." : "Continuer avec wallet mobile"}
                 </Button>
               </div>
             </div>
             
+            {/* Détails de la transaction */}
             <div className="w-full space-y-4 mt-4">
               <p className="text-xs text-center text-muted-foreground">
-                {cryptoAmount?.toFixed(8)} {cryptoCurrency} ({sellerAddress})
+                Montant: {cryptoAmount?.toFixed(8)} {cryptoCurrency}
               </p>
+              <p className="text-xs text-center text-muted-foreground truncate">
+                Destinataire: {sellerAddress.substring(0, 6)}...{sellerAddress.substring(sellerAddress.length - 4)}
+              </p>
+              
+              {/* Onglets d'instructions pour différents wallets */}
               <div className="flex justify-center space-x-2">
                 <Tabs defaultValue="metamask" className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
@@ -163,10 +192,10 @@ export function QRCodePayment({
                     <TabsTrigger value="rainbow">Rainbow</TabsTrigger>
                   </TabsList>
                   <TabsContent value="metamask" className="text-xs text-center p-2">
-                    Ouvrez l'app MetaMask et utilisez la fonction scanner
+                    Ouvrez MetaMask sur votre téléphone et utilisez la fonction scanner
                   </TabsContent>
                   <TabsContent value="walletconnect" className="text-xs text-center p-2">
-                    Utilisez la fonction WalletConnect dans votre app préférée
+                    Ouvrez un wallet compatible WalletConnect et scannez le code
                   </TabsContent>
                   <TabsContent value="rainbow" className="text-xs text-center p-2">
                     Ouvrez Rainbow Wallet et utilisez la fonction scanner
@@ -177,26 +206,28 @@ export function QRCodePayment({
           </>
         )}
         
+        {/* État de traitement - Connexion en cours */}
         {status === 'scanning' && (
           <div className="text-center py-8">
             <div className="flex justify-center mb-6">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
             </div>
-            <h3 className="text-lg font-medium mb-2">Connexion en cours...</h3>
+            <h3 className="text-lg font-medium mb-2">Traitement en cours</h3>
             <p className="text-sm text-muted-foreground">
-              Veuillez confirmer la connexion et la transaction sur votre application mobile
+              Veuillez confirmer la transaction dans votre application mobile
             </p>
           </div>
         )}
         
+        {/* État de succès - Paiement terminé */}
         {status === 'completed' && (
           <div className="text-center py-8">
             <div className="flex justify-center mb-6">
               <CheckCircle2 className="h-12 w-12 text-green-500" />
             </div>
-            <h3 className="text-lg font-medium mb-2">Paiement effectué !</h3>
+            <h3 className="text-lg font-medium mb-2">Paiement réussi!</h3>
             <p className="text-sm text-muted-foreground mb-6">
-              Votre paiement a été validé avec succès. Vous recevrez une confirmation par email.
+              Votre transaction a été traitée avec succès. Merci pour votre achat!
             </p>
             <Button onClick={handleReset} variant="outline">
               Retour
