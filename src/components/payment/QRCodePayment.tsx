@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Smartphone, Loader2, CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { useWeb3Modal } from '@web3modal/react';
-import { useMediaQuery } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface QRCodePaymentProps {
   paymentUrl: string;
@@ -29,7 +29,7 @@ export function QRCodePayment({
   const [status, setStatus] = useState<'idle' | 'scanning' | 'completed'>('idle');
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [qrCodeValue, setQrCodeValue] = useState<string>("");
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useIsMobile();
   
   const { open } = useWeb3Modal();
   
