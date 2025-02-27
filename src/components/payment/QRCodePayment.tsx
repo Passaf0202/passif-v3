@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Smartphone, Loader2, CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
+import { Smartphone, Loader2, CheckCircle2, ArrowRight } from "lucide-react";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { useWeb3Modal } from '@web3modal/react';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -263,7 +261,7 @@ export function QRCodePayment({
                       level="H"
                       includeMargin={true}
                       imageSettings={{
-                        src: "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png",
+                        src: "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner.png",
                         height: 48,
                         width: 48,
                         excavate: true,
@@ -289,22 +287,9 @@ export function QRCodePayment({
                   <Smartphone className="mr-2 h-5 w-5" />
                   {isProcessing ? "Connexion en cours..." : "Connecter un wallet mobile"}
                 </Button>
-              </div>
-            </div>
-            
-            {/* Options de wallet en bas */}
-            <div className="p-6 bg-gray-50 border-t border-gray-100">
-              <div className="max-w-md mx-auto">
-                <h4 className="font-medium mb-4 text-gray-700 text-sm">Options de wallet</h4>
                 
-                <Tabs defaultValue="metamask" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-4 rounded-full overflow-hidden">
-                    <TabsTrigger value="metamask" className="data-[state=active]:bg-black data-[state=active]:text-white">MetaMask</TabsTrigger>
-                    <TabsTrigger value="walletconnect" className="data-[state=active]:bg-black data-[state=active]:text-white">WalletConnect</TabsTrigger>
-                    <TabsTrigger value="rainbow" className="data-[state=active]:bg-black data-[state=active]:text-white">Rainbow</TabsTrigger>
-                  </TabsList>
-                  
-                  <div className="flex justify-between pt-4 pb-2 mb-2">
+                <div className="space-y-2 mt-8 max-w-md mx-auto">
+                  <div className="flex justify-between">
                     <span className="text-gray-600 text-sm">Montant</span>
                     <span className="font-medium text-sm">{cryptoAmount?.toFixed(8)} {cryptoCurrency}</span>
                   </div>
@@ -315,7 +300,13 @@ export function QRCodePayment({
                       {sellerAddress ? `${sellerAddress.substring(0, 6)}...${sellerAddress.substring(sellerAddress.length - 4)}` : ''}
                     </span>
                   </div>
-                </Tabs>
+                  
+                  <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+                    <p className="text-sm text-gray-600">
+                      Les fonds sont sécurisés sur un contrat séquestre. En cas de problème, les fonds vous sont remboursés.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
