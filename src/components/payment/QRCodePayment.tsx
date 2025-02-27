@@ -29,6 +29,7 @@ export function QRCodePayment({
   // États locaux
   const [status, setStatus] = useState<'idle' | 'scanning' | 'completed'>('idle');
   const [transactionId, setTransactionId] = useState<string | null>(null);
+  const [qrCodeValue, setQrCodeValue] = useState<string>("");
   
   // Hook pour ouvrir le modal Web3
   const { open } = useWeb3Modal();
@@ -55,6 +56,35 @@ export function QRCodePayment({
     // Utiliser le même URI que le lien profond WalletConnect utilise sur mobile
     return `https://metamask.app.link/dapp/${window.location.host}/checkout?listingId=${listingId}`;
   };
+
+  // Générer le lien de paiement direct pour le QR code
+  const generatePaymentUri = () => {
+    if (!cryptoAmount || !sellerAddress) return "";
+    
+    try {
+      // Convertir le montant en wei pour Ethereum
+      const amountInWei = cryptoAmount ? 
+        ethers.utils.parseEther(cryptoAmount.toString()).toString() : 
+        "0";
+      
+      // Format standard Ethereum pour transactions mobiles
+      // ethereum:<address>@<chainId>/transfer?value=<amount>&gas=21000
+      // Ce format sera reconnu par MetaMask et autres wallets
+      return `ethereum:${sellerAddress}/transfer?value=${amountInWei}`;
+    } catch (error) {
+      console.error("Erreur lors de la génération de l'URI de paiement:", error);
+      return "";
+    }
+  };
+
+  // Initialiser l'URI du QR code
+  useEffect(() => {
+    if (isConnected && sellerAddress && cryptoAmount) {
+      const uri = generatePaymentUri();
+      console.log("URI générée pour QR code de paiement:", uri);
+      setQrCodeValue(uri);
+    }
+  }, [isConnected, sellerAddress, cryptoAmount]);
 
   // Fonction pour lancer le processus sur mobile
   const handleMobileWalletProcess = async () => {
@@ -115,20 +145,26 @@ export function QRCodePayment({
                 Scannez ce QR code avec votre wallet mobile pour effectuer le paiement
               </p>
               
-              {/* QR Code - Utiliser directement le modal WalletConnect */}
+              {/* QR Code pour paiement direct */}
               <div className="bg-white p-4 rounded-xl inline-block mb-2">
-                <QRCodeSVG 
-                  value={"wc:"}  // Ce QR code simple va ouvrir le modal WalletConnect
-                  size={180} 
-                  level="H"
-                  includeMargin={true}
-                  imageSettings={{
-                    src: "/lovable-uploads/7c5b6193-fe5d-4dde-a165-096a9ddf0037.png",
-                    height: 35,
-                    width: 35,
-                    excavate: true,
-                  }}
-                />
+                {qrCodeValue ? (
+                  <QRCodeSVG 
+                    value={qrCodeValue} 
+                    size={180} 
+                    level="H"
+                    includeMargin={true}
+                    imageSettings={{
+                      src: "/lovable-uploads/7c5b6193-fe5d-4dde-a165-096a9ddf0037.png",
+                      height: 35,
+                      width: 35,
+                      excavate: true,
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-[180px] h-[180px]">
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                  </div>
+                )}
               </div>
               
               <p className="text-xs text-gray-500 mb-4">
