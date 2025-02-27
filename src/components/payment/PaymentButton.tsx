@@ -57,11 +57,11 @@ export function PaymentButton({
       <Button 
         onClick={handlePayment} 
         disabled={buttonDisabled}
-        className="w-full bg-primary hover:bg-primary/90"
+        className="w-full bg-primary hover:bg-primary/90 py-6 h-auto font-medium rounded-md"
       >
         {isProcessing || externalIsProcessing ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             Transaction en cours...
           </>
         ) : disabled ? (

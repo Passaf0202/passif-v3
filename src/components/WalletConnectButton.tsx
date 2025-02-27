@@ -7,6 +7,7 @@ import { useWeb3Modal } from '@web3modal/wagmi/react'
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback, useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
@@ -20,6 +21,7 @@ export function WalletConnectButton({ minimal = false, className }: WalletConnec
   const { toast } = useToast()
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (isConnected) {
@@ -101,12 +103,20 @@ export function WalletConnectButton({ minimal = false, className }: WalletConnec
     }
   };
 
+  // Style unifié pour desktop et mobile
+  const buttonStyle = `
+    ${isConnected ? 'bg-white text-primary border-2 border-primary hover:bg-gray-50' : 'bg-primary hover:bg-primary/90 text-white'}
+    ${minimal ? 'w-8 p-0' : 'px-3'}
+    transition-all duration-200 h-8 rounded-full whitespace-nowrap text-sm
+    ${className || ''}
+  `;
+
   return (
     <Button 
       onClick={handleConnect}
       disabled={isConnecting}
       variant={isConnected ? "outline" : "default"}
-      className={`h-8 ${minimal ? 'w-8 p-0' : 'px-3'} rounded-full whitespace-nowrap bg-primary hover:bg-primary/90 text-white text-sm ${className || ''}`}
+      className={buttonStyle}
     >
       {isConnecting ? (
         <>

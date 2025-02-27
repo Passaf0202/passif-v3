@@ -1,10 +1,9 @@
 
 import { useToast } from "@/components/ui/use-toast";
-import { useWeb3Modal } from '@web3modal/react';
-import { useAccount, useNetwork, usePublicClient } from 'wagmi';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { useAccount, useNetwork } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Loader2 } from "lucide-react";
-import { ethers } from "ethers";
 
 interface MobileWalletRedirectProps {
   isProcessing: boolean;
@@ -18,8 +17,7 @@ export function MobileWalletRedirect({
   action 
 }: MobileWalletRedirectProps) {
   const { toast } = useToast();
-  const { connector, isConnected } = useAccount();
-  const { chain } = useNetwork();
+  const { isConnected } = useAccount();
   const { open } = useWeb3Modal();
 
   const handleRedirect = async () => {
@@ -45,23 +43,26 @@ export function MobileWalletRedirect({
     }
   };
 
+  const buttonText = action === 'payment' 
+    ? isProcessing ? 'Transaction en cours...' : 'Payer avec mon wallet'
+    : isProcessing ? 'Libération en cours...' : 'Confirmer la libération';
+
+  // Style unifié avec la version desktop
   return (
     <Button 
       onClick={handleRedirect}
       disabled={isProcessing}
-      className="w-full bg-primary hover:bg-primary/90 text-white"
+      className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-md py-5 h-auto"
     >
       {isProcessing ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {action === 'payment' ? 'Transaction en cours...' : 'Libération en cours...'}
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          {buttonText}
         </>
       ) : (
         <>
-          <ExternalLink className="mr-2 h-4 w-4" />
-          {action === 'payment' 
-            ? 'Payer avec mon wallet' 
-            : 'Confirmer la libération dans votre wallet'}
+          <ExternalLink className="mr-2 h-5 w-5" />
+          {buttonText}
         </>
       )}
     </Button>
