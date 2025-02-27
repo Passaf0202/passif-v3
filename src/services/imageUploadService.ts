@@ -59,7 +59,7 @@ export const imageUploadService = {
         url: data.url
       };
     } catch (error) {
-      console.error('Error in uploadImage:', error);
+      console.error('Image upload failed:', error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : "Erreur inconnue" 
