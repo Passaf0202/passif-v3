@@ -38,8 +38,17 @@ export default function ListingDetailsPage() {
       }
     };
 
-    // Exécuter la tentative de reconnexion
-    attemptWalletReconnection();
+    // Exécuter la tentative de reconnexion seulement au chargement initial
+    // sans créer de boucle de rafraîchissement
+    if (!localStorage.getItem('reconnectionAttempted')) {
+      attemptWalletReconnection();
+      localStorage.setItem('reconnectionAttempted', 'true');
+      
+      // Nettoyer ce flag après un certain temps pour permettre de futures tentatives
+      setTimeout(() => {
+        localStorage.removeItem('reconnectionAttempted');
+      }, 60000); // 1 minute
+    }
   }, [isConnected, open]);
 
   // Sauvegarder l'adresse du wallet quand elle change
@@ -49,6 +58,13 @@ export default function ListingDetailsPage() {
       console.log("Adresse du wallet sauvegardée:", address);
     }
   }, [address]);
+
+  // Sauvegarder la dernière page visitée
+  useEffect(() => {
+    if (id) {
+      localStorage.setItem('lastVisitedListingId', id);
+    }
+  }, [id]);
 
   const { data: listing, isLoading } = useQuery({
     queryKey: ["listing", id],
@@ -70,6 +86,11 @@ export default function ListingDetailsPage() {
       if (error) throw error;
       return data;
     },
+    // Désactiver le refetching automatique
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
 
   const handleBack = () => {

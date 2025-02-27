@@ -24,15 +24,33 @@ export default function Checkout() {
   const [productImage, setProductImage] = useState<string>("/placeholder.svg");
   const isMobile = useIsMobile();
   
-  // Récupérer les paramètres depuis l'état de navigation
+  // Récupérer les paramètres depuis l'état de navigation OU depuis le localStorage
+  const storedCheckoutData = JSON.parse(localStorage.getItem('checkoutData') || '{}');
+  
+  // Utiliser les données stockées si elles existent, sinon utiliser les données de location.state
   const { 
-    listingId,
-    sellerAddress,
-    title,
-    price,
-    cryptoAmount,
-    cryptoCurrency
+    listingId = storedCheckoutData.listingId,
+    sellerAddress = storedCheckoutData.sellerAddress,
+    title = storedCheckoutData.title,
+    price = storedCheckoutData.price,
+    cryptoAmount = storedCheckoutData.cryptoAmount,
+    cryptoCurrency = storedCheckoutData.cryptoCurrency
   } = location.state || {};
+  
+  // Sauvegarder les données de checkout dans localStorage pour les restaurer en cas de rafraîchissement
+  useEffect(() => {
+    if (listingId && sellerAddress) {
+      const checkoutData = {
+        listingId,
+        sellerAddress,
+        title,
+        price,
+        cryptoAmount,
+        cryptoCurrency
+      };
+      localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
+    }
+  }, [listingId, sellerAddress, title, price, cryptoAmount, cryptoCurrency]);
 
   // Récupérer les détails de l'annonce
   const { data: listing, isLoading } = useQuery({
@@ -67,11 +85,16 @@ export default function Checkout() {
       return data;
     },
     enabled: !!listingId,
+    // Désactiver le refetching automatique
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
 
   useEffect(() => {
-    // Si pas de paramètres, rediriger vers la page d'accueil
-    if (!listingId || !sellerAddress) {
+    // Si pas de paramètres, rediriger vers la page d'accueil seulement si aucune donnée n'est sauvegardée
+    if (!listingId && !storedCheckoutData.listingId) {
       toast({
         title: "Erreur",
         description: "Informations de paiement manquantes",
@@ -79,7 +102,7 @@ export default function Checkout() {
       });
       navigate("/");
     }
-  }, [listingId, sellerAddress, navigate, toast]);
+  }, [listingId, storedCheckoutData.listingId, navigate, toast]);
 
   // Si l'utilisateur n'est pas connecté au wallet, l'avertir
   useEffect(() => {
@@ -117,7 +140,7 @@ export default function Checkout() {
     );
   }
 
-  if (!listing) {
+  if (!listing && isLoading === false) {
     return (
       <div>
         <Navbar />
@@ -191,7 +214,7 @@ export default function Checkout() {
                       <span className="text-muted-foreground">Crypto-monnaie acceptée</span>
                       <span>{cryptoCurrency}</span>
                     </div>
-                    {listing.category && (
+                    {listing?.category && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Catégorie</span>
                         <span>{listing.category}</span>
@@ -199,7 +222,7 @@ export default function Checkout() {
                     )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Vendeur</span>
-                      <span>{listing.user?.full_name}</span>
+                      <span>{listing?.user?.full_name}</span>
                     </div>
                   </div>
                 </div>
@@ -221,7 +244,7 @@ export default function Checkout() {
                 <div className="pt-4">
                   <ListingActions
                     listingId={listingId}
-                    sellerId={listing.user?.id || ""}
+                    sellerId={listing?.user?.id || ""}
                     sellerAddress={sellerAddress}
                     title={title}
                     price={price}
@@ -292,7 +315,7 @@ export default function Checkout() {
                         <span className="text-muted-foreground">Crypto-monnaie acceptée</span>
                         <span>{cryptoCurrency}</span>
                       </div>
-                      {listing.category && (
+                      {listing?.category && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Catégorie</span>
                           <span>{listing.category}</span>
@@ -300,7 +323,7 @@ export default function Checkout() {
                       )}
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Vendeur</span>
-                        <span>{listing.user?.full_name}</span>
+                        <span>{listing?.user?.full_name}</span>
                       </div>
                     </div>
                   </div>
@@ -342,7 +365,7 @@ export default function Checkout() {
                         
                         <ListingActions
                           listingId={listingId}
-                          sellerId={listing.user?.id || ""}
+                          sellerId={listing?.user?.id || ""}
                           sellerAddress={sellerAddress}
                           title={title}
                           price={price}
