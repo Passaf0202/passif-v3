@@ -69,29 +69,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     },
   });
 
-  const handleBuyClick = () => {
-    if (!user) {
-      toast({
-        title: "Erreur",
-        description: "Vous devez être connecté pour acheter",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    navigate(`/payment/${listing.id}`, { 
-      state: { 
-        listing: {
-          ...listing,
-          crypto_amount: listingData?.crypto_amount || cryptoDetails?.amount,
-          crypto_currency: listingData?.crypto_currency || cryptoDetails?.currency,
-          wallet_address: listingData?.wallet_address || listing.wallet_address
-        },
-        returnUrl: `/listings/${listing.id}`
-      } 
-    });
-  };
-
   const handleBackClick = () => {
     navigate(-1);
   };
@@ -183,7 +160,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
             price={listing.price}
             cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
             cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-            handleBuyClick={handleBuyClick}
             isMobile={true}
           />
         </div>
@@ -284,7 +260,6 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
                   price={listing.price}
                   cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
                   cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-                  handleBuyClick={handleBuyClick}
                 />
               </div>
 
