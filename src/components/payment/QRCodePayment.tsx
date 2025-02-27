@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,15 +24,12 @@ export function QRCodePayment({
   isConnected,
   listingId
 }: QRCodePaymentProps) {
-  // États locaux
   const [status, setStatus] = useState<'idle' | 'scanning' | 'completed'>('idle');
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [qrCodeValue, setQrCodeValue] = useState<string>("");
   
-  // Hook pour ouvrir le modal Web3
   const { open } = useWeb3Modal();
   
-  // Hook de transaction
   const { isProcessing, handlePayment } = usePaymentTransaction({
     listingId,
     address: sellerAddress,
@@ -50,29 +46,21 @@ export function QRCodePayment({
     }
   });
 
-  // Générer le lien de paiement direct pour le QR code
   const generatePaymentUri = () => {
-    if (!cryptoAmount || !sellerAddress) return "";
+    if (!listingId) return "";
     
     try {
-      // Créer une URL absolue complète vers la page de checkout actuelle
-      // Cette URL sera accessible sur mobile et utilisera le système de paiement mobile
       const currentHost = window.location.host;
       const currentProtocol = window.location.protocol;
-      const currentUrl = new URL(`${currentProtocol}//${currentHost}/checkout`);
+      const listingUrl = new URL(`${currentProtocol}//${currentHost}/listings/${listingId}`);
       
-      // Ajouter tous les paramètres nécessaires comme query params
-      currentUrl.searchParams.append("listingId", listingId);
-      
-      // Retourner l'URL complète
-      return currentUrl.toString();
+      return listingUrl.toString();
     } catch (error) {
       console.error("Erreur lors de la génération de l'URI de paiement:", error);
       return "";
     }
   };
 
-  // Initialiser l'URI du QR code
   useEffect(() => {
     if (isConnected && sellerAddress && cryptoAmount) {
       const uri = generatePaymentUri();
@@ -81,16 +69,13 @@ export function QRCodePayment({
     }
   }, [isConnected, sellerAddress, cryptoAmount]);
 
-  // Fonction pour lancer le processus sur mobile
   const handleMobileWalletProcess = async () => {
     console.log("Démarrage du processus de paiement mobile");
     setStatus('scanning');
     
     try {
-      // Utiliser la même méthode que le bouton Payer sur mobile
       await open();
       
-      // Démarrer le processus de paiement après connexion
       setTimeout(async () => {
         try {
           await handlePayment();
@@ -105,13 +90,11 @@ export function QRCodePayment({
     }
   };
 
-  // Réinitialiser l'état
   const handleReset = () => {
     setStatus('idle');
     setTransactionId(null);
   };
 
-  // Affichage conditionnel si non connecté
   if (!isConnected) {
     return (
       <Card className="w-full">
@@ -132,7 +115,6 @@ export function QRCodePayment({
       <CardContent className="p-6 flex flex-col items-center justify-center h-full">
         <h3 className="text-lg font-medium mb-4">Paiement via wallet mobile</h3>
         
-        {/* État initial - Affichage du QR code */}
         {status === 'idle' && (
           <>
             <div className="text-center mb-6">
@@ -140,7 +122,6 @@ export function QRCodePayment({
                 Scannez ce QR code avec votre téléphone pour effectuer le paiement
               </p>
               
-              {/* QR Code pour paiement direct */}
               <div className="bg-white p-4 rounded-xl inline-block mb-2">
                 {qrCodeValue ? (
                   <QRCodeSVG 
@@ -166,7 +147,6 @@ export function QRCodePayment({
                 Ce QR vous redirigera vers la même page sur votre mobile
               </p>
               
-              {/* Bouton pour continuer avec le wallet - Même bouton que sur mobile */}
               <div className="mt-2">
                 <Button 
                   onClick={handleMobileWalletProcess} 
@@ -180,7 +160,6 @@ export function QRCodePayment({
               </div>
             </div>
             
-            {/* Détails de la transaction */}
             <div className="w-full space-y-4 mt-4">
               <p className="text-xs text-center text-muted-foreground">
                 Montant: {cryptoAmount?.toFixed(8)} {cryptoCurrency}
@@ -189,7 +168,6 @@ export function QRCodePayment({
                 Destinataire: {sellerAddress ? `${sellerAddress.substring(0, 6)}...${sellerAddress.substring(sellerAddress.length - 4)}` : ''}
               </p>
               
-              {/* Onglets d'instructions pour différents wallets */}
               <div className="flex justify-center space-x-2">
                 <Tabs defaultValue="metamask" className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
@@ -212,7 +190,6 @@ export function QRCodePayment({
           </>
         )}
         
-        {/* État de traitement - Connexion en cours */}
         {status === 'scanning' && (
           <div className="text-center py-8">
             <div className="flex justify-center mb-6">
@@ -225,7 +202,6 @@ export function QRCodePayment({
           </div>
         )}
         
-        {/* État de succès - Paiement terminé */}
         {status === 'completed' && (
           <div className="text-center py-8">
             <div className="flex justify-center mb-6">
