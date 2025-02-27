@@ -1,16 +1,22 @@
 
-import React from 'react';
+import { motion } from "framer-motion";
 
-export const DynamicIsland = () => {
+export function DynamicIsland() {
   return (
-    <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[65px] h-[19px] rounded-[25px] z-50 mobile-dynamic-island">
-      <div className="absolute inset-0 pure-black-bg rounded-[25px]" />
-      <div className="absolute top-1/2 right-[22%] -translate-y-1/2 w-[4px] h-[4px] rounded-full">
-        <div className="absolute inset-0 pure-black-bg rounded-full" />
-        <div className="absolute inset-[0.75px] pure-black-bg rounded-full" />
-        <div className="absolute inset-[1.25px] pure-black-bg rounded-full" />
-        <div className="absolute top-[25%] left-[25%] w-[0.5px] h-[0.5px] bg-white/15 rounded-full" />
-      </div>
+    <div className="absolute top-5 left-1/2 transform -translate-x-1/2 w-[126px] h-[34px] z-30 pointer-events-none">
+      <motion.div 
+        className="w-full h-full mobile-dynamic-island rounded-[25px] flex items-center justify-center overflow-hidden"
+        initial={{ width: 126, height: 34 }}
+        animate={{ width: 126, height: 34 }}
+        transition={{ 
+          duration: 0.5, 
+          type: "spring",
+          stiffness: 200, 
+          damping: 25
+        }}
+      >
+        <div className="absolute top-0 left-0 right-0 h-1/2 bg-black/5" />
+      </motion.div>
     </div>
   );
-};
+}
