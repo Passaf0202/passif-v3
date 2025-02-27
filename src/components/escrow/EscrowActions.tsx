@@ -63,11 +63,13 @@ export function EscrowActions({
   // Utilisez l'ID de transaction blockchain de props ou de l'objet transaction
   const txnBlockchainId = blockchainTxnId || transaction?.blockchain_txn_id;
   
-  // Détermine si l'utilisateur est acheteur/vendeur via props ou l'objet transaction
+  // Détermine si l'utilisateur est acheteur/vendeur via props ou basé sur les IDs
+  // Évite d'utiliser les propriétés 'is_buyer' ou 'is_seller' qui n'existent pas
   const userIsBuyer = isBuyer !== undefined ? isBuyer : 
-                      (transaction?.is_buyer !== undefined ? transaction.is_buyer : false);
+                      (transaction?.buyer?.id === transaction?.buyer_id);
+  
   const userIsSeller = isSeller !== undefined ? isSeller :
-                       (transaction?.is_seller !== undefined ? transaction.is_seller : false);
+                       (transaction?.seller?.id === transaction?.seller_id);
   
   // Détermine si la transaction est complétée
   const txnIsCompleted = isCompleted !== undefined ? isCompleted :
