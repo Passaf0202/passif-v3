@@ -80,9 +80,22 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   // Fonction pour ouvrir le lien vers l'explorateur blockchain
   const openBlockchainExplorer = () => {
-    if (transaction?.blockchain_txn_hash) {
-      window.open(`https://polygonscan.com/tx/${transaction.blockchain_txn_hash}`, '_blank');
+    if (transaction?.blockchain_txn_id) {
+      window.open(`https://polygonscan.com/tx/${transaction.blockchain_txn_id}`, '_blank');
     }
+  };
+
+  // Fonction pour formater le montant en crypto avec seulement 3 décimales
+  const formatCryptoAmount = (amount: number, symbol: string) => {
+    // Convertir en chaîne et limiter à 3 décimales
+    const amountStr = amount.toString();
+    const parts = amountStr.split('.');
+    
+    if (parts.length === 2 && parts[1].length > 3) {
+      return `${parts[0]}.${parts[1].substring(0, 3)}... ${symbol}`;
+    }
+    
+    return `${amount} ${symbol}`;
   };
 
   if (isFetching) {
@@ -171,18 +184,30 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           <div className="flex items-center justify-between space-x-4">
             {/* Image à gauche */}
             <div className="h-20 w-20 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden shadow-sm">
-              <img 
-                src="/lovable-uploads/58047f7b-580b-4489-aaa9-6e45dacb65a6.png" 
-                alt="Product"
-                className="h-full w-full object-cover"
-              />
+              {transaction.listing?.images && transaction.listing.images.length > 0 ? (
+                <img 
+                  src={transaction.listing.images[0]} 
+                  alt={transaction.listing_title || "Product"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <img 
+                  src="/placeholder.svg" 
+                  alt="Product"
+                  className="h-full w-full object-cover"
+                />
+              )}
             </div>
             
             {/* Détails au milieu */}
             <div className="flex-grow">
               <h3 className="text-xl font-semibold">{transaction.listing_title || "Article"}</h3>
               <div className="flex items-baseline gap-4 mt-1">
-                <p className="text-2xl font-bold">{transaction.amount} {transaction.token_symbol}</p>
+                <p className="text-2xl font-bold">
+                  {transaction.amount && transaction.token_symbol ? 
+                    formatCryptoAmount(transaction.amount, transaction.token_symbol) : 
+                    "Montant non disponible"}
+                </p>
               </div>
             </div>
             
@@ -203,7 +228,11 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Montant</span>
-                <span className="font-medium">{transaction.amount} {transaction.token_symbol}</span>
+                <span className="font-medium">
+                  {transaction.amount && transaction.token_symbol ? 
+                    formatCryptoAmount(transaction.amount, transaction.token_symbol) : 
+                    "Montant non disponible"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">État</span>
@@ -224,7 +253,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           </Alert>
 
           {/* Bouton pour suivre la transaction */}
-          {transaction.blockchain_txn_hash && (
+          {transaction.blockchain_txn_id && (
             <Button 
               variant="outline" 
               className="w-full flex items-center justify-center gap-2"
