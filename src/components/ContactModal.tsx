@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -96,7 +97,7 @@ export function ContactModal({ listingId, sellerId, listingTitle }: ContactModal
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
           <MessageCircle className="mr-2 h-4 w-4" />
-          Contacter
+          Contacter le vendeur
         </Button>
       </DialogTrigger>
       <DialogContent>

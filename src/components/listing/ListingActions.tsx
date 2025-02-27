@@ -128,19 +128,11 @@ export const ListingActions = ({
         </Button>
       )}
 
-      <Button 
-        variant="outline" 
-        className={isMobile ? 'w-full' : ''} 
-        asChild
-      >
-        <ContactModal
-          listingId={listingId}
-          sellerId={sellerId}
-          listingTitle={title}
-        >
-          Contacter le vendeur
-        </ContactModal>
-      </Button>
+      <ContactModal
+        listingId={listingId}
+        sellerId={sellerId}
+        listingTitle={title}
+      />
     </div>
   );
 };
