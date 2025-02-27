@@ -277,7 +277,7 @@ export default function Checkout() {
     );
   }
 
-  // Rendu amélioré pour desktop - blocs l'un au-dessus de l'autre
+  // Rendu amélioré pour desktop - blocs côte à côte
   return (
     <div>
       <Navbar />
@@ -291,25 +291,25 @@ export default function Checkout() {
           Retour
         </Button>
         
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold">Finaliser l'achat</h1>
           </div>
           
-          <div className="flex flex-col gap-8">
-            {/* Premier bloc - détails du produit */}
-            <Card className="w-full">
-              <CardContent className="p-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Colonne de gauche - détails du produit */}
+            <Card className="h-full">
+              <CardContent className="p-6 space-y-6 h-full flex flex-col">
                 <div className="flex items-center space-x-4">
                   <img 
                     src={productImage} 
                     alt={title}
-                    className="h-24 w-24 object-cover rounded-md shadow-sm" 
+                    className="h-20 w-20 object-cover rounded-md shadow-sm" 
                   />
                   <div>
-                    <h2 className="text-2xl font-semibold">{title}</h2>
-                    <div className="flex items-baseline gap-4 mt-2">
-                      <p className="text-3xl font-bold">{formatPrice(price)} EUR</p>
+                    <h2 className="text-xl font-semibold">{title}</h2>
+                    <div className="flex items-baseline gap-4 mt-1">
+                      <p className="text-2xl font-bold">{formatPrice(price)} EUR</p>
                       <p className="text-sm text-muted-foreground">
                         ≈ {cryptoAmount?.toFixed(8)} {cryptoCurrency}
                       </p>
@@ -319,21 +319,21 @@ export default function Checkout() {
 
                 <Separator />
                 
-                <div>
-                  <h3 className="text-xl font-semibold mb-4">Détails du produit</h3>
-                  <div className="space-y-4">
+                <div className="flex-grow">
+                  <h3 className="text-lg font-semibold mb-3">Détails du produit</h3>
+                  <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground text-lg">Crypto-monnaie acceptée</span>
+                      <span className="text-muted-foreground">Crypto-monnaie acceptée</span>
                       <span className="font-medium">{cryptoCurrency}</span>
                     </div>
                     {listing?.category && (
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground text-lg">Catégorie</span>
+                        <span className="text-muted-foreground">Catégorie</span>
                         <span className="font-medium">{listing.category}</span>
                       </div>
                     )}
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground text-lg">Vendeur</span>
+                      <span className="text-muted-foreground">Vendeur</span>
                       <span className="font-medium">{listing?.user?.full_name}</span>
                     </div>
                   </div>
@@ -405,15 +405,8 @@ export default function Checkout() {
                     </DialogContent>
                   </Dialog>
                 </div>
-              </CardContent>
-            </Card>
-            
-            {/* Second bloc - options de paiement */}
-            <Card className="w-full">
-              <CardContent className="p-8 space-y-6">
-                <h2 className="text-2xl font-semibold">Méthode de paiement</h2>
                 
-                <Tabs defaultValue="browser" className="w-full">
+                <Tabs defaultValue="browser" className="w-full mt-4">
                   <TabsList className="grid w-full grid-cols-2 rounded-full">
                     <TabsTrigger value="browser" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">
                       Payer via navigateur
@@ -424,50 +417,43 @@ export default function Checkout() {
                   </TabsList>
                   
                   <TabsContent value="browser" className="mt-6">
-                    <div className="space-y-6">
-                      <p className="text-muted-foreground text-sm">
-                        Utilisez votre extension de wallet (Metamask, Coinbase Wallet...) pour payer directement depuis votre navigateur.
-                      </p>
+                    <div className="space-y-2">
+                      <ListingActions
+                        listingId={listingId}
+                        sellerId={listing?.user?.id || ""}
+                        sellerAddress={sellerAddress}
+                        title={title}
+                        price={price}
+                        cryptoAmount={cryptoAmount}
+                        cryptoCurrency={cryptoCurrency}
+                        isCheckoutPage={true}
+                      />
                       
-                      <div className="py-4">
-                        <ListingActions
-                          listingId={listingId}
-                          sellerId={listing?.user?.id || ""}
-                          sellerAddress={sellerAddress}
-                          title={title}
-                          price={price}
-                          cryptoAmount={cryptoAmount}
-                          cryptoCurrency={cryptoCurrency}
-                          isCheckoutPage={true}
-                        />
-                      </div>
-                      
-                      <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-                        <p className="text-sm text-gray-600">
-                          Les fonds sont sécurisés sur un contrat séquestre. En cas de problème, les fonds vous sont remboursés.
+                      <div className="mt-2 text-center">
+                        <p className="text-xs text-gray-600">
+                          En cliquant sur "Payer", vous acceptez les conditions du service 
+                          et la politique de protection de l'acheteur.
                         </p>
                       </div>
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="mobile" className="mt-6">
-                    <QRCodePayment 
-                      paymentUrl={getPaymentUrl()}
-                      sellerAddress={sellerAddress}
-                      cryptoAmount={cryptoAmount}
-                      cryptoCurrency={cryptoCurrency}
-                      isConnected={isConnected}
-                      listingId={listingId}
-                    />
+                  <TabsContent value="mobile" className="hidden">
+                    {/* Contenu caché (déplacé dans la colonne de droite) */}
                   </TabsContent>
                 </Tabs>
-
-                <p className="text-xs text-center mt-4 text-muted-foreground">
-                  En cliquant sur "Payer", vous acceptez les conditions du service 
-                  et la politique de protection de l'acheteur.
-                </p>
               </CardContent>
             </Card>
+            
+            {/* Colonne de droite - QR code */}
+            <QRCodePayment 
+              paymentUrl={getPaymentUrl()}
+              sellerAddress={sellerAddress}
+              cryptoAmount={cryptoAmount}
+              cryptoCurrency={cryptoCurrency}
+              isConnected={isConnected}
+              listingId={listingId}
+            />
           </div>
         </div>
       </div>

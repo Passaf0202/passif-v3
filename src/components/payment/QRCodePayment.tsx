@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -132,12 +133,6 @@ export function QRCodePayment({
                       size={180} 
                       level="H"
                       includeMargin={true}
-                      imageSettings={{
-                        src: "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png",
-                        height: 35,
-                        width: 35,
-                        excavate: true,
-                      }}
                     />
                   ) : (
                     <div className="flex items-center justify-center w-[180px] h-[180px]">
@@ -170,25 +165,6 @@ export function QRCodePayment({
                 <p className="text-xs text-center text-muted-foreground truncate">
                   Destinataire: {sellerAddress ? `${sellerAddress.substring(0, 6)}...${sellerAddress.substring(sellerAddress.length - 4)}` : ''}
                 </p>
-                
-                <div className="flex justify-center space-x-2">
-                  <Tabs defaultValue="metamask" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="metamask">MetaMask</TabsTrigger>
-                      <TabsTrigger value="walletconnect">WalletConnect</TabsTrigger>
-                      <TabsTrigger value="rainbow">Rainbow</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="metamask" className="text-xs text-center p-2">
-                      Ouvrez l'appareil photo de votre téléphone et scannez le QR code
-                    </TabsContent>
-                    <TabsContent value="walletconnect" className="text-xs text-center p-2">
-                      Utilisez l'appareil photo de votre téléphone pour scanner le code
-                    </TabsContent>
-                    <TabsContent value="rainbow" className="text-xs text-center p-2">
-                      Scannez le QR code avec l'appareil photo de votre téléphone
-                    </TabsContent>
-                  </Tabs>
-                </div>
               </div>
             </>
           )}
@@ -251,21 +227,18 @@ export function QRCodePayment({
             {/* QR code centré */}
             <div className="flex-grow flex items-center justify-center p-8">
               <div className="text-center">
-                <h3 className="text-xl font-semibold mb-6">Scannez pour payer</h3>
+                <h3 className="text-xl font-semibold mb-4">Scannez pour payer sur téléphone</h3>
                 
-                <div className="bg-white p-6 rounded-xl shadow-sm inline-block mb-4 border border-gray-100">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl shadow-sm inline-block mb-4 border border-gray-100">
                   {qrCodeValue ? (
                     <QRCodeSVG 
                       value={qrCodeValue} 
                       size={220} 
                       level="H"
                       includeMargin={true}
-                      imageSettings={{
-                        src: "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner.png",
-                        height: 48,
-                        width: 48,
-                        excavate: true,
-                      }}
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      style={{ borderRadius: '12px' }}
                     />
                   ) : (
                     <div className="flex items-center justify-center w-[220px] h-[220px]">
@@ -274,8 +247,8 @@ export function QRCodePayment({
                   )}
                 </div>
                 
-                <div className="text-sm text-gray-600 mb-6">
-                  Ce QR code vous redirigera vers la page de l'annonce sur votre téléphone
+                <div className="text-sm text-gray-600 mb-6 max-w-sm mx-auto">
+                  Ce QR code vous redirigera vers la page de l'annonce sur votre téléphone. Vous pourrez ensuite payer le produit via votre téléphone sur l'application mobile de votre portefeuille crypto.
                 </div>
                 
                 <Button 
@@ -288,7 +261,7 @@ export function QRCodePayment({
                   {isProcessing ? "Connexion en cours..." : "Connecter un wallet mobile"}
                 </Button>
                 
-                <div className="space-y-2 mt-8 max-w-md mx-auto">
+                <div className="space-y-2 mt-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600 text-sm">Montant</span>
                     <span className="font-medium text-sm">{cryptoAmount?.toFixed(8)} {cryptoCurrency}</span>
