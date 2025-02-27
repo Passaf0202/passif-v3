@@ -29,7 +29,6 @@ export function QRCodePayment({
   // États locaux
   const [status, setStatus] = useState<'idle' | 'scanning' | 'completed'>('idle');
   const [transactionId, setTransactionId] = useState<string | null>(null);
-  const [qrCodeValue, setQrCodeValue] = useState<string>("");
   
   // Hook pour ouvrir le modal Web3
   const { open } = useWeb3Modal();
@@ -51,34 +50,11 @@ export function QRCodePayment({
     }
   });
 
-  // Créer l'URI pour rediriger vers le wallet mobile
-  const generateMobileWalletUri = () => {
-    if (!cryptoAmount || !sellerAddress) return "";
-    
-    try {
-      // Format standard pour les transactions Ethereum
-      const chainId = '80002'; // Polygon Amoy testnet
-      
-      // Convertir en wei et vérifier le format
-      const amountInWei = ethers.utils.parseEther(cryptoAmount.toString()).toString();
-      
-      // Format: ethereum:<address>@<chainId>/transfer?value=<amount>
-      // On ajoute une valeur gas pour s'assurer que la transaction peut être exécutée
-      return `ethereum:${sellerAddress}@${chainId}/transfer?value=${amountInWei}&gas=21000`;
-    } catch (error) {
-      console.error("Erreur lors de la génération de l'URI:", error);
-      return `ethereum:${sellerAddress}`;
-    }
+  // Générer le deep link WalletConnect
+  const getWalletConnectUri = () => {
+    // Utiliser le même URI que le lien profond WalletConnect utilise sur mobile
+    return `https://metamask.app.link/dapp/${window.location.host}/checkout?listingId=${listingId}`;
   };
-
-  // Initialiser l'URI du QR code
-  useEffect(() => {
-    if (isConnected && sellerAddress && cryptoAmount) {
-      const uri = generateMobileWalletUri();
-      console.log("URI générée pour QR code:", uri);
-      setQrCodeValue(uri);
-    }
-  }, [isConnected, sellerAddress, cryptoAmount]);
 
   // Fonction pour lancer le processus sur mobile
   const handleMobileWalletProcess = async () => {
@@ -86,11 +62,10 @@ export function QRCodePayment({
     setStatus('scanning');
     
     try {
-      // Ouvrir le modal WalletConnect
+      // Utiliser la même méthode que le bouton Payer sur mobile
       await open();
       
-      // Démarrer le processus de paiement après un court délai
-      // pour laisser le temps à la connexion de s'établir
+      // Démarrer le processus de paiement après connexion
       setTimeout(async () => {
         try {
           await handlePayment();
@@ -140,33 +115,27 @@ export function QRCodePayment({
                 Scannez ce QR code avec votre wallet mobile pour effectuer le paiement
               </p>
               
-              {/* QR Code */}
+              {/* QR Code - Utiliser directement le modal WalletConnect */}
               <div className="bg-white p-4 rounded-xl inline-block mb-2">
-                {qrCodeValue ? (
-                  <QRCodeSVG 
-                    value={qrCodeValue} 
-                    size={180} 
-                    level="H"
-                    includeMargin={true}
-                    imageSettings={{
-                      src: "/lovable-uploads/7c5b6193-fe5d-4dde-a165-096a9ddf0037.png",
-                      height: 35,
-                      width: 35,
-                      excavate: true,
-                    }}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center w-[180px] h-[180px]">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  </div>
-                )}
+                <QRCodeSVG 
+                  value={"wc:"}  // Ce QR code simple va ouvrir le modal WalletConnect
+                  size={180} 
+                  level="H"
+                  includeMargin={true}
+                  imageSettings={{
+                    src: "/lovable-uploads/7c5b6193-fe5d-4dde-a165-096a9ddf0037.png",
+                    height: 35,
+                    width: 35,
+                    excavate: true,
+                  }}
+                />
               </div>
               
               <p className="text-xs text-gray-500 mb-4">
                 Compatible avec MetaMask, WalletConnect et autres wallets Ethereum
               </p>
               
-              {/* Bouton pour continuer avec le wallet */}
+              {/* Bouton pour continuer avec le wallet - Même bouton que sur mobile */}
               <div className="mt-2">
                 <Button 
                   onClick={handleMobileWalletProcess} 
