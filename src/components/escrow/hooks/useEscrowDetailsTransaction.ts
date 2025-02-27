@@ -20,7 +20,8 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
           listing:listings!transactions_listing_id_fkey (
             title,
             wallet_address,
-            user_id
+            user_id,
+            images
           ),
           buyer:profiles!transactions_buyer_id_fkey (
             id,
@@ -92,7 +93,8 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         listing: txn.listing ? {
           title: txn.listing.title,
           wallet_address: txn.listing.wallet_address,
-          user_id: txn.listing.user_id
+          user_id: txn.listing.user_id,
+          images: txn.listing.images
         } : undefined
       };
 
