@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,14 +48,14 @@ export function QRCodePayment({
   });
 
   const generatePaymentUri = () => {
+    // Rediriger vers preview--passif.lovable.app avec le listingId comme paramètre
     if (!listingId) return "";
     
     try {
-      const currentHost = window.location.host;
-      const currentProtocol = window.location.protocol;
-      const listingUrl = new URL(`${currentProtocol}//${currentHost}/listings/${listingId}`);
-      
-      return listingUrl.toString();
+      // Utiliser le domaine fixe avec le listingId comme paramètre d'URL
+      const redirectUrl = `https://preview--passif.lovable.app/listings/${listingId}`;
+      console.log("URL de redirection QR code:", redirectUrl);
+      return redirectUrl;
     } catch (error) {
       console.error("Erreur lors de la génération de l'URI de paiement:", error);
       return "";
