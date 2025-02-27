@@ -358,7 +358,7 @@ export default function Transactions() {
                                 </Button>
                               )}
                               
-                              {canCancelTransaction(transaction) && (
+                              {transaction.escrow_status === 'pending' && transaction.can_be_cancelled && (
                                 <Button 
                                   variant="destructive"
                                   className="flex-1 sm:flex-none"
