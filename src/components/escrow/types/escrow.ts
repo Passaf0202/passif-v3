@@ -32,6 +32,7 @@ export interface Transaction {
     title: string;
     wallet_address?: string;
     user_id?: string;
+    images?: string[];
   };
 }
 
