@@ -18,6 +18,7 @@ interface EscrowActionsProps {
   setIsLoading: (isLoading: boolean) => void;
   onRelease: () => void;
   transactionId: string;
+  onActionStart?: () => void;
 }
 
 export function EscrowActions({ 
@@ -25,7 +26,8 @@ export function EscrowActions({
   isLoading, 
   setIsLoading, 
   onRelease,
-  transactionId 
+  transactionId,
+  onActionStart 
 }: EscrowActionsProps) {
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
@@ -65,6 +67,10 @@ export function EscrowActions({
 
   const handleConfirmTransaction = async () => {
     try {
+      if (onActionStart) {
+        onActionStart();
+      }
+      
       setIsLoading(true);
 
       // Vérifications préliminaires plus strictes
@@ -208,7 +214,7 @@ export function EscrowActions({
     <Button
       onClick={handleConfirmTransaction}
       disabled={isLoading || !canConfirmTransaction}
-      className="w-full bg-purple-500 hover:bg-purple-600"
+      className="w-full py-7 text-base font-medium bg-purple-500 hover:bg-purple-600"
     >
       {isLoading ? (
         <>
