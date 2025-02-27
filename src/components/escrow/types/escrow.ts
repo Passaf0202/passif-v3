@@ -18,8 +18,6 @@ export interface Transaction {
   updated_at?: string;
   created_at?: string;
   funds_secured_at?: string;
-  buyer_id?: string;
-  seller_id?: string;
   buyer?: {
     id: string;
     wallet_address?: string;

@@ -97,6 +97,7 @@ export function QRCodePayment({
     setTransactionId(null);
   };
 
+  // Rendu pour la version mobile - inchangé
   if (isMobile) {
     if (!isConnected) {
       return (

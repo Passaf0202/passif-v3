@@ -1,99 +1,108 @@
 
-import { useState, useEffect, MutableRefObject } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import type { SyntheticEvent } from 'react';
+import { DiamondViewerState } from '../types/diamond-viewer';
 
-interface ModelViewerHookResult {
-  isLoaded: boolean;
-  error: Error | null;
-}
+const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/Logo%20Tradecoiner%20-%203D.glb';
+let modelViewerScriptLoaded = false;
 
-export function useModelViewer(
-  containerRef: MutableRefObject<HTMLDivElement | null>,
-  src: string
-): ModelViewerHookResult {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+const NORMAL_SPEED = "8deg";
+const MEDIUM_SPEED = "45deg";
+const FAST_SPEED = "120deg";
+const SUPER_FAST_SPEED = "360deg";
+
+// Durées ajustées pour une meilleure sensation
+const INITIAL_ACCELERATION = 200; // ms
+const TO_SUPER_FAST = 300; // ms
+const PEAK_DURATION = 500; // ms
+const DECELERATION = 1000; // ms
+const TOTAL_DURATION = INITIAL_ACCELERATION + TO_SUPER_FAST + PEAK_DURATION + DECELERATION;
+
+export function useModelViewer(state: DiamondViewerState) {
+  const [isModelViewerReady, setModelViewerReady] = useState(false);
+  const [isSpinningFast, setIsSpinningFast] = useState(false);
+  const [currentSpeed, setCurrentSpeed] = useState(NORMAL_SPEED);
+  const modelRef = useRef<HTMLElement>(null);
+  const spinTimeouts = useRef<NodeJS.Timeout[]>([]);
+  const previousStateRef = useRef<DiamondViewerState>(state);
+
+  const getRotationSpeed = useCallback(() => {
+    return currentSpeed;
+  }, [currentSpeed]);
+
+  const clearAllTimeouts = () => {
+    if (Array.isArray(spinTimeouts.current)) {
+      spinTimeouts.current.forEach(timeout => clearTimeout(timeout));
+      spinTimeouts.current = [];
+    }
+  };
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (state === 'confirmed' && previousStateRef.current !== 'confirmed') {
+      setIsSpinningFast(true);
+      clearAllTimeouts();
 
-    const loadModelViewer = async () => {
-      try {
-        // Vérifier si model-viewer est déjà défini
-        if (typeof window !== 'undefined' && !customElements.get('model-viewer')) {
-          // Charger dynamiquement model-viewer si nécessaire
-          const modelViewerScript = document.createElement('script');
-          modelViewerScript.type = 'module';
-          modelViewerScript.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js';
-          document.head.appendChild(modelViewerScript);
+      // Première transition : Normal -> Medium
+      setCurrentSpeed(MEDIUM_SPEED);
 
-          await new Promise((resolve) => {
-            modelViewerScript.onload = resolve;
-          });
-        }
+      // Deuxième transition : Medium -> Fast
+      const toFastTimeout = setTimeout(() => {
+        setCurrentSpeed(FAST_SPEED);
+      }, INITIAL_ACCELERATION);
+      spinTimeouts.current.push(toFastTimeout);
 
-        // Créer l'élément model-viewer
-        if (containerRef.current) {
-          // Vérifier si un model-viewer existe déjà
-          let modelViewer = containerRef.current.querySelector('model-viewer');
-          
-          if (!modelViewer) {
-            // Créer un nouvel élément model-viewer
-            modelViewer = document.createElement('model-viewer');
-            modelViewer.setAttribute('src', src);
-            modelViewer.setAttribute('camera-controls', '');
-            modelViewer.setAttribute('auto-rotate', '');
-            modelViewer.setAttribute('ar', '');
-            modelViewer.setAttribute('ar-modes', 'webxr scene-viewer quick-look');
-            modelViewer.setAttribute('shadow-intensity', '1');
-            modelViewer.setAttribute('camera-orbit', '0deg 75deg 105%');
-            modelViewer.setAttribute('style', 'width: 100%; height: 100%; --poster-color: transparent; background-color: transparent;');
-            
-            // Ajouter les lumières
-            const fragment = document.createDocumentFragment();
-            const template = document.createElement('template');
-            template.innerHTML = `
-              <div class="environment" slot="environment">
-                <light id="envLight" type="ambient" intensity="0.5"></light>
-                <light type="directional" intensity="2.0"></light>
-              </div>
-            `;
-            fragment.appendChild(template.content.cloneNode(true));
-            modelViewer.appendChild(fragment);
-            
-            // Ajouter model-viewer au conteneur
-            containerRef.current.appendChild(modelViewer);
-            
-            // Gérer les événements load/error
-            modelViewer.addEventListener('load', () => {
-              console.log('Model loaded successfully');
-              setIsLoaded(true);
-            });
-            
-            modelViewer.addEventListener('error', (e) => {
-              console.error('Error loading model:', e);
-              setError(new Error('Failed to load 3D model'));
-            });
-          } else {
-            // Mettre à jour la source si le model-viewer existe déjà
-            if (modelViewer.getAttribute('src') !== src) {
-              setIsLoaded(false);
-              modelViewer.setAttribute('src', src);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error in useModelViewer:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error in useModelViewer'));
-      }
-    };
+      // Troisième transition : Fast -> SUPER_FAST
+      const toSuperFastTimeout = setTimeout(() => {
+        setCurrentSpeed(SUPER_FAST_SPEED);
+      }, INITIAL_ACCELERATION + TO_SUPER_FAST);
+      spinTimeouts.current.push(toSuperFastTimeout);
 
-    loadModelViewer();
+      // Quatrième transition : SUPER_FAST -> Fast
+      const backToFastTimeout = setTimeout(() => {
+        setCurrentSpeed(FAST_SPEED);
+      }, INITIAL_ACCELERATION + TO_SUPER_FAST + PEAK_DURATION);
+      spinTimeouts.current.push(backToFastTimeout);
 
-    // Nettoyage
+      // Cinquième transition : Fast -> Medium
+      const backToMediumTimeout = setTimeout(() => {
+        setCurrentSpeed(MEDIUM_SPEED);
+      }, INITIAL_ACCELERATION + TO_SUPER_FAST + PEAK_DURATION + DECELERATION / 2);
+      spinTimeouts.current.push(backToMediumTimeout);
+
+      // Dernière transition : Medium -> Normal
+      const toNormalTimeout = setTimeout(() => {
+        setCurrentSpeed(NORMAL_SPEED);
+        setIsSpinningFast(false);
+      }, TOTAL_DURATION);
+      spinTimeouts.current.push(toNormalTimeout);
+    }
+
+    previousStateRef.current = state;
+
     return () => {
-      // Pas besoin de nettoyer model-viewer car il sera géré par React
+      clearAllTimeouts();
     };
-  }, [containerRef, src]);
+  }, [state]);
 
-  return { isLoaded, error };
+  useEffect(() => {
+    if (!modelViewerScriptLoaded) {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+      script.onload = () => {
+        modelViewerScriptLoaded = true;
+        setModelViewerReady(true);
+      };
+      document.head.appendChild(script);
+    } else {
+      setModelViewerReady(true);
+    }
+  }, []);
+
+  return {
+    modelRef,
+    isModelViewerReady,
+    getRotationSpeed,
+    MODEL_PATH
+  };
 }

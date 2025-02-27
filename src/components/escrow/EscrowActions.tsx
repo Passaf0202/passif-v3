@@ -1,225 +1,231 @@
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { useNetwork, useSwitchNetwork, useAccount } from "wagmi";
+import { amoy } from "@/config/chains";
+import { ethers } from "ethers";
+import { ESCROW_CONTRACT_ADDRESS, ESCROW_ABI } from "./types/escrow";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, AlertTriangle } from "lucide-react";
-import { useReleaseEscrow } from "@/hooks/useReleaseEscrow";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { MobileWalletRedirect } from "@/components/payment/MobileWalletRedirect";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Transaction } from "./types/escrow";
-import { Dispatch, SetStateAction } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileWalletRedirect } from "../payment/MobileWalletRedirect";
 
 interface EscrowActionsProps {
-  transactionId: string;
-  transaction?: Transaction;
-  blockchainTxnId?: string;
-  sellerAddress?: string;
-  isBuyer?: boolean;
-  isSeller?: boolean;
-  isCompleted?: boolean;
-  isLoading?: boolean;
-  setIsLoading?: Dispatch<SetStateAction<boolean>>;
+  transaction: Transaction;
+  isLoading: boolean;
+  setIsLoading: (isLoading: boolean) => void;
   onRelease: () => void;
+  transactionId: string;
   onActionStart?: () => void;
 }
 
-export function EscrowActions({
-  transactionId,
-  transaction,
-  blockchainTxnId,
-  sellerAddress,
-  isBuyer,
-  isSeller,
-  isCompleted,
-  isLoading: externalIsLoading,
-  setIsLoading: setExternalIsLoading,
+export function EscrowActions({ 
+  transaction, 
+  isLoading, 
+  setIsLoading, 
   onRelease,
-  onActionStart,
+  transactionId,
+  onActionStart 
 }: EscrowActionsProps) {
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isReleasing, setIsReleasing] = useState(false);
-  const { releaseEscrow } = useReleaseEscrow();
+  const { user } = useAuth();
   const isMobile = useIsMobile();
+  const { connector, isConnected } = useAccount();
 
-  // Utilisez l'ID de transaction blockchain de props ou de l'objet transaction
-  const txnBlockchainId = blockchainTxnId || transaction?.blockchain_txn_id;
-  
-  // Détermine si l'utilisateur est acheteur/vendeur via props ou basé sur les IDs
-  // Évite d'utiliser les propriétés 'is_buyer' ou 'is_seller' qui n'existent pas
-  const userIsBuyer = isBuyer !== undefined ? isBuyer : 
-                      (transaction?.buyer?.id === transaction?.buyer_id);
-  
-  const userIsSeller = isSeller !== undefined ? isSeller :
-                       (transaction?.seller?.id === transaction?.seller_id);
-  
-  // Détermine si la transaction est complétée
-  const txnIsCompleted = isCompleted !== undefined ? isCompleted :
-                        (transaction?.escrow_status === 'completed');
+  const canConfirmTransaction = transaction.funds_secured && 
+    !transaction.buyer_confirmation && 
+    (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id);
 
-  const handleReleaseFunds = async () => {
-    if (!txnBlockchainId) {
-      toast({
-        title: "Erreur",
-        description: "ID de transaction blockchain manquant",
-        variant: "destructive",
-      });
-      return;
+  const initializeProvider = async () => {
+    try {
+      let provider;
+      
+      if (typeof window !== 'undefined' && window.ethereum) {
+        console.log("[EscrowActions] Using window.ethereum provider");
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+      } else if (isConnected && connector) {
+        console.log("[EscrowActions] Using WalletConnect provider");
+        const connectorProvider = await connector.getProvider();
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre que le provider soit prêt
+        provider = new ethers.providers.Web3Provider(connectorProvider);
+      }
+
+      if (!provider) {
+        throw new Error("Impossible d'initialiser le provider");
+      }
+
+      return provider;
+    } catch (error) {
+      console.error("[EscrowActions] Provider initialization error:", error);
+      throw new Error("Erreur lors de l'initialisation du wallet");
     }
+  };
 
+  const handleConfirmTransaction = async () => {
     try {
       if (onActionStart) {
         onActionStart();
       }
       
-      // Mettre à jour l'état de chargement local et externe si disponible
-      setIsReleasing(true);
-      if (setExternalIsLoading) {
-        setExternalIsLoading(true);
+      setIsLoading(true);
+
+      // Vérifications préliminaires plus strictes
+      if (!user?.id) {
+        throw new Error("Utilisateur non connecté");
       }
-      
-      await releaseEscrow(txnBlockchainId);
-      
-      toast({
-        title: "Succès",
-        description: "Les fonds ont été libérés au vendeur",
+
+      if (!transaction.funds_secured) {
+        throw new Error("Les fonds ne sont pas encore sécurisés");
+      }
+
+      // Vérification plus stricte de l'adresse du vendeur
+      if (!transaction.seller_wallet_address) {
+        throw new Error("Adresse du vendeur manquante");
+      }
+
+      // Log détaillé des adresses pour le debug
+      console.log("[EscrowActions] Transaction wallet addresses:", {
+        sellerWalletAddress: transaction.seller_wallet_address,
+        transactionSellerId: transaction.seller?.id,
+        userId: user.id,
+        buyerId: transaction.buyer?.id
       });
+
+      // Vérification que la transaction peut être confirmée
+      if (transaction.seller_wallet_address !== transaction.listing?.wallet_address) {
+        throw new Error("L'adresse du vendeur ne correspond pas à celle de l'annonce");
+      }
+
+      console.log("[EscrowActions] Starting transaction confirmation...");
+
+      // 2. Vérifier et changer de réseau si nécessaire
+      if (chain?.id !== amoy.id) {
+        if (!switchNetwork) {
+          throw new Error("Impossible de changer de réseau automatiquement");
+        }
+        console.log("[EscrowActions] Switching network to Amoy...");
+        await switchNetwork(amoy.id);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      // 3. Initialiser le provider et le signer
+      console.log("[EscrowActions] Initializing provider...");
+      const provider = await initializeProvider();
+      const signer = provider.getSigner();
       
-      onRelease();
+      console.log("[EscrowActions] Getting signer address...");
+      const signerAddress = await signer.getAddress();
+      console.log("[EscrowActions] Connected with address:", signerAddress);
+
+      // 4. Initialiser le contrat
+      const contract = new ethers.Contract(
+        ESCROW_CONTRACT_ADDRESS,
+        ESCROW_ABI,
+        signer
+      );
+
+      if (!transaction.blockchain_txn_id) {
+        throw new Error("ID de transaction blockchain manquant");
+      }
+
+      const txnId = Number(transaction.blockchain_txn_id);
+      console.log("[EscrowActions] Using blockchain transaction ID:", txnId);
+
+      // 5. Vérifier la transaction
+      console.log("[EscrowActions] Checking transaction on blockchain...");
+      const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
+      
+      if (!isFunded) {
+        throw new Error("La transaction n'est pas financée sur la blockchain");
+      }
+
+      if (isCompleted) {
+        throw new Error("La transaction est déjà complétée sur la blockchain");
+      }
+
+      // 6. Estimer le gaz
+      console.log("[EscrowActions] Estimating gas...");
+      const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
+      const gasLimit = gasEstimate.mul(120).div(100); // +20% marge
+
+      // 7. Envoyer la transaction
+      console.log("[EscrowActions] Sending release transaction...");
+      const tx = await contract.releaseFunds(txnId, { gasLimit });
+      console.log("[EscrowActions] Transaction sent:", tx.hash);
+      
+      const receipt = await tx.wait();
+      console.log("[EscrowActions] Transaction receipt:", receipt);
+
+      if (receipt.status === 1) {
+        // 8. Mise à jour de la base de données
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            buyer_confirmation: true,
+            seller_confirmation: true,
+            status: 'completed',
+            escrow_status: 'completed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', transactionId);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Succès",
+          description: "Les fonds ont été libérés avec succès",
+        });
+
+        onRelease();
+      } else {
+        throw new Error("La libération des fonds a échoué sur la blockchain");
+      }
     } catch (error: any) {
-      console.error("Error releasing funds:", error);
+      console.error('[EscrowActions] Error:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de libérer les fonds",
+        description: error.message || "Une erreur est survenue",
         variant: "destructive",
       });
     } finally {
-      setIsReleasing(false);
-      if (setExternalIsLoading) {
-        setExternalIsLoading(false);
-      }
+      setIsLoading(false);
     }
   };
 
-  if (txnIsCompleted) {
+  if (transaction?.escrow_status === 'completed') {
     return null;
   }
 
-  // L'interface pour appareils mobiles
   if (isMobile) {
     return (
-      <div className="space-y-4">
-        <MobileWalletRedirect
-          isProcessing={isLoading || isReleasing || (externalIsLoading || false)}
-          onConfirm={handleReleaseFunds}
-          action="release"
-        />
-        
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <AlertTriangle className="mr-2 h-4 w-4" />
-              Signaler un problème
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Signaler un problème</DialogTitle>
-              <DialogDescription>
-                Si vous avez rencontré un problème avec cette commande, veuillez nous en informer afin que nous puissions vous aider.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col space-y-4">
-              <div className="space-y-1">
-                <Label htmlFor="issue-type">Type de problème</Label>
-                <Select>
-                  <SelectTrigger id="issue-type">
-                    <SelectValue placeholder="Sélectionnez un type de problème" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="not-received">Produit non reçu</SelectItem>
-                    <SelectItem value="damaged">Produit endommagé</SelectItem>
-                    <SelectItem value="not-as-described">Ne correspond pas à la description</SelectItem>
-                    <SelectItem value="other">Autre</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" placeholder="Décrivez le problème en détail..." />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <DialogClose asChild>
-                  <Button variant="outline">Annuler</Button>
-                </DialogClose>
-                <Button>Envoyer</Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <MobileWalletRedirect 
+        isProcessing={isLoading}
+        onConfirm={handleConfirmTransaction}
+        action="release"
+      />
     );
   }
 
-  // Interface pour ordinateur
-  if (userIsBuyer) {
-    return (
-      <div className="space-y-4">
-        <Button
-          onClick={handleReleaseFunds}
-          disabled={isReleasing || !txnBlockchainId}
-          className="w-full"
-        >
-          {isReleasing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Libération des fonds en cours...
-            </>
-          ) : (
-            "Confirmer la réception et libérer les fonds"
-          )}
-        </Button>
-        
-        <Button variant="outline" className="w-full">
-          <AlertTriangle className="mr-2 h-4 w-4" />
-          Signaler un problème
-        </Button>
-      </div>
-    );
-  }
-
-  if (userIsSeller) {
-    return (
-      <div className="space-y-4">
-        <Button disabled className="w-full">
-          En attente de confirmation de l'acheteur
-        </Button>
-        
-        <Button variant="outline" className="w-full">
-          <AlertTriangle className="mr-2 h-4 w-4" />
-          Contacter l'acheteur
-        </Button>
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <Button
+      onClick={handleConfirmTransaction}
+      disabled={isLoading || !canConfirmTransaction}
+      className="w-full py-7 text-base font-medium bg-black hover:bg-black/90 text-white"
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Libération des fonds en cours...
+        </>
+      ) : canConfirmTransaction ? (
+        "Libérer les fonds au vendeur"
+      ) : (
+        "En attente de confirmation"
+      )}
+    </Button>
+  );
 }

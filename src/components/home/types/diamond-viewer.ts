@@ -1,14 +1,48 @@
 
 export type DiamondViewerState = 
-  | 'initial'               // État initial
-  | 'wallet-connect'        // Wallet connecté
-  | 'wallet-connecting'     // En cours de connexion du wallet
-  | 'payment'               // Prêt pour paiement
-  | 'processing'            // En cours de traitement
-  | 'awaiting-confirmation' // En attente de confirmation
-  | 'confirmed';            // Transaction confirmée
+  | 'initial'               
+  | 'wallet-connect'        
+  | 'wallet-connecting'     
+  | 'payment'              
+  | 'processing'           
+  | 'awaiting-confirmation' 
+  | 'confirmed';
 
 export interface DiamondViewerProps {
-  state?: DiamondViewerState;
+  state: DiamondViewerState;
   scale?: number;
+}
+
+export interface ModelViewerElementAttributes {
+  src: string;
+  'auto-rotate'?: boolean;
+  'camera-controls'?: boolean;
+  'rotation-per-second'?: string;
+  'interaction-prompt'?: 'auto' | 'none' | 'when-focused';
+  'interaction-prompt-style'?: 'basic' | 'wiggle';
+  'interaction-prompt-threshold'?: string;
+  'auto-rotate-delay'?: number;
+  'min-camera-orbit'?: string;
+  'max-camera-orbit'?: string;
+  'shadow-intensity'?: string;
+  exposure?: string;
+  poster?: string;
+  bounds?: string;
+  'environment-image'?: string;
+  loading?: 'auto' | 'lazy' | 'eager';
+  'animation-name'?: string;
+  'animation-crossfade-duration'?: string;
+  'quick-look-browsers'?: string;
+  'progress'?: number;
+  'orientation'?: string;
+  'rotation-axis'?: string;
+  scale?: string;
+}
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & ModelViewerElementAttributes, HTMLElement>;
+    }
+  }
 }

@@ -26,5 +26,3 @@ export const StatusBar = () => {
     </div>
   );
 };
-
-export default StatusBar;

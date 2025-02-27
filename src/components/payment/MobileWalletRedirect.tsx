@@ -1,9 +1,10 @@
 
 import { useToast } from "@/components/ui/use-toast";
 import { useWeb3Modal } from '@web3modal/react';
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount, useNetwork, usePublicClient } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Loader2 } from "lucide-react";
+import { ethers } from "ethers";
 
 interface MobileWalletRedirectProps {
   isProcessing: boolean;
@@ -17,7 +18,8 @@ export function MobileWalletRedirect({
   action 
 }: MobileWalletRedirectProps) {
   const { toast } = useToast();
-  const { isConnected } = useAccount();
+  const { connector, isConnected } = useAccount();
+  const { chain } = useNetwork();
   const { open } = useWeb3Modal();
 
   const handleRedirect = async () => {
