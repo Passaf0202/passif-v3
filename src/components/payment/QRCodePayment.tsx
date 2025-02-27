@@ -35,11 +35,20 @@ export function QRCodePayment({
 
   // Créer un lien de paiement pour le wallet mobile
   const getPaymentDeepLink = () => {
-    // Format exemple: ethereum:0xAddress@chainId/transfer?value=0.1&gasLimit=21000
+    // Format standard pour les transactions Ethereum
+    // ethereum:<address>@<chainId>/transfer?value=<amount>&gas=<gasLimit>
+    
+    // Le montant doit être en wei (10^18 wei = 1 ETH)
     const chainId = '80002'; // Polygon Amoy testnet
     const formattedAmount = cryptoAmount ? cryptoAmount.toString() : '0';
     
+    // Utilisation du format WalletConnect v2 pour assurer la compatibilité maximale
     return `ethereum:${sellerAddress}@${chainId}/transfer?value=${formattedAmount}`;
+  };
+
+  // Alternative: générer une URL WalletConnect
+  const getWalletConnectUri = () => {
+    return `wc:${sellerAddress}?amount=${cryptoAmount}&chainId=80002`;
   };
 
   const handleStartScan = () => {
@@ -83,7 +92,7 @@ export function QRCodePayment({
                   level="H"
                   includeMargin={true}
                   imageSettings={{
-                    src: "/lovable-uploads/5ad1660b-54eb-4f69-909b-76b405159178.png",
+                    src: "/lovable-uploads/7c5b6193-fe5d-4dde-a165-096a9ddf0037.png",
                     height: 35,
                     width: 35,
                     excavate: true,

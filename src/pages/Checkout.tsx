@@ -11,7 +11,7 @@ import { ListingActions } from "@/components/listing/ListingActions";
 import { formatPrice } from "@/utils/priceUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useAccount } from "wagmi";
+import { useAccount } from 'wagmi';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { QRCodePayment } from "@/components/payment/QRCodePayment";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
