@@ -349,21 +349,14 @@ export default function Checkout() {
     <div>
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center relative">
-          <Button 
-            variant="ghost" 
-            className="mb-4"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
-          
-          {/* Diamant à côté de la croix */}
-          <div className="h-14 w-14 absolute right-4 top-0">
-            <DiamondViewer state={diamondState} scale={1.8} />
-          </div>
-        </div>
+        <Button 
+          variant="ghost" 
+          className="mb-4"
+          onClick={handleBack}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Retour
+        </Button>
         
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
@@ -372,7 +365,8 @@ export default function Checkout() {
           
           <Card className="w-full">
             <CardContent className="p-8 space-y-6">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center justify-between space-x-4">
+                {/* Image du produit à gauche */}
                 <div className="h-20 w-20 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden shadow-sm">
                   {!imageLoaded && <div className="animate-pulse h-full w-full bg-gray-200"></div>}
                   <img 
@@ -383,7 +377,9 @@ export default function Checkout() {
                     onLoad={handleImageLoaded}
                   />
                 </div>
-                <div>
+                
+                {/* Détails au milieu */}
+                <div className="flex-grow">
                   <h2 className="text-xl font-semibold">{title}</h2>
                   <div className="flex items-baseline gap-4 mt-1">
                     <p className="text-2xl font-bold">{formatPrice(price)} EUR</p>
@@ -391,6 +387,11 @@ export default function Checkout() {
                       ≈ {cryptoAmount?.toFixed(8)} {cryptoCurrency}
                     </p>
                   </div>
+                </div>
+                
+                {/* Diamant 3D à droite */}
+                <div className="h-20 w-20 flex items-center justify-center">
+                  <DiamondViewer state={diamondState} scale={1.8} />
                 </div>
               </div>
 
