@@ -360,6 +360,7 @@ export default function Checkout() {
                         cryptoAmount={cryptoAmount}
                         cryptoCurrency={cryptoCurrency}
                         isConnected={isConnected}
+                        listingId={listingId}
                       />
                     </TabsContent>
                   </Tabs>
