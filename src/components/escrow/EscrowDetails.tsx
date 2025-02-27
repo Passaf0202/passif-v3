@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ArrowLeft, ShieldCheck, Lock } from "lucide-react";
+import { Loader2, ArrowLeft, ShieldCheck, Lock, ExternalLink } from "lucide-react";
 import { useEscrowDetailsTransaction } from "./hooks/useEscrowDetailsTransaction";
 import { TransactionStatus } from "./TransactionStatus";
 import { EscrowActions } from "./EscrowActions";
@@ -78,6 +78,13 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
     navigate(-1);
   };
 
+  // Fonction pour ouvrir le lien vers l'explorateur blockchain
+  const openBlockchainExplorer = () => {
+    if (transaction?.blockchain_txn_hash) {
+      window.open(`https://polygonscan.com/tx/${transaction.blockchain_txn_hash}`, '_blank');
+    }
+  };
+
   if (isFetching) {
     return (
       <div className="max-w-3xl mx-auto">
@@ -92,7 +99,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         
         <Card>
           <CardHeader>
-            <CardTitle>Détails de la transaction</CardTitle>
+            <CardTitle>Confirmer la réception du produit</CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center items-center p-8">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -116,7 +123,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
         
         <Card>
           <CardHeader>
-            <CardTitle>Détails de la transaction</CardTitle>
+            <CardTitle>Confirmer la réception du produit</CardTitle>
           </CardHeader>
           <CardContent className="p-8">
             {renderErrorMessage()}
@@ -156,18 +163,27 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
       </Button>
       
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold">Détails de la transaction</h1>
+        <h1 className="text-3xl font-bold">Confirmer la réception du produit</h1>
       </div>
       
       <Card className="w-full">
         <CardContent className="p-8 space-y-6">
           <div className="flex items-center justify-between space-x-4">
-            {/* Titre à gauche */}
+            {/* Image à gauche */}
+            <div className="h-20 w-20 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden shadow-sm">
+              <img 
+                src="/lovable-uploads/58047f7b-580b-4489-aaa9-6e45dacb65a6.png" 
+                alt="Product"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            
+            {/* Détails au milieu */}
             <div className="flex-grow">
               <h3 className="text-xl font-semibold">{transaction.listing_title || "Article"}</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Ref: {transactionId.substring(0, 8)}...
-              </p>
+              <div className="flex items-baseline gap-4 mt-1">
+                <p className="text-2xl font-bold">{transaction.amount} {transaction.token_symbol}</p>
+              </div>
             </div>
             
             {/* Diamant 3D à droite */}
@@ -192,13 +208,32 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">État</span>
                 <span className="font-medium">
-                  {transaction.escrow_status === 'pending' ? 'En attente' : 
-                   transaction.escrow_status === 'completed' ? 'Terminée' : 
-                   'En cours'}
+                  Fonds envoyés
                 </span>
               </div>
             </div>
           </div>
+
+          {/* Avertissement */}
+          <Alert className="bg-amber-50 border-amber-200">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertDescription className="text-amber-700">
+              <strong>Attention :</strong> Une fois les fonds libérés au vendeur, il sera très difficile d'obtenir un remboursement. 
+              Assurez-vous d'avoir bien vérifié le produit et qu'il correspond à vos attentes avant de libérer les fonds.
+            </AlertDescription>
+          </Alert>
+
+          {/* Bouton pour suivre la transaction */}
+          {transaction.blockchain_txn_hash && (
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center justify-center gap-2"
+              onClick={openBlockchainExplorer}
+            >
+              <ExternalLink className="h-4 w-4" />
+              Suivre la transaction sur Polygon
+            </Button>
+          )}
 
           <Separator />
           

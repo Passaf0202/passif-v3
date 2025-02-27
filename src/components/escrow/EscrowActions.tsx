@@ -214,7 +214,7 @@ export function EscrowActions({
     <Button
       onClick={handleConfirmTransaction}
       disabled={isLoading || !canConfirmTransaction}
-      className="w-full py-7 text-base font-medium bg-purple-500 hover:bg-purple-600"
+      className="w-full py-7 text-base font-medium bg-black hover:bg-black/90 text-white"
     >
       {isLoading ? (
         <>
