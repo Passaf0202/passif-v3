@@ -6,7 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, ShieldCheck, Lock } from "lucide-react";
+import { 
+  ArrowLeft, 
+  ShieldCheck, 
+  Lock, 
+  Info 
+} from "lucide-react";
 import { ListingActions } from "@/components/listing/ListingActions";
 import { formatPrice } from "@/utils/priceUtils";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +20,12 @@ import { useAccount } from 'wagmi';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { QRCodePayment } from "@/components/payment/QRCodePayment";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
 
 export default function Checkout() {
   const location = useLocation();
@@ -265,7 +276,7 @@ export default function Checkout() {
     );
   }
 
-  // Rendu pour desktop - avec l'ajout du QR code
+  // Rendu amélioré pour desktop
   return (
     <div>
       <Navbar />
@@ -279,26 +290,26 @@ export default function Checkout() {
           Retour
         </Button>
         
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold">Finaliser l'achat</h1>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Colonne de gauche - détails du produit */}
-            <div>
-              <Card>
-                <CardContent className="p-6 space-y-6">
+            {/* Colonne de gauche - détails du produit - taille équilibrée */}
+            <div className="md:h-full">
+              <Card className="h-full">
+                <CardContent className="p-8 space-y-8 h-full flex flex-col">
                   <div className="flex items-center space-x-4">
                     <img 
                       src={productImage} 
                       alt={title}
-                      className="h-20 w-20 object-cover rounded-md" 
+                      className="h-24 w-24 object-cover rounded-md shadow-sm" 
                     />
                     <div>
-                      <h2 className="text-xl font-semibold">{title}</h2>
-                      <div className="flex items-baseline gap-4">
-                        <p className="text-2xl font-bold">{formatPrice(price)} EUR</p>
+                      <h2 className="text-2xl font-semibold">{title}</h2>
+                      <div className="flex items-baseline gap-4 mt-2">
+                        <p className="text-3xl font-bold">{formatPrice(price)} EUR</p>
                         <p className="text-sm text-muted-foreground">
                           ≈ {cryptoAmount?.toFixed(8)} {cryptoCurrency}
                         </p>
@@ -308,22 +319,22 @@ export default function Checkout() {
 
                   <Separator />
                   
-                  <div>
-                    <h3 className="font-semibold mb-2">Détails du produit</h3>
-                    <div className="space-y-2">
+                  <div className="flex-grow">
+                    <h3 className="text-xl font-semibold mb-4">Détails du produit</h3>
+                    <div className="space-y-4">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Crypto-monnaie acceptée</span>
-                        <span>{cryptoCurrency}</span>
+                        <span className="text-muted-foreground text-lg">Crypto-monnaie acceptée</span>
+                        <span className="font-medium">{cryptoCurrency}</span>
                       </div>
                       {listing?.category && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Catégorie</span>
-                          <span>{listing.category}</span>
+                          <span className="text-muted-foreground text-lg">Catégorie</span>
+                          <span className="font-medium">{listing.category}</span>
                         </div>
                       )}
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Vendeur</span>
-                        <span>{listing?.user?.full_name}</span>
+                        <span className="text-muted-foreground text-lg">Vendeur</span>
+                        <span className="font-medium">{listing?.user?.full_name}</span>
                       </div>
                     </div>
                   </div>
@@ -331,52 +342,99 @@ export default function Checkout() {
                   <Separator />
                   
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-green-600">
-                      <ShieldCheck className="h-5 w-5" />
-                      <span className="text-sm font-medium">Protection acheteur incluse</span>
-                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors w-full justify-center">
+                            <ShieldCheck className="h-5 w-5" />
+                            <span className="font-medium">Protection acheteur incluse</span>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="w-80 p-4 bg-white shadow-lg border border-gray-200 rounded-lg">
+                          <div className="space-y-2">
+                            <h4 className="font-semibold text-green-700">Protection acheteur</h4>
+                            <p className="text-sm text-gray-600">
+                              Notre système de protection garantit un remboursement si:
+                              <ul className="list-disc pl-5 mt-1 space-y-1">
+                                <li>L'article n'est jamais livré</li>
+                                <li>L'article est significativement différent de sa description</li>
+                                <li>L'article est endommagé à la réception</li>
+                              </ul>
+                            </p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     
-                    <div className="flex items-center gap-2 text-blue-600">
-                      <Lock className="h-5 w-5" />
-                      <span className="text-sm font-medium">Paiement sécurisé via smart contract</span>
-                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors w-full justify-center">
+                            <Lock className="h-5 w-5" />
+                            <span className="font-medium">Paiement sécurisé via smart contract</span>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="w-80 p-4 bg-white shadow-lg border border-gray-200 rounded-lg">
+                          <div className="space-y-2">
+                            <h4 className="font-semibold text-blue-700">Smart Contract</h4>
+                            <p className="text-sm text-gray-600">
+                              Notre technologie de smart contract garantit que votre paiement reste sécurisé jusqu'à ce que:
+                              <ul className="list-disc pl-5 mt-1 space-y-1">
+                                <li>Vous confirmiez la réception du produit</li>
+                                <li>Le délai de protection acheteur expire (30 jours)</li>
+                                <li>Un médiateur résout un litige éventuel</li>
+                              </ul>
+                              Les fonds ne sont jamais directement accessibles au vendeur avant ces conditions.
+                            </p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </CardContent>
               </Card>
             </div>
             
             {/* Colonne de droite - options de paiement */}
-            <div>
-              <Card>
-                <CardContent className="p-6 space-y-6">
-                  <h2 className="text-xl font-semibold">Méthode de paiement</h2>
+            <div className="md:h-full">
+              <Card className="h-full">
+                <CardContent className="p-8 space-y-6 h-full flex flex-col">
+                  <h2 className="text-2xl font-semibold">Méthode de paiement</h2>
                   
-                  <Tabs defaultValue="browser" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="browser">Payer via navigateur</TabsTrigger>
-                      <TabsTrigger value="mobile">Payer via téléphone</TabsTrigger>
+                  <Tabs defaultValue="browser" className="w-full flex-grow">
+                    <TabsList className="grid w-full grid-cols-2 rounded-full">
+                      <TabsTrigger value="browser" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">
+                        Payer via navigateur
+                      </TabsTrigger>
+                      <TabsTrigger value="mobile" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">
+                        Payer via téléphone
+                      </TabsTrigger>
                     </TabsList>
                     
-                    <TabsContent value="browser" className="mt-6">
-                      <div className="space-y-6">
+                    <TabsContent value="browser" className="mt-6 flex-grow flex flex-col">
+                      <div className="space-y-6 flex-grow">
                         <p className="text-muted-foreground text-sm">
                           Utilisez votre extension de wallet (Metamask, Coinbase Wallet...) pour payer directement depuis votre navigateur.
                         </p>
                         
-                        <ListingActions
-                          listingId={listingId}
-                          sellerId={listing?.user?.id || ""}
-                          sellerAddress={sellerAddress}
-                          title={title}
-                          price={price}
-                          cryptoAmount={cryptoAmount}
-                          cryptoCurrency={cryptoCurrency}
-                          isCheckoutPage={true}
-                        />
+                        <div className="flex-grow flex items-center justify-center">
+                          <div className="w-full max-w-md">
+                            <ListingActions
+                              listingId={listingId}
+                              sellerId={listing?.user?.id || ""}
+                              sellerAddress={sellerAddress}
+                              title={title}
+                              price={price}
+                              cryptoAmount={cryptoAmount}
+                              cryptoCurrency={cryptoCurrency}
+                              isCheckoutPage={true}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </TabsContent>
                     
-                    <TabsContent value="mobile" className="mt-6">
+                    <TabsContent value="mobile" className="mt-6 flex-grow">
                       <QRCodePayment 
                         paymentUrl={getPaymentUrl()}
                         sellerAddress={sellerAddress}
