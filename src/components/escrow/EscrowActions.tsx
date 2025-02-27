@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Issue } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { useReleaseEscrow } from "@/hooks/useReleaseEscrow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileWalletRedirect } from "@/components/payment/MobileWalletRedirect";
@@ -23,25 +24,35 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Transaction } from "./types/escrow";
+import { Dispatch, SetStateAction } from "react";
 
 interface EscrowActionsProps {
   transactionId: string;
+  transaction?: Transaction;
   blockchainTxnId?: string;
   sellerAddress?: string;
-  isBuyer: boolean;
-  isSeller: boolean;
-  isCompleted: boolean;
+  isBuyer?: boolean;
+  isSeller?: boolean;
+  isCompleted?: boolean;
+  isLoading?: boolean;
+  setIsLoading?: Dispatch<SetStateAction<boolean>>;
   onRelease: () => void;
+  onActionStart?: () => void;
 }
 
 export function EscrowActions({
   transactionId,
+  transaction,
   blockchainTxnId,
   sellerAddress,
   isBuyer,
   isSeller,
   isCompleted,
+  isLoading: externalIsLoading,
+  setIsLoading: setExternalIsLoading,
   onRelease,
+  onActionStart,
 }: EscrowActionsProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -49,8 +60,21 @@ export function EscrowActions({
   const { releaseEscrow } = useReleaseEscrow();
   const isMobile = useIsMobile();
 
+  // Utilisez l'ID de transaction blockchain de props ou de l'objet transaction
+  const txnBlockchainId = blockchainTxnId || transaction?.blockchain_txn_id;
+  
+  // Détermine si l'utilisateur est acheteur/vendeur via props ou l'objet transaction
+  const userIsBuyer = isBuyer !== undefined ? isBuyer : 
+                      (transaction?.is_buyer !== undefined ? transaction.is_buyer : false);
+  const userIsSeller = isSeller !== undefined ? isSeller :
+                       (transaction?.is_seller !== undefined ? transaction.is_seller : false);
+  
+  // Détermine si la transaction est complétée
+  const txnIsCompleted = isCompleted !== undefined ? isCompleted :
+                        (transaction?.escrow_status === 'completed');
+
   const handleReleaseFunds = async () => {
-    if (!blockchainTxnId) {
+    if (!txnBlockchainId) {
       toast({
         title: "Erreur",
         description: "ID de transaction blockchain manquant",
@@ -60,8 +84,17 @@ export function EscrowActions({
     }
 
     try {
+      if (onActionStart) {
+        onActionStart();
+      }
+      
+      // Mettre à jour l'état de chargement local et externe si disponible
       setIsReleasing(true);
-      await releaseEscrow(blockchainTxnId);
+      if (setExternalIsLoading) {
+        setExternalIsLoading(true);
+      }
+      
+      await releaseEscrow(txnBlockchainId);
       
       toast({
         title: "Succès",
@@ -78,10 +111,13 @@ export function EscrowActions({
       });
     } finally {
       setIsReleasing(false);
+      if (setExternalIsLoading) {
+        setExternalIsLoading(false);
+      }
     }
   };
 
-  if (isCompleted) {
+  if (txnIsCompleted) {
     return null;
   }
 
@@ -90,7 +126,7 @@ export function EscrowActions({
     return (
       <div className="space-y-4">
         <MobileWalletRedirect
-          isProcessing={isLoading || isReleasing}
+          isProcessing={isLoading || isReleasing || (externalIsLoading || false)}
           onConfirm={handleReleaseFunds}
           action="release"
         />
@@ -98,7 +134,7 @@ export function EscrowActions({
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="w-full">
-              <Issue className="mr-2 h-4 w-4" />
+              <AlertTriangle className="mr-2 h-4 w-4" />
               Signaler un problème
             </Button>
           </DialogTrigger>
@@ -142,12 +178,12 @@ export function EscrowActions({
   }
 
   // Interface pour ordinateur
-  if (isBuyer) {
+  if (userIsBuyer) {
     return (
       <div className="space-y-4">
         <Button
           onClick={handleReleaseFunds}
-          disabled={isReleasing || !blockchainTxnId}
+          disabled={isReleasing || !txnBlockchainId}
           className="w-full"
         >
           {isReleasing ? (
@@ -161,14 +197,14 @@ export function EscrowActions({
         </Button>
         
         <Button variant="outline" className="w-full">
-          <Issue className="mr-2 h-4 w-4" />
+          <AlertTriangle className="mr-2 h-4 w-4" />
           Signaler un problème
         </Button>
       </div>
     );
   }
 
-  if (isSeller) {
+  if (userIsSeller) {
     return (
       <div className="space-y-4">
         <Button disabled className="w-full">
@@ -176,7 +212,7 @@ export function EscrowActions({
         </Button>
         
         <Button variant="outline" className="w-full">
-          <Issue className="mr-2 h-4 w-4" />
+          <AlertTriangle className="mr-2 h-4 w-4" />
           Contacter l'acheteur
         </Button>
       </div>
