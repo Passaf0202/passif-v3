@@ -80,8 +80,8 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
 
   // Fonction pour ouvrir le lien vers l'explorateur blockchain
   const openBlockchainExplorer = () => {
-    if (transaction?.blockchain_txn_id) {
-      window.open(`https://amoy.polygonscan.com/tx/${transaction.blockchain_txn_id}`, '_blank');
+    if (transaction?.transaction_hash) {
+      window.open(`https://amoy.polygonscan.com/tx/${transaction.transaction_hash}`, '_blank');
     }
   };
 
@@ -253,7 +253,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
           </Alert>
 
           {/* Bouton pour suivre la transaction */}
-          {transaction.blockchain_txn_id && (
+          {transaction.transaction_hash && (
             <Button 
               variant="outline" 
               className="w-full flex items-center justify-center gap-2"
