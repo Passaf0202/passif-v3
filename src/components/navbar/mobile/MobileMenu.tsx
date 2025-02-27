@@ -1,6 +1,6 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft, Wallet, User, List, LogOut } from "lucide-react";
+import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft, Wallet, User, List, LogOut, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -219,6 +219,15 @@ export function MobileMenu() {
                   >
                     <List className="h-5 w-5 mr-3" />
                     Mes annonces
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate("/transactions")}
+                    className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+                  >
+                    <FileText className="h-5 w-5 mr-3" />
+                    Mes transactions
                   </Button>
 
                   <Button

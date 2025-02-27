@@ -1,5 +1,6 @@
+
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound, Wallet, List } from "lucide-react";
+import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound, Wallet, List, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
@@ -123,6 +124,12 @@ export const NavbarActions = () => {
                   <Link to="/my-listings" className="w-full cursor-pointer flex items-center">
                     <List className="mr-2 h-4 w-4" />
                     <span>Mes annonces</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/transactions" className="w-full cursor-pointer flex items-center">
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Mes transactions</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

@@ -18,6 +18,7 @@ import { UserProfile } from "@/components/UserProfile";
 import Search from "@/pages/Search";
 import Admin from "@/pages/Admin";
 import { AdminRoute } from "@/components/admin/AdminRoute";
+import Transactions from "@/pages/Transactions";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +46,7 @@ function App() {
             <Route path="/payment/:id" element={<Payment />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/transactions" element={<Transactions />} />
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<Admin />} />
             </Route>
