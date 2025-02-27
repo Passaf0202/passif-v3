@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, ArrowRight } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowRight, Smartphone } from "lucide-react";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { useWeb3Modal } from '@web3modal/react';
 import { useIsMobile } from "@/hooks/use-mobile";
