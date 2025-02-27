@@ -3,14 +3,21 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ListingForm } from "./ListingForm";
 import DiamondViewer from "@/components/home/DiamondViewer";
+import { Progress } from "@/components/ui/progress";
 
 interface MobileCreateListingProps {
   onClose: () => void;
   onSubmit: (values: any) => Promise<void>;
   isSubmitting: boolean;
+  uploadProgress?: number;
 }
 
-export function MobileCreateListing({ onClose, onSubmit, isSubmitting }: MobileCreateListingProps) {
+export function MobileCreateListing({
+  onClose,
+  onSubmit,
+  isSubmitting,
+  uploadProgress = 0
+}: MobileCreateListingProps) {
   return (
     <div className="min-h-screen bg-background">
       <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b flex items-center px-4">
@@ -42,6 +49,20 @@ export function MobileCreateListing({ onClose, onSubmit, isSubmitting }: MobileC
             </h1>
           </div>
         </div>
+
+        {isSubmitting && uploadProgress > 0 && uploadProgress < 100 && (
+          <div className="px-4 mb-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Upload des images</span>
+                  <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+                </div>
+                <Progress value={uploadProgress} className="h-2" />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="px-4 pb-16">
           <ListingForm onSubmit={onSubmit} isSubmitting={isSubmitting} />

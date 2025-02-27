@@ -3,14 +3,21 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ListingForm } from "./ListingForm";
 import DiamondViewer from "@/components/home/DiamondViewer";
+import { Progress } from "@/components/ui/progress";
 
 interface DesktopCreateListingProps {
   onClose: () => void;
   onSubmit: (values: any) => Promise<void>;
   isSubmitting: boolean;
+  uploadProgress?: number;
 }
 
-export function DesktopCreateListing({ onClose, onSubmit, isSubmitting }: DesktopCreateListingProps) {
+export function DesktopCreateListing({ 
+  onClose, 
+  onSubmit, 
+  isSubmitting,
+  uploadProgress = 0
+}: DesktopCreateListingProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="relative h-64 overflow-hidden">
@@ -40,9 +47,25 @@ export function DesktopCreateListing({ onClose, onSubmit, isSubmitting }: Deskto
             Décrivez votre article pour le mettre en vente
           </p>
         </div>
+        
+        {isSubmitting && uploadProgress > 0 && uploadProgress < 100 && (
+          <div className="bg-white rounded-lg p-4 mb-6 shadow-md">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Upload des images</span>
+                <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </div>
+          </div>
+        )}
+        
         <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
           <div className="p-8 md:p-12">
-            <ListingForm onSubmit={onSubmit} isSubmitting={isSubmitting} />
+            <ListingForm 
+              onSubmit={onSubmit} 
+              isSubmitting={isSubmitting} 
+            />
           </div>
         </div>
       </div>

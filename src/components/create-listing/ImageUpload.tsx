@@ -6,15 +6,25 @@ import { compressImage } from "./utils/imageCompression";
 import { validateFile, MAX_IMAGES, MAX_FILE_SIZE } from "./utils/imageValidation";
 import { DropZone } from "./components/DropZone";
 import { ImagePreview } from "./components/ImagePreview";
+import { Loader2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface ImageUploadProps {
   images: File[];
   onImagesChange: (images: File[]) => void;
+  onImageUrlsChange?: (urls: string[]) => void;
   category?: string;
 }
 
-export function ImageUpload({ images, onImagesChange, category }: ImageUploadProps) {
+export function ImageUpload({ 
+  images, 
+  onImagesChange, 
+  onImageUrlsChange, 
+  category 
+}: ImageUploadProps) {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
 
   // Initialiser les URLs de prévisualisation lorsque les images changent
@@ -51,9 +61,14 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     }
 
     try {
+      setProcessing(true);
+      setProgress(0);
+      
+      // Valider les fichiers
       const validFiles = acceptedFiles.filter(validateFile);
       if (validFiles.length === 0) {
         console.log("No valid files to process");
+        setProcessing(false);
         return;
       }
       
@@ -63,9 +78,16 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         description: "Vos images sont en cours de préparation...",
       });
       
-      const compressedFiles = await Promise.all(validFiles.map(compressImage));
+      // Compresser les images
+      const compressedFiles = await Promise.all(
+        validFiles.map(async (file, index) => {
+          const compressed = await compressImage(file);
+          setProgress(((index + 1) / validFiles.length) * 100);
+          return compressed;
+        })
+      );
       
-      console.log('Tailles des fichiers compressés:', compressedFiles.map(f => ({
+      console.log('Images compressées:', compressedFiles.map(f => ({
         name: f.name,
         size: `${(f.size / 1024).toFixed(2)}KB`
       })));
@@ -84,6 +106,8 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         description: "Une erreur est survenue lors du traitement des images",
         variant: "destructive",
       });
+    } finally {
+      setProcessing(false);
     }
   }, [images, onImagesChange, toast]);
 
@@ -95,6 +119,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     },
     maxFiles: MAX_IMAGES - images.length,
     maxSize: MAX_FILE_SIZE,
+    disabled: processing,
     noClick: false,
     noKeyboard: false,
   });
@@ -112,8 +137,18 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
 
   return (
     <div className="space-y-4">
+      {processing && (
+        <div className="p-4 bg-primary/5 rounded-lg space-y-2">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <span className="text-sm font-medium">Traitement des images en cours...</span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+      )}
+      
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {images.length < MAX_IMAGES && (
+        {images.length < MAX_IMAGES && !processing && (
           <DropZone 
             {...getRootProps()} 
             isDragActive={isDragActive}
@@ -140,6 +175,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
             type="button" 
             onClick={() => onImagesChange([])} 
             className="text-primary hover:underline ml-1"
+            disabled={processing}
           >
             Tout supprimer
           </button>
