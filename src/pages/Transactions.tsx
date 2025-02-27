@@ -227,7 +227,7 @@ export default function Transactions() {
     return (
       transaction.escrow_status === 'pending' &&
       transaction.can_be_cancelled &&
-      (transaction.buyer_id === user?.id || transaction.seller_id === user?.id)
+      (user?.id === transaction.buyer?.id || user?.id === transaction.seller?.id)
     );
   };
 
