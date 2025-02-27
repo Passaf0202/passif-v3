@@ -29,6 +29,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import { ListingImages } from "@/components/listing/ListingImages";
 
 export default function Checkout() {
   const location = useLocation();
@@ -36,6 +37,7 @@ export default function Checkout() {
   const { toast } = useToast();
   const { isConnected, address } = useAccount();
   const [productImage, setProductImage] = useState<string>("/placeholder.svg");
+  const [productImages, setProductImages] = useState<string[]>(["/placeholder.svg"]);
   const isMobile = useIsMobile();
   const [openQrDialog, setOpenQrDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -93,9 +95,10 @@ export default function Checkout() {
         throw error;
       }
       
-      // Définir l'image principale
+      // Définir les images
       if (data.images && data.images.length > 0) {
         setProductImage(data.images[0]);
+        setProductImages(data.images);
       }
       
       return data;
@@ -177,6 +180,12 @@ export default function Checkout() {
     }
   };
 
+  // Handler pour gérer les erreurs d'image
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.log("Image error, using placeholder");
+    e.currentTarget.src = "/placeholder.svg";
+  };
+
   if (isLoading) {
     return (
       <div>
@@ -249,6 +258,7 @@ export default function Checkout() {
                     src={productImage} 
                     alt={title}
                     className="h-16 w-16 object-cover rounded-md" 
+                    onError={handleImageError}
                   />
                   <div>
                     <h2 className="font-semibold">{title}</h2>
@@ -342,15 +352,19 @@ export default function Checkout() {
           
           <Card className="w-full">
             <CardContent className="p-8 space-y-6">
-              <div className="flex items-center space-x-4">
-                <img 
-                  src={productImage} 
-                  alt={title}
-                  className="h-20 w-20 object-cover rounded-md shadow-sm" 
-                />
-                <div>
+              <div className="flex items-start space-x-6">
+                {/* Image du produit améliorée avec gestion d'erreur */}
+                <div className="rounded-md overflow-hidden shadow-sm w-40 h-40 flex-shrink-0">
+                  <img 
+                    src={productImage} 
+                    alt={title}
+                    className="w-full h-full object-contain" 
+                    onError={handleImageError}
+                  />
+                </div>
+                <div className="flex-1">
                   <h2 className="text-xl font-semibold">{title}</h2>
-                  <div className="flex items-baseline gap-4 mt-1">
+                  <div className="flex items-baseline gap-4 mt-3">
                     <p className="text-2xl font-bold">{formatPrice(price)} EUR</p>
                     <p className="text-sm text-muted-foreground">
                       ≈ {cryptoAmount?.toFixed(8)} {cryptoCurrency}
@@ -384,7 +398,7 @@ export default function Checkout() {
               <Separator />
               
               <div className="space-y-5">
-                {/* Boutons principaux */}
+                {/* Boutons principaux - la même hauteur (py-7) */}
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     className="w-full py-7 text-base font-medium"

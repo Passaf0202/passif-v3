@@ -83,7 +83,7 @@ export function ContactModal({ listingId, sellerId, listingTitle }: ContactModal
 
   if (!user) {
     return (
-      <Button variant="outline" className="w-full" asChild>
+      <Button variant="outline" className="w-full py-7 text-base font-medium" asChild>
         <a href="/auth">
           <MessageCircle className="mr-2 h-4 w-4" />
           Se connecter pour contacter
@@ -95,7 +95,7 @@ export function ContactModal({ listingId, sellerId, listingTitle }: ContactModal
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full py-7 text-base font-medium">
           <MessageCircle className="mr-2 h-4 w-4" />
           Contacter le vendeur
         </Button>
