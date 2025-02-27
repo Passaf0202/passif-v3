@@ -75,7 +75,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    navigate('/');
   };
 
   // Fonction pour ouvrir le lien vers l'explorateur blockchain

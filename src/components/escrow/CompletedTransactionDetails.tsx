@@ -136,14 +136,14 @@ export function CompletedTransactionDetails({ transaction }: CompletedTransactio
             </div>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div className="flex items-start gap-3">
               <div className="mt-1">
                 <Award className="h-5 w-5 text-blue-500" />
               </div>
               <div>
-                <h4 className="font-medium text-blue-700 mb-1">Économies réalisées</h4>
-                <p className="text-sm text-blue-600">
+                <h4 className="font-medium text-gray-700 mb-1">Économies réalisées</h4>
+                <p className="text-sm text-gray-600">
                   En utilisant notre plateforme décentralisée, vous avez économisé environ{' '}
                   <span className="font-medium">{formatCryptoAmount(calculateSavings())} {transaction.token_symbol}</span>{' '}
                   par rapport aux plateformes traditionnelles.
