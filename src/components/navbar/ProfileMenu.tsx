@@ -1,0 +1,127 @@
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound, Wallet, List, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
+
+export function ProfileMenu() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [userProfile, setUserProfile] = useState<{ username?: string, first_name?: string, full_name?: string } | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, first_name, full_name')
+          .eq('id', user.id)
+          .single();
+          
+        setUserProfile(profile);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
+  const displayName = userProfile?.username || userProfile?.first_name || userProfile?.full_name || '';
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de se déconnecter",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Déconnexion réussie",
+        description: "À bientôt !",
+      });
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <UserRound className="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56 mt-2" align="end">
+        <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/profile" className="w-full cursor-pointer flex items-center justify-between">
+            <div className="flex items-center">
+              <User className="mr-2 h-4 w-4" />
+              <span>Mon profil</span>
+            </div>
+            {displayName && (
+              <span className="text-sm text-muted-foreground">
+                {displayName}
+              </span>
+            )}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/my-listings" className="w-full cursor-pointer flex items-center">
+            <List className="mr-2 h-4 w-4" />
+            <span>Mes annonces</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/transactions" className="w-full cursor-pointer flex items-center">
+            <FileText className="mr-2 h-4 w-4" />
+            <span>Mes transactions</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/messages" className="w-full cursor-pointer">
+            <MessageCircle className="mr-2 h-4 w-4" />
+            Messages
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/favorites" className="w-full cursor-pointer">
+            <Heart className="mr-2 h-4 w-4" />
+            Favoris
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/notifications" className="w-full cursor-pointer">
+            <Bell className="mr-2 h-4 w-4" />
+            Notifications
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/settings" className="w-full cursor-pointer">
+            <Settings className="mr-2 h-4 w-4" />
+            Paramètres
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+          <LogOut className="mr-2 h-4 w-4" />
+          Déconnexion
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
