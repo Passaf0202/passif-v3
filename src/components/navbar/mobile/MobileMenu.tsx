@@ -1,6 +1,6 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft, Wallet, User } from "lucide-react";
+import { Menu, X, Search, Plus, Heart, MessageCircle, Save, ChevronRight, ArrowLeft, Wallet, User, List, LogOut, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -24,6 +24,7 @@ export function MobileMenu() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -92,6 +93,117 @@ export function MobileMenu() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Déconnexion",
+        description: "Vous avez été déconnecté avec succès",
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error);
+      toast({
+        title: "Erreur",
+        description: "Un problème est survenu lors de la déconnexion",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleScanQRCode = () => {
+    if (!('BarcodeDetector' in window)) {
+      toast({
+        title: "Non disponible",
+        description: "La fonctionnalité de scan de QR code n'est pas disponible sur votre appareil",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Cette fonction serait implémentée pour déclencher l'appareil photo et scanner un QR code
+    // Pour l'instant, simulons une redirection vers une page d'annonce
+    // Dans une implémentation réelle, nous aurions besoin d'accéder à l'appareil photo et de scanner un QR code
+    
+    try {
+      // Demander la permission d'utiliser la caméra
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(function(stream) {
+          // Créer un élément vidéo pour afficher le flux de la caméra
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          video.setAttribute('playsinline', 'true'); // Requis pour iOS Safari
+          video.play();
+          
+          // Créer un détecteur de codes-barres
+          // @ts-ignore - BarcodeDetector n'est pas encore dans les types TypeScript standard
+          const barcodeDetector = new window.BarcodeDetector({ formats: ['qr_code'] });
+          
+          // Détecter les codes-barres dans un intervalle
+          const detectInterval = setInterval(() => {
+            barcodeDetector.detect(video)
+              .then(barcodes => {
+                if (barcodes.length > 0) {
+                  clearInterval(detectInterval);
+                  stream.getTracks().forEach(track => track.stop());
+                  
+                  // Extraire l'URL du QR code
+                  const qrValue = barcodes[0].rawValue;
+                  console.log("QR Code détecté:", qrValue);
+                  
+                  // Vérifier si l'URL contient un listingId
+                  const url = new URL(qrValue);
+                  const listingId = url.searchParams.get('listingId');
+                  
+                  if (listingId) {
+                    // Rediriger vers la page de checkout avec le listingId
+                    navigate(`/checkout?listingId=${listingId}`);
+                    toast({
+                      title: "QR Code détecté",
+                      description: "Redirection vers la page de paiement...",
+                    });
+                  } else {
+                    toast({
+                      title: "QR Code invalide",
+                      description: "Ce QR code ne contient pas d'information de paiement",
+                      variant: "destructive",
+                    });
+                  }
+                }
+              })
+              .catch(err => {
+                console.error("Erreur lors de la détection du QR code:", err);
+              });
+          }, 500);
+          
+          // Arrêter la détection après 30 secondes si aucun QR code n'est détecté
+          setTimeout(() => {
+            clearInterval(detectInterval);
+            stream.getTracks().forEach(track => track.stop());
+            toast({
+              title: "Scan terminé",
+              description: "Aucun QR code détecté. Veuillez réessayer.",
+            });
+          }, 30000);
+        })
+        .catch(function(err) {
+          console.error("Erreur d'accès à la caméra:", err);
+          toast({
+            title: "Erreur",
+            description: "Impossible d'accéder à la caméra",
+            variant: "destructive",
+          });
+        });
+    } catch (error) {
+      console.error("Erreur lors du scan du QR code:", error);
+      toast({
+        title: "Erreur",
+        description: "Un problème est survenu lors du scan du QR code",
+        variant: "destructive",
+      });
+    }
+  };
+
   const renderMainContent = () => (
     <>
       {showSearch ? (
@@ -138,6 +250,14 @@ export function MobileMenu() {
                 >
                   <User className="h-5 w-5" />
                   Mon Profil
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleScanQRCode}
+                  className="w-full h-12 border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 flex items-center justify-center gap-2 rounded-full"
+                >
+                  <ScanLine className="h-5 w-5" />
+                  Scanner un QR code
                 </Button>
               </div>
             ) : (
@@ -190,6 +310,28 @@ export function MobileMenu() {
                 <Save className="h-5 w-5 mr-3" />
                 Recherches sauvegardées
               </Button>
+
+              {user && (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate("/my-listings")}
+                    className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+                  >
+                    <List className="h-5 w-5 mr-3" />
+                    Mes annonces
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    onClick={handleLogout}
+                    className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+                  >
+                    <LogOut className="h-5 w-5 mr-3" />
+                    Déconnexion
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
