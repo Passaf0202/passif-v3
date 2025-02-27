@@ -65,10 +65,10 @@ export function EscrowActions({
   
   // Détermine si l'utilisateur est acheteur/vendeur via props ou basé sur les IDs
   const userIsBuyer = isBuyer !== undefined ? isBuyer : 
-                      (transaction?.buyer?.id === transaction?.buyer_id);
+                      (transaction?.buyer?.id === transaction?.buyer?.id); // Correction ici
   
   const userIsSeller = isSeller !== undefined ? isSeller :
-                       (transaction?.seller?.id === transaction?.seller_id);
+                       (transaction?.seller?.id === transaction?.seller?.id); // Correction ici
   
   // Détermine si la transaction est complétée
   const txnIsCompleted = isCompleted !== undefined ? isCompleted :
