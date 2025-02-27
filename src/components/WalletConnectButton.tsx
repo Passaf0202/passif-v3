@@ -7,6 +7,7 @@ import { useWeb3Modal } from '@web3modal/wagmi/react'
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useCallback, useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface WalletConnectButtonProps {
   minimal?: boolean;
@@ -20,6 +21,12 @@ export function WalletConnectButton({ minimal = false, className }: WalletConnec
   const { toast } = useToast()
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Masquer complètement le bouton sur mobile
+  if (isMobile) {
+    return null;
+  }
 
   useEffect(() => {
     if (isConnected) {
