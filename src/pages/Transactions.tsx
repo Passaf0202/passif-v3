@@ -8,7 +8,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Loader2, ExternalLink } from "lucide-react";
+import { Loader2, ExternalLink, AlertTriangle } from "lucide-react";
+import { ethers } from "ethers";
+import { useNetwork, useSwitchNetwork } from "wagmi";
+import { amoy } from "@/config/chains";
+import { ESCROW_ABI, ESCROW_CONTRACT_ADDRESS } from "@/components/escrow/types/escrow";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Transactions() {
   const { user } = useAuth();
@@ -17,6 +32,11 @@ export default function Transactions() {
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [transactionToCancel, setTransactionToCancel] = useState<Transaction | null>(null);
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -98,6 +118,117 @@ export default function Transactions() {
     }
     
     return `${amount} ${symbol}`;
+  };
+
+  const handleCancelTransaction = async () => {
+    if (!transactionToCancel || !transactionToCancel.blockchain_txn_id) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'annuler cette transaction",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsCancelling(true);
+
+      // 1. Vérifier et changer de réseau si nécessaire
+      if (chain?.id !== amoy.id) {
+        if (!switchNetwork) {
+          throw new Error("Impossible de changer de réseau automatiquement");
+        }
+        await switchNetwork(amoy.id);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      // 2. Initialiser le provider et le signer
+      let provider;
+      if (typeof window !== 'undefined' && window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+      } else {
+        throw new Error("Provider non disponible");
+      }
+      
+      const signer = provider.getSigner();
+      
+      // 3. Initialiser le contrat
+      const contract = new ethers.Contract(
+        ESCROW_CONTRACT_ADDRESS,
+        ESCROW_ABI,
+        signer
+      );
+
+      const txnId = Number(transactionToCancel.blockchain_txn_id);
+      
+      // 4. Estimer le gaz
+      const gasEstimate = await contract.estimateGas.cancelTransaction(txnId);
+      const gasLimit = gasEstimate.mul(120).div(100); // +20% marge
+      
+      // 5. Envoyer la transaction d'annulation
+      const tx = await contract.cancelTransaction(txnId, { gasLimit });
+      const receipt = await tx.wait();
+
+      if (receipt.status === 1) {
+        // 6. Mise à jour de la base de données
+        const now = new Date().toISOString();
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            status: 'cancelled',
+            escrow_status: 'cancelled',
+            cancellation_reason: 'Annulée par l\'utilisateur',
+            cancelled_at: now,
+            cancelled_by: user?.id,
+            can_be_cancelled: false,
+            updated_at: now
+          })
+          .eq('id', transactionToCancel.id);
+
+        if (updateError) throw updateError;
+
+        // 7. Mettre à jour l'état local
+        setTransactions(prev => 
+          prev.map(t => 
+            t.id === transactionToCancel.id
+              ? { 
+                  ...t, 
+                  status: 'cancelled', 
+                  escrow_status: 'cancelled',
+                  cancelled_at: now,
+                  cancelled_by: user?.id,
+                  can_be_cancelled: false
+                }
+              : t
+          )
+        );
+
+        toast({
+          title: "Succès",
+          description: "La transaction a été annulée avec succès",
+        });
+      } else {
+        throw new Error("L'annulation de la transaction a échoué sur la blockchain");
+      }
+    } catch (error: any) {
+      console.error('[Transaction] Error cancelling transaction:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de l'annulation",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCancelling(false);
+      setTransactionToCancel(null);
+    }
+  };
+
+  const canCancelTransaction = (transaction: Transaction) => {
+    return (
+      transaction.escrow_status === 'pending' &&
+      transaction.can_be_cancelled &&
+      (transaction.buyer_id === user?.id || transaction.seller_id === user?.id)
+    );
   };
 
   return (
@@ -226,6 +357,17 @@ export default function Transactions() {
                                   Voir sur Polygonscan
                                 </Button>
                               )}
+                              
+                              {canCancelTransaction(transaction) && (
+                                <Button 
+                                  variant="destructive"
+                                  className="flex-1 sm:flex-none"
+                                  onClick={() => setTransactionToCancel(transaction)}
+                                >
+                                  <AlertTriangle className="h-4 w-4 mr-2" />
+                                  Annuler
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -238,6 +380,38 @@ export default function Transactions() {
           )}
         </div>
       </div>
+
+      {/* Dialog de confirmation pour l'annulation */}
+      <AlertDialog open={!!transactionToCancel} onOpenChange={(open) => !open && setTransactionToCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer l'annulation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir annuler cette transaction ? Cette action est irréversible et les fonds seront retournés à l'acheteur.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleCancelTransaction();
+              }}
+              disabled={isCancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Annulation en cours...
+                </>
+              ) : (
+                "Confirmer l'annulation"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
