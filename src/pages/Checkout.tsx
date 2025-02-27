@@ -29,7 +29,6 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { ListingImages } from "@/components/listing/ListingImages";
 
 export default function Checkout() {
   const location = useLocation();
@@ -37,10 +36,10 @@ export default function Checkout() {
   const { toast } = useToast();
   const { isConnected, address } = useAccount();
   const [productImage, setProductImage] = useState<string>("/placeholder.svg");
-  const [productImages, setProductImages] = useState<string[]>(["/placeholder.svg"]);
   const isMobile = useIsMobile();
   const [openQrDialog, setOpenQrDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   // Récupérer les paramètres depuis l'état de navigation OU depuis le localStorage
   const storedCheckoutData = JSON.parse(localStorage.getItem('checkoutData') || '{}');
@@ -52,8 +51,17 @@ export default function Checkout() {
     title = storedCheckoutData.title,
     price = storedCheckoutData.price,
     cryptoAmount = storedCheckoutData.cryptoAmount,
-    cryptoCurrency = storedCheckoutData.cryptoCurrency
+    cryptoCurrency = storedCheckoutData.cryptoCurrency,
+    productImageUrl = storedCheckoutData.productImageUrl
   } = location.state || {};
+  
+  // Si l'URL de l'image est déjà passée dans location.state, l'utiliser immédiatement
+  useEffect(() => {
+    if (productImageUrl) {
+      setProductImage(productImageUrl);
+      setImageLoaded(true);
+    }
+  }, [productImageUrl]);
   
   // Sauvegarder les données de checkout dans localStorage pour les restaurer en cas de rafraîchissement
   useEffect(() => {
@@ -64,11 +72,12 @@ export default function Checkout() {
         title,
         price,
         cryptoAmount,
-        cryptoCurrency
+        cryptoCurrency,
+        productImageUrl: productImage !== "/placeholder.svg" ? productImage : productImageUrl
       };
       localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
     }
-  }, [listingId, sellerAddress, title, price, cryptoAmount, cryptoCurrency]);
+  }, [listingId, sellerAddress, title, price, cryptoAmount, cryptoCurrency, productImage, productImageUrl]);
 
   // Récupérer les détails de l'annonce
   const { data: listing, isLoading } = useQuery({
@@ -95,18 +104,26 @@ export default function Checkout() {
         throw error;
       }
       
-      // Définir les images
+      // Définir l'image principale
       if (data.images && data.images.length > 0) {
+        console.log("Setting product image from DB:", data.images[0]);
         setProductImage(data.images[0]);
-        setProductImages(data.images);
+        setImageLoaded(true);
+        
+        // Mettre à jour également le localStorage avec l'URL de l'image
+        const updatedCheckoutData = {
+          ...JSON.parse(localStorage.getItem('checkoutData') || '{}'),
+          productImageUrl: data.images[0]
+        };
+        localStorage.setItem('checkoutData', JSON.stringify(updatedCheckoutData));
       }
       
       return data;
     },
     enabled: !!listingId,
-    // Désactiver le refetching automatique
+    // Désactiver le refetching automatique mais garder le fetch initial
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: false,
     staleTime: Infinity,
   });
@@ -184,6 +201,13 @@ export default function Checkout() {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.log("Image error, using placeholder");
     e.currentTarget.src = "/placeholder.svg";
+    setImageLoaded(true); // Marquer comme chargée même si c'est le placeholder
+  };
+  
+  // Handler pour le chargement réussi d'image
+  const handleImageLoaded = () => {
+    console.log("Image loaded successfully");
+    setImageLoaded(true);
   };
 
   if (isLoading) {
@@ -205,7 +229,7 @@ export default function Checkout() {
     );
   }
 
-  if (!listing && isLoading === false) {
+  if (!listing && isLoading === false && !storedCheckoutData.listingId) {
     return (
       <div>
         <Navbar />
@@ -231,7 +255,7 @@ export default function Checkout() {
     );
   }
 
-  // Rendu pour mobile - reste inchangé
+  // Rendu pour mobile - reste inchangé mais avec amélioration de la gestion des images
   if (isMobile) {
     return (
       <div>
@@ -254,12 +278,16 @@ export default function Checkout() {
                 </div>
 
                 <div className="flex items-center space-x-4">
-                  <img 
-                    src={productImage} 
-                    alt={title}
-                    className="h-16 w-16 object-cover rounded-md" 
-                    onError={handleImageError}
-                  />
+                  <div className="h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
+                    {!imageLoaded && <div className="animate-pulse h-full w-full bg-gray-200"></div>}
+                    <img 
+                      src={productImage} 
+                      alt={title}
+                      className={`h-full w-full object-cover ${!imageLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      onError={handleImageError}
+                      onLoad={handleImageLoaded}
+                    />
+                  </div>
                   <div>
                     <h2 className="font-semibold">{title}</h2>
                     <div className="flex items-baseline gap-4">
@@ -331,7 +359,7 @@ export default function Checkout() {
     );
   }
 
-  // Rendu amélioré pour desktop - un seul bloc avec popup pour QR code
+  // Rendu amélioré pour desktop - avec optimisation du chargement d'image
   return (
     <div>
       <Navbar />
@@ -352,19 +380,20 @@ export default function Checkout() {
           
           <Card className="w-full">
             <CardContent className="p-8 space-y-6">
-              <div className="flex items-start space-x-6">
-                {/* Image du produit améliorée avec gestion d'erreur */}
-                <div className="rounded-md overflow-hidden shadow-sm w-40 h-40 flex-shrink-0">
+              <div className="flex items-center space-x-4">
+                <div className="h-20 w-20 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden shadow-sm">
+                  {!imageLoaded && <div className="animate-pulse h-full w-full bg-gray-200"></div>}
                   <img 
                     src={productImage} 
                     alt={title}
-                    className="w-full h-full object-contain" 
+                    className={`h-full w-full object-cover ${!imageLoaded ? 'opacity-0' : 'opacity-100'}`}
                     onError={handleImageError}
+                    onLoad={handleImageLoaded}
                   />
                 </div>
-                <div className="flex-1">
+                <div>
                   <h2 className="text-xl font-semibold">{title}</h2>
-                  <div className="flex items-baseline gap-4 mt-3">
+                  <div className="flex items-baseline gap-4 mt-1">
                     <p className="text-2xl font-bold">{formatPrice(price)} EUR</p>
                     <p className="text-sm text-muted-foreground">
                       ≈ {cryptoAmount?.toFixed(8)} {cryptoCurrency}
