@@ -30,9 +30,43 @@ export default function CreateListing() {
     }
   }, [user, loading, navigate, location.pathname, toast]);
 
+  // Fonction pour créer le bucket si nécessaire
+  const ensureBucketExists = async () => {
+    try {
+      // Vérifier si le bucket existe déjà
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(bucket => bucket.name === 'listings-images');
+      
+      if (!bucketExists) {
+        // Créer le bucket s'il n'existe pas
+        const { error } = await supabase.storage.createBucket('listings-images', {
+          public: true,
+          fileSizeLimit: 5242880, // 5MB
+        });
+        
+        if (error) {
+          console.error("Error creating bucket:", error);
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error ensuring bucket exists:", error);
+      return false;
+    }
+  };
+
   const uploadImages = async (images: File[]) => {
     try {
       console.log("Starting image upload process");
+      
+      // S'assurer que le bucket existe
+      const bucketReady = await ensureBucketExists();
+      if (!bucketReady) {
+        throw new Error("Impossible de préparer le stockage pour les images");
+      }
+      
       const uploadedUrls: string[] = [];
 
       for (const image of images) {
@@ -45,18 +79,47 @@ export default function CreateListing() {
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
         console.log("Uploading image:", fileName, "type:", image.type);
 
-        const { error: uploadError, data } = await supabase.storage
-          .from("listings-images")
-          .upload(fileName, image, {
-            contentType: image.type,
-            upsert: false
-          });
+        // Tentative d'upload avec retry
+        let uploadSuccess = false;
+        let attempts = 0;
+        const maxAttempts = 3;
+        
+        while (!uploadSuccess && attempts < maxAttempts) {
+          attempts++;
+          
+          try {
+            const { error: uploadError, data } = await supabase.storage
+              .from("listings-images")
+              .upload(fileName, image, {
+                contentType: image.type,
+                upsert: attempts > 1, // Tenter de remplacer après la première tentative
+                cacheControl: "3600" // Faciliter la mise en cache
+              });
 
-        if (uploadError) {
-          console.error("Error uploading image:", uploadError);
-          throw uploadError;
+            if (uploadError) {
+              console.error(`Upload attempt ${attempts} failed:`, uploadError);
+              
+              if (attempts < maxAttempts) {
+                console.log(`Retrying upload (${attempts}/${maxAttempts})...`);
+                // Attendre un peu avant de réessayer
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              } else {
+                throw uploadError;
+              }
+            } else {
+              uploadSuccess = true;
+            }
+          } catch (error) {
+            console.error(`Upload attempt ${attempts} exception:`, error);
+            if (attempts >= maxAttempts) throw error;
+          }
         }
 
+        if (!uploadSuccess) {
+          throw new Error(`Failed to upload ${image.name} after ${maxAttempts} attempts`);
+        }
+
+        // Obtenir l'URL publique
         const { data: { publicUrl } } = supabase.storage
           .from("listings-images")
           .getPublicUrl(fileName);
@@ -98,7 +161,9 @@ export default function CreateListing() {
       
       if (values.images?.length > 0) {
         try {
+          console.log("Uploading images...", values.images.length);
           imageUrls = await uploadImages(values.images);
+          console.log("Images uploaded successfully:", imageUrls);
         } catch (error) {
           console.error("Error uploading images:", error);
           toast({
@@ -111,7 +176,8 @@ export default function CreateListing() {
         }
       }
 
-      const { error: insertError } = await supabase
+      // Essayer d'insérer l'annonce avec les URLs d'images
+      const { error: insertError, data: insertedListing } = await supabase
         .from("listings")
         .insert({
           title: values.title,
@@ -137,7 +203,33 @@ export default function CreateListing() {
         .select('*')
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Error inserting listing:", insertError);
+        
+        // Si l'insertion échoue, essayer de nettoyer les images téléchargées
+        if (imageUrls.length > 0) {
+          try {
+            console.log("Cleaning up uploaded images...");
+            // Convertir les URLs en noms de fichiers
+            const fileNames = imageUrls.map(url => {
+              const parts = url.split('/');
+              return parts[parts.length - 1];
+            });
+            
+            // Essayer de supprimer les fichiers
+            for (const fileName of fileNames) {
+              await supabase.storage
+                .from("listings-images")
+                .remove([fileName]);
+            }
+            console.log("Cleanup completed");
+          } catch (cleanupError) {
+            console.error("Error cleaning up images:", cleanupError);
+          }
+        }
+        
+        throw insertError;
+      }
       
       toast({
         title: "Succès",

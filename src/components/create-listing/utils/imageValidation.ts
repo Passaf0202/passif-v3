@@ -1,10 +1,11 @@
 
 import { toast } from "@/components/ui/use-toast";
 
-export const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_IMAGES = 5;
 
 export const validateFile = (file: File): boolean => {
+  // Vérifier le type de fichier (uniquement images)
   if (!file.type.startsWith('image/')) {
     toast({
       title: "Type de fichier non supporté",
@@ -14,6 +15,18 @@ export const validateFile = (file: File): boolean => {
     return false;
   }
   
+  // Vérifier les extensions autorisées
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+  if (!allowedTypes.includes(file.type)) {
+    toast({
+      title: "Format non supporté",
+      description: `Seuls les formats JPG et PNG sont acceptés`,
+      variant: "destructive",
+    });
+    return false;
+  }
+  
+  // Vérifier la taille du fichier
   if (file.size > MAX_FILE_SIZE) {
     toast({
       title: "Fichier trop volumineux",
@@ -25,4 +38,3 @@ export const validateFile = (file: File): boolean => {
 
   return true;
 };
-

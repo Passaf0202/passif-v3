@@ -1,7 +1,8 @@
+
 import { ActionType, Action, State, ToasterToast } from "./types"
 
 export const TOAST_LIMIT = 1
-export const TOAST_REMOVE_DELAY = 1000000
+export const TOAST_REMOVE_DELAY = 5000
 
 export const actionTypes: ActionType = {
   ADD_TOAST: "ADD_TOAST",

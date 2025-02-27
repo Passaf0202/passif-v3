@@ -35,6 +35,11 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     console.log("Dropped files:", acceptedFiles.map(f => ({ name: f.name, type: f.type, size: f.size })));
     
+    if (acceptedFiles.length === 0) {
+      console.log("No files were accepted");
+      return;
+    }
+    
     const totalImages = images.length + acceptedFiles.length;
     if (totalImages > MAX_IMAGES) {
       toast({
@@ -47,6 +52,17 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
 
     try {
       const validFiles = acceptedFiles.filter(validateFile);
+      if (validFiles.length === 0) {
+        console.log("No valid files to process");
+        return;
+      }
+      
+      // Informer l'utilisateur que le traitement des images est en cours
+      toast({
+        title: "Traitement des images",
+        description: "Vos images sont en cours de préparation...",
+      });
+      
       const compressedFiles = await Promise.all(validFiles.map(compressImage));
       
       console.log('Tailles des fichiers compressés:', compressedFiles.map(f => ({
@@ -56,6 +72,11 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
 
       const newImages = [...images, ...compressedFiles].slice(0, MAX_IMAGES);
       onImagesChange(newImages);
+      
+      toast({
+        title: "Images ajoutées",
+        description: `${compressedFiles.length} image(s) ajoutée(s) avec succès`,
+      });
     } catch (error) {
       console.error('Error processing images:', error);
       toast({
@@ -66,41 +87,64 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     }
   }, [images, onImagesChange, toast]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: {
       'image/jpeg': ['.jpg', '.jpeg'],
       'image/png': ['.png']
     },
     maxFiles: MAX_IMAGES - images.length,
-    maxSize: MAX_FILE_SIZE
+    maxSize: MAX_FILE_SIZE,
+    noClick: false,
+    noKeyboard: false,
   });
 
   const removeImage = (index: number) => {
     const newImages = [...images];
     newImages.splice(index, 1);
     onImagesChange(newImages);
+    
+    toast({
+      title: "Image supprimée",
+      description: "L'image a été supprimée de l'annonce",
+    });
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      {images.length < MAX_IMAGES && (
-        <DropZone 
-          {...getRootProps()} 
-          isDragActive={isDragActive}
-        >
-          <input {...getInputProps()} />
-        </DropZone>
-      )}
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {images.length < MAX_IMAGES && (
+          <DropZone 
+            {...getRootProps()} 
+            isDragActive={isDragActive}
+            onClick={open}
+          >
+            <input {...getInputProps()} />
+          </DropZone>
+        )}
 
-      {previewUrls.map((url, index) => (
-        <ImagePreview
-          key={index}
-          url={url}
-          index={index}
-          onRemove={removeImage}
-        />
-      ))}
+        {previewUrls.map((url, index) => (
+          <ImagePreview
+            key={index}
+            url={url}
+            index={index}
+            onRemove={removeImage}
+          />
+        ))}
+      </div>
+      
+      {images.length > 0 && (
+        <div className="text-sm text-center text-muted-foreground">
+          {images.length} image(s) sur {MAX_IMAGES} - 
+          <button 
+            type="button" 
+            onClick={() => onImagesChange([])} 
+            className="text-primary hover:underline ml-1"
+          >
+            Tout supprimer
+          </button>
+        </div>
+      )}
     </div>
   );
 }

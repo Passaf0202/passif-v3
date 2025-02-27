@@ -11,12 +11,12 @@ export function DropZone({ isDragActive, ...rootProps }: DropZoneProps) {
   return (
     <div
       {...rootProps}
-      className={`relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 border-dashed ${
+      className={`relative aspect-square cursor-pointer hover:bg-gray-50 transition-colors border-2 border-dashed rounded-lg ${
         isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300'
       }`}
     >
       <div className="flex flex-col items-center justify-center h-full p-4">
-        <ImagePlus className="h-8 w-8 mb-2 text-gray-400" />
+        <ImagePlus className={`h-8 w-8 mb-2 ${isDragActive ? 'text-primary' : 'text-gray-400'}`} />
         <span className="text-sm text-center text-gray-500">
           {isDragActive ? 'Déposez les images ici' : 'Glissez ou cliquez pour ajouter'}
         </span>

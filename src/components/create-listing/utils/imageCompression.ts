@@ -1,7 +1,7 @@
 
 import imageCompression from 'browser-image-compression';
 
-const TARGET_SIZE_KB = 800; // 800KB target size
+const TARGET_SIZE_KB = 1000; // 1MB target size
 const MAX_WIDTH_PX = 1920; // Maximum width 1920px
 
 /**
@@ -25,6 +25,7 @@ export const compressImage = async (file: File): Promise<File> => {
       maxWidthOrHeight: MAX_WIDTH_PX,
       useWebWorker: true,
       fileType: file.type,
+      initialQuality: 0.7, // Réduire la qualité pour mieux compresser
     };
 
     // Compresser l'image
