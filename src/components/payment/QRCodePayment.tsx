@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Smartphone, Loader2, CheckCircle2 } from "lucide-react";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { useWeb3Modal } from '@web3modal/react';
-import { ethers } from "ethers";
 
 interface QRCodePaymentProps {
   paymentUrl: string;
@@ -51,25 +50,22 @@ export function QRCodePayment({
     }
   });
 
-  // Générer le deep link WalletConnect
-  const getWalletConnectUri = () => {
-    // Utiliser le même URI que le lien profond WalletConnect utilise sur mobile
-    return `https://metamask.app.link/dapp/${window.location.host}/checkout?listingId=${listingId}`;
-  };
-
   // Générer le lien de paiement direct pour le QR code
   const generatePaymentUri = () => {
     if (!cryptoAmount || !sellerAddress) return "";
     
     try {
-      // Créer une URL complète vers la page de checkout actuelle
+      // Créer une URL absolue complète vers la page de checkout actuelle
       // Cette URL sera accessible sur mobile et utilisera le système de paiement mobile
       const currentHost = window.location.host;
       const currentProtocol = window.location.protocol;
+      const currentUrl = new URL(`${currentProtocol}//${currentHost}/checkout`);
       
-      // Construire l'URL de la page de checkout avec tous les paramètres nécessaires
-      // Cela garantit que tous les paramètres de la transaction sont préservés
-      return `${currentProtocol}//${currentHost}/checkout?listingId=${listingId}`;
+      // Ajouter tous les paramètres nécessaires comme query params
+      currentUrl.searchParams.append("listingId", listingId);
+      
+      // Retourner l'URL complète
+      return currentUrl.toString();
     } catch (error) {
       console.error("Erreur lors de la génération de l'URI de paiement:", error);
       return "";
