@@ -135,7 +135,7 @@ export function QRCodePayment({
                       level="H"
                       includeMargin={true}
                       imageSettings={{
-                        src: "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg",
+                        src: "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png",
                         height: 35,
                         width: 35,
                         excavate: true,
@@ -263,7 +263,7 @@ export function QRCodePayment({
                       level="H"
                       includeMargin={true}
                       imageSettings={{
-                        src: "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//Logo%20Tradecoiner%20(1).svg",
+                        src: "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png",
                         height: 48,
                         width: 48,
                         excavate: true,
@@ -277,7 +277,7 @@ export function QRCodePayment({
                 </div>
                 
                 <div className="text-sm text-gray-600 mb-6">
-                  Ouvrez l'application wallet sur votre téléphone et scannez ce code QR
+                  Ce QR code vous redirigera vers la page de l'annonce sur votre téléphone
                 </div>
                 
                 <Button 
@@ -289,25 +289,6 @@ export function QRCodePayment({
                   <Smartphone className="mr-2 h-5 w-5" />
                   {isProcessing ? "Connexion en cours..." : "Connecter un wallet mobile"}
                 </Button>
-                
-                <div className="flex items-center justify-center mt-3">
-                  <ShieldCheck className="h-4 w-4 text-blue-500 mr-2" />
-                  <span className="text-xs text-gray-500">Paiement sécurisé et crypté</span>
-                </div>
-                
-                <div className="mt-8 space-y-2 max-w-md mx-auto">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm">Montant</span>
-                    <span className="font-medium text-sm">{cryptoAmount?.toFixed(8)} {cryptoCurrency}</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm">Destinataire</span>
-                    <span className="font-medium text-sm">
-                      {sellerAddress ? `${sellerAddress.substring(0, 6)}...${sellerAddress.substring(sellerAddress.length - 4)}` : ''}
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
             
@@ -318,20 +299,22 @@ export function QRCodePayment({
                 
                 <Tabs defaultValue="metamask" className="w-full">
                   <TabsList className="grid w-full grid-cols-3 mb-4 rounded-full overflow-hidden">
-                    <TabsTrigger value="metamask" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">MetaMask</TabsTrigger>
-                    <TabsTrigger value="walletconnect" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">WalletConnect</TabsTrigger>
-                    <TabsTrigger value="rainbow" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">Rainbow</TabsTrigger>
+                    <TabsTrigger value="metamask" className="data-[state=active]:bg-black data-[state=active]:text-white">MetaMask</TabsTrigger>
+                    <TabsTrigger value="walletconnect" className="data-[state=active]:bg-black data-[state=active]:text-white">WalletConnect</TabsTrigger>
+                    <TabsTrigger value="rainbow" className="data-[state=active]:bg-black data-[state=active]:text-white">Rainbow</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="metamask" className="text-sm text-center p-2">
-                    Ouvrez l'appareil photo de votre téléphone et scannez le QR code
-                  </TabsContent>
-                  <TabsContent value="walletconnect" className="text-sm text-center p-2">
-                    Utilisez l'appareil photo de votre téléphone pour scanner le code
-                  </TabsContent>
-                  <TabsContent value="rainbow" className="text-sm text-center p-2">
-                    Scannez le QR code avec l'appareil photo de votre téléphone
-                  </TabsContent>
+                  <div className="flex justify-between pt-4 pb-2 mb-2">
+                    <span className="text-gray-600 text-sm">Montant</span>
+                    <span className="font-medium text-sm">{cryptoAmount?.toFixed(8)} {cryptoCurrency}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 text-sm">Destinataire</span>
+                    <span className="font-medium text-sm">
+                      {sellerAddress ? `${sellerAddress.substring(0, 6)}...${sellerAddress.substring(sellerAddress.length - 4)}` : ''}
+                    </span>
+                  </div>
                 </Tabs>
               </div>
             </div>
@@ -343,9 +326,9 @@ export function QRCodePayment({
             <div className="flex justify-center mb-8">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-16 w-16 rounded-full bg-blue-50"></div>
+                  <div className="h-16 w-16 rounded-full bg-gray-100"></div>
                 </div>
-                <Loader2 className="h-16 w-16 animate-spin text-blue-500 relative z-10" />
+                <Loader2 className="h-16 w-16 animate-spin text-black relative z-10" />
               </div>
             </div>
             <h3 className="text-2xl font-semibold mb-4">Traitement de votre paiement</h3>
@@ -365,9 +348,9 @@ export function QRCodePayment({
             <div className="flex justify-center mb-8">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-16 w-16 rounded-full bg-green-50"></div>
+                  <div className="h-16 w-16 rounded-full bg-gray-100"></div>
                 </div>
-                <CheckCircle2 className="h-16 w-16 text-green-500 relative z-10" />
+                <CheckCircle2 className="h-16 w-16 text-black relative z-10" />
               </div>
             </div>
             <h3 className="text-2xl font-semibold mb-4">Paiement réussi !</h3>

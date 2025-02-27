@@ -21,11 +21,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { QRCodePayment } from "@/components/payment/QRCodePayment";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger 
-} from "@/components/ui/tooltip";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function Checkout() {
   const location = useLocation();
@@ -342,54 +343,68 @@ export default function Checkout() {
                   <Separator />
                   
                   <div className="space-y-4">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors w-full justify-center">
-                            <ShieldCheck className="h-5 w-5" />
-                            <span className="font-medium">Protection acheteur incluse</span>
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent className="w-80 p-4 bg-white shadow-lg border border-gray-200 rounded-lg">
-                          <div className="space-y-2">
-                            <h4 className="font-semibold text-green-700">Protection acheteur</h4>
-                            <p className="text-sm text-gray-600">
-                              Notre système de protection garantit un remboursement si:
-                              <ul className="list-disc pl-5 mt-1 space-y-1">
-                                <li>L'article n'est jamais livré</li>
-                                <li>L'article est significativement différent de sa description</li>
-                                <li>L'article est endommagé à la réception</li>
-                              </ul>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors w-full justify-center">
+                          <ShieldCheck className="h-5 w-5" />
+                          <span className="font-medium">Protection acheteur incluse</span>
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold mb-4">Protection acheteur</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6">
+                          <div>
+                            <h4 className="font-semibold mb-2">Politique de remboursement</h4>
+                            <p className="text-gray-600 mb-2">
+                              Tu peux obtenir un remboursement si ta commande :
+                            </p>
+                            <ul className="list-disc ml-5 text-gray-600">
+                              <li>est perdue ou n'est jamais livrée</li>
+                              <li>arrive endommagée</li>
+                              <li>n'est pas du tout conforme à sa description</li>
+                            </ul>
+                            <p className="text-gray-600 mt-2">
+                              Tu disposes de 2 jours pour soumettre une réclamation à compter du moment où la livraison de la commande t'est notifiée, même si l'article n'a jamais été livré.
                             </p>
                           </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                          <div>
+                            <h4 className="font-semibold mb-2">Transactions sécurisées</h4>
+                            <p className="text-gray-600">
+                              Ton paiement est conservé en toute sécurité pendant toute la durée de la transaction. Les paiements sont cryptés par notre partenaire de paiement, ton argent est donc toujours envoyé ou reçu en toute sécurité. Le vendeur n'aura jamais accès à tes informations de paiement.
+                            </p>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                     
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors w-full justify-center">
-                            <Lock className="h-5 w-5" />
-                            <span className="font-medium">Paiement sécurisé via smart contract</span>
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent className="w-80 p-4 bg-white shadow-lg border border-gray-200 rounded-lg">
-                          <div className="space-y-2">
-                            <h4 className="font-semibold text-blue-700">Smart Contract</h4>
-                            <p className="text-sm text-gray-600">
-                              Notre technologie de smart contract garantit que votre paiement reste sécurisé jusqu'à ce que:
-                              <ul className="list-disc pl-5 mt-1 space-y-1">
-                                <li>Vous confirmiez la réception du produit</li>
-                                <li>Le délai de protection acheteur expire (30 jours)</li>
-                                <li>Un médiateur résout un litige éventuel</li>
-                              </ul>
-                              Les fonds ne sont jamais directement accessibles au vendeur avant ces conditions.
-                            </p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-black text-white hover:bg-gray-800 transition-colors w-full justify-center">
+                          <Lock className="h-5 w-5" />
+                          <span className="font-medium">Paiement sécurisé via smart contract</span>
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold mb-4">Smart Contract</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6">
+                          <p className="text-gray-600">
+                            Notre technologie de smart contract garantit que votre paiement reste sécurisé jusqu'à ce que:
+                          </p>
+                          <ul className="list-disc ml-5 text-gray-600">
+                            <li>Vous confirmiez la réception du produit</li>
+                            <li>Le délai de protection acheteur expire (30 jours)</li>
+                            <li>Un médiateur résout un litige éventuel</li>
+                          </ul>
+                          <p className="text-gray-600">
+                            Les fonds ne sont jamais directement accessibles au vendeur avant ces conditions.
+                          </p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </CardContent>
               </Card>
