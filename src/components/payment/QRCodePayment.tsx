@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Smartphone, Loader2, CheckCircle2 } from "lucide-react";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { useWeb3Modal } from '@web3modal/react';
+import { ethers } from "ethers";
 
 interface QRCodePaymentProps {
   paymentUrl: string;
@@ -52,22 +53,27 @@ export function QRCodePayment({
 
   // Créer l'URI pour rediriger vers le wallet mobile
   const generateMobileWalletUri = () => {
-    // Format standard pour les transactions Ethereum
-    const chainId = '80002'; // Polygon Amoy testnet
+    if (!cryptoAmount || !sellerAddress) return "";
     
-    if (cryptoAmount && sellerAddress) {
+    try {
+      // Format standard pour les transactions Ethereum
+      const chainId = '80002'; // Polygon Amoy testnet
+      
+      // Convertir en wei et vérifier le format
+      const amountInWei = ethers.utils.parseEther(cryptoAmount.toString()).toString();
+      
       // Format: ethereum:<address>@<chainId>/transfer?value=<amount>
-      const valueInWei = cryptoAmount * 1e18; // Convertir en wei
-      return `ethereum:${sellerAddress}@${chainId}/transfer?value=${valueInWei}`;
+      // On ajoute une valeur gas pour s'assurer que la transaction peut être exécutée
+      return `ethereum:${sellerAddress}@${chainId}/transfer?value=${amountInWei}&gas=21000`;
+    } catch (error) {
+      console.error("Erreur lors de la génération de l'URI:", error);
+      return `ethereum:${sellerAddress}`;
     }
-    
-    // URI simple sans montant spécifié
-    return `ethereum:${sellerAddress}@${chainId}`;
   };
 
   // Initialiser l'URI du QR code
   useEffect(() => {
-    if (isConnected && sellerAddress) {
+    if (isConnected && sellerAddress && cryptoAmount) {
       const uri = generateMobileWalletUri();
       console.log("URI générée pour QR code:", uri);
       setQrCodeValue(uri);
@@ -92,7 +98,7 @@ export function QRCodePayment({
           console.error('Erreur pendant le paiement:', error);
           setStatus('idle');
         }
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error('Erreur de connexion au wallet:', error);
       setStatus('idle');
@@ -180,7 +186,7 @@ export function QRCodePayment({
                 Montant: {cryptoAmount?.toFixed(8)} {cryptoCurrency}
               </p>
               <p className="text-xs text-center text-muted-foreground truncate">
-                Destinataire: {sellerAddress.substring(0, 6)}...{sellerAddress.substring(sellerAddress.length - 4)}
+                Destinataire: {sellerAddress ? `${sellerAddress.substring(0, 6)}...${sellerAddress.substring(sellerAddress.length - 4)}` : ''}
               </p>
               
               {/* Onglets d'instructions pour différents wallets */}
