@@ -62,15 +62,14 @@ export function QRCodePayment({
     if (!cryptoAmount || !sellerAddress) return "";
     
     try {
-      // Convertir le montant en wei pour Ethereum
-      const amountInWei = cryptoAmount ? 
-        ethers.utils.parseEther(cryptoAmount.toString()).toString() : 
-        "0";
+      // Créer une URL complète vers la page de checkout actuelle
+      // Cette URL sera accessible sur mobile et utilisera le système de paiement mobile
+      const currentHost = window.location.host;
+      const currentProtocol = window.location.protocol;
       
-      // Format standard Ethereum pour transactions mobiles
-      // ethereum:<address>@<chainId>/transfer?value=<amount>&gas=21000
-      // Ce format sera reconnu par MetaMask et autres wallets
-      return `ethereum:${sellerAddress}/transfer?value=${amountInWei}`;
+      // Construire l'URL de la page de checkout avec tous les paramètres nécessaires
+      // Cela garantit que tous les paramètres de la transaction sont préservés
+      return `${currentProtocol}//${currentHost}/checkout?listingId=${listingId}`;
     } catch (error) {
       console.error("Erreur lors de la génération de l'URI de paiement:", error);
       return "";
@@ -142,7 +141,7 @@ export function QRCodePayment({
           <>
             <div className="text-center mb-6">
               <p className="text-sm text-muted-foreground mb-4">
-                Scannez ce QR code avec votre wallet mobile pour effectuer le paiement
+                Scannez ce QR code avec votre téléphone pour effectuer le paiement
               </p>
               
               {/* QR Code pour paiement direct */}
@@ -168,7 +167,7 @@ export function QRCodePayment({
               </div>
               
               <p className="text-xs text-gray-500 mb-4">
-                Compatible avec MetaMask, WalletConnect et autres wallets Ethereum
+                Ce QR vous redirigera vers la même page sur votre mobile
               </p>
               
               {/* Bouton pour continuer avec le wallet - Même bouton que sur mobile */}
@@ -203,13 +202,13 @@ export function QRCodePayment({
                     <TabsTrigger value="rainbow">Rainbow</TabsTrigger>
                   </TabsList>
                   <TabsContent value="metamask" className="text-xs text-center p-2">
-                    Ouvrez MetaMask sur votre téléphone et utilisez la fonction scanner
+                    Ouvrez l'appareil photo de votre téléphone et scannez le QR code
                   </TabsContent>
                   <TabsContent value="walletconnect" className="text-xs text-center p-2">
-                    Ouvrez un wallet compatible WalletConnect et scannez le code
+                    Utilisez l'appareil photo de votre téléphone pour scanner le code
                   </TabsContent>
                   <TabsContent value="rainbow" className="text-xs text-center p-2">
-                    Ouvrez Rainbow Wallet et utilisez la fonction scanner
+                    Scannez le QR code avec l'appareil photo de votre téléphone
                   </TabsContent>
                 </Tabs>
               </div>
