@@ -1,77 +1,53 @@
 
-export const TARGET_FILE_SIZE = 200 * 1024; // 200KB
-export const MAX_WIDTH = 800;
-export const MAX_HEIGHT = 800;
+import imageCompression from 'browser-image-compression';
 
+const TARGET_SIZE_KB = 800; // 800KB target size
+const MAX_WIDTH_PX = 1920; // Maximum width 1920px
+
+/**
+ * Compresse une image pour réduire sa taille tout en maintenant une qualité acceptable
+ * @param file - Le fichier image à compresser
+ * @returns Un fichier image compressé
+ */
 export const compressImage = async (file: File): Promise<File> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
+  console.log(`Compressing image: ${file.name} (${file.size / 1024} KB)`);
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width = Math.round((width * MAX_HEIGHT) / height);
-            height = MAX_HEIGHT;
-          }
-        }
+  try {
+    // Si le fichier est déjà petit, on le retourne tel quel
+    if (file.size < TARGET_SIZE_KB * 1024) {
+      console.log(`Image ${file.name} is already small enough (${file.size / 1024} KB)`);
+      return file;
+    }
 
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-        
-        ctx.drawImage(img, 0, 0, width, height);
-
-        let quality = 0.7;
-        const maxAttempts = 5;
-        let attempts = 0;
-
-        const compressWithQuality = (q: number) => {
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                reject(new Error('Could not create blob'));
-                return;
-              }
-
-              if (blob.size > TARGET_FILE_SIZE && attempts < maxAttempts) {
-                attempts++;
-                quality = Math.max(0.1, quality - 0.1);
-                compressWithQuality(quality);
-                return;
-              }
-
-              const compressedFile = new File([blob], file.name, {
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-              });
-              resolve(compressedFile);
-            },
-            'image/jpeg',
-            q
-          );
-        };
-
-        compressWithQuality(quality);
-      };
+    // Options de compression
+    const options = {
+      maxSizeMB: TARGET_SIZE_KB / 1024, // Taille cible en MB
+      maxWidthOrHeight: MAX_WIDTH_PX,
+      useWebWorker: true,
+      fileType: file.type,
     };
-    reader.onerror = (error) => reject(error);
-  });
-};
 
+    // Compresser l'image
+    const compressedFile = await imageCompression(file, options);
+    
+    // Créer un nouveau nom de fichier avec un suffixe pour indiquer qu'il s'agit d'une version compressée
+    const fileName = file.name;
+    const fileExtension = fileName.split('.').pop() || '';
+    const fileNameWithoutExtension = fileName.substring(0, fileName.lastIndexOf('.'));
+    const newFileName = `${fileNameWithoutExtension}_compressed.${fileExtension}`;
+    
+    // Créer un nouveau fichier avec le nom modifié
+    const newFile = new File([compressedFile], newFileName, { 
+      type: compressedFile.type,
+      lastModified: new Date().getTime()
+    });
+
+    console.log(`Compression complete: ${newFile.name} (${newFile.size / 1024} KB)`);
+    
+    return newFile;
+  } catch (error) {
+    console.error('Error during image compression:', error);
+    // En cas d'erreur, on retourne le fichier original
+    return file;
+  }
+};

@@ -45,10 +45,10 @@ export function PhotosSection({ images, onImagesChange, category }: PhotosSectio
           <ImageUpload
             images={images}
             onImagesChange={onImagesChange}
+            category={category}
           />
         </div>
       </CardContent>
     </Card>
   );
 }
-

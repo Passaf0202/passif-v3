@@ -17,6 +17,21 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const { toast } = useToast();
 
+  // Initialiser les URLs de prévisualisation lorsque les images changent
+  useEffect(() => {
+    // Nettoyer les anciennes URLs
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    
+    // Créer de nouvelles URLs pour les images actuelles
+    const newUrls = images.map(file => URL.createObjectURL(file));
+    setPreviewUrls(newUrls);
+    
+    // Nettoyer les URLs lors du démontage du composant
+    return () => {
+      newUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [images]);
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     console.log("Dropped files:", acceptedFiles.map(f => ({ name: f.name, type: f.type, size: f.size })));
     
@@ -41,10 +56,6 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
 
       const newImages = [...images, ...compressedFiles].slice(0, MAX_IMAGES);
       onImagesChange(newImages);
-
-      const urls = newImages.map(file => URL.createObjectURL(file));
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
-      setPreviewUrls(urls);
     } catch (error) {
       console.error('Error processing images:', error);
       toast({
@@ -53,7 +64,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
         variant: "destructive",
       });
     }
-  }, [images, onImagesChange, previewUrls, toast]);
+  }, [images, onImagesChange, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -61,7 +72,7 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
       'image/jpeg': ['.jpg', '.jpeg'],
       'image/png': ['.png']
     },
-    maxFiles: MAX_IMAGES,
+    maxFiles: MAX_IMAGES - images.length,
     maxSize: MAX_FILE_SIZE
   });
 
@@ -69,27 +80,18 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     const newImages = [...images];
     newImages.splice(index, 1);
     onImagesChange(newImages);
-
-    const newUrls = [...previewUrls];
-    URL.revokeObjectURL(newUrls[index]);
-    newUrls.splice(index, 1);
-    setPreviewUrls(newUrls);
   };
-
-  useEffect(() => {
-    return () => {
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [previewUrls]);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      <DropZone 
-        {...getRootProps()} 
-        isDragActive={isDragActive}
-      >
-        <input {...getInputProps()} />
-      </DropZone>
+      {images.length < MAX_IMAGES && (
+        <DropZone 
+          {...getRootProps()} 
+          isDragActive={isDragActive}
+        >
+          <input {...getInputProps()} />
+        </DropZone>
+      )}
 
       {previewUrls.map((url, index) => (
         <ImagePreview
@@ -102,4 +104,3 @@ export function ImageUpload({ images, onImagesChange, category }: ImageUploadPro
     </div>
   );
 }
-
