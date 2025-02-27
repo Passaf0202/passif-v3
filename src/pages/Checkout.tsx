@@ -19,6 +19,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useAccount } from 'wagmi';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { QRCodePayment } from "@/components/payment/QRCodePayment";
+import { PaymentButton } from "@/components/payment/PaymentButton";
+import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { 
   Dialog,
   DialogContent,
@@ -36,6 +38,7 @@ export default function Checkout() {
   const [productImage, setProductImage] = useState<string>("/placeholder.svg");
   const isMobile = useIsMobile();
   const [openQrDialog, setOpenQrDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // Récupérer les paramètres depuis l'état de navigation OU depuis le localStorage
   const storedCheckoutData = JSON.parse(localStorage.getItem('checkoutData') || '{}');
@@ -105,6 +108,15 @@ export default function Checkout() {
     staleTime: Infinity,
   });
 
+  // Configuration du paiement
+  const { handlePayment } = usePaymentTransaction({
+    listingId,
+    address: sellerAddress,
+    onPaymentComplete: (transactionId: string) => {
+      navigate(`/payment/${transactionId}`);
+    }
+  });
+
   useEffect(() => {
     // Si pas de paramètres, rediriger vers la page d'accueil seulement si aucune donnée n'est sauvegardée
     if (!listingId && !storedCheckoutData.listingId) {
@@ -132,6 +144,37 @@ export default function Checkout() {
     // Dans un cas réel, cela pourrait être une URL spécifique avec des paramètres
     // pour le moment, nous utilisons une URL simple pour la démonstration
     return `https://tradecoiner.app/pay/${listingId}?amount=${cryptoAmount}&to=${sellerAddress}`;
+  };
+
+  // Fonction pour gérer le retour vers la page de l'annonce
+  const handleBack = () => {
+    navigate(`/listings/${listingId}`);
+  };
+
+  // Traiter le paiement
+  const handleProcessPayment = async () => {
+    if (!isConnected) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez connecter votre portefeuille pour payer",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsProcessing(true);
+      await handlePayment();
+    } catch (error) {
+      console.error("Erreur de paiement:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors du paiement",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (isLoading) {
@@ -189,7 +232,7 @@ export default function Checkout() {
             <Button 
               variant="ghost" 
               className="mb-4"
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Retour
@@ -286,7 +329,7 @@ export default function Checkout() {
         <Button 
           variant="ghost" 
           className="mb-4"
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Retour
@@ -345,17 +388,17 @@ export default function Checkout() {
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     className="w-full py-7 text-base font-medium"
-                    disabled={!isConnected}
+                    disabled={!isConnected || isProcessing}
+                    onClick={handleProcessPayment}
                   >
-                    Payer
+                    {isProcessing ? "Traitement en cours..." : "Payer"}
                   </Button>
                   
-                  <Button 
-                    variant="outline" 
-                    className="w-full py-7 text-base font-medium border-gray-300"
-                  >
-                    Contacter le vendeur
-                  </Button>
+                  <ContactModal
+                    listingId={listingId}
+                    sellerId={listing?.user?.id || ""}
+                    listingTitle={title}
+                  />
                 </div>
                 
                 {/* Bouton QR code en plus petit */}
@@ -466,3 +509,4 @@ export default function Checkout() {
 
 // Import de ListingActions ajouté pour éviter les erreurs
 import { ListingActions } from "@/components/listing/ListingActions";
+import { ContactModal } from "@/components/ContactModal";
