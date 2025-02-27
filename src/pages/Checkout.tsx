@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -348,21 +349,25 @@ export default function Checkout() {
     <div>
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <Button 
-          variant="ghost" 
-          className="mb-4"
-          onClick={handleBack}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
-        </Button>
+        <div className="flex items-center relative">
+          <Button 
+            variant="ghost" 
+            className="mb-4"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+          
+          {/* Diamant à côté de la croix */}
+          <div className="h-14 w-14 absolute right-4 top-0">
+            <DiamondViewer state={diamondState} scale={1.8} />
+          </div>
+        </div>
         
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-8 relative">
-            <div className="h-32 w-32 absolute left-1/2 -translate-x-1/2 -top-16">
-              <DiamondViewer state={diamondState} scale={2.5} />
-            </div>
-            <h1 className="text-3xl font-bold pt-16">Finaliser l'achat</h1>
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold">Finaliser l'achat</h1>
           </div>
           
           <Card className="w-full">
