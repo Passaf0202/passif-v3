@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -29,6 +28,8 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import { DiamondViewer } from "@/components/home/DiamondViewer";
+import { DiamondViewerState } from "@/components/home/types/diamond-viewer";
 
 export default function Checkout() {
   const location = useLocation();
@@ -40,11 +41,10 @@ export default function Checkout() {
   const [openQrDialog, setOpenQrDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  
-  // Récupérer les paramètres depuis l'état de navigation OU depuis le localStorage
+  const [diamondState, setDiamondState] = useState<DiamondViewerState>("initial");
+
   const storedCheckoutData = JSON.parse(localStorage.getItem('checkoutData') || '{}');
-  
-  // Utiliser les données stockées si elles existent, sinon utiliser les données de location.state
+
   const { 
     listingId = storedCheckoutData.listingId,
     sellerAddress = storedCheckoutData.sellerAddress,
@@ -54,16 +54,14 @@ export default function Checkout() {
     cryptoCurrency = storedCheckoutData.cryptoCurrency,
     productImageUrl = storedCheckoutData.productImageUrl
   } = location.state || {};
-  
-  // Si l'URL de l'image est déjà passée dans location.state, l'utiliser immédiatement
+
   useEffect(() => {
     if (productImageUrl) {
       setProductImage(productImageUrl);
       setImageLoaded(true);
     }
   }, [productImageUrl]);
-  
-  // Sauvegarder les données de checkout dans localStorage pour les restaurer en cas de rafraîchissement
+
   useEffect(() => {
     if (listingId && sellerAddress) {
       const checkoutData = {
@@ -79,7 +77,6 @@ export default function Checkout() {
     }
   }, [listingId, sellerAddress, title, price, cryptoAmount, cryptoCurrency, productImage, productImageUrl]);
 
-  // Récupérer les détails de l'annonce
   const { data: listing, isLoading } = useQuery({
     queryKey: ["checkout-listing", listingId],
     queryFn: async () => {
@@ -104,13 +101,11 @@ export default function Checkout() {
         throw error;
       }
       
-      // Définir l'image principale
       if (data.images && data.images.length > 0) {
         console.log("Setting product image from DB:", data.images[0]);
         setProductImage(data.images[0]);
         setImageLoaded(true);
         
-        // Mettre à jour également le localStorage avec l'URL de l'image
         const updatedCheckoutData = {
           ...JSON.parse(localStorage.getItem('checkoutData') || '{}'),
           productImageUrl: data.images[0]
@@ -121,14 +116,12 @@ export default function Checkout() {
       return data;
     },
     enabled: !!listingId,
-    // Désactiver le refetching automatique mais garder le fetch initial
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
     staleTime: Infinity,
   });
 
-  // Configuration du paiement
   const { handlePayment } = usePaymentTransaction({
     listingId,
     address: sellerAddress,
@@ -138,7 +131,6 @@ export default function Checkout() {
   });
 
   useEffect(() => {
-    // Si pas de paramètres, rediriger vers la page d'accueil seulement si aucune donnée n'est sauvegardée
     if (!listingId && !storedCheckoutData.listingId) {
       toast({
         title: "Erreur",
@@ -149,7 +141,6 @@ export default function Checkout() {
     }
   }, [listingId, storedCheckoutData.listingId, navigate, toast]);
 
-  // Si l'utilisateur n'est pas connecté au wallet, l'avertir
   useEffect(() => {
     if (listingId && !isConnected) {
       toast({
@@ -159,19 +150,14 @@ export default function Checkout() {
     }
   }, [isConnected, toast, listingId]);
 
-  // Générer une URL de paiement pour le QR code
   const getPaymentUrl = () => {
-    // Dans un cas réel, cela pourrait être une URL spécifique avec des paramètres
-    // pour le moment, nous utilisons une URL simple pour la démonstration
     return `https://tradecoiner.app/pay/${listingId}?amount=${cryptoAmount}&to=${sellerAddress}`;
   };
 
-  // Fonction pour gérer le retour vers la page de l'annonce
   const handleBack = () => {
     navigate(`/listings/${listingId}`);
   };
 
-  // Traiter le paiement
   const handleProcessPayment = async () => {
     if (!isConnected) {
       toast({
@@ -184,9 +170,11 @@ export default function Checkout() {
     
     try {
       setIsProcessing(true);
+      setDiamondState("processing");
       await handlePayment();
     } catch (error) {
       console.error("Erreur de paiement:", error);
+      setDiamondState("initial");
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors du paiement",
@@ -197,14 +185,12 @@ export default function Checkout() {
     }
   };
 
-  // Handler pour gérer les erreurs d'image
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.log("Image error, using placeholder");
     e.currentTarget.src = "/placeholder.svg";
-    setImageLoaded(true); // Marquer comme chargée même si c'est le placeholder
+    setImageLoaded(true);
   };
-  
-  // Handler pour le chargement réussi d'image
+
   const handleImageLoaded = () => {
     console.log("Image loaded successfully");
     setImageLoaded(true);
@@ -255,7 +241,6 @@ export default function Checkout() {
     );
   }
 
-  // Rendu pour mobile - reste inchangé mais avec amélioration de la gestion des images
   if (isMobile) {
     return (
       <div>
@@ -359,7 +344,6 @@ export default function Checkout() {
     );
   }
 
-  // Rendu amélioré pour desktop - avec optimisation du chargement d'image
   return (
     <div>
       <Navbar />
@@ -374,8 +358,11 @@ export default function Checkout() {
         </Button>
         
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold">Finaliser l'achat</h1>
+          <div className="text-center mb-8 relative">
+            <div className="h-32 w-32 absolute left-1/2 -translate-x-1/2 -top-16">
+              <DiamondViewer state={diamondState} scale={2.5} />
+            </div>
+            <h1 className="text-3xl font-bold pt-16">Finaliser l'achat</h1>
           </div>
           
           <Card className="w-full">
@@ -427,7 +414,6 @@ export default function Checkout() {
               <Separator />
               
               <div className="space-y-5">
-                {/* Boutons principaux - la même hauteur (py-7) */}
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     className="w-full py-7 text-base font-medium"
@@ -444,7 +430,6 @@ export default function Checkout() {
                   />
                 </div>
                 
-                {/* Bouton QR code en plus petit */}
                 <Dialog open={openQrDialog} onOpenChange={setOpenQrDialog}>
                   <DialogTrigger asChild>
                     <Button 
@@ -472,7 +457,6 @@ export default function Checkout() {
                 </Dialog>
               </div>
               
-              {/* Liens de sécurité en bas et centrés */}
               <div className="mt-8 pt-4 border-t border-gray-100 flex justify-center gap-8">
                 <Dialog>
                   <DialogTrigger asChild>
@@ -550,6 +534,5 @@ export default function Checkout() {
   );
 }
 
-// Import de ListingActions ajouté pour éviter les erreurs
 import { ListingActions } from "@/components/listing/ListingActions";
 import { ContactModal } from "@/components/ContactModal";
