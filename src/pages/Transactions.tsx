@@ -8,14 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/common/PageHeader";
 import { Loader2, ExternalLink } from "lucide-react";
 
 export default function Transactions() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'completed'>('all');
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -39,6 +40,7 @@ export default function Transactions() {
         if (error) throw error;
         
         setTransactions(data || []);
+        setFilteredTransactions(data || []);
       } catch (error) {
         console.error("Error fetching transactions:", error);
       } finally {
@@ -48,6 +50,17 @@ export default function Transactions() {
 
     fetchTransactions();
   }, [user]);
+
+  useEffect(() => {
+    // Appliquer le filtre sélectionné
+    if (activeFilter === 'all') {
+      setFilteredTransactions(transactions);
+    } else if (activeFilter === 'pending') {
+      setFilteredTransactions(transactions.filter(t => t.escrow_status === 'pending' && t.funds_secured));
+    } else if (activeFilter === 'completed') {
+      setFilteredTransactions(transactions.filter(t => t.status === 'completed'));
+    }
+  }, [activeFilter, transactions]);
 
   // Helper pour traduire les statuts
   const getStatusTranslation = (status: string) => {
@@ -80,8 +93,8 @@ export default function Transactions() {
     const decimalIndex = amountStr.indexOf('.');
     
     if (decimalIndex !== -1 && amountStr.length > decimalIndex + 3) {
-      // Limiter à 2 décimales
-      return `${amountStr.substring(0, decimalIndex + 3)} ${symbol}`;
+      // Limiter à 2 décimales et ajouter "..."
+      return `${amountStr.substring(0, decimalIndex + 3)}... ${symbol}`;
     }
     
     return `${amount} ${symbol}`;
@@ -93,22 +106,58 @@ export default function Transactions() {
       <div className="container max-w-4xl mt-8 pt-4">
         <h1 className="text-3xl font-bold text-center mb-8">Mes Transactions</h1>
       
+        {/* Filtres */}
+        <div className="flex justify-center mb-6 gap-2">
+          <Button 
+            variant={activeFilter === 'all' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('all')}
+            className="rounded-full"
+          >
+            Toutes
+          </Button>
+          <Button 
+            variant={activeFilter === 'pending' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('pending')}
+            className="rounded-full"
+          >
+            À libérer
+          </Button>
+          <Button 
+            variant={activeFilter === 'completed' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('completed')}
+            className="rounded-full"
+          >
+            Terminées
+          </Button>
+        </div>
+      
         <div className="container max-w-4xl">
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : transactions.length === 0 ? (
+          ) : filteredTransactions.length === 0 ? (
             <div className="text-center py-12">
-              <h3 className="text-xl font-semibold mb-2">Vous n'avez pas encore de transaction</h3>
-              <p className="text-muted-foreground mb-6">Achetez un article pour voir vos transactions ici</p>
-              <Button onClick={() => navigate('/')}>Parcourir les annonces</Button>
+              <h3 className="text-xl font-semibold mb-2">
+                {activeFilter === 'all' 
+                  ? "Vous n'avez pas encore de transaction" 
+                  : activeFilter === 'pending' 
+                    ? "Vous n'avez pas de transaction à libérer" 
+                    : "Vous n'avez pas de transaction terminée"}
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                {activeFilter === 'all' 
+                  ? "Achetez un article pour voir vos transactions ici" 
+                  : "Changez de filtre pour voir d'autres transactions"}
+              </p>
+              {activeFilter === 'all' && (
+                <Button onClick={() => navigate('/')}>Parcourir les annonces</Button>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
-              {transactions.map((transaction) => {
+              {filteredTransactions.map((transaction) => {
                 const status = getStatusTranslation(transaction.status);
-                const isBuyer = transaction.buyer?.id === user?.id;
                 const imageUrl = transaction.listing?.images?.[0];
                 
                 return (
@@ -120,7 +169,7 @@ export default function Transactions() {
                           {imageUrl ? (
                             <img 
                               src={imageUrl} 
-                              alt={transaction.listing_title || "Image de l'article"}
+                              alt={transaction.listing?.title || "Image de l'article"}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -135,7 +184,7 @@ export default function Transactions() {
                           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                             <div>
                               <h3 className="text-lg font-semibold mb-1">
-                                {transaction.listing_title || "Article sans nom"}
+                                {transaction.listing?.title || "Article sans nom"}
                               </h3>
                               <div className="text-sm text-muted-foreground mb-2">
                                 <span>Transaction du {formatDate(transaction.created_at)}</span>
@@ -152,7 +201,7 @@ export default function Transactions() {
                           </div>
                           
                           <div className="space-y-2 mt-auto">
-                            {transaction.escrow_status === 'pending' && (
+                            {transaction.escrow_status === 'pending' && transaction.funds_secured && (
                               <p className="text-sm text-amber-600 font-medium">
                                 En attente de libération des fonds
                               </p>
