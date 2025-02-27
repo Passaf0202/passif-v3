@@ -10,7 +10,8 @@ import {
   ArrowLeft, 
   ShieldCheck, 
   Lock, 
-  Info 
+  Info,
+  Smartphone,
 } from "lucide-react";
 import { ListingActions } from "@/components/listing/ListingActions";
 import { formatPrice } from "@/utils/priceUtils";
@@ -19,13 +20,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useAccount } from 'wagmi';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { QRCodePayment } from "@/components/payment/QRCodePayment";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 
 export default function Checkout() {
@@ -35,6 +36,7 @@ export default function Checkout() {
   const { isConnected, address } = useAccount();
   const [productImage, setProductImage] = useState<string>("/placeholder.svg");
   const isMobile = useIsMobile();
+  const [openQrDialog, setOpenQrDialog] = useState(false);
   
   // Récupérer les paramètres depuis l'état de navigation OU depuis le localStorage
   const storedCheckoutData = JSON.parse(localStorage.getItem('checkoutData') || '{}');
@@ -277,7 +279,7 @@ export default function Checkout() {
     );
   }
 
-  // Rendu amélioré pour desktop - blocs côte à côte
+  // Rendu amélioré pour desktop - un seul bloc avec popup pour QR code
   return (
     <div>
       <Navbar />
@@ -291,170 +293,183 @@ export default function Checkout() {
           Retour
         </Button>
         
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold">Finaliser l'achat</h1>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Colonne de gauche - détails du produit */}
-            <Card className="h-full">
-              <CardContent className="p-6 space-y-6 h-full flex flex-col">
-                <div className="flex items-center space-x-4">
-                  <img 
-                    src={productImage} 
-                    alt={title}
-                    className="h-20 w-20 object-cover rounded-md shadow-sm" 
-                  />
-                  <div>
-                    <h2 className="text-xl font-semibold">{title}</h2>
-                    <div className="flex items-baseline gap-4 mt-1">
-                      <p className="text-2xl font-bold">{formatPrice(price)} EUR</p>
-                      <p className="text-sm text-muted-foreground">
-                        ≈ {cryptoAmount?.toFixed(8)} {cryptoCurrency}
-                      </p>
-                    </div>
+          <Card className="w-full">
+            <CardContent className="p-8 space-y-6">
+              <div className="flex items-center space-x-4">
+                <img 
+                  src={productImage} 
+                  alt={title}
+                  className="h-20 w-20 object-cover rounded-md shadow-sm" 
+                />
+                <div>
+                  <h2 className="text-xl font-semibold">{title}</h2>
+                  <div className="flex items-baseline gap-4 mt-1">
+                    <p className="text-2xl font-bold">{formatPrice(price)} EUR</p>
+                    <p className="text-sm text-muted-foreground">
+                      ≈ {cryptoAmount?.toFixed(8)} {cryptoCurrency}
+                    </p>
                   </div>
                 </div>
+              </div>
 
-                <Separator />
-                
-                <div className="flex-grow">
-                  <h3 className="text-lg font-semibold mb-3">Détails du produit</h3>
-                  <div className="space-y-3">
+              <Separator />
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Détails du produit</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Crypto-monnaie acceptée</span>
+                    <span className="font-medium">{cryptoCurrency}</span>
+                  </div>
+                  {listing?.category && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Crypto-monnaie acceptée</span>
-                      <span className="font-medium">{cryptoCurrency}</span>
+                      <span className="text-muted-foreground">Catégorie</span>
+                      <span className="font-medium">{listing.category}</span>
                     </div>
-                    {listing?.category && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Catégorie</span>
-                        <span className="font-medium">{listing.category}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Vendeur</span>
-                      <span className="font-medium">{listing?.user?.full_name}</span>
-                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Vendeur</span>
+                    <span className="font-medium">{listing?.user?.full_name}</span>
                   </div>
                 </div>
+              </div>
 
-                <Separator />
+              <Separator />
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Choisissez votre méthode de paiement</h3>
                 
-                <div className="space-y-4">
-                  <Dialog>
+                <div className="grid grid-cols-1 gap-4">
+                  <Button
+                    className="w-full py-6 bg-black hover:bg-black/90 text-white flex items-center justify-center text-base"
+                    disabled={!isConnected}
+                    onClick={() => {
+                      if (isConnected) {
+                        // Comportement du bouton "Payer" via navigateur existant
+                      }
+                    }}
+                  >
+                    Payer via navigateur
+                  </Button>
+                  
+                  <Dialog open={openQrDialog} onOpenChange={setOpenQrDialog}>
                     <DialogTrigger asChild>
-                      <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors w-full justify-center">
-                        <ShieldCheck className="h-5 w-5" />
-                        <span className="font-medium">Protection acheteur incluse</span>
-                      </button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full py-6 border-black/30 flex items-center justify-center text-base"
+                        disabled={!isConnected}
+                      >
+                        <Smartphone className="mr-2 h-5 w-5" />
+                        Payer via téléphone
+                      </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
                       <DialogHeader>
-                        <DialogTitle className="text-xl font-bold mb-4">Protection acheteur</DialogTitle>
+                        <DialogTitle className="text-xl font-bold">Scannez pour payer sur téléphone</DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-6">
-                        <div>
-                          <h4 className="font-semibold mb-2">Politique de remboursement</h4>
-                          <p className="text-gray-600 mb-2">
-                            Tu peux obtenir un remboursement si ta commande :
-                          </p>
-                          <ul className="list-disc ml-5 text-gray-600">
-                            <li>est perdue ou n'est jamais livrée</li>
-                            <li>arrive endommagée</li>
-                            <li>n'est pas du tout conforme à sa description</li>
-                          </ul>
-                          <p className="text-gray-600 mt-2">
-                            Tu disposes de 2 jours pour soumettre une réclamation à compter du moment où la livraison de la commande t'est notifiée, même si l'article n'a jamais été livré.
-                          </p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold mb-2">Transactions sécurisées</h4>
-                          <p className="text-gray-600">
-                            Ton paiement est conservé en toute sécurité pendant toute la durée de la transaction. Les paiements sont cryptés par notre partenaire de paiement, ton argent est donc toujours envoyé ou reçu en toute sécurité. Le vendeur n'aura jamais accès à tes informations de paiement.
-                          </p>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                  
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-black text-white hover:bg-gray-800 transition-colors w-full justify-center">
-                        <Lock className="h-5 w-5" />
-                        <span className="font-medium">Paiement sécurisé via smart contract</span>
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle className="text-xl font-bold mb-4">Smart Contract</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-6">
-                        <p className="text-gray-600">
-                          Notre technologie de smart contract garantit que votre paiement reste sécurisé jusqu'à ce que:
-                        </p>
-                        <ul className="list-disc ml-5 text-gray-600">
-                          <li>Vous confirmiez la réception du produit</li>
-                          <li>Le délai de protection acheteur expire (30 jours)</li>
-                          <li>Un médiateur résout un litige éventuel</li>
-                        </ul>
-                        <p className="text-gray-600">
-                          Les fonds ne sont jamais directement accessibles au vendeur avant ces conditions.
-                        </p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-                
-                <Tabs defaultValue="browser" className="w-full mt-4">
-                  <TabsList className="grid w-full grid-cols-2 rounded-full">
-                    <TabsTrigger value="browser" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">
-                      Payer via navigateur
-                    </TabsTrigger>
-                    <TabsTrigger value="mobile" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">
-                      Payer via téléphone
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="browser" className="mt-6">
-                    <div className="space-y-2">
-                      <ListingActions
-                        listingId={listingId}
-                        sellerId={listing?.user?.id || ""}
+                      <QRCodePayment 
+                        paymentUrl={getPaymentUrl()}
                         sellerAddress={sellerAddress}
-                        title={title}
-                        price={price}
                         cryptoAmount={cryptoAmount}
                         cryptoCurrency={cryptoCurrency}
-                        isCheckoutPage={true}
+                        isConnected={isConnected}
+                        listingId={listingId}
                       />
-                      
-                      <div className="mt-2 text-center">
-                        <p className="text-xs text-gray-600">
-                          En cliquant sur "Payer", vous acceptez les conditions du service 
-                          et la politique de protection de l'acheteur.
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                
+                <div className="space-y-4">
+                  <ListingActions
+                    listingId={listingId}
+                    sellerId={listing?.user?.id || ""}
+                    sellerAddress={sellerAddress}
+                    title={title}
+                    price={price}
+                    cryptoAmount={cryptoAmount}
+                    cryptoCurrency={cryptoCurrency}
+                    isCheckoutPage={true}
+                    isMobile={false}
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-8 pt-4 border-t border-gray-100 flex justify-center gap-8">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900">
+                      <ShieldCheck className="h-4 w-4" />
+                      Protection acheteur
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold mb-4">Protection acheteur</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="font-semibold mb-2">Politique de remboursement</h4>
+                        <p className="text-gray-600 mb-2">
+                          Tu peux obtenir un remboursement si ta commande :
+                        </p>
+                        <ul className="list-disc ml-5 text-gray-600">
+                          <li>est perdue ou n'est jamais livrée</li>
+                          <li>arrive endommagée</li>
+                          <li>n'est pas du tout conforme à sa description</li>
+                        </ul>
+                        <p className="text-gray-600 mt-2">
+                          Tu disposes de 2 jours pour soumettre une réclamation à compter du moment où la livraison de la commande t'est notifiée, même si l'article n'a jamais été livré.
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Transactions sécurisées</h4>
+                        <p className="text-gray-600">
+                          Ton paiement est conservé en toute sécurité pendant toute la durée de la transaction. Les paiements sont cryptés par notre partenaire de paiement, ton argent est donc toujours envoyé ou reçu en toute sécurité. Le vendeur n'aura jamais accès à tes informations de paiement.
                         </p>
                       </div>
                     </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="mobile" className="hidden">
-                    {/* Contenu caché (déplacé dans la colonne de droite) */}
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-            
-            {/* Colonne de droite - QR code */}
-            <QRCodePayment 
-              paymentUrl={getPaymentUrl()}
-              sellerAddress={sellerAddress}
-              cryptoAmount={cryptoAmount}
-              cryptoCurrency={cryptoCurrency}
-              isConnected={isConnected}
-              listingId={listingId}
-            />
-          </div>
+                  </DialogContent>
+                </Dialog>
+                
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900">
+                      <Lock className="h-4 w-4" />
+                      Paiement sécurisé
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold mb-4">Smart Contract</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      <p className="text-gray-600">
+                        Notre technologie de smart contract garantit que votre paiement reste sécurisé jusqu'à ce que:
+                      </p>
+                      <ul className="list-disc ml-5 text-gray-600">
+                        <li>Vous confirmiez la réception du produit</li>
+                        <li>Le délai de protection acheteur expire (30 jours)</li>
+                        <li>Un médiateur résout un litige éventuel</li>
+                      </ul>
+                      <p className="text-gray-600">
+                        Les fonds ne sont jamais directement accessibles au vendeur avant ces conditions.
+                      </p>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              <p className="text-xs text-center text-muted-foreground">
+                En cliquant sur "Payer", vous acceptez les conditions du service 
+                et la politique de protection de l'acheteur.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

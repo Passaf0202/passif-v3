@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Smartphone, Loader2, CheckCircle2, ArrowRight } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowRight } from "lucide-react";
 import { usePaymentTransaction } from "@/hooks/usePaymentTransaction";
 import { useWeb3Modal } from '@web3modal/react';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -200,135 +199,113 @@ export function QRCodePayment({
     );
   }
 
-  // Nouveau design amélioré pour ordinateur
+  // QR Code en format popup (sans le bouton "Connecter un wallet mobile")
   if (!isConnected) {
     return (
-      <Card className="w-full shadow-md border-gray-200 h-full">
-        <CardContent className="p-8 text-center h-full flex flex-col justify-center">
-          <div className="bg-gray-50 rounded-xl p-6 max-w-md mx-auto">
-            <h3 className="text-xl font-medium mb-4">Paiement par wallet</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Veuillez connecter votre wallet pour continuer avec le paiement
-            </p>
-            <Button disabled className="w-full py-6 text-base" variant="outline">
-              Wallet non connecté
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-center p-6">
+        <p className="text-sm text-muted-foreground mb-4">
+          Veuillez connecter votre wallet pour afficher le QR code de paiement
+        </p>
+        <Button disabled className="w-full py-6 text-base" variant="outline">
+          Wallet non connecté
+        </Button>
+      </div>
     );
   }
 
   return (
-    <Card className="w-full shadow-md border-gray-200 h-full">
-      <CardContent className="p-0 h-full">
-        {status === 'idle' && (
-          <div className="flex flex-col h-full">
-            {/* QR code centré */}
-            <div className="flex-grow flex items-center justify-center p-8">
-              <div className="text-center">
-                <h3 className="text-xl font-semibold mb-4">Scannez pour payer sur téléphone</h3>
-                
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl shadow-sm inline-block mb-4 border border-gray-100">
-                  {qrCodeValue ? (
-                    <QRCodeSVG 
-                      value={qrCodeValue} 
-                      size={220} 
-                      level="H"
-                      includeMargin={true}
-                      bgColor="#ffffff"
-                      fgColor="#000000"
-                      style={{ borderRadius: '12px' }}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center w-[220px] h-[220px]">
-                      <Loader2 className="h-10 w-10 animate-spin text-gray-400" />
-                    </div>
-                  )}
+    <div className="p-6">
+      {status === 'idle' && (
+        <div className="flex flex-col">
+          <div className="text-center">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl shadow-sm inline-block mb-4 border border-gray-100">
+              {qrCodeValue ? (
+                <QRCodeSVG 
+                  value={qrCodeValue} 
+                  size={220} 
+                  level="H"
+                  includeMargin={true}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  style={{ borderRadius: '12px' }}
+                />
+              ) : (
+                <div className="flex items-center justify-center w-[220px] h-[220px]">
+                  <Loader2 className="h-10 w-10 animate-spin text-gray-400" />
                 </div>
-                
-                <div className="text-sm text-gray-600 mb-6 max-w-sm mx-auto">
-                  Ce QR code vous redirigera vers la page de l'annonce sur votre téléphone. Vous pourrez ensuite payer le produit via votre téléphone sur l'application mobile de votre portefeuille crypto.
-                </div>
-                
-                <Button 
-                  onClick={handleMobileWalletProcess} 
-                  className="w-full mb-4 rounded-full" 
-                  size="lg"
-                  disabled={isProcessing}
-                >
-                  <Smartphone className="mr-2 h-5 w-5" />
-                  {isProcessing ? "Connexion en cours..." : "Connecter un wallet mobile"}
-                </Button>
-                
-                <div className="space-y-2 mt-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm">Montant</span>
-                    <span className="font-medium text-sm">{cryptoAmount?.toFixed(8)} {cryptoCurrency}</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm">Destinataire</span>
-                    <span className="font-medium text-sm">
-                      {sellerAddress ? `${sellerAddress.substring(0, 6)}...${sellerAddress.substring(sellerAddress.length - 4)}` : ''}
-                    </span>
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-                    <p className="text-sm text-gray-600">
-                      Les fonds sont sécurisés sur un contrat séquestre. En cas de problème, les fonds vous sont remboursés.
-                    </p>
-                  </div>
-                </div>
+              )}
+            </div>
+            
+            <div className="text-sm text-gray-600 mb-6 max-w-sm mx-auto">
+              Ce QR code vous redirigera vers la page de l'annonce sur votre téléphone. Vous pourrez ensuite payer le produit via votre téléphone sur l'application mobile de votre portefeuille crypto.
+            </div>
+            
+            <div className="space-y-2 mt-4">
+              <div className="flex justify-between">
+                <span className="text-gray-600 text-sm">Montant</span>
+                <span className="font-medium text-sm">{cryptoAmount?.toFixed(8)} {cryptoCurrency}</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600 text-sm">Destinataire</span>
+                <span className="font-medium text-sm">
+                  {sellerAddress ? `${sellerAddress.substring(0, 6)}...${sellerAddress.substring(sellerAddress.length - 4)}` : ''}
+                </span>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+                <p className="text-sm text-gray-600">
+                  Les fonds sont sécurisés sur un contrat séquestre. En cas de problème, les fonds vous sont remboursés.
+                </p>
               </div>
             </div>
           </div>
-        )}
-        
-        {status === 'scanning' && (
-          <div className="p-12 text-center max-w-lg mx-auto h-full flex flex-col justify-center">
-            <div className="flex justify-center mb-8">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-16 w-16 rounded-full bg-gray-100"></div>
-                </div>
-                <Loader2 className="h-16 w-16 animate-spin text-black relative z-10" />
+        </div>
+      )}
+      
+      {status === 'scanning' && (
+        <div className="text-center py-8">
+          <div className="flex justify-center mb-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-16 w-16 rounded-full bg-gray-100"></div>
               </div>
-            </div>
-            <h3 className="text-2xl font-semibold mb-4">Traitement de votre paiement</h3>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Veuillez vérifier votre application wallet mobile et confirmer la transaction pour finaliser le paiement.
-            </p>
-            <div className="flex justify-center">
-              <Button variant="outline" onClick={handleReset} className="mr-4 rounded-full">
-                Annuler
-              </Button>
+              <Loader2 className="h-16 w-16 animate-spin text-black relative z-10" />
             </div>
           </div>
-        )}
-        
-        {status === 'completed' && (
-          <div className="p-12 text-center max-w-lg mx-auto h-full flex flex-col justify-center">
-            <div className="flex justify-center mb-8">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-16 w-16 rounded-full bg-gray-100"></div>
-                </div>
-                <CheckCircle2 className="h-16 w-16 text-black relative z-10" />
+          <h3 className="text-2xl font-semibold mb-4">Traitement de votre paiement</h3>
+          <p className="text-gray-600 mb-8 max-w-md mx-auto">
+            Veuillez vérifier votre application wallet mobile et confirmer la transaction pour finaliser le paiement.
+          </p>
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={handleReset} className="mr-4 rounded-full">
+              Annuler
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {status === 'completed' && (
+        <div className="text-center py-8">
+          <div className="flex justify-center mb-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-16 w-16 rounded-full bg-gray-100"></div>
               </div>
-            </div>
-            <h3 className="text-2xl font-semibold mb-4">Paiement réussi !</h3>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Votre transaction a été traitée avec succès. Un email de confirmation vous sera envoyé prochainement.
-            </p>
-            <div className="flex justify-center">
-              <Button onClick={handleReset} className="mr-4 rounded-full">
-                Retour à la boutique <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <CheckCircle2 className="h-16 w-16 text-black relative z-10" />
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+          <h3 className="text-2xl font-semibold mb-4">Paiement réussi !</h3>
+          <p className="text-gray-600 mb-8 max-w-md mx-auto">
+            Votre transaction a été traitée avec succès. Un email de confirmation vous sera envoyé prochainement.
+          </p>
+          <div className="flex justify-center">
+            <Button onClick={handleReset} className="mr-4 rounded-full">
+              Retour à la boutique <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
