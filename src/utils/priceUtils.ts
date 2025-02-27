@@ -1,3 +1,4 @@
+
 export const calculateBuyerProtectionFees = (price: number) => {
   if (price < 500) {
     return 0.70 + (price * 0.05);
