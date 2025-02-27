@@ -1,193 +1,179 @@
-import { Link, useNavigate } from "react-router-dom";
-import { Bell, Heart, MessageCircle, Plus, Settings, LogOut, User, UserRound, Wallet, List } from "lucide-react";
+
+import { CircleUserRound, Bell, Heart, PlusSquare, LogOut, ShoppingBag, MessageSquare, Package, User, Settings, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { WalletConnectButton } from "../WalletConnectButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { AdminLink } from "./AdminLink";
-import { MenuWalletBalance } from "../wallet/MenuWalletBalance";
-import {
+import { useNavigate } from "react-router-dom";
+import { WalletConnectButton } from "@/components/WalletConnectButton";
+import { useToast } from "@/components/ui/use-toast";
+import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  DropdownMenuGroup,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
+import { MenuWalletBalance } from "../wallet/MenuWalletBalance";
+import { AdminLink } from "./AdminLink";
+import { useState, useEffect } from "react";
 
-export const NavbarActions = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
+export function NavbarActions() {
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [userProfile, setUserProfile] = useState<{ username?: string, first_name?: string, full_name?: string } | null>(null);
+  const { toast } = useToast();
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
+  // Récupération du nombre de messages non lus
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username, first_name, full_name')
-          .eq('id', user.id)
-          .single();
-          
-        setUserProfile(profile);
+    const fetchUnreadMessages = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('messages')
+          .select('count', { count: 'exact' })
+          .eq('receiver_id', user.id)
+          .eq('read', false);
+
+        if (error) throw error;
+        
+        if (data) {
+          setUnreadMessages(data.length);
+        }
+      } catch (error) {
+        console.error("Error fetching unread messages:", error);
       }
     };
 
-    fetchUserProfile();
+    fetchUnreadMessages();
+    
+    // Abonnement aux nouveaux messages
+    if (user) {
+      const subscription = supabase
+        .channel('new_messages')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${user.id}`
+        }, () => {
+          fetchUnreadMessages();
+        })
+        .subscribe();
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
   }, [user]);
 
-  const displayName = userProfile?.username || userProfile?.first_name || userProfile?.full_name || '';
-
-  const handleCreateListing = () => {
-    if (!user) {
-      toast({
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour déposer une annonce",
-      });
-      // Sauvegarder l'URL de retour avant la redirection
-      localStorage.setItem('redirectAfterAuth', '/create');
-      navigate("/auth");
-      return;
-    }
-    // Si l'utilisateur est connecté, naviguer directement vers la page de création
-    navigate("/create");
-  };
-
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de se déconnecter",
-        variant: "destructive",
-      });
-    } else {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Redirection vers la page d'accueil après déconnexion
+      navigate('/');
+      
       toast({
         title: "Déconnexion réussie",
         description: "À bientôt !",
       });
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la déconnexion",
+        variant: "destructive",
+      });
     }
   };
 
-  return (
-    <div className="flex items-center gap-2 md:gap-3">
-      <div className="flex items-center gap-2 md:hidden">
-        {user && (
-          <div>
-            <WalletConnectButton minimal />
-          </div>
-        )}
+  if (!user) {
+    return (
+      <div className="flex items-center gap-2">
+        <WalletConnectButton />
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => navigate('/auth')}
+          className="whitespace-nowrap"
+        >
+          Connexion
+        </Button>
       </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button 
+        onClick={() => navigate('/favorites')}
+        variant="ghost" 
+        size="icon"
+        className="text-gray-600"
+      >
+        <Heart className="h-5 w-5" />
+      </Button>
       
       <Button 
-        onClick={handleCreateListing}
-        className="bg-primary hover:bg-primary/90 hidden md:flex h-8 px-3 rounded-full text-sm transition-colors duration-200"
+        onClick={() => navigate('/messages')}
+        variant="ghost" 
+        size="icon"
+        className="text-gray-600 relative"
       >
-        <Plus className="h-4 w-4 mr-1" />
-        Déposer une annonce
+        <MessageSquare className="h-5 w-5" />
+        {unreadMessages > 0 && (
+          <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+            {unreadMessages > 9 ? '9+' : unreadMessages}
+          </span>
+        )}
       </Button>
-
-      {user ? (
-        <>
-          <div className="hidden md:block flex-shrink-0">
-            <WalletConnectButton />
-          </div>
-          <AdminLink />
-          <div className="hidden md:flex items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <UserRound className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 mt-2" align="end">
-                <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/profile" className="w-full cursor-pointer flex items-center justify-between">
-                    <div className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Mon profil</span>
-                    </div>
-                    {displayName && (
-                      <span className="text-sm text-muted-foreground">
-                        {displayName}
-                      </span>
-                    )}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/my-listings" className="w-full cursor-pointer flex items-center">
-                    <List className="mr-2 h-4 w-4" />
-                    <span>Mes annonces</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <MenuWalletBalance />
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/messages" className="w-full cursor-pointer">
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Messages
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/favorites" className="w-full cursor-pointer">
-                    <Heart className="mr-2 h-4 w-4" />
-                    Favoris
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/notifications" className="w-full cursor-pointer">
-                    <Bell className="mr-2 h-4 w-4" />
-                    Notifications
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/settings" className="w-full cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Paramètres
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </>
-      ) : (
-        <div className="hidden md:flex items-center gap-2">
-          <div className="flex-shrink-0">
-            <WalletConnectButton />
-          </div>
-          <div className="flex items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <UserRound className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 mt-2" align="end">
-                <Link to="/auth" className="w-full">
-                  <DropdownMenuItem className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    Connexion
-                  </DropdownMenuItem>
-                </Link>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      )}
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="text-gray-600">
+            <CircleUserRound className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuGroup>
+            <div className="p-3">
+              <div className="font-medium text-sm">{profile?.full_name || "Utilisateur"}</div>
+              <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+              <MenuWalletBalance />
+            </div>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => navigate('/profile')}>
+              <User className="h-4 w-4 mr-2" />
+              Mon profil
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/create')}>
+              <PlusSquare className="h-4 w-4 mr-2" />
+              Vendre un article
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/my-listings')}>
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              Mes annonces
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/payment')}>
+              <DollarSign className="h-4 w-4 mr-2" />
+              Mes transactions
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <AdminLink />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Déconnexion
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
-};
+}
