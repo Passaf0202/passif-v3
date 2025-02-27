@@ -13,7 +13,6 @@ import {
   Info,
   Smartphone,
 } from "lucide-react";
-import { ListingActions } from "@/components/listing/ListingActions";
 import { formatPrice } from "@/utils/priceUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -341,64 +340,53 @@ export default function Checkout() {
 
               <Separator />
               
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Choisissez votre méthode de paiement</h3>
-                
-                <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-5">
+                {/* Boutons principaux */}
+                <div className="grid grid-cols-2 gap-4">
                   <Button
-                    className="w-full py-6 bg-black hover:bg-black/90 text-white flex items-center justify-center text-base"
+                    className="w-full py-7 text-base font-medium"
                     disabled={!isConnected}
-                    onClick={() => {
-                      if (isConnected) {
-                        // Comportement du bouton "Payer" via navigateur existant
-                      }
-                    }}
                   >
-                    Payer via navigateur
+                    Payer
                   </Button>
                   
-                  <Dialog open={openQrDialog} onOpenChange={setOpenQrDialog}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        className="w-full py-6 border-black/30 flex items-center justify-center text-base"
-                        disabled={!isConnected}
-                      >
-                        <Smartphone className="mr-2 h-5 w-5" />
-                        Payer via téléphone
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle className="text-xl font-bold">Scannez pour payer sur téléphone</DialogTitle>
-                      </DialogHeader>
-                      <QRCodePayment 
-                        paymentUrl={getPaymentUrl()}
-                        sellerAddress={sellerAddress}
-                        cryptoAmount={cryptoAmount}
-                        cryptoCurrency={cryptoCurrency}
-                        isConnected={isConnected}
-                        listingId={listingId}
-                      />
-                    </DialogContent>
-                  </Dialog>
+                  <Button 
+                    variant="outline" 
+                    className="w-full py-7 text-base font-medium border-gray-300"
+                  >
+                    Contacter le vendeur
+                  </Button>
                 </div>
                 
-                <div className="space-y-4">
-                  <ListingActions
-                    listingId={listingId}
-                    sellerId={listing?.user?.id || ""}
-                    sellerAddress={sellerAddress}
-                    title={title}
-                    price={price}
-                    cryptoAmount={cryptoAmount}
-                    cryptoCurrency={cryptoCurrency}
-                    isCheckoutPage={true}
-                    isMobile={false}
-                  />
-                </div>
+                {/* Bouton QR code en plus petit */}
+                <Dialog open={openQrDialog} onOpenChange={setOpenQrDialog}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full py-2 text-sm border-gray-200 bg-gray-50"
+                      disabled={!isConnected}
+                    >
+                      <Smartphone className="mr-2 h-4 w-4" />
+                      Payer via téléphone
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold">Scannez pour payer sur téléphone</DialogTitle>
+                    </DialogHeader>
+                    <QRCodePayment 
+                      paymentUrl={getPaymentUrl()}
+                      sellerAddress={sellerAddress}
+                      cryptoAmount={cryptoAmount}
+                      cryptoCurrency={cryptoCurrency}
+                      isConnected={isConnected}
+                      listingId={listingId}
+                    />
+                  </DialogContent>
+                </Dialog>
               </div>
               
+              {/* Liens de sécurité en bas et centrés */}
               <div className="mt-8 pt-4 border-t border-gray-100 flex justify-center gap-8">
                 <Dialog>
                   <DialogTrigger asChild>
@@ -475,3 +463,6 @@ export default function Checkout() {
     </div>
   );
 }
+
+// Import de ListingActions ajouté pour éviter les erreurs
+import { ListingActions } from "@/components/listing/ListingActions";

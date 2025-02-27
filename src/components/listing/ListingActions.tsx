@@ -137,7 +137,9 @@ export const ListingActions = ({
           listingId={listingId}
           sellerId={sellerId}
           listingTitle={title}
-        />
+        >
+          Contacter le vendeur
+        </ContactModal>
       </Button>
     </div>
   );
