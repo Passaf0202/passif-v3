@@ -70,6 +70,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   });
 
   const handleBackClick = () => {
+    console.log("Navigation back triggered");
     navigate(-1);
   };
 

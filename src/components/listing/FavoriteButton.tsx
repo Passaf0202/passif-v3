@@ -1,10 +1,11 @@
+
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface FavoriteButtonProps {
   listingId: string;
@@ -14,6 +15,7 @@ interface FavoriteButtonProps {
 export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: isFavorite, refetch: refetchFavorite } = useQuery({
     queryKey: ["favorite", listingId, user?.id],
@@ -38,6 +40,7 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
   });
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     
     if (!user) {
@@ -76,7 +79,18 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
         });
       }
       
+      // Invalider tous les caches de favoris
+      await queryClient.invalidateQueries({
+        queryKey: ["favorite", listingId, user.id],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["favorites"],
+      });
+      
+      // Forcer le rafraîchissement
       refetchFavorite();
+      
+      console.log("Favorite toggled successfully:", !isFavorite);
     } catch (error) {
       console.error("Error toggling favorite:", error);
       toast({
@@ -92,7 +106,7 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
       variant="ghost"
       size="icon"
       className={cn(
-        "absolute top-2 right-2 bg-white/80 hover:bg-white transition-opacity",
+        "bg-white/80 hover:bg-white transition-opacity z-20",
         !isHovered && !isFavorite && "opacity-0 group-hover:opacity-100"
       )}
       onClick={handleFavoriteClick}
