@@ -146,7 +146,10 @@ export function ConversationView({
           
           <div className="flex flex-col">
             <span className="font-semibold">{displayName}</span>
-            <span className="text-xs text-gray-500 truncate max-w-[200px]">{lastMessage.listing.title}</span>
+            <span className="text-xs text-gray-500 truncate max-w-[200px]">
+              {lastMessage.listing.title}
+              {lastMessage.listing.title.length > 25 && "..."}
+            </span>
           </div>
         </div>
         

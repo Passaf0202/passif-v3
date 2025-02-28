@@ -81,6 +81,12 @@ export function ConversationsList({
               // Utiliser le nom d'utilisateur s'il existe, sinon utiliser le nom complet
               const displayName = otherUser.username || otherUser.full_name;
 
+              // Fonction pour tronquer le texte avec des points de suspension
+              const truncateWithEllipsis = (text: string, maxLength: number) => {
+                if (text.length <= maxLength) return text;
+                return text.substring(0, maxLength) + "...";
+              };
+
               return (
                 <div
                   key={thread.listingId}
@@ -102,7 +108,7 @@ export function ConversationsList({
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-1">
                         <div className="font-semibold truncate">
-                          {displayName}
+                          {truncateWithEllipsis(displayName, 15)}
                         </div>
                         <div className="text-xs text-muted-foreground flex-shrink-0">
                           {formatDistanceToNow(new Date(lastMessage.created_at), {
@@ -113,12 +119,12 @@ export function ConversationsList({
                       </div>
 
                       <div className="text-sm text-muted-foreground mb-1 truncate">
-                        {lastMessage.content || "Fichier partagé"}
+                        {truncateWithEllipsis(lastMessage.content || "Fichier partagé", 30)}
                       </div>
 
                       <div className="flex items-center justify-between">
                         <div className="text-xs text-primary truncate max-w-[180px]">
-                          {lastMessage.listing.title}
+                          {truncateWithEllipsis(lastMessage.listing.title, 25)}
                         </div>
                         {hasUnread && (
                           <div className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">

@@ -4,11 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ConversationsList } from "@/components/ConversationsList";
 import { ConversationView } from "@/components/ConversationView";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function Messages() {
   const { user } = useAuth();
@@ -19,6 +21,7 @@ export default function Messages() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const [showConversation, setShowConversation] = useState(false);
+  const navigate = useNavigate();
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ["conversations", user?.id],
@@ -162,6 +165,10 @@ export default function Messages() {
     setSelectedThread(null);
   };
 
+  const goBack = () => {
+    navigate(-1);
+  };
+
   if (!user) {
     return (
       <div>
@@ -179,7 +186,18 @@ export default function Messages() {
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
       <div className="flex-1 container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-6">Mes messages</h1>
+        <div className="flex items-center gap-3 mb-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={goBack}
+            className="h-8 w-8 flex-shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-bold">Mes messages</h1>
+        </div>
+        
         {isLoading ? (
           <div className="flex justify-center items-center h-[calc(100vh-200px)]">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
