@@ -1,7 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { Heart } from "lucide-react";
-import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
 
 // Constantes pour les tailles d'images
@@ -63,17 +61,6 @@ export const ListingImages = ({
 
   return (
     <div className="relative">
-      {/* Bouton Favoris */}
-      <div className="absolute top-4 right-4 z-10 favorite-button">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="bg-white/80 hover:bg-white"
-        >
-          <Heart className="h-5 w-5 text-gray-700" />
-        </Button>
-      </div>
-
       {/* Image principale - version optimisée */}
       <div className="relative h-[300px] md:h-[400px] w-full overflow-hidden">
         <img
