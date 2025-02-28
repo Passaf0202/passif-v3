@@ -25,13 +25,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+type TransactionFilter = 'all' | 'to-release' | 'awaiting-buyer-release' | 'completed' | 'cancelled';
+
 export default function Transactions() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'awaiting-payment' | 'completed'>('all');
+  const [activeFilter, setActiveFilter] = useState<TransactionFilter>('all');
   const [isCancelling, setIsCancelling] = useState(false);
   const [transactionToCancel, setTransactionToCancel] = useState<Transaction | null>(null);
   const { chain } = useNetwork();
@@ -83,23 +85,26 @@ export default function Transactions() {
     // Appliquer le filtre sélectionné
     if (activeFilter === 'all') {
       setFilteredTransactions(transactions);
-    } else if (activeFilter === 'pending') {
+    } else if (activeFilter === 'to-release') {
       // Transactions où l'utilisateur est acheteur et doit libérer des fonds
-      // OU si l'utilisateur est vendeur et attend la libération des fonds
       setFilteredTransactions(transactions.filter(t => 
+        t.isUserBuyer &&
         t.escrow_status === 'pending' && 
         t.funds_secured && 
         !t.buyer_confirmation
       ));
-    } else if (activeFilter === 'awaiting-payment') {
-      // Transactions où l'utilisateur est vendeur et attend un paiement
+    } else if (activeFilter === 'awaiting-buyer-release') {
+      // Transactions où l'utilisateur est vendeur et attend la libération des fonds par l'acheteur
       setFilteredTransactions(transactions.filter(t => 
-        t.isUserSeller && 
+        t.isUserSeller &&
         t.escrow_status === 'pending' && 
-        !t.funds_secured
+        t.funds_secured && 
+        !t.buyer_confirmation
       ));
     } else if (activeFilter === 'completed') {
-      setFilteredTransactions(transactions.filter(t => t.status === 'completed'));
+      setFilteredTransactions(transactions.filter(t => t.status === 'completed' || t.escrow_status === 'completed'));
+    } else if (activeFilter === 'cancelled') {
+      setFilteredTransactions(transactions.filter(t => t.status === 'cancelled' || t.escrow_status === 'cancelled'));
     }
   }, [activeFilter, transactions]);
 
@@ -252,31 +257,36 @@ export default function Transactions() {
     );
   };
 
-  // Fonction pour déterminer si une transaction est "à libérer"
-  const isReleaseRequired = (transaction: Transaction) => {
+  // Fonction pour déterminer si une transaction doit être libérée par l'acheteur
+  const needsReleaseByUser = (transaction: Transaction) => {
     return (
+      transaction.isUserBuyer &&
       transaction.escrow_status === 'pending' &&
       transaction.funds_secured &&
       !transaction.buyer_confirmation
     );
   };
 
-  // Fonction pour déterminer si une transaction est "en attente de paiement"
-  const isAwaitingPayment = (transaction: Transaction) => {
+  // Fonction pour déterminer si une transaction attend la libération par l'acheteur (pour le vendeur)
+  const isAwaitingBuyerRelease = (transaction: Transaction) => {
     return (
       transaction.isUserSeller &&
       transaction.escrow_status === 'pending' &&
-      !transaction.funds_secured
+      transaction.funds_secured &&
+      !transaction.buyer_confirmation
     );
   };
 
   // Générer le titre de l'état d'attente
   const getAwaitingStatusMessage = (transaction: Transaction) => {
-    if (isReleaseRequired(transaction)) {
-      return "En attente de libération des fonds";
+    if (needsReleaseByUser(transaction)) {
+      return "À libérer par vous (acheteur)";
     }
-    if (isAwaitingPayment(transaction)) {
-      return "En attente de paiement de l'acheteur";
+    if (isAwaitingBuyerRelease(transaction)) {
+      return "En attente de libération par l'acheteur";
+    }
+    if (transaction.isUserSeller && !transaction.funds_secured) {
+      return "En attente de paiement par l'acheteur";
     }
     return null;
   };
@@ -288,7 +298,7 @@ export default function Transactions() {
         <h1 className="text-3xl font-bold text-center mb-8">Mes Transactions</h1>
       
         {/* Filtres */}
-        <div className="flex justify-center mb-6 gap-2">
+        <div className="flex justify-center mb-6 gap-2 flex-wrap">
           <Button 
             variant={activeFilter === 'all' ? 'default' : 'outline'}
             onClick={() => setActiveFilter('all')}
@@ -297,18 +307,18 @@ export default function Transactions() {
             Toutes
           </Button>
           <Button 
-            variant={activeFilter === 'pending' ? 'default' : 'outline'}
-            onClick={() => setActiveFilter('pending')}
+            variant={activeFilter === 'to-release' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('to-release')}
             className="rounded-full"
           >
             À libérer
           </Button>
           <Button 
-            variant={activeFilter === 'awaiting-payment' ? 'default' : 'outline'}
-            onClick={() => setActiveFilter('awaiting-payment')}
+            variant={activeFilter === 'awaiting-buyer-release' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('awaiting-buyer-release')}
             className="rounded-full"
           >
-            Attente paiement
+            Attente paiement acheteur
           </Button>
           <Button 
             variant={activeFilter === 'completed' ? 'default' : 'outline'}
@@ -316,6 +326,13 @@ export default function Transactions() {
             className="rounded-full"
           >
             Terminées
+          </Button>
+          <Button 
+            variant={activeFilter === 'cancelled' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('cancelled')}
+            className="rounded-full"
+          >
+            Annulées
           </Button>
         </div>
       
@@ -329,11 +346,13 @@ export default function Transactions() {
               <h3 className="text-xl font-semibold mb-2">
                 {activeFilter === 'all' 
                   ? "Vous n'avez pas encore de transaction" 
-                  : activeFilter === 'pending' 
+                  : activeFilter === 'to-release' 
                     ? "Vous n'avez pas de transaction à libérer" 
-                    : activeFilter === 'awaiting-payment'
-                      ? "Vous n'avez pas de transaction en attente de paiement"
-                      : "Vous n'avez pas de transaction terminée"}
+                    : activeFilter === 'awaiting-buyer-release'
+                      ? "Vous n'avez pas de transaction en attente de libération par l'acheteur"
+                      : activeFilter === 'cancelled'
+                        ? "Vous n'avez pas de transaction annulée"
+                        : "Vous n'avez pas de transaction terminée"}
               </h3>
               <p className="text-muted-foreground mb-6">
                 {activeFilter === 'all' 
@@ -396,8 +415,9 @@ export default function Transactions() {
                           <div className="space-y-2 mt-auto">
                             {awaitingMessage && (
                               <p className={`text-sm font-medium ${
-                                isReleaseRequired(transaction) ? 'text-amber-600' : 
-                                isAwaitingPayment(transaction) ? 'text-blue-600' : ''
+                                needsReleaseByUser(transaction) ? 'text-amber-600' : 
+                                isAwaitingBuyerRelease(transaction) ? 'text-blue-600' : 
+                                'text-gray-600'
                               }`}>
                                 {awaitingMessage}
                               </p>
