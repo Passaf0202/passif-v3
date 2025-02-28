@@ -10,6 +10,7 @@ import { fr } from "date-fns/locale";
 import { calculateBuyerProtectionFees } from "@/utils/priceUtils";
 import { PriceDetails } from "./listing/PriceDetails";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
+import { getCategoryIcon } from "@/utils/categoryIcons";
 
 interface ListingCardProps {
   id: string;
@@ -24,6 +25,7 @@ interface ListingCardProps {
   crypto_amount?: number;
   crypto_currency?: string;
   walletAddress?: string | null;
+  category?: string;
 }
 
 export function ListingCard({
@@ -38,7 +40,8 @@ export function ListingCard({
   created_at,
   crypto_amount,
   crypto_currency,
-  walletAddress
+  walletAddress,
+  category
 }: ListingCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
@@ -64,9 +67,12 @@ export function ListingCard({
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  // Get the appropriate icon for this category
+  const CategoryIcon = category ? getCategoryIcon(category) : null;
+
   return (
     <Card 
-      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative group w-[200px]"
+      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative group w-[200px] border-gray-200"
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -82,9 +88,18 @@ export function ListingCard({
               (e.target as HTMLImageElement).src = "/placeholder.svg";
             }}
           />
-          <div className="favorite-button">
+          {/* Favorite button positioned in top-right */}
+          <div className="absolute top-2 right-2 z-10 favorite-button">
             <FavoriteButton listingId={id} isHovered={isHovered} />
           </div>
+          
+          {/* Category icon badge if available */}
+          {category && CategoryIcon && (
+            <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1.5">
+              <CategoryIcon className="w-3.5 h-3.5" />
+              <span className="capitalize">{category}</span>
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="p-3">

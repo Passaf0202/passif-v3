@@ -2,6 +2,9 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from "../ui/dialog";
 import { FavoriteButton } from "./FavoriteButton";
+import { Button } from "../ui/button";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Constantes pour les tailles d'images
 const THUMBNAIL_SIZE = '100x100';
@@ -25,6 +28,7 @@ export const ListingImages = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
   const [loadFullSize, setLoadFullSize] = useState(false);
+  const navigate = useNavigate();
   
   // Optimisation des images en utilisant des thumbnails automatiquement
   const optimizeImageUrl = (url: string, size: string = PREVIEW_SIZE): string => {
@@ -58,21 +62,38 @@ export const ListingImages = ({
     setTimeout(() => setLoadFullSize(true), FULLSIZE_LOAD_DELAY);
   };
   
+  const handleGoBack = () => {
+    navigate('/');
+  };
+  
   // S'assurer que les images existent et ont un format valide
   const validImages = images?.filter(img => img && typeof img === 'string') || [];
   const mainImage = validImages.length > 0 ? validImages[0] : "/placeholder.svg";
 
   return (
     <div className="relative">
-      {/* Bouton Favoris - Utiliser le composant FavoriteButton seulement si listingId est fourni */}
-      {listingId && (
-        <div className="absolute top-4 right-4 z-10 favorite-button">
-          <FavoriteButton listingId={listingId} isHovered={true} />
-        </div>
-      )}
+      {/* Navigation controls overlay - positioned outside image but at the top */}
+      <div className="absolute top-4 left-0 right-0 z-10 flex justify-between px-4">
+        {/* Back button in black box */}
+        <Button 
+          onClick={handleGoBack}
+          variant="outline"
+          size="icon"
+          className="bg-black hover:bg-black/90 text-white border-none rounded-md"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        
+        {/* Favorite button container */}
+        {listingId && (
+          <div className="favorite-button">
+            <FavoriteButton listingId={listingId} isHovered={true} />
+          </div>
+        )}
+      </div>
 
       {/* Image principale - version optimisée */}
-      <div className="relative h-[300px] md:h-[400px] w-full overflow-hidden">
+      <div className="relative h-[300px] md:h-[400px] w-full overflow-hidden mt-10">
         <img
           src={optimizeImageUrl(mainImage)}
           alt={title}

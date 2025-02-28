@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Category } from "@/types/category";
 import { capitalizeFirstLetter } from "@/utils/textUtils";
+import { getCategoryIcon } from "@/utils/categoryIcons";
 
 export function MobileCategoryBar() {
   const navigate = useNavigate();
@@ -39,16 +40,21 @@ export function MobileCategoryBar() {
         className="w-full"
       >
         <CarouselContent className="-ml-2">
-          {categories.map((category) => (
-            <CarouselItem key={category.id} className="pl-2 basis-auto">
-              <button
-                onClick={() => handleCategoryClick(category.name)}
-                className="whitespace-nowrap px-3 py-2 text-sm text-gray-600 hover:text-primary transition-colors"
-              >
-                {capitalizeFirstLetter(category.name)}
-              </button>
-            </CarouselItem>
-          ))}
+          {categories.map((category) => {
+            const CategoryIcon = getCategoryIcon(category.name);
+            
+            return (
+              <CarouselItem key={category.id} className="pl-2 basis-auto">
+                <button
+                  onClick={() => handleCategoryClick(category.name)}
+                  className="whitespace-nowrap px-3 py-2 text-sm text-gray-600 hover:text-primary transition-colors flex items-center gap-1.5"
+                >
+                  <CategoryIcon className="w-4 h-4" />
+                  <span>{capitalizeFirstLetter(category.name)}</span>
+                </button>
+              </CarouselItem>
+            );
+          })}
         </CarouselContent>
       </Carousel>
     </div>

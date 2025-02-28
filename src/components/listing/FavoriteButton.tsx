@@ -101,7 +101,7 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
       variant="ghost"
       size="icon"
       className={cn(
-        "absolute top-2 right-2 bg-white/80 hover:bg-white transition-opacity",
+        "bg-white/80 hover:bg-white rounded-md transition-opacity shadow-sm",
         !isHovered && !isFavorite && "opacity-0 group-hover:opacity-100",
         isLoading && "cursor-not-allowed opacity-70"
       )}
@@ -111,7 +111,7 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
       <Heart 
         className={cn(
           "h-5 w-5",
-          isFavorite ? "fill-gray-800 stroke-gray-800" : "stroke-gray-600"
+          isFavorite ? "fill-black stroke-black" : "stroke-black"
         )} 
       />
     </Button>

@@ -1,5 +1,5 @@
 
-import { X } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { DiamondViewer } from "@/components/home/DiamondViewer";
@@ -30,11 +30,11 @@ export function PageHeader({
       {showBackButton && (
         <Button
           onClick={() => navigate('/')}
-          variant="ghost"
+          variant="outline"
           size="icon"
-          className="absolute top-4 right-4 z-10"
+          className="absolute top-4 right-4 z-10 bg-black hover:bg-black/90 text-white border-none rounded-md"
         >
-          <X className="h-6 w-6" />
+          <ArrowLeft className="h-5 w-5" />
         </Button>
       )}
 
