@@ -1,127 +1,151 @@
 
+import { useState } from "react";
 import { Heart } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 
 interface FavoriteButtonProps {
   listingId: string;
-  isHovered: boolean;
+  isHovered?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  showLabel?: boolean;
 }
 
-export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) => {
+export function FavoriteButton({ 
+  listingId, 
+  isHovered = false,
+  size = 'md',
+  showLabel = false
+}: FavoriteButtonProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isToggling, setIsToggling] = useState(false);
+  
+  // Tailles d'icônes pour différentes tailles de bouton
+  const iconSizes = {
+    sm: 16,
+    md: 20,
+    lg: 24
+  };
+  
+  // Classes pour différentes tailles de bouton
+  const buttonSizes = {
+    sm: 'h-7 w-7',
+    md: 'h-9 w-9',
+    lg: 'h-11 w-11'
+  };
 
-  // Récupération de l'état favori
-  const { data: isFavorite } = useQuery({
-    queryKey: ["favorite", listingId, user?.id],
+  // Vérifier si l'utilisateur a mis cette annonce en favori
+  const { data: isFavorite = false, isLoading } = useQuery({
+    queryKey: ['favorite', listingId, user?.id],
     queryFn: async () => {
       if (!user) return false;
       
       const { data, error } = await supabase
         .from("favorites")
-        .select("id")
-        .eq("listing_id", listingId)
+        .select("*")
         .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error checking favorite:", error);
-        return false;
+        .eq("listing_id", listingId)
+        .single();
+        
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error checking favorite status", error);
       }
-
+      
       return !!data;
     },
     enabled: !!user,
   });
 
-  // Nouvelle implémentation du gestionnaire de clic
-  const handleFavoriteClick = async (e: React.MouseEvent) => {
-    // Empêcher la propagation et la navigation
-    e.preventDefault();
+  const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (!user) {
       toast({
-        title: "Connexion requise",
-        description: "Connectez-vous pour ajouter des favoris",
-        variant: "destructive",
+        title: "Authentification requise",
+        description: "Connectez-vous pour ajouter des annonces à vos favoris",
+        variant: "destructive"
       });
       return;
     }
-
-    // Éviter les clics multiples
-    if (isToggling) return;
-    
-    setIsToggling(true);
     
     try {
       if (isFavorite) {
-        // Supprimer des favoris
-        await supabase
+        // Retirer des favoris
+        const { error } = await supabase
           .from("favorites")
           .delete()
-          .eq("listing_id", listingId)
-          .eq("user_id", user.id);
-
+          .eq("user_id", user.id)
+          .eq("listing_id", listingId);
+          
+        if (error) throw error;
+        
         toast({
           title: "Retiré des favoris",
-          description: "L'annonce a été retirée de vos favoris",
+          description: "Cette annonce a été retirée de vos favoris"
         });
       } else {
         // Ajouter aux favoris
-        await supabase
+        const { error } = await supabase
           .from("favorites")
-          .insert([{ listing_id: listingId, user_id: user.id }]);
-
+          .insert({
+            user_id: user.id,
+            listing_id: listingId
+          });
+          
+        if (error) throw error;
+        
         toast({
           title: "Ajouté aux favoris",
-          description: "L'annonce a été ajoutée à vos favoris",
+          description: "Cette annonce a été ajoutée à vos favoris"
         });
       }
       
-      // Invalider les requêtes de favoris pour forcer le rafraîchissement
-      await queryClient.invalidateQueries({
-        queryKey: ["favorite"],
-      });
-      
-      console.log("Favori modifié avec succès:", !isFavorite);
-      
+      // Invalider les requêtes liées aux favoris
+      queryClient.invalidateQueries({ queryKey: ['favorite', listingId] });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
     } catch (error) {
-      console.error("Erreur lors de la modification du favori:", error);
+      console.error("Error toggling favorite", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la modification des favoris",
-        variant: "destructive",
+        description: "Impossible de modifier vos favoris. Veuillez réessayer.",
+        variant: "destructive"
       });
-    } finally {
-      setIsToggling(false);
     }
   };
 
-  // Nouveau rendu avec un style amélioré
+  // Style du bouton de favoris
+  const buttonClass = `favorite-button group transition-colors rounded-full flex items-center justify-center shadow-sm ${
+    buttonSizes[size]
+  } ${
+    isFavorite 
+      ? "bg-primary hover:bg-primary/90" 
+      : isHovered
+        ? "bg-white/90 hover:bg-white"
+        : "bg-white/70 hover:bg-white/90"
+  }`;
+
   return (
     <button
-      className={cn(
-        "flex items-center justify-center w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-300",
-        isToggling && "opacity-50 cursor-wait"
-      )}
-      onClick={handleFavoriteClick}
-      disabled={isToggling}
+      className={buttonClass}
+      onClick={toggleFavorite}
       aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+      disabled={isLoading}
     >
-      <Heart 
-        className={cn(
-          "h-5 w-5 transition-colors",
-          isFavorite ? "fill-black stroke-black" : "stroke-gray-600"
-        )} 
+      <Heart
+        className={`
+          transition-colors
+          ${isFavorite ? "fill-white stroke-white" : "fill-transparent stroke-gray-700"}
+          ${size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'}
+        `}
       />
+      {showLabel && (
+        <span className={`ml-2 text-sm ${isFavorite ? "text-white" : "text-gray-700"}`}>
+          {isFavorite ? "Favoris" : "Favoris"}
+        </span>
+      )}
     </button>
   );
-};
+}
