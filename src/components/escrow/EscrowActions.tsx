@@ -135,54 +135,47 @@ export function EscrowActions({
       const txnId = Number(transaction.blockchain_txn_id);
       console.log("[EscrowActions] Using blockchain transaction ID:", txnId);
 
-      // 5. Vérifier la transaction
+      // 5. Vérifier la transaction sur la blockchain
       console.log("[EscrowActions] Checking transaction on blockchain...");
-      const [buyer, seller, amount, isFunded, isCompleted] = await contract.transactions(txnId);
-      
-      if (!isFunded) {
-        throw new Error("La transaction n'est pas financée sur la blockchain");
-      }
+      try {
+        // Utiliser confirmTransaction au lieu de releaseFunds
+        const gasEstimate = await contract.estimateGas.confirmTransaction(txnId);
+        const gasLimit = gasEstimate.mul(120).div(100); // +20% marge
+        
+        console.log("[EscrowActions] Sending confirm transaction...");
+        const tx = await contract.confirmTransaction(txnId, { gasLimit });
+        console.log("[EscrowActions] Transaction sent:", tx.hash);
+        
+        const receipt = await tx.wait();
+        console.log("[EscrowActions] Transaction receipt:", receipt);
 
-      if (isCompleted) {
-        throw new Error("La transaction est déjà complétée sur la blockchain");
-      }
+        if (receipt.status === 1) {
+          // Mise à jour de la base de données
+          const { error: updateError } = await supabase
+            .from('transactions')
+            .update({
+              buyer_confirmation: true,
+              seller_confirmation: true,
+              status: 'completed',
+              escrow_status: 'completed',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', transactionId);
 
-      // 6. Estimer le gaz
-      console.log("[EscrowActions] Estimating gas...");
-      const gasEstimate = await contract.estimateGas.releaseFunds(txnId);
-      const gasLimit = gasEstimate.mul(120).div(100); // +20% marge
+          if (updateError) throw updateError;
 
-      // 7. Envoyer la transaction
-      console.log("[EscrowActions] Sending release transaction...");
-      const tx = await contract.releaseFunds(txnId, { gasLimit });
-      console.log("[EscrowActions] Transaction sent:", tx.hash);
-      
-      const receipt = await tx.wait();
-      console.log("[EscrowActions] Transaction receipt:", receipt);
+          toast({
+            title: "Succès",
+            description: "Les fonds ont été libérés avec succès",
+          });
 
-      if (receipt.status === 1) {
-        // 8. Mise à jour de la base de données
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            buyer_confirmation: true,
-            seller_confirmation: true,
-            status: 'completed',
-            escrow_status: 'completed',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', transactionId);
-
-        if (updateError) throw updateError;
-
-        toast({
-          title: "Succès",
-          description: "Les fonds ont été libérés avec succès",
-        });
-
-        onRelease();
-      } else {
-        throw new Error("La libération des fonds a échoué sur la blockchain");
+          onRelease();
+        } else {
+          throw new Error("La libération des fonds a échoué sur la blockchain");
+        }
+      } catch (error: any) {
+        console.error('[EscrowActions] Contract interaction error:', error);
+        throw new Error(`Erreur lors de l'interaction avec le contrat: ${error.message}`);
       }
     } catch (error: any) {
       console.error('[EscrowActions] Error:', error);
