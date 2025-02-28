@@ -115,6 +115,9 @@ export function UserProfile() {
                     </div>
                   </Avatar>
                 </div>
+                <div className="mt-4 text-center">
+                  <p className="text-lg font-semibold">{profile.username}</p>
+                </div>
               </div>
 
               <ProfileHeader
