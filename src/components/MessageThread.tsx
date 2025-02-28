@@ -4,9 +4,11 @@ import { fr } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Check, CheckCheck, FileText, Image as ImageIcon } from "lucide-react";
 import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 
 interface MessageThreadProps {
   message: {
+    id: string;
     content: string;
     created_at: string;
     read: boolean;
@@ -19,13 +21,17 @@ interface MessageThreadProps {
     sender: {
       id: string;
       full_name: string;
+      username?: string;
       avatar_url: string | null;
     };
     receiver: {
       id: string;
       full_name: string;
+      username?: string;
       avatar_url: string | null;
     };
+    sender_id: string;
+    receiver_id: string;
   };
   currentUserId: string;
 }
@@ -33,6 +39,17 @@ interface MessageThreadProps {
 export function MessageThread({ message, currentUserId }: MessageThreadProps) {
   const isUserSender = message.sender.id === currentUserId;
   const otherUser = isUserSender ? message.receiver : message.sender;
+  
+  // Utiliser le nom d'utilisateur s'il existe, sinon utiliser le nom complet
+  const displayName = otherUser.username || otherUser.full_name;
+  
+  // Générer les initiales pour l'avatar (en utilisant soit le username, soit le full_name)
+  const initials = displayName
+    .split(/\s+/)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
 
   const isImage = (file: string) => {
     return file.match(/\.(jpg|jpeg|png|gif|webp)$/i);
@@ -44,10 +61,10 @@ export function MessageThread({ message, currentUserId }: MessageThreadProps) {
         isUserSender ? "flex-row-reverse" : "flex-row"
       } mb-6`}
     >
-      <Avatar className="h-8 w-8 flex-shrink-0">
-        <AvatarImage src={otherUser.avatar_url || undefined} alt={otherUser.full_name} />
-        <AvatarFallback>
-          {otherUser.full_name.split(" ").map(n => n[0]).join("")}
+      <Avatar className="h-8 w-8 flex-shrink-0 border">
+        <AvatarImage src={otherUser.avatar_url || undefined} alt={displayName} />
+        <AvatarFallback className="bg-gray-100 text-gray-700">
+          {initials}
         </AvatarFallback>
       </Avatar>
 
@@ -55,11 +72,12 @@ export function MessageThread({ message, currentUserId }: MessageThreadProps) {
         isUserSender ? "items-end" : "items-start"
       }`}>
         <div
-          className={`rounded-2xl p-4 ${
-            isUserSender
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted"
-          }`}
+          className={cn(
+            "rounded-2xl p-4 shadow-sm",
+            isUserSender 
+              ? "bg-primary text-primary-foreground rounded-tr-none" 
+              : "bg-gray-100 text-gray-800 rounded-tl-none"
+          )}
         >
           <p className="text-sm md:text-base whitespace-pre-wrap break-words">
             {message.content}

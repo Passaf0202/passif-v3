@@ -23,7 +23,7 @@ interface ContactModalProps {
 export function ContactModal({ listingId, sellerId, listingTitle }: ContactModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState("Bonjour votre annonce m'intéresse, est-elle toujours disponible ? 🙂");
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
@@ -77,16 +77,16 @@ export function ContactModal({ listingId, sellerId, listingTitle }: ContactModal
       title: "Succès",
       description: "Message envoyé avec succès",
     });
-    setMessage("");
+    setMessage("Bonjour votre annonce m'intéresse, est-elle toujours disponible ? 🙂");
     setIsOpen(false);
   };
 
   if (!user) {
     return (
-      <Button variant="outline" className="w-full py-7 text-base font-medium" asChild>
+      <Button variant="outline" className="w-full h-14 text-base font-medium" asChild>
         <a href="/auth">
           <MessageCircle className="mr-2 h-4 w-4" />
-          Se connecter pour contacter
+          Se connecter
         </a>
       </Button>
     );
@@ -95,9 +95,9 @@ export function ContactModal({ listingId, sellerId, listingTitle }: ContactModal
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full py-7 text-base font-medium">
+        <Button variant="outline" className="w-full h-14 text-base font-medium">
           <MessageCircle className="mr-2 h-4 w-4" />
-          Contacter le vendeur
+          Contacter
         </Button>
       </DialogTrigger>
       <DialogContent>

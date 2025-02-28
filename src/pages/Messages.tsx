@@ -1,13 +1,16 @@
+
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ConversationsList } from "@/components/ConversationsList";
 import { ConversationView } from "@/components/ConversationView";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function Messages() {
   const { user } = useAuth();
@@ -18,6 +21,7 @@ export default function Messages() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const [showConversation, setShowConversation] = useState(false);
+  const navigate = useNavigate();
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ["conversations", user?.id],
@@ -28,8 +32,8 @@ export default function Messages() {
         .select(`
           *,
           listing:listings(title),
-          sender:profiles!messages_sender_id_fkey(id, full_name, avatar_url),
-          receiver:profiles!messages_receiver_id_fkey(id, full_name, avatar_url)
+          sender:profiles!messages_sender_id_fkey(id, full_name, username, avatar_url),
+          receiver:profiles!messages_receiver_id_fkey(id, full_name, username, avatar_url)
         `)
         .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
         .order("created_at", { ascending: false });
@@ -161,6 +165,10 @@ export default function Messages() {
     setSelectedThread(null);
   };
 
+  const goBack = () => {
+    navigate(-1);
+  };
+
   if (!user) {
     return (
       <div>
@@ -175,26 +183,41 @@ export default function Messages() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
-      <div className="flex-1 container mx-auto p-4 overflow-hidden">
-        <h1 className="text-2xl font-bold mb-6">Mes messages</h1>
+      <div className="flex-1 container mx-auto p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={goBack}
+            className="h-8 w-8 flex-shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-bold">Mes messages</h1>
+        </div>
+        
         {isLoading ? (
-          <div className="flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : conversations && conversations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)] min-h-[500px]">
             {(!isMobile || !showConversation) && (
-              <ConversationsList
-                conversations={conversations}
-                selectedThread={selectedThread}
-                currentUserId={user.id}
-                onThreadSelect={handleThreadSelect}
-              />
+              <div className="h-full">
+                <ConversationsList
+                  conversations={conversations}
+                  selectedThread={selectedThread}
+                  currentUserId={user.id}
+                  onThreadSelect={handleThreadSelect}
+                  isMobile={isMobile}
+                  onBackClick={handleBackToList}
+                />
+              </div>
             )}
             {(!isMobile || showConversation) && (
-              <div className="md:col-span-2 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
+              <div className="md:col-span-2 h-full bg-white border border-gray-100 rounded-lg shadow-sm">
                 <ConversationView
                   selectedThread={selectedThread}
                   conversations={conversations}
@@ -211,8 +234,10 @@ export default function Messages() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm p-8">
-            <p className="text-center text-gray-500">Aucun message</p>
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <h2 className="text-xl font-semibold mb-2">Aucun message</h2>
+            <p className="text-gray-500 mb-6">Vous n'avez pas encore de conversations</p>
+            <p className="text-sm text-gray-500">Lorsque vous discuterez avec des vendeurs, vos messages apparaîtront ici.</p>
           </div>
         )}
       </div>
