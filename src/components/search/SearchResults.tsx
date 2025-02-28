@@ -59,7 +59,9 @@ export const SearchResults = ({
   };
 
   const handleListingClick = (listingId: string, event: React.MouseEvent) => {
+    // Vérifier si le clic s'est produit sur le bouton favori ou dans sa zone
     if ((event.target as HTMLElement).closest('.favorite-button')) {
+      event.stopPropagation();
       return;
     }
     navigate(`/listings/${listingId}`);
@@ -125,7 +127,7 @@ export const SearchResults = ({
 
   const ListingCardMobile = ({ listing }: { listing: Listing }) => (
     <Card 
-      className="overflow-hidden mb-4"
+      className="overflow-hidden mb-4 cursor-pointer"
       onClick={(e) => handleListingClick(listing.id, e)}
     >
       <div className="relative">
