@@ -1,6 +1,5 @@
 
-import { Check, Clock, Loader2, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Check, Clock, FileCheck, Lock, ShieldCheck, Wallet } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Transaction } from "./types/escrow";
 
@@ -10,10 +9,14 @@ interface EscrowStatusProps {
   onRefresh?: () => void;
 }
 
-export function EscrowStatus({ transaction, onRefresh }: EscrowStatusProps) {
+export function EscrowStatus({ transaction }: EscrowStatusProps) {
   const { escrow_status, funds_secured, buyer_confirmation, seller_confirmation } = transaction;
 
-  const getStatusPercentage = () => {
+  const getPaymentStatusPercentage = () => {
+    return funds_secured ? 100 : 0;
+  };
+
+  const getEscrowStatusPercentage = () => {
     if (escrow_status === 'completed') return 100;
     if (escrow_status === 'cancelled') return 0;
     
@@ -27,13 +30,26 @@ export function EscrowStatus({ transaction, onRefresh }: EscrowStatusProps) {
 
   return (
     <div className="space-y-6">
-      {/* Barre de progression visuelle */}
+      {/* Barre de progression pour le paiement */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span>Paiement envoyé</span>
+          <span>{getPaymentStatusPercentage()}%</span>
+        </div>
+        <Progress 
+          value={getPaymentStatusPercentage()} 
+          className="h-2 bg-gray-100" 
+          indicatorClassName="bg-green-500"
+        />
+      </div>
+      
+      {/* Barre de progression pour l'escrow */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span>Escrow</span>
-          <span>{getStatusPercentage()}%</span>
+          <span>{getEscrowStatusPercentage()}%</span>
         </div>
-        <Progress value={getStatusPercentage()} className="h-2" />
+        <Progress value={getEscrowStatusPercentage()} className="h-2" />
       </div>
 
       {/* Étapes détaillées */}
@@ -42,7 +58,7 @@ export function EscrowStatus({ transaction, onRefresh }: EscrowStatusProps) {
           <div className="mt-0.5">
             {funds_secured ? (
               <div className="h-5 w-5 rounded-full bg-green-100 flex items-center justify-center">
-                <Check className="h-3 w-3 text-green-600" />
+                <Wallet className="h-3 w-3 text-green-600" />
               </div>
             ) : (
               <div className="h-5 w-5 rounded-full bg-gray-100 flex items-center justify-center">
@@ -70,7 +86,7 @@ export function EscrowStatus({ transaction, onRefresh }: EscrowStatusProps) {
           <div className="mt-0.5">
             {buyer_confirmation ? (
               <div className="h-5 w-5 rounded-full bg-green-100 flex items-center justify-center">
-                <Check className="h-3 w-3 text-green-600" />
+                <FileCheck className="h-3 w-3 text-green-600" />
               </div>
             ) : (
               <div className="h-5 w-5 rounded-full bg-gray-100 flex items-center justify-center">
@@ -95,7 +111,7 @@ export function EscrowStatus({ transaction, onRefresh }: EscrowStatusProps) {
           <div className="mt-0.5">
             {seller_confirmation ? (
               <div className="h-5 w-5 rounded-full bg-green-100 flex items-center justify-center">
-                <Check className="h-3 w-3 text-green-600" />
+                <ShieldCheck className="h-3 w-3 text-green-600" />
               </div>
             ) : (
               <div className="h-5 w-5 rounded-full bg-gray-100 flex items-center justify-center">
@@ -141,18 +157,6 @@ export function EscrowStatus({ transaction, onRefresh }: EscrowStatusProps) {
           </div>
         </div>
       </div>
-
-      {onRefresh && (
-        <Button 
-          variant="outline" 
-          className="w-full mt-4"
-          onClick={onRefresh}
-          size="sm"
-        >
-          <Loader2 className="h-4 w-4 mr-2" />
-          Rafraîchir l'état
-        </Button>
-      )}
     </div>
   );
 }
