@@ -28,7 +28,7 @@ interface EscrowDetailsProps {
 
 export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
   const { user } = useAuth();
-  const { rates } = useCryptoRates();
+  const { data: cryptoRates } = useCryptoRates();
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -140,7 +140,13 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <EscrowAlerts transaction={transaction} />
+              <EscrowAlerts 
+                transaction={transaction}
+                status={transaction.escrow_status}
+                hasConfirmed={transaction.buyer_confirmation}
+                fundsSecured={transaction.funds_secured}
+                isUserBuyer={isUserBuyer}
+              />
               
               <div className="space-y-4 mt-4">
                 <div className="flex justify-between">
@@ -155,9 +161,9 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
                   <span className="text-muted-foreground">Montant</span>
                   <div className="text-right">
                     <div className="font-medium">{transaction.amount} {transaction.token_symbol}</div>
-                    {rates[transaction.token_symbol] && (
+                    {cryptoRates && cryptoRates[transaction.token_symbol] && (
                       <div className="text-sm text-muted-foreground">
-                        ≈ {formatCurrency(transaction.amount * rates[transaction.token_symbol].rate_eur)}
+                        ≈ {formatCurrency(transaction.amount * cryptoRates[transaction.token_symbol].rate_eur)}
                       </div>
                     )}
                   </div>

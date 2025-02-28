@@ -20,6 +20,7 @@ export interface Transaction {
   cancelled_at?: string;
   cancellation_reason?: string;
   created_at?: string;
+  updated_at?: string;
   // Champs pour l'interface d'affichage
   isUserBuyer?: boolean;
   isUserSeller?: boolean;
