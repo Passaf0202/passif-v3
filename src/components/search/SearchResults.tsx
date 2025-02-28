@@ -32,9 +32,22 @@ interface SearchResultsProps {
   listings: Listing[];
   showFilters?: boolean;
   actionButtons?: (listingId: string) => React.ReactNode;
+  // Propriétés ajoutées pour corriger les erreurs de type
+  totalCount?: number;
+  currentPage?: number;
+  itemsPerPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
-export const SearchResults = ({ listings, showFilters = true, actionButtons }: SearchResultsProps) => {
+export const SearchResults = ({ 
+  listings, 
+  showFilters = true, 
+  actionButtons,
+  totalCount = 0,
+  currentPage = 1,
+  itemsPerPage = 12,
+  onPageChange
+}: SearchResultsProps) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -87,6 +100,28 @@ export const SearchResults = ({ listings, showFilters = true, actionButtons }: S
       </Button>
     </div>
   );
+
+  // Pagination
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    
+    return (
+      <div className="flex justify-center mt-8 space-x-2">
+        {[...Array(totalPages)].map((_, index) => (
+          <Button
+            key={index}
+            variant={currentPage === index + 1 ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange && onPageChange(index + 1)}
+          >
+            {index + 1}
+          </Button>
+        ))}
+      </div>
+    );
+  };
 
   const ListingCardMobile = ({ listing }: { listing: Listing }) => (
     <Card 
@@ -212,6 +247,7 @@ export const SearchResults = ({ listings, showFilters = true, actionButtons }: S
           )
         ))}
       </div>
+      {onPageChange && totalPages > 1 && renderPagination()}
     </div>
   );
 };

@@ -70,7 +70,7 @@ export function RecommendedListingsSection() {
       return [];
     },
     staleTime: 1000 * 60 * 30, // 30 minutes de cache
-    cacheTime: 1000 * 60 * 60, // 1 heure de conservation
+    gcTime: 1000 * 60 * 60, // 1 heure de conservation (remplace cacheTime)
   });
 
   if (listings.length === 0) return null;

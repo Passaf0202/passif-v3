@@ -102,9 +102,9 @@ export default function ListingDetailsPage() {
       if (error) throw error;
       return data;
     },
-    // Utiliser le cache intensivement
+    // Utiliser le cache intensivement avec gcTime (remplace cacheTime)
     staleTime: 1000 * 60 * 30, // 30 minutes
-    cacheTime: 1000 * 60 * 60, // 1 heure
+    gcTime: 1000 * 60 * 60, // 1 heure - pour corriger l'erreur cacheTime
   });
 
   const handleBack = () => {

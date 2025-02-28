@@ -24,6 +24,7 @@ const Search = () => {
   const query = searchParams.get("q") || "";
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<SearchFilters>({});
+  const [titleOnly, setTitleOnly] = useState(false);
 
   // Réinitialiser la page quand la requête change
   useEffect(() => {
@@ -47,13 +48,17 @@ const Search = () => {
         category,
         subcategory,
         created_at
-      `) // Sélectionner uniquement les champs nécessaires, pas de "*"
+      `, { count: 'exact' }) // Spécifier count: 'exact' pour obtenir le nombre total
       .eq("status", "active")
       .order("created_at", { ascending: false });
 
     // Appliquer la recherche textuelle
     if (query) {
-      supabaseQuery = supabaseQuery.or(`title.ilike.%${query}%, description.ilike.%${query}%`);
+      if (titleOnly) {
+        supabaseQuery = supabaseQuery.ilike("title", `%${query}%`);
+      } else {
+        supabaseQuery = supabaseQuery.or(`title.ilike.%${query}%, description.ilike.%${query}%`);
+      }
     }
 
     // Appliquer les filtres
@@ -76,7 +81,7 @@ const Search = () => {
     
     supabaseQuery = supabaseQuery.range(from, to);
 
-    const { data, error, count } = await supabaseQuery.count('exact');
+    const { data, error, count } = await supabaseQuery;
 
     if (error) throw error;
     
@@ -88,7 +93,7 @@ const Search = () => {
 
   // Mise en cache avec React Query
   const { data, isLoading } = useQuery({
-    queryKey: ["search", query, filters, currentPage],
+    queryKey: ["search", query, filters, titleOnly, currentPage],
     queryFn: fetchListings,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -103,14 +108,23 @@ const Search = () => {
     setFilters(newFilters);
   };
 
+  const handleSearchChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("q", value);
+    window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="mb-6">
           <SearchInput
-            initialQuery={query}
-            onFilterChange={handleFilterChange}
+            value={query}
+            onChange={handleSearchChange}
+            titleOnly={titleOnly}
+            onTitleOnlyChange={setTitleOnly}
+            showCheckbox={true}
           />
         </div>
 
@@ -123,7 +137,7 @@ const Search = () => {
             <SearchResults 
               listings={data?.listings || []}
               showFilters={true}
-              totalCount={data?.totalCount || 0}
+              totalCount={data?.totalCount}
               currentPage={currentPage}
               itemsPerPage={ITEMS_PER_PAGE}
               onPageChange={handlePageChange}
