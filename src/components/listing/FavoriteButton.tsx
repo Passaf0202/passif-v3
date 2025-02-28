@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 interface FavoriteButtonProps {
   listingId: string;
@@ -16,8 +17,10 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isToggling, setIsToggling] = useState(false);
 
-  const { data: isFavorite, refetch: refetchFavorite } = useQuery({
+  // Récupération de l'état favori
+  const { data: isFavorite } = useQuery({
     queryKey: ["favorite", listingId, user?.id],
     queryFn: async () => {
       if (!user) return false;
@@ -29,7 +32,7 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         console.error("Error checking favorite:", error);
         return false;
       }
@@ -39,7 +42,9 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
     enabled: !!user,
   });
 
+  // Nouvelle implémentation du gestionnaire de clic
   const handleFavoriteClick = async (e: React.MouseEvent) => {
+    // Empêcher la propagation et la navigation
     e.preventDefault();
     e.stopPropagation();
     
@@ -52,26 +57,29 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
       return;
     }
 
+    // Éviter les clics multiples
+    if (isToggling) return;
+    
+    setIsToggling(true);
+    
     try {
       if (isFavorite) {
-        const { error } = await supabase
+        // Supprimer des favoris
+        await supabase
           .from("favorites")
           .delete()
           .eq("listing_id", listingId)
           .eq("user_id", user.id);
-
-        if (error) throw error;
 
         toast({
           title: "Retiré des favoris",
           description: "L'annonce a été retirée de vos favoris",
         });
       } else {
-        const { error } = await supabase
+        // Ajouter aux favoris
+        await supabase
           .from("favorites")
           .insert([{ listing_id: listingId, user_id: user.id }]);
-
-        if (error) throw error;
 
         toast({
           title: "Ajouté aux favoris",
@@ -79,44 +87,42 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
         });
       }
       
-      // Invalider tous les caches de favoris
+      // Invalider les requêtes de favoris pour forcer le rafraîchissement
       await queryClient.invalidateQueries({
-        queryKey: ["favorite", listingId, user.id],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["favorites"],
+        queryKey: ["favorite"],
       });
       
-      // Forcer le rafraîchissement
-      refetchFavorite();
+      console.log("Favori modifié avec succès:", !isFavorite);
       
-      console.log("Favorite toggled successfully:", !isFavorite);
     } catch (error) {
-      console.error("Error toggling favorite:", error);
+      console.error("Erreur lors de la modification du favori:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue",
+        description: "Une erreur est survenue lors de la modification des favoris",
         variant: "destructive",
       });
+    } finally {
+      setIsToggling(false);
     }
   };
 
+  // Nouveau rendu avec un style amélioré
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
       className={cn(
-        "bg-white/80 hover:bg-white transition-opacity z-20",
-        !isHovered && !isFavorite && "opacity-0 group-hover:opacity-100"
+        "flex items-center justify-center w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-300",
+        isToggling && "opacity-50 cursor-wait"
       )}
       onClick={handleFavoriteClick}
+      disabled={isToggling}
+      aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
     >
       <Heart 
         className={cn(
-          "h-5 w-5",
+          "h-5 w-5 transition-colors",
           isFavorite ? "fill-red-500 stroke-red-500" : "stroke-gray-600"
         )} 
       />
-    </Button>
+    </button>
   );
 };

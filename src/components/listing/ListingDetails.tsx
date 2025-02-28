@@ -16,6 +16,7 @@ import { Card } from "../ui/card";
 import { LocationPicker } from "../LocationPicker";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
+import { FavoriteButton } from "./FavoriteButton";
 
 interface ListingDetailsProps {
   listing: {
@@ -69,9 +70,15 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     },
   });
 
+  // Nouvelle implémentation du bouton de retour
   const handleBackClick = () => {
-    console.log("Navigation back triggered");
-    navigate(-1);
+    // Méthode 1 : Utiliser l'API d'historique du navigateur
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      // Méthode 2 : Fallback sur la navigation React Router
+      navigate("/"); // Retour à la page d'accueil si pas d'historique
+    }
   };
 
   const categories = [listing.category, listing.subcategory].filter(Boolean);
@@ -128,17 +135,29 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     </div>
   );
 
+  // Composant pour les boutons de navigation (retour et favoris)
+  const NavButtons = () => (
+    <div className="absolute top-4 left-4 z-20 flex items-center gap-3">
+      {/* Bouton retour avec impact visuel renforcé */}
+      <a 
+        href="javascript:void(0)" 
+        onClick={handleBackClick}
+        className="flex items-center justify-center w-10 h-10 bg-white/90 hover:bg-white rounded-full shadow-md"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </a>
+      
+      {/* Bouton favoris */}
+      <div className="mt-1">
+        <FavoriteButton listingId={listing.id} isHovered={true} />
+      </div>
+    </div>
+  );
+
   const MobileLayout = () => (
     <div className="space-y-6">
       <div className="relative">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
-          onClick={handleBackClick}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+        <NavButtons />
         <ListingImages images={listing.images} title={listing.title} />
       </div>
       
@@ -203,14 +222,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
 
   const DesktopLayout = () => (
     <div className="relative">
-      <Button 
-        variant="ghost" 
-        size="icon"
-        className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
-        onClick={handleBackClick}
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </Button>
+      <NavButtons />
       <div className="grid grid-cols-[2fr,1fr] gap-8 px-6 py-8">
         <div className="space-y-8">
           <ListingImages images={listing.images} title={listing.title} />
