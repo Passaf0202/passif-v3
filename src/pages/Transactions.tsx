@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Loader2, ExternalLink, AlertTriangle } from "lucide-react";
+import { Loader2, ExternalLink, AlertTriangle, Ban, Clock, CheckCircle2 } from "lucide-react";
 import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
@@ -24,6 +24,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export default function Transactions() {
   const { user } = useAuth();
@@ -31,7 +33,7 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   const [isCancelling, setIsCancelling] = useState(false);
   const [transactionToCancel, setTransactionToCancel] = useState<Transaction | null>(null);
   const { chain } = useNetwork();
@@ -52,6 +54,16 @@ export default function Transactions() {
               title,
               images,
               price
+            ),
+            buyer:profiles!transactions_buyer_id_fkey (
+              id,
+              full_name,
+              username
+            ),
+            seller:profiles!transactions_seller_id_fkey (
+              id,
+              full_name,
+              username
             )
           `)
           .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
@@ -79,32 +91,63 @@ export default function Transactions() {
       setFilteredTransactions(transactions.filter(t => t.escrow_status === 'pending' && t.funds_secured));
     } else if (activeFilter === 'completed') {
       setFilteredTransactions(transactions.filter(t => t.status === 'completed'));
+    } else if (activeFilter === 'cancelled') {
+      setFilteredTransactions(transactions.filter(t => t.status === 'cancelled'));
     }
   }, [activeFilter, transactions]);
 
   // Helper pour traduire les statuts
-  const getStatusTranslation = (status: string) => {
-    const statusMap: Record<string, { label: string, color: string }> = {
-      'pending': { label: 'En attente', color: 'bg-yellow-500' },
-      'completed': { label: 'Terminée', color: 'bg-green-500' },
-      'cancelled': { label: 'Annulée', color: 'bg-red-500' },
-      'dispute': { label: 'Litige', color: 'bg-orange-500' },
-    };
+  const getStatusBadge = (transaction: Transaction) => {
+    const { status, escrow_status, funds_secured } = transaction;
     
-    return statusMap[status] || { label: status, color: 'bg-gray-500' };
+    if (status === 'cancelled' || escrow_status === 'cancelled') {
+      return (
+        <Badge className="flex items-center gap-1 bg-red-100 text-red-800 border-red-200 hover:bg-red-200">
+          <Ban className="h-3 w-3" />
+          Annulée
+        </Badge>
+      );
+    }
+    
+    if (status === 'completed' || escrow_status === 'completed') {
+      return (
+        <Badge className="flex items-center gap-1 bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
+          <CheckCircle2 className="h-3 w-3" />
+          Terminée
+        </Badge>
+      );
+    }
+    
+    if (escrow_status === 'pending') {
+      if (funds_secured) {
+        return (
+          <Badge className="flex items-center gap-1 bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200">
+            <Clock className="h-3 w-3" />
+            En attente de confirmation
+          </Badge>
+        );
+      } else {
+        return (
+          <Badge className="flex items-center gap-1 bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+            <Clock className="h-3 w-3" />
+            En attente de paiement
+          </Badge>
+        );
+      }
+    }
+    
+    return (
+      <Badge variant="outline" className="flex items-center gap-1">
+        <Clock className="h-3 w-3" />
+        {status}
+      </Badge>
+    );
   };
 
   // Helper pour formater la date
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('fr-FR', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    return format(new Date(dateString), 'dd MMM yyyy à HH:mm', { locale: fr });
   };
 
   // Fonction pour formater le montant en crypto en limitant les décimales
@@ -260,6 +303,13 @@ export default function Transactions() {
           >
             Terminées
           </Button>
+          <Button 
+            variant={activeFilter === 'cancelled' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('cancelled')}
+            className="rounded-full"
+          >
+            Annulées
+          </Button>
         </div>
       
         <div className="container max-w-4xl">
@@ -274,7 +324,9 @@ export default function Transactions() {
                   ? "Vous n'avez pas encore de transaction" 
                   : activeFilter === 'pending' 
                     ? "Vous n'avez pas de transaction à libérer" 
-                    : "Vous n'avez pas de transaction terminée"}
+                    : activeFilter === 'completed'
+                      ? "Vous n'avez pas de transaction terminée"
+                      : "Vous n'avez pas de transaction annulée"}
               </h3>
               <p className="text-muted-foreground mb-6">
                 {activeFilter === 'all' 
@@ -288,11 +340,10 @@ export default function Transactions() {
           ) : (
             <div className="space-y-4">
               {filteredTransactions.map((transaction) => {
-                const status = getStatusTranslation(transaction.status);
                 const imageUrl = transaction.listing?.images?.[0];
                 
                 return (
-                  <Card key={transaction.id} className="overflow-hidden">
+                  <Card key={transaction.id} className="overflow-hidden border border-gray-200 hover:border-primary/50 transition-colors">
                     <CardContent className="p-0">
                       <div className="flex flex-col md:flex-row">
                         {/* Image */}
@@ -308,32 +359,63 @@ export default function Transactions() {
                               Pas d'image
                             </div>
                           )}
+                          
+                          {/* Statut superposé sur l'image en mobile */}
+                          <div className="md:hidden absolute top-3 left-3">
+                            {getStatusBadge(transaction)}
+                          </div>
                         </div>
                         
                         {/* Détails */}
                         <div className="p-6 flex-1">
                           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                             <div>
-                              <h3 className="text-lg font-semibold mb-1">
-                                {transaction.listing?.title || "Article sans nom"}
-                              </h3>
+                              <div className="flex items-center space-x-2 mb-1">
+                                <h3 className="text-lg font-semibold">
+                                  {transaction.listing?.title || "Article sans nom"}
+                                </h3>
+                                <div className="hidden md:block">
+                                  {getStatusBadge(transaction)}
+                                </div>
+                              </div>
+                              
                               <div className="text-sm text-muted-foreground mb-2">
                                 <span>Transaction du {formatDate(transaction.created_at)}</span>
+                                {transaction.cancelled_at && (
+                                  <span className="ml-2 text-red-500">
+                                    • Annulée le {formatDate(transaction.cancelled_at)}
+                                  </span>
+                                )}
                               </div>
+                              
                               <div className="flex items-center gap-2 mb-4">
-                                <Badge className={`${status.color} text-white`}>
-                                  {status.label}
-                                </Badge>
                                 <div className="text-sm font-medium">
                                   {formatCryptoAmount(transaction.amount, transaction.token_symbol)}
                                 </div>
+                              </div>
+                              
+                              {/* Détails utilisateur */}
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mb-4">
+                                <div className="text-gray-500">Acheteur:</div>
+                                <div className="font-medium">{transaction.buyer?.username || "Inconnu"}</div>
+                                
+                                <div className="text-gray-500">Vendeur:</div>
+                                <div className="font-medium">{transaction.seller?.username || "Inconnu"}</div>
+                                
+                                {transaction.blockchain_txn_id && (
+                                  <>
+                                    <div className="text-gray-500">ID Blockchain:</div>
+                                    <div className="font-mono text-xs">{transaction.blockchain_txn_id}</div>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
                           
                           <div className="space-y-2 mt-auto">
                             {transaction.escrow_status === 'pending' && transaction.funds_secured && (
-                              <p className="text-sm text-amber-600 font-medium">
+                              <p className="text-sm text-amber-600 font-medium flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
                                 En attente de libération des fonds
                               </p>
                             )}
@@ -358,7 +440,7 @@ export default function Transactions() {
                                 </Button>
                               )}
                               
-                              {transaction.escrow_status === 'pending' && transaction.can_be_cancelled && (
+                              {canCancelTransaction(transaction) && (
                                 <Button 
                                   variant="destructive"
                                   className="flex-1 sm:flex-none"

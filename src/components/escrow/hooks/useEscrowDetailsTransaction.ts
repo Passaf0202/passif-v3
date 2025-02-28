@@ -26,11 +26,13 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
           buyer:profiles!transactions_buyer_id_fkey (
             id,
             full_name,
+            username,
             wallet_address
           ),
           seller:profiles!transactions_seller_id_fkey (
             id,
             full_name,
+            username,
             wallet_address
           )
         `)
@@ -80,15 +82,22 @@ export const useEscrowDetailsTransaction = (transactionId: string) => {
         listing_title: txn.listing?.title || 'N/A',
         transaction_hash: txn.transaction_hash,
         block_number: txn.block_number,
+        created_at: txn.created_at,
+        updated_at: txn.updated_at,
+        funds_secured_at: txn.funds_secured_at,
+        cancelled_at: txn.cancelled_at,
+        cancelled_by: txn.cancelled_by,
         buyer: txn.buyer ? {
           id: txn.buyer.id,
           wallet_address: txn.buyer.wallet_address,
-          full_name: txn.buyer.full_name
+          full_name: txn.buyer.full_name,
+          username: txn.buyer.username
         } : undefined,
         seller: txn.seller ? {
           id: txn.seller.id,
-          wallet_address: sellerAddress, // Utiliser la même adresse que seller_wallet_address
-          full_name: txn.seller.full_name
+          wallet_address: sellerAddress,
+          full_name: txn.seller.full_name,
+          username: txn.seller.username
         } : undefined,
         listing: txn.listing ? {
           title: txn.listing.title,

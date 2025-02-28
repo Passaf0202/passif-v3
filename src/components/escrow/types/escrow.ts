@@ -18,15 +18,19 @@ export interface Transaction {
   updated_at?: string;
   created_at?: string;
   funds_secured_at?: string;
+  cancelled_at?: string;
+  cancelled_by?: string;
   buyer?: {
     id: string;
     wallet_address?: string;
     full_name?: string;
+    username?: string;
   };
   seller?: {
     id: string;
     wallet_address?: string;
     full_name?: string;
+    username?: string;
   };
   listing?: {
     title: string;
