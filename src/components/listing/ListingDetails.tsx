@@ -70,7 +70,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   });
 
   const handleBackClick = () => {
-    navigate(-1);
+    navigate('/');
   };
 
   const categories = [listing.category, listing.subcategory].filter(Boolean);
@@ -131,12 +131,12 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
     <div className="space-y-6">
       <div className="relative">
         <Button 
-          variant="ghost" 
+          variant="default" 
           size="icon"
-          className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
+          className="absolute top-4 left-4 z-10 bg-black hover:bg-black/80"
           onClick={handleBackClick}
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 text-white" />
         </Button>
         <ListingImages images={listing.images} title={listing.title} />
       </div>
@@ -205,12 +205,12 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
       <div className="space-y-8">
         <div className="relative">
           <Button 
-            variant="ghost" 
+            variant="default" 
             size="icon"
-            className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
+            className="absolute top-4 left-4 z-10 bg-black hover:bg-black/80"
             onClick={handleBackClick}
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 text-white" />
           </Button>
           <ListingImages images={listing.images} title={listing.title} />
         </div>
