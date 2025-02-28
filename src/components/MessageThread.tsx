@@ -4,6 +4,7 @@ import { fr } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Check, CheckCheck, FileText, Image as ImageIcon } from "lucide-react";
 import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 
 interface MessageThreadProps {
   message: {
@@ -44,9 +45,9 @@ export function MessageThread({ message, currentUserId }: MessageThreadProps) {
         isUserSender ? "flex-row-reverse" : "flex-row"
       } mb-6`}
     >
-      <Avatar className="h-8 w-8 flex-shrink-0">
+      <Avatar className="h-8 w-8 flex-shrink-0 border">
         <AvatarImage src={otherUser.avatar_url || undefined} alt={otherUser.full_name} />
-        <AvatarFallback>
+        <AvatarFallback className="bg-gray-100 text-gray-700">
           {otherUser.full_name.split(" ").map(n => n[0]).join("")}
         </AvatarFallback>
       </Avatar>
@@ -55,11 +56,12 @@ export function MessageThread({ message, currentUserId }: MessageThreadProps) {
         isUserSender ? "items-end" : "items-start"
       }`}>
         <div
-          className={`rounded-2xl p-4 ${
-            isUserSender
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted"
-          }`}
+          className={cn(
+            "rounded-2xl p-4 shadow-sm",
+            isUserSender 
+              ? "bg-primary text-primary-foreground rounded-tr-none" 
+              : "bg-gray-100 text-gray-800 rounded-tl-none"
+          )}
         >
           <p className="text-sm md:text-base whitespace-pre-wrap break-words">
             {message.content}

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -180,21 +181,23 @@ export default function Messages() {
       <div className="flex-1 container mx-auto p-4 overflow-hidden">
         <h1 className="text-2xl font-bold mb-6">Mes messages</h1>
         {isLoading ? (
-          <div className="flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : conversations && conversations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)] rounded-lg overflow-hidden shadow-sm">
             {(!isMobile || !showConversation) && (
               <ConversationsList
                 conversations={conversations}
                 selectedThread={selectedThread}
                 currentUserId={user.id}
                 onThreadSelect={handleThreadSelect}
+                isMobile={isMobile}
+                onBackClick={handleBackToList}
               />
             )}
             {(!isMobile || showConversation) && (
-              <div className="md:col-span-2 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
+              <div className="md:col-span-2 bg-white overflow-hidden flex flex-col h-full border border-gray-100">
                 <ConversationView
                   selectedThread={selectedThread}
                   conversations={conversations}
@@ -211,8 +214,10 @@ export default function Messages() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm p-8">
-            <p className="text-center text-gray-500">Aucun message</p>
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <h2 className="text-xl font-semibold mb-2">Aucun message</h2>
+            <p className="text-gray-500 mb-6">Vous n'avez pas encore de conversations</p>
+            <p className="text-sm text-gray-500">Lorsque vous discuterez avec des vendeurs, vos messages apparaîtront ici.</p>
           </div>
         )}
       </div>
