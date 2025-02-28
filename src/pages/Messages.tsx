@@ -29,8 +29,8 @@ export default function Messages() {
         .select(`
           *,
           listing:listings(title),
-          sender:profiles!messages_sender_id_fkey(id, full_name, avatar_url),
-          receiver:profiles!messages_receiver_id_fkey(id, full_name, avatar_url)
+          sender:profiles!messages_sender_id_fkey(id, full_name, username, avatar_url),
+          receiver:profiles!messages_receiver_id_fkey(id, full_name, username, avatar_url)
         `)
         .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
         .order("created_at", { ascending: false });
@@ -176,7 +176,7 @@ export default function Messages() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
       <div className="flex-1 container mx-auto p-4 overflow-hidden">
         <h1 className="text-2xl font-bold mb-6">Mes messages</h1>
@@ -185,19 +185,21 @@ export default function Messages() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : conversations && conversations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)] rounded-lg overflow-hidden shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)] min-h-[500px] max-h-[80vh]">
             {(!isMobile || !showConversation) && (
-              <ConversationsList
-                conversations={conversations}
-                selectedThread={selectedThread}
-                currentUserId={user.id}
-                onThreadSelect={handleThreadSelect}
-                isMobile={isMobile}
-                onBackClick={handleBackToList}
-              />
+              <div className="h-full overflow-hidden">
+                <ConversationsList
+                  conversations={conversations}
+                  selectedThread={selectedThread}
+                  currentUserId={user.id}
+                  onThreadSelect={handleThreadSelect}
+                  isMobile={isMobile}
+                  onBackClick={handleBackToList}
+                />
+              </div>
             )}
             {(!isMobile || showConversation) && (
-              <div className="md:col-span-2 bg-white overflow-hidden flex flex-col h-full border border-gray-100">
+              <div className="md:col-span-2 h-full overflow-hidden bg-white border border-gray-100 rounded-lg shadow-sm">
                 <ConversationView
                   selectedThread={selectedThread}
                   conversations={conversations}

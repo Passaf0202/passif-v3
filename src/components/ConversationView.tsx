@@ -56,6 +56,9 @@ export function ConversationView({
   const otherUser = lastMessage.sender_id === currentUserId
     ? lastMessage.receiver
     : lastMessage.sender;
+    
+  // Utiliser le nom d'utilisateur s'il existe, sinon utiliser le nom complet
+  const displayName = otherUser.username || otherUser.full_name;
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -68,14 +71,14 @@ export function ConversationView({
           )}
           
           <Avatar className="h-10 w-10 border">
-            <AvatarImage src={otherUser.avatar_url || undefined} alt={otherUser.full_name} />
+            <AvatarImage src={otherUser.avatar_url || undefined} alt={displayName} />
             <AvatarFallback className="bg-gray-100 text-gray-700">
-              {otherUser.full_name.split(" ").map((n: string) => n[0]).join("")}
+              {displayName.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
           <div className="flex flex-col">
-            <span className="font-semibold">{otherUser.full_name}</span>
+            <span className="font-semibold">{displayName}</span>
             <span className="text-xs text-gray-500">{lastMessage.listing.title}</span>
           </div>
         </div>

@@ -20,11 +20,13 @@ interface MessageThreadProps {
     sender: {
       id: string;
       full_name: string;
+      username?: string;
       avatar_url: string | null;
     };
     receiver: {
       id: string;
       full_name: string;
+      username?: string;
       avatar_url: string | null;
     };
   };
@@ -34,6 +36,17 @@ interface MessageThreadProps {
 export function MessageThread({ message, currentUserId }: MessageThreadProps) {
   const isUserSender = message.sender.id === currentUserId;
   const otherUser = isUserSender ? message.receiver : message.sender;
+  
+  // Utiliser le nom d'utilisateur s'il existe, sinon utiliser le nom complet
+  const displayName = otherUser.username || otherUser.full_name;
+  
+  // Générer les initiales pour l'avatar (en utilisant soit le username, soit le full_name)
+  const initials = displayName
+    .split(/\s+/)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
 
   const isImage = (file: string) => {
     return file.match(/\.(jpg|jpeg|png|gif|webp)$/i);
@@ -46,9 +59,9 @@ export function MessageThread({ message, currentUserId }: MessageThreadProps) {
       } mb-6`}
     >
       <Avatar className="h-8 w-8 flex-shrink-0 border">
-        <AvatarImage src={otherUser.avatar_url || undefined} alt={otherUser.full_name} />
+        <AvatarImage src={otherUser.avatar_url || undefined} alt={displayName} />
         <AvatarFallback className="bg-gray-100 text-gray-700">
-          {otherUser.full_name.split(" ").map(n => n[0]).join("")}
+          {initials}
         </AvatarFallback>
       </Avatar>
 

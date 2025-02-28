@@ -7,6 +7,7 @@ import { ArrowLeft, PlusCircle, Search } from "lucide-react";
 import { Input } from "./ui/input";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 
 interface ConversationsListProps {
   conversations: any[];
@@ -34,6 +35,7 @@ export function ConversationsList({
       : lastMessage.sender;
     
     return otherUser.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (otherUser.username && otherUser.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
            lastMessage.listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
            (lastMessage.content && lastMessage.content.toLowerCase().includes(searchTerm.toLowerCase()));
   });
@@ -75,6 +77,9 @@ export function ConversationsList({
                 lastMessage.sender_id === currentUserId
                   ? lastMessage.receiver
                   : lastMessage.sender;
+              
+              // Utiliser le nom d'utilisateur s'il existe, sinon utiliser le nom complet
+              const displayName = otherUser.username || otherUser.full_name;
 
               return (
                 <div
@@ -88,16 +93,16 @@ export function ConversationsList({
                 >
                   <div className="flex items-start gap-3">
                     <Avatar className="h-12 w-12 border">
-                      <AvatarImage src={otherUser.avatar_url || undefined} alt={otherUser.full_name} />
+                      <AvatarImage src={otherUser.avatar_url || undefined} alt={displayName} />
                       <AvatarFallback className="bg-gray-100 text-gray-700">
-                        {otherUser.full_name.split(" ").map((n: string) => n[0]).join("")}
+                        {displayName.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-1">
                         <div className="font-semibold truncate">
-                          {otherUser.full_name}
+                          {displayName}
                         </div>
                         <div className="text-xs text-muted-foreground flex-shrink-0">
                           {formatDistanceToNow(new Date(lastMessage.created_at), {
