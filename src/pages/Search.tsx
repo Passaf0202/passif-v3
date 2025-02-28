@@ -38,6 +38,7 @@ const Search = () => {
       .select(`
         id,
         title,
+        description,
         price,
         location,
         images,
@@ -47,7 +48,8 @@ const Search = () => {
         crypto_currency,
         category,
         subcategory,
-        created_at
+        created_at,
+        wallet_address
       `, { count: 'exact' }) // Spécifier count: 'exact' pour obtenir le nombre total
       .eq("status", "active")
       .order("created_at", { ascending: false });
