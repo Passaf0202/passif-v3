@@ -11,6 +11,10 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "./ui/dropdown-menu";
+import { useToast } from "./ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ConversationViewProps {
   selectedThread: string | null;
@@ -37,6 +41,9 @@ export function ConversationView({
   onFileChange,
   files,
 }: ConversationViewProps) {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const currentThread = conversations.find((t) => t.listingId === selectedThread);
 
   if (!selectedThread || !currentThread) {
@@ -60,15 +67,68 @@ export function ConversationView({
   // Utiliser le nom d'utilisateur s'il existe, sinon utiliser le nom complet
   const displayName = otherUser.username || otherUser.full_name;
 
+  // Fonction pour voir l'annonce
+  const viewListing = () => {
+    if (selectedThread) {
+      navigate(`/listing/${selectedThread}`);
+    }
+  };
+
+  // Fonction pour marquer comme lu
+  const markAsRead = async () => {
+    if (!selectedThread) return;
+
+    await supabase
+      .from("messages")
+      .update({ read: true })
+      .eq("listing_id", selectedThread)
+      .eq("receiver_id", currentUserId)
+      .eq("read", false);
+
+    queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    
+    toast({
+      title: "Messages marqués comme lus",
+      description: "Tous les messages ont été marqués comme lus",
+    });
+  };
+
+  // Fonction pour supprimer la conversation
+  const deleteConversation = async () => {
+    if (!selectedThread) return;
+    
+    // Nous ne supprimons pas réellement les messages, mais nous les marquons comme supprimés
+    const { error } = await supabase
+      .from("messages")
+      .update({ deleted_by_user: currentUserId })
+      .eq("listing_id", selectedThread)
+      .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`);
+    
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer la conversation",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Conversation supprimée",
+      description: "La conversation a été supprimée avec succès",
+    });
+    
+    queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    onBackClick(); // Revenir à la liste des conversations
+  };
+
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="p-4 border-b sticky top-0 bg-white z-10 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {isMobile && (
-            <Button variant="ghost" size="icon" onClick={onBackClick} className="h-8 w-8 md:hidden">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          )}
+          <Button variant="ghost" size="icon" onClick={onBackClick} className="h-8 w-8">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           
           <Avatar className="h-10 w-10 border">
             <AvatarImage src={otherUser.avatar_url || undefined} alt={displayName} />
@@ -79,7 +139,7 @@ export function ConversationView({
           
           <div className="flex flex-col">
             <span className="font-semibold">{displayName}</span>
-            <span className="text-xs text-gray-500">{lastMessage.listing.title}</span>
+            <span className="text-xs text-gray-500 truncate max-w-[200px]">{lastMessage.listing.title}</span>
           </div>
         </div>
         
@@ -89,16 +149,25 @@ export function ConversationView({
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Voir l'annonce</DropdownMenuItem>
-            <DropdownMenuItem>Marquer comme lu</DropdownMenuItem>
-            <DropdownMenuItem className="text-red-500">Supprimer la conversation</DropdownMenuItem>
+          <DropdownMenuContent align="end" className="bg-white">
+            <DropdownMenuItem onClick={viewListing}>
+              Voir l'annonce
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={markAsRead}>
+              Marquer comme lu
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={deleteConversation}
+              className="text-red-500 focus:text-red-500 focus:bg-red-50"
+            >
+              Supprimer la conversation
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
       
       <ScrollArea className="flex-1 p-4 bg-gray-50">
-        <div className="space-y-4 max-w-3xl mx-auto">
+        <div className="space-y-4 max-w-3xl mx-auto pb-4">
           {currentThread?.messages.map((message: any) => (
             <MessageThread
               key={message.id}

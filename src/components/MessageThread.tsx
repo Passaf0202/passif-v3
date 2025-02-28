@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 interface MessageThreadProps {
   message: {
+    id: string;
     content: string;
     created_at: string;
     read: boolean;
@@ -29,6 +30,8 @@ interface MessageThreadProps {
       username?: string;
       avatar_url: string | null;
     };
+    sender_id: string;
+    receiver_id: string;
   };
   currentUserId: string;
 }
