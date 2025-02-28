@@ -31,7 +31,7 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'awaiting-payment' | 'completed'>('all');
   const [isCancelling, setIsCancelling] = useState(false);
   const [transactionToCancel, setTransactionToCancel] = useState<Transaction | null>(null);
   const { chain } = useNetwork();
@@ -51,7 +51,8 @@ export default function Transactions() {
             listing:listings!transactions_listing_id_fkey (
               title,
               images,
-              price
+              price,
+              user_id
             )
           `)
           .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
@@ -59,8 +60,15 @@ export default function Transactions() {
 
         if (error) throw error;
         
-        setTransactions(data || []);
-        setFilteredTransactions(data || []);
+        // Enrichir les transactions avec les rôles (acheteur/vendeur)
+        const enrichedData = data?.map(transaction => ({
+          ...transaction,
+          isUserBuyer: transaction.buyer_id === user.id,
+          isUserSeller: transaction.seller_id === user.id || transaction.listing?.user_id === user.id
+        })) || [];
+        
+        setTransactions(enrichedData);
+        setFilteredTransactions(enrichedData);
       } catch (error) {
         console.error("Error fetching transactions:", error);
       } finally {
@@ -76,7 +84,20 @@ export default function Transactions() {
     if (activeFilter === 'all') {
       setFilteredTransactions(transactions);
     } else if (activeFilter === 'pending') {
-      setFilteredTransactions(transactions.filter(t => t.escrow_status === 'pending' && t.funds_secured));
+      // Transactions où l'utilisateur est acheteur et doit libérer des fonds
+      // OU si l'utilisateur est vendeur et attend la libération des fonds
+      setFilteredTransactions(transactions.filter(t => 
+        t.escrow_status === 'pending' && 
+        t.funds_secured && 
+        !t.buyer_confirmation
+      ));
+    } else if (activeFilter === 'awaiting-payment') {
+      // Transactions où l'utilisateur est vendeur et attend un paiement
+      setFilteredTransactions(transactions.filter(t => 
+        t.isUserSeller && 
+        t.escrow_status === 'pending' && 
+        !t.funds_secured
+      ));
     } else if (activeFilter === 'completed') {
       setFilteredTransactions(transactions.filter(t => t.status === 'completed'));
     }
@@ -231,6 +252,35 @@ export default function Transactions() {
     );
   };
 
+  // Fonction pour déterminer si une transaction est "à libérer"
+  const isReleaseRequired = (transaction: Transaction) => {
+    return (
+      transaction.escrow_status === 'pending' &&
+      transaction.funds_secured &&
+      !transaction.buyer_confirmation
+    );
+  };
+
+  // Fonction pour déterminer si une transaction est "en attente de paiement"
+  const isAwaitingPayment = (transaction: Transaction) => {
+    return (
+      transaction.isUserSeller &&
+      transaction.escrow_status === 'pending' &&
+      !transaction.funds_secured
+    );
+  };
+
+  // Générer le titre de l'état d'attente
+  const getAwaitingStatusMessage = (transaction: Transaction) => {
+    if (isReleaseRequired(transaction)) {
+      return "En attente de libération des fonds";
+    }
+    if (isAwaitingPayment(transaction)) {
+      return "En attente de paiement de l'acheteur";
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-background pb-12">
       <Navbar />
@@ -254,6 +304,13 @@ export default function Transactions() {
             À libérer
           </Button>
           <Button 
+            variant={activeFilter === 'awaiting-payment' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('awaiting-payment')}
+            className="rounded-full"
+          >
+            Attente paiement
+          </Button>
+          <Button 
             variant={activeFilter === 'completed' ? 'default' : 'outline'}
             onClick={() => setActiveFilter('completed')}
             className="rounded-full"
@@ -274,7 +331,9 @@ export default function Transactions() {
                   ? "Vous n'avez pas encore de transaction" 
                   : activeFilter === 'pending' 
                     ? "Vous n'avez pas de transaction à libérer" 
-                    : "Vous n'avez pas de transaction terminée"}
+                    : activeFilter === 'awaiting-payment'
+                      ? "Vous n'avez pas de transaction en attente de paiement"
+                      : "Vous n'avez pas de transaction terminée"}
               </h3>
               <p className="text-muted-foreground mb-6">
                 {activeFilter === 'all' 
@@ -290,6 +349,8 @@ export default function Transactions() {
               {filteredTransactions.map((transaction) => {
                 const status = getStatusTranslation(transaction.status);
                 const imageUrl = transaction.listing?.images?.[0];
+                const awaitingMessage = getAwaitingStatusMessage(transaction);
+                const userRole = transaction.isUserBuyer ? "Acheteur" : "Vendeur";
                 
                 return (
                   <Card key={transaction.id} className="overflow-hidden">
@@ -319,8 +380,9 @@ export default function Transactions() {
                               </h3>
                               <div className="text-sm text-muted-foreground mb-2">
                                 <span>Transaction du {formatDate(transaction.created_at)}</span>
+                                <span className="ml-2 text-xs px-2 py-0.5 bg-gray-100 rounded-full">{userRole}</span>
                               </div>
-                              <div className="flex items-center gap-2 mb-4">
+                              <div className="flex items-center gap-2 mb-4 flex-wrap">
                                 <Badge className={`${status.color} text-white`}>
                                   {status.label}
                                 </Badge>
@@ -332,9 +394,12 @@ export default function Transactions() {
                           </div>
                           
                           <div className="space-y-2 mt-auto">
-                            {transaction.escrow_status === 'pending' && transaction.funds_secured && (
-                              <p className="text-sm text-amber-600 font-medium">
-                                En attente de libération des fonds
+                            {awaitingMessage && (
+                              <p className={`text-sm font-medium ${
+                                isReleaseRequired(transaction) ? 'text-amber-600' : 
+                                isAwaitingPayment(transaction) ? 'text-blue-600' : ''
+                              }`}>
+                                {awaitingMessage}
                               </p>
                             )}
                             
