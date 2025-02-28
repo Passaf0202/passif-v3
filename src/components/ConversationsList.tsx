@@ -3,6 +3,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
+import { Search } from "lucide-react";
 
 interface ConversationsListProps {
   conversations: any[];
@@ -21,6 +23,17 @@ export function ConversationsList({
     <div className="md:col-span-1 bg-white rounded-lg shadow-sm overflow-hidden h-full flex flex-col">
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold">Messages</h2>
+      </div>
+      
+      <div className="p-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <input 
+            type="text" 
+            placeholder="Rechercher une conversation..." 
+            className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
       </div>
       
       <ScrollArea className="flex-1">
@@ -75,9 +88,9 @@ export function ConversationsList({
                         {lastMessage.listing.title}
                       </div>
                       {hasUnread && (
-                        <div className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                        <Badge className="bg-primary text-white text-xs">
                           Nouveau
-                        </div>
+                        </Badge>
                       )}
                     </div>
                   </div>

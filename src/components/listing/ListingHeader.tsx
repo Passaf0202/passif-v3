@@ -1,6 +1,7 @@
 
 import { formatPrice } from "@/utils/priceUtils";
 import { useCurrencyStore } from "@/stores/currencyStore";
+import { Badge } from "@/components/ui/badge";
 
 interface ListingHeaderProps {
   title: string;
@@ -25,7 +26,7 @@ export const ListingHeader = ({
     <div>
       <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold mb-2`}>{title}</h1>
       <div className="flex items-baseline gap-2 mb-2">
-        <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-semibold text-primary`}>
+        <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-semibold text-black`}>
           {formatPrice(price)} {selectedCurrency}
         </p>
         {cryptoAmount && cryptoCurrency && (
@@ -35,11 +36,11 @@ export const ListingHeader = ({
         )}
       </div>
       {categories && categories.length > 0 && (
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           {categories.map((category, index) => (
-            <span key={index} className="bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full">
+            <Badge key={index} variant="outline" className="bg-gray-100 hover:bg-gray-100 text-gray-800 rounded-full">
               {category}
-            </span>
+            </Badge>
           ))}
         </div>
       )}

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageThread } from "@/components/MessageThread";
@@ -33,9 +34,12 @@ export function ConversationView({
 
   if (!selectedThread) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-center text-gray-500">
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+        <p className="text-lg text-gray-500 mb-2">
           Sélectionnez une conversation pour voir les messages
+        </p>
+        <p className="text-sm text-gray-400">
+          Choisissez une conversation dans la liste à gauche
         </p>
       </div>
     );
