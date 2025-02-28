@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
@@ -9,7 +10,7 @@ import { fr } from "date-fns/locale";
 import { calculateBuyerProtectionFees } from "@/utils/priceUtils";
 import { ListingImages } from "./listing/ListingImages";
 import { PriceDetails } from "./listing/PriceDetails";
-import { Dialog, DialogContent } from "./ui/dialog";
+import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 
 interface ListingCardProps {
   id: string;
@@ -42,9 +43,15 @@ export function ListingCard({
 }: ListingCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   
-  const allImages = images?.length > 0 ? images : [image];
+  // Utiliser notre hook pour optimiser l'image principale
+  const { optimizedUrl: optimizedImage } = useOptimizedImage(image, {
+    width: 200,
+    height: 200,
+    quality: 75
+  });
+  
+  const allImages = images?.length > 0 ? images : [image ? image : optimizedImage];
   const protectionFee = calculateBuyerProtectionFees(price);
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -59,51 +66,52 @@ export function ListingCard({
   };
 
   return (
-    <>
-      <Card 
-        className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative group w-[200px]"
-        onClick={handleCardClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <CardHeader className="p-0">
-          <div className="relative h-[200px]">
-            <ListingImages 
-              images={allImages} 
-              title={title} 
-              isHovered={isHovered}
-              onImageClick={(e) => e.stopPropagation()}
-            />
-            <FavoriteButton listingId={id} isHovered={isHovered} />
-          </div>
-        </CardHeader>
-        <CardContent className="p-3">
-          <h3 className="font-semibold text-sm line-clamp-1">{title}</h3>
-          <div className="protection-shield">
-            <PriceDetails 
-              price={price} 
-              protectionFee={protectionFee}
-              cryptoAmount={crypto_amount}
-              cryptoCurrency={crypto_currency}
-            />
-          </div>
-          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-            <MapPin className="h-3 w-3 flex-shrink-0" />
-            <span className="line-clamp-1">{location}</span>
-          </div>
-          {created_at && (
-            <p className="text-xs text-gray-500 mt-1">
-              {format(new Date(created_at), "d MMM yyyy", { locale: fr })}
-            </p>
-          )}
-          {walletAddress && (
-            <p className="text-xs text-gray-500 mt-1">
-              Wallet: {truncateAddress(walletAddress)}
-            </p>
-          )}
-          <ShippingInfo method={shipping_method} />
-        </CardContent>
-      </Card>
-    </>
+    <Card 
+      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative group w-[200px]"
+      onClick={handleCardClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <CardHeader className="p-0">
+        <div className="relative h-[200px]">
+          <img 
+            src={optimizedImage} 
+            alt={title}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/placeholder.svg";
+            }}
+          />
+          <FavoriteButton listingId={id} isHovered={isHovered} />
+        </div>
+      </CardHeader>
+      <CardContent className="p-3">
+        <h3 className="font-semibold text-sm line-clamp-1">{title}</h3>
+        <div className="protection-shield">
+          <PriceDetails 
+            price={price} 
+            protectionFee={protectionFee}
+            cryptoAmount={crypto_amount}
+            cryptoCurrency={crypto_currency}
+          />
+        </div>
+        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+          <MapPin className="h-3 w-3 flex-shrink-0" />
+          <span className="line-clamp-1">{location}</span>
+        </div>
+        {created_at && (
+          <p className="text-xs text-gray-500 mt-1">
+            {format(new Date(created_at), "d MMM yyyy", { locale: fr })}
+          </p>
+        )}
+        {walletAddress && (
+          <p className="text-xs text-gray-500 mt-1">
+            Wallet: {truncateAddress(walletAddress)}
+          </p>
+        )}
+        <ShippingInfo method={shipping_method} />
+      </CardContent>
+    </Card>
   );
 }

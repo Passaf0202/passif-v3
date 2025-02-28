@@ -1,43 +1,47 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ListingCard } from "@/components/ListingCard";
 import { Sparkles } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+
+// Limiter le nombre de listings à charger
+const MAX_LISTINGS = 5;
 
 export function RecommendedListingsSection() {
   const { user } = useAuth();
-  const [listings, setListings] = useState<any[]>([]);
 
-  useEffect(() => {
-    const fetchRecommendedListings = async () => {
+  // Utilisation de React Query pour un caching efficace
+  const { data: listings = [] } = useQuery({
+    queryKey: ['recommended-listings', user?.id],
+    queryFn: async () => {
       if (!user) {
         // Si l'utilisateur n'est pas connecté, afficher les dernières annonces
         const { data } = await supabase
           .from("listings")
           .select(`
             id,
-            title,
+            title, 
             price,
             location,
             images,
             user_id,
             category
-          `)
+          `) // Sélection minimale des champs
           .eq("status", "active")
           .order("created_at", { ascending: false })
-          .limit(10);
+          .limit(MAX_LISTINGS); // Limite explicite
 
-        if (data) {
-          setListings(data);
-        }
-        return;
+        return data || [];
       }
 
-      // Si l'utilisateur est connecté, récupérer ses catégories préférées basées sur ses favoris
+      // Si l'utilisateur est connecté, récupérer ses catégories préférées
       const { data: favorites } = await supabase
         .from("favorites")
         .select("listings(category)")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .limit(10); // Limite pour réduire la taille
 
       const preferredCategories = favorites
         ?.map(f => f.listings?.category)
@@ -58,16 +62,16 @@ export function RecommendedListingsSection() {
           .eq("status", "active")
           .in("category", preferredCategories)
           .order("created_at", { ascending: false })
-          .limit(10);
+          .limit(MAX_LISTINGS);
 
-        if (data) {
-          setListings(data);
-        }
+        return data || [];
       }
-    };
 
-    fetchRecommendedListings();
-  }, [user]);
+      return [];
+    },
+    staleTime: 1000 * 60 * 30, // 30 minutes de cache
+    cacheTime: 1000 * 60 * 60, // 1 heure de conservation
+  });
 
   if (listings.length === 0) return null;
 

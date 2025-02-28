@@ -19,7 +19,7 @@ export default function ListingDetailsPage() {
   const { connect, connectors } = useConnect();
   const { open } = useWeb3Modal();
 
-  // Tenter de reconnecter le wallet automatiquement
+  // Tenter de reconnecter le wallet automatiquement - mais une seule fois
   useEffect(() => {
     const attemptWalletReconnection = async () => {
       try {
@@ -66,35 +66,49 @@ export default function ListingDetailsPage() {
     }
   }, [id]);
 
+  // Optimisation de la requête avec sélection ciblée des champs
   const { data: listing, isLoading } = useQuery({
     queryKey: ["listing", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("listings")
         .select(`
-          *,
+          id,
+          title,
+          description,
+          price,
+          location,
+          images,
+          user_id,
+          category,
+          subcategory,
+          brand,
+          model,
+          condition,
+          crypto_amount,
+          crypto_currency,
+          wallet_address,
+          shipping_method,
           user:profiles!listings_user_id_fkey (
             id,
             full_name,
             avatar_url,
             wallet_address
           )
-        `)
+        `) // Sélection des champs nécessaires uniquement
         .eq("id", id)
         .single();
 
       if (error) throw error;
       return data;
     },
-    // Désactiver le refetching automatique
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: Infinity,
+    // Utiliser le cache intensivement
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    cacheTime: 1000 * 60 * 60, // 1 heure
   });
 
   const handleBack = () => {
-    navigate('/search');
+    navigate(-1);
   };
 
   if (isLoading) {
@@ -128,7 +142,7 @@ export default function ListingDetailsPage() {
       <Navbar />
       <div className="container mx-auto py-8 relative">
         <Button 
-          onClick={() => navigate('/search')}
+          onClick={handleBack}
           variant="ghost" 
           size="icon"
           className="absolute left-6 top-4 md:left-8 md:top-12 z-10 hover:bg-white/80 bg-white/60 backdrop-blur-sm"
