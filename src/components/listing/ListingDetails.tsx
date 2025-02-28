@@ -201,79 +201,79 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
   );
 
   const DesktopLayout = () => (
-    <div className="relative">
-      <Button 
-        variant="ghost" 
-        size="icon"
-        className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
-        onClick={handleBackClick}
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </Button>
-      <div className="grid grid-cols-[2fr,1fr] gap-8 px-6 py-8">
-        <div className="space-y-8">
+    <div className="grid grid-cols-[2fr,1fr] gap-8 px-6 py-8">
+      <div className="space-y-8">
+        <div className="relative">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="absolute top-4 left-4 z-10 bg-white/80 hover:bg-white"
+            onClick={handleBackClick}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <ListingImages images={listing.images} title={listing.title} />
-          
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Description</h2>
-            <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Localisation</h2>
-            <p className="text-gray-700 mb-4">{listing.location}</p>
-            <div className="h-[400px] rounded-lg overflow-hidden">
-              <LocationPicker 
-                onLocationChange={() => {}} 
-                defaultLocation={listing.location}
-                readOnly={true}
-              />
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            {renderSecurityInfo()}
-          </Card>
-
-          <Card className="p-6">
-            {renderHandDeliveryInfo()}
-          </Card>
         </div>
+        
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Description</h2>
+          <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+        </Card>
 
-        <div className="space-y-6">
-          <div className="sticky top-6">
-            <Card className="p-6">
-              <ListingHeader 
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Localisation</h2>
+          <p className="text-gray-700 mb-4">{listing.location}</p>
+          <div className="h-[400px] rounded-lg overflow-hidden">
+            <LocationPicker 
+              onLocationChange={() => {}} 
+              defaultLocation={listing.location}
+              readOnly={true}
+            />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          {renderSecurityInfo()}
+        </Card>
+
+        <Card className="p-6">
+          {renderHandDeliveryInfo()}
+        </Card>
+      </div>
+
+      <div className="space-y-6">
+        <div className="sticky top-6">
+          <Card className="p-6">
+            <ListingHeader 
+              title={listing.title}
+              price={listing.price}
+              cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
+              cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
+              categories={categories}
+            />
+
+            <div className="py-4">
+              <ListingActions
+                listingId={listing.id}
+                sellerId={listing.user_id}
+                sellerAddress={listingData?.wallet_address || listing.wallet_address}
                 title={listing.title}
                 price={listing.price}
                 cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
                 cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-                categories={categories}
               />
+            </div>
 
-              <div className="py-4">
-                <ListingActions
-                  listingId={listing.id}
-                  sellerId={listing.user_id}
-                  sellerAddress={listingData?.wallet_address || listing.wallet_address}
-                  title={listing.title}
-                  price={listing.price}
-                  cryptoAmount={listingData?.crypto_amount || cryptoDetails?.amount}
-                  cryptoCurrency={listingData?.crypto_currency || cryptoDetails?.currency}
-                />
-              </div>
+            <ProductDetailsCard details={listing} />
 
-              <ProductDetailsCard details={listing} />
-
-              <div className="mt-6 pt-6 border-t">
-                <SellerInfo 
-                  seller={listing.user}
-                  location={listing.location}
-                  walletAddress={listingData?.wallet_address || listing.wallet_address}
-                />
-              </div>
-            </Card>
-          </div>
+            <div className="mt-6 pt-6 border-t">
+              <SellerInfo 
+                seller={listing.user}
+                location={listing.location}
+                walletAddress={listingData?.wallet_address || listing.wallet_address}
+              />
+            </div>
+          </Card>
         </div>
       </div>
     </div>

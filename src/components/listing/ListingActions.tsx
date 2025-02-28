@@ -107,7 +107,7 @@ export const ListingActions = ({
   };
 
   return (
-    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+    <div className="space-y-4">
       {isCheckoutPage ? (
         <PaymentButton 
           isProcessing={isProcessing}
@@ -121,7 +121,7 @@ export const ListingActions = ({
       ) : (
         <Button 
           onClick={handlePaymentButtonClick} 
-          className="w-full bg-primary hover:bg-primary/90"
+          className="w-full bg-primary hover:bg-primary/90 py-7 text-base font-medium"
           disabled={!isConnected}
         >
           Payer

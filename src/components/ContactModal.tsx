@@ -23,7 +23,7 @@ interface ContactModalProps {
 export function ContactModal({ listingId, sellerId, listingTitle }: ContactModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState("Bonjour votre annonce m'intéresse, est-elle toujours disponible ? 🙂");
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
@@ -77,7 +77,7 @@ export function ContactModal({ listingId, sellerId, listingTitle }: ContactModal
       title: "Succès",
       description: "Message envoyé avec succès",
     });
-    setMessage("");
+    setMessage("Bonjour votre annonce m'intéresse, est-elle toujours disponible ? 🙂");
     setIsOpen(false);
   };
 

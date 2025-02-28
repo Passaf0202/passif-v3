@@ -38,7 +38,7 @@ export const ListingHeader = ({
       {categories && categories.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {categories.map((category, index) => (
-            <Badge key={index} variant="outline" className="bg-gray-100 hover:bg-gray-100 text-gray-800 rounded-full">
+            <Badge key={index} variant="favorite" className="rounded-full">
               {category}
             </Badge>
           ))}

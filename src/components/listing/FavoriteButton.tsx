@@ -1,3 +1,4 @@
+
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -100,7 +101,7 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
       <Heart 
         className={cn(
           "h-5 w-5",
-          isFavorite ? "fill-red-500 stroke-red-500" : "stroke-gray-600"
+          isFavorite ? "fill-gray-800 stroke-gray-800" : "stroke-gray-600"
         )} 
       />
     </Button>
