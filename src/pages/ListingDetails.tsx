@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { ListingDetails as ListingDetailsComponent } from "@/components/listing/ListingDetails";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { useAccount, useConnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
@@ -18,7 +19,7 @@ export default function ListingDetailsPage() {
   const { connect, connectors } = useConnect();
   const { open } = useWeb3Modal();
 
-  // Tenter de reconnecter le wallet automatiquement - mais une seule fois
+  // Tenter de reconnecter le wallet automatiquement
   useEffect(() => {
     const attemptWalletReconnection = async () => {
       try {
@@ -65,46 +66,36 @@ export default function ListingDetailsPage() {
     }
   }, [id]);
 
-  // Optimisation de la requête avec sélection ciblée des champs
   const { data: listing, isLoading } = useQuery({
     queryKey: ["listing", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("listings")
         .select(`
-          id,
-          title,
-          description,
-          price,
-          location,
-          images,
-          user_id,
-          category,
-          subcategory,
-          brand,
-          model,
-          condition,
-          crypto_amount,
-          crypto_currency,
-          wallet_address,
-          shipping_method,
+          *,
           user:profiles!listings_user_id_fkey (
             id,
             full_name,
             avatar_url,
             wallet_address
           )
-        `) // Sélection des champs nécessaires uniquement
+        `)
         .eq("id", id)
         .single();
 
       if (error) throw error;
       return data;
     },
-    // Utiliser le cache intensivement avec gcTime (remplace cacheTime)
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60, // 1 heure - pour corriger l'erreur cacheTime
+    // Désactiver le refetching automatique
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
+
+  const handleBack = () => {
+    navigate('/search');
+  };
 
   if (isLoading) {
     return (
@@ -135,7 +126,15 @@ export default function ListingDetailsPage() {
   return (
     <div>
       <Navbar />
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 relative">
+        <Button 
+          onClick={() => navigate('/search')}
+          variant="ghost" 
+          size="icon"
+          className="absolute left-6 top-4 md:left-8 md:top-12 z-10 hover:bg-white/80 bg-white/60 backdrop-blur-sm"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
         <ListingDetailsComponent listing={listing} />
       </div>
     </div>

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AdminLink } from "./AdminLink";
+import { MenuWalletBalance } from "../wallet/MenuWalletBalance";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -132,6 +133,9 @@ export const NavbarActions = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <MenuWalletBalance />
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/messages" className="w-full cursor-pointer">

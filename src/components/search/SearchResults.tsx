@@ -32,22 +32,9 @@ interface SearchResultsProps {
   listings: Listing[];
   showFilters?: boolean;
   actionButtons?: (listingId: string) => React.ReactNode;
-  // Propriétés ajoutées pour corriger les erreurs de type
-  totalCount?: number;
-  currentPage?: number;
-  itemsPerPage?: number;
-  onPageChange?: (page: number) => void;
 }
 
-export const SearchResults = ({ 
-  listings, 
-  showFilters = true, 
-  actionButtons,
-  totalCount = 0,
-  currentPage = 1,
-  itemsPerPage = 12,
-  onPageChange
-}: SearchResultsProps) => {
+export const SearchResults = ({ listings, showFilters = true, actionButtons }: SearchResultsProps) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -59,9 +46,7 @@ export const SearchResults = ({
   };
 
   const handleListingClick = (listingId: string, event: React.MouseEvent) => {
-    // Vérifier si le clic s'est produit sur le bouton favori ou dans sa zone
     if ((event.target as HTMLElement).closest('.favorite-button')) {
-      event.stopPropagation();
       return;
     }
     navigate(`/listings/${listingId}`);
@@ -103,31 +88,9 @@ export const SearchResults = ({
     </div>
   );
 
-  // Pagination
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-  
-  const renderPagination = () => {
-    if (totalPages <= 1) return null;
-    
-    return (
-      <div className="flex justify-center mt-8 space-x-2">
-        {[...Array(totalPages)].map((_, index) => (
-          <Button
-            key={index}
-            variant={currentPage === index + 1 ? "default" : "outline"}
-            size="sm"
-            onClick={() => onPageChange && onPageChange(index + 1)}
-          >
-            {index + 1}
-          </Button>
-        ))}
-      </div>
-    );
-  };
-
   const ListingCardMobile = ({ listing }: { listing: Listing }) => (
     <Card 
-      className="overflow-hidden mb-4 cursor-pointer"
+      className="overflow-hidden mb-4"
       onClick={(e) => handleListingClick(listing.id, e)}
     >
       <div className="relative">
@@ -249,7 +212,6 @@ export const SearchResults = ({
           )
         ))}
       </div>
-      {onPageChange && totalPages > 1 && renderPagination()}
     </div>
   );
 };

@@ -20,15 +20,11 @@ import Admin from "@/pages/Admin";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import Transactions from "@/pages/Transactions";
 
-// Configuration optimisée pour React Query avec mise en cache améliorée
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 10, // 10 minutes (augmenté pour réduire les requêtes)
-      gcTime: 1000 * 60 * 30, // 30 minutes (remplace cacheTime dans les versions récentes)
+      staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
-      refetchOnWindowFocus: false, // Désactivé pour éviter des requêtes inutiles
-      refetchOnMount: false, // Désactivé pour utiliser le cache existant
     },
   },
 });
