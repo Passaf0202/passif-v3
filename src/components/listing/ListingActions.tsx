@@ -106,9 +106,8 @@ export const ListingActions = ({
     }
   };
 
-  // Sur mobile et desktop, on utilise maintenant la même disposition verticale
   return (
-    <div className="flex flex-col gap-4">
+    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
       {isCheckoutPage ? (
         <PaymentButton 
           isProcessing={isProcessing}

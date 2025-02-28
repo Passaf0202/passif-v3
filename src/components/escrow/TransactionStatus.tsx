@@ -2,17 +2,16 @@
 import { Transaction } from "./types/escrow";
 
 interface TransactionStatusProps {
-  status: string;
-  transaction?: Transaction;
+  transaction: Transaction;
 }
 
-export function TransactionStatus({ status }: TransactionStatusProps) {
+export function TransactionStatus({ transaction }: TransactionStatusProps) {
   return (
     <div className="space-y-2">
       <h3 className="font-medium">État</h3>
       <p className="text-sm text-muted-foreground">
-        {status === 'pending' ? 'En attente' : 
-         status === 'completed' ? 'Terminée' : 
+        {transaction?.escrow_status === 'pending' ? 'En attente' : 
+         transaction?.escrow_status === 'completed' ? 'Terminée' : 
          'En cours'}
       </p>
     </div>

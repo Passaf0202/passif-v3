@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { ListingDetails as ListingDetailsComponent } from "@/components/listing/ListingDetails";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { useAccount, useConnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
@@ -106,6 +107,10 @@ export default function ListingDetailsPage() {
     gcTime: 1000 * 60 * 60, // 1 heure - pour corriger l'erreur cacheTime
   });
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   if (isLoading) {
     return (
       <div>
@@ -135,7 +140,15 @@ export default function ListingDetailsPage() {
   return (
     <div>
       <Navbar />
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 relative">
+        <Button 
+          onClick={handleBack}
+          variant="ghost" 
+          size="icon"
+          className="absolute left-6 top-4 md:left-8 md:top-12 z-10 hover:bg-white/80 bg-white/60 backdrop-blur-sm"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
         <ListingDetailsComponent listing={listing} />
       </div>
     </div>
