@@ -1,6 +1,5 @@
 
 import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -120,7 +119,7 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
       <Heart 
         className={cn(
           "h-5 w-5 transition-colors",
-          isFavorite ? "fill-red-500 stroke-red-500" : "stroke-gray-600"
+          isFavorite ? "fill-black stroke-black" : "stroke-gray-600"
         )} 
       />
     </button>
