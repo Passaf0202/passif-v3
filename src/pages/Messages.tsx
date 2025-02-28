@@ -33,7 +33,6 @@ export default function Messages() {
           receiver:profiles!messages_receiver_id_fkey(id, full_name, username, avatar_url)
         `)
         .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
-        .is('deleted_by_user', null)
         .order("created_at", { ascending: false });
 
       if (error) {
