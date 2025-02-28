@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 interface FavoriteButtonProps {
   listingId: string;
@@ -15,6 +16,7 @@ interface FavoriteButtonProps {
 export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const { data: isFavorite, refetch: refetchFavorite } = useQuery({
     queryKey: ["favorite", listingId, user?.id],
@@ -49,6 +51,10 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
       });
       return;
     }
+
+    if (isLoading) return;
+    
+    setIsLoading(true);
 
     try {
       if (isFavorite) {
@@ -85,6 +91,8 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
         description: "Une erreur est survenue",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -94,9 +102,11 @@ export const FavoriteButton = ({ listingId, isHovered }: FavoriteButtonProps) =>
       size="icon"
       className={cn(
         "absolute top-2 right-2 bg-white/80 hover:bg-white transition-opacity",
-        !isHovered && !isFavorite && "opacity-0 group-hover:opacity-100"
+        !isHovered && !isFavorite && "opacity-0 group-hover:opacity-100",
+        isLoading && "cursor-not-allowed opacity-70"
       )}
       onClick={handleFavoriteClick}
+      disabled={isLoading}
     >
       <Heart 
         className={cn(

@@ -138,7 +138,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
         >
           <ArrowLeft className="h-5 w-5 text-white" />
         </Button>
-        <ListingImages images={listing.images} title={listing.title} />
+        <ListingImages images={listing.images} title={listing.title} listingId={listing.id} />
       </div>
       
       <div className="px-4">
@@ -212,7 +212,7 @@ export const ListingDetails = ({ listing }: ListingDetailsProps) => {
           >
             <ArrowLeft className="h-5 w-5 text-white" />
           </Button>
-          <ListingImages images={listing.images} title={listing.title} />
+          <ListingImages images={listing.images} title={listing.title} listingId={listing.id} />
         </div>
         
         <Card className="p-6">

@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { Heart } from "lucide-react";
-import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
+import { FavoriteButton } from "./FavoriteButton";
 
 // Constantes pour les tailles d'images
 const THUMBNAIL_SIZE = '100x100';
@@ -14,12 +13,14 @@ interface ListingImagesProps {
   title: string;
   isHovered?: boolean;
   onImageClick?: (e: React.MouseEvent, image: string) => void;
+  listingId?: string;
 }
 
 export const ListingImages = ({ 
   images, 
   title, 
-  isHovered = false
+  isHovered = false,
+  listingId
 }: ListingImagesProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -63,16 +64,12 @@ export const ListingImages = ({
 
   return (
     <div className="relative">
-      {/* Bouton Favoris */}
-      <div className="absolute top-4 right-4 z-10 favorite-button">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="bg-white/80 hover:bg-white"
-        >
-          <Heart className="h-5 w-5 text-gray-700" />
-        </Button>
-      </div>
+      {/* Bouton Favoris - Utiliser le composant FavoriteButton seulement si listingId est fourni */}
+      {listingId && (
+        <div className="absolute top-4 right-4 z-10 favorite-button">
+          <FavoriteButton listingId={listingId} isHovered={true} />
+        </div>
+      )}
 
       {/* Image principale - version optimisée */}
       <div className="relative h-[300px] md:h-[400px] w-full overflow-hidden">

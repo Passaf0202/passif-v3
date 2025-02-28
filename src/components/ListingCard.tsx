@@ -8,7 +8,6 @@ import { ShippingInfo } from "./listing/ShippingInfo";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { calculateBuyerProtectionFees } from "@/utils/priceUtils";
-import { ListingImages } from "./listing/ListingImages";
 import { PriceDetails } from "./listing/PriceDetails";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 
@@ -55,7 +54,7 @@ export function ListingCard({
   const protectionFee = calculateBuyerProtectionFees(price);
 
   const handleCardClick = (e: React.MouseEvent) => {
-    if (!(e.target as HTMLElement).closest('.protection-shield')) {
+    if (!(e.target as HTMLElement).closest('.favorite-button')) {
       navigate(`/listings/${id}`);
     }
   };
@@ -83,7 +82,9 @@ export function ListingCard({
               (e.target as HTMLImageElement).src = "/placeholder.svg";
             }}
           />
-          <FavoriteButton listingId={id} isHovered={isHovered} />
+          <div className="favorite-button">
+            <FavoriteButton listingId={id} isHovered={isHovered} />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-3">
