@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { DiamondViewerState } from '../types/diamond-viewer';
 
@@ -19,10 +18,17 @@ export function useModelViewer(state: DiamondViewerState) {
         modelViewerScriptLoaded = true;
         setModelViewerReady(true);
       };
+      script.onerror = (error) => {
+        console.error('Error loading model-viewer script:', error);
+      };
       document.head.appendChild(script);
     } else {
       setModelViewerReady(true);
     }
+
+    return () => {
+      // No need to clean up the script on unmount as we want to keep it loaded
+    };
   }, []);
 
   return {

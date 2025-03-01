@@ -20,14 +20,17 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ['@google/model-viewer'],
+    force: true
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "three": path.resolve(__dirname, "./node_modules/three")
+    },
+    dedupe: ['three']
   },
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
 }));
