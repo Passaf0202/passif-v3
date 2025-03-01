@@ -51,7 +51,8 @@ export function DiamondViewer({ state, scale = 3.5 }: DiamondViewerProps) {
           transition: 'opacity 0.5s ease-in-out',
           '--model-color': state === 'confirmed' ? '#22c55e' : '#ffffff',
           padding: 0,
-          margin: 0
+          margin: 0,
+          touchAction: 'none' // Prevents unwanted touch behaviors
         } as any}
       >
         <div slot="poster"></div>

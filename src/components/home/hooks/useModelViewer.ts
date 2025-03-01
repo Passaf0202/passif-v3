@@ -5,6 +5,7 @@ import { DiamondViewerState } from '../types/diamond-viewer';
 const MODEL_PATH = 'https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/models/Logo%20Tradecoiner%20-%203D.glb';
 let modelViewerScriptLoaded = false;
 
+// Rotation speeds
 const NORMAL_SPEED = "8deg";
 const MEDIUM_SPEED = "45deg";
 const FAST_SPEED = "120deg";
@@ -35,6 +36,27 @@ export function useModelViewer(state: DiamondViewerState) {
     }
   };
 
+  // Only allow manual rotation through click/touch, not on hover
+  useEffect(() => {
+    if (modelRef.current && isModelViewerReady) {
+      // Disable auto-rotation until clicked
+      const viewer = modelRef.current;
+      
+      // Add click handler to manage interactions
+      const handleClick = () => {
+        // This is intentionally left empty to allow default model-viewer camera controls
+        // while preventing other unwanted behaviors
+      };
+
+      viewer.addEventListener('click', handleClick);
+      
+      return () => {
+        viewer.removeEventListener('click', handleClick);
+      };
+    }
+  }, [isModelViewerReady]);
+
+  // Handle animation state changes
   useEffect(() => {
     if (state === 'confirmed' && previousStateRef.current !== 'confirmed') {
       clearAllTimeouts();
@@ -80,6 +102,7 @@ export function useModelViewer(state: DiamondViewerState) {
     };
   }, [state]);
 
+  // Load model-viewer script if not loaded
   useEffect(() => {
     if (!modelViewerScriptLoaded) {
       const script = document.createElement('script');

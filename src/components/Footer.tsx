@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { CurrencySelector } from "./navbar/CurrencySelector";
 import DiamondViewer from "./home/DiamondViewer";
@@ -10,7 +11,7 @@ export function Footer() {
   const isMobile = useIsMobile();
   const [diamondState, setDiamondState] = useState<'initial' | 'confirmed'>('initial');
 
-  // Trigger diamond animation on hover or click
+  // Trigger diamond animation only on click
   const handleDiamondInteraction = () => {
     setDiamondState('confirmed');
     setTimeout(() => setDiamondState('initial'), 2000);
@@ -81,12 +82,11 @@ export function Footer() {
         {!isMobile && (
           <div className="grid grid-cols-4 gap-8">
             {/* 3D Diamond Logo */}
-            <div 
-              className="flex flex-col items-center justify-center"
-              onMouseEnter={handleDiamondInteraction}
-              onClick={handleDiamondInteraction}
-            >
-              <div className="h-40 w-40 cursor-pointer">
+            <div className="flex flex-col items-center justify-center">
+              <div 
+                className="h-40 w-40 cursor-pointer" 
+                onClick={handleDiamondInteraction}
+              >
                 <DiamondViewer state={diamondState} scale={3.0} />
               </div>
             </div>
@@ -116,11 +116,11 @@ export function Footer() {
         {isMobile && (
           <div className="space-y-6">
             {/* 3D Diamond Logo */}
-            <div 
-              className="flex flex-col items-center justify-center mb-6"
-              onClick={handleDiamondInteraction}
-            >
-              <div className="h-32 w-32 cursor-pointer">
+            <div className="flex flex-col items-center justify-center mb-6">
+              <div 
+                className="h-32 w-32 cursor-pointer"
+                onClick={handleDiamondInteraction}
+              >
                 <DiamondViewer state={diamondState} scale={2.5} />
               </div>
             </div>
