@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
-import { Search } from "lucide-react";
+import { Search, MessageCircle, Clock } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ConversationsListProps {
@@ -53,6 +53,12 @@ export function ConversationsList({
             
             // Use username instead of email
             const displayName = otherUser.username || otherUser.full_name;
+            
+            // Format time ago for better display
+            const timeAgo = formatDistanceToNow(new Date(lastMessage.created_at), {
+              addSuffix: true,
+              locale: fr,
+            });
 
             return (
               <div
@@ -77,12 +83,12 @@ export function ConversationsList({
                       <div className="font-semibold truncate">
                         {displayName}
                       </div>
-                      <div className="text-xs text-muted-foreground whitespace-nowrap ml-1 flex-shrink-0">
-                        {formatDistanceToNow(new Date(lastMessage.created_at), {
-                          addSuffix: true,
-                          locale: fr,
-                        })}
-                      </div>
+                      
+                      {hasUnread && (
+                        <Badge className="bg-primary text-white text-xs ml-1">
+                          Nouveau
+                        </Badge>
+                      )}
                     </div>
 
                     <div className="text-sm text-muted-foreground mb-1 truncate">
@@ -94,18 +100,20 @@ export function ConversationsList({
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <div className="text-xs text-primary truncate max-w-[180px]">
+                      <div className="text-xs text-primary truncate max-w-[180px] flex items-center">
+                        <MessageCircle className="h-3 w-3 mr-1 text-primary/70" />
                         {thread.listing && thread.listing.title 
                           ? thread.listing.title.length > (isMobile ? 20 : 30)
                             ? `${thread.listing.title.substring(0, isMobile ? 17 : 27)}...`
                             : thread.listing.title
                           : ""}
                       </div>
-                      {hasUnread && (
-                        <Badge className="bg-primary text-white text-xs">
-                          Nouveau
-                        </Badge>
-                      )}
+                    </div>
+                    
+                    {/* Timestamp moved to bottom */}
+                    <div className="text-xs text-muted-foreground mt-2 flex items-center">
+                      <Clock className="h-3 w-3 mr-1 text-gray-400" />
+                      {timeAgo}
                     </div>
                   </div>
                 </div>
