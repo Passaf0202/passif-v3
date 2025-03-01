@@ -26,6 +26,7 @@ export function MobileCreateListing({
             src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
             alt="Tradecoiner" 
             className="h-8 w-auto"
+            style={{ minWidth: '120px' }}
           />
         </div>
         <Button

@@ -62,7 +62,7 @@ export const NavbarLogo = () => {
           e.currentTarget.src = FALLBACK_LOGO;
         }}
         style={{ height: '32px', width: 'auto', minWidth: '120px' }}
-        className="object-contain transition-all duration-200"
+        className="object-contain"
       />
     </Link>
   );

@@ -39,9 +39,7 @@ export function Navbar() {
 
                   {/* Logo au centre */}
                   <div className="flex justify-center">
-                    <div className="scale-95 transition-transform duration-200 min-w-[140px]">
-                      <NavbarLogo />
-                    </div>
+                    <NavbarLogo />
                   </div>
 
                   {/* Actions à droite */}
@@ -51,7 +49,7 @@ export function Navbar() {
                 </>
               ) : (
                 <>
-                  <div className={`w-auto flex-shrink-0 transition-all duration-200`}>
+                  <div className="w-auto flex-shrink-0">
                     <NavbarLogo />
                   </div>
                   <div className="flex justify-start md:justify-center w-full">
