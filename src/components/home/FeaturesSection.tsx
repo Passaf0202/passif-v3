@@ -1,20 +1,18 @@
 
 import { Card, CardContent } from "@/components/ui/card";
+import { DiamondViewer } from "@/components/home/DiamondViewer";
 
 export function FeaturesSection() {
   const features = [
     {
-      imageUrl: "/lovable-uploads/90a3a101-cc3e-4ffb-b352-cf951aad308a.png",
       title: "Sécurisez vos transactions",
       description: "Vérifiez l'identité des vendeurs et évitez les arnaques avec notre système KYC."
     },
     {
-      imageUrl: "/lovable-uploads/90a3a101-cc3e-4ffb-b352-cf951aad308a.png",
       title: "Paiement instantané",
       description: "Payez directement depuis votre wallet en quelques secondes."
     },
     {
-      imageUrl: "/lovable-uploads/90a3a101-cc3e-4ffb-b352-cf951aad308a.png",
       title: "Économisez sur les frais",
       description: "Transactions à faible coût pour l'acheteur, gratuites pour le vendeur."
     }
@@ -38,12 +36,12 @@ export function FeaturesSection() {
               <CardContent className="p-0">
                 <div className="flex flex-col items-center">
                   <div className="w-full h-48 bg-blue-50 flex items-center justify-center p-4">
-                    <img 
-                      src={feature.imageUrl} 
-                      alt={feature.title}
-                      className="max-h-full object-contain"
-                      style={{ maxWidth: '100%' }}
-                    />
+                    <div className="w-full h-full relative">
+                      <DiamondViewer 
+                        state={index === 0 ? "pending" : index === 1 ? "active" : "confirmed"} 
+                        scale={2.8}
+                      />
+                    </div>
                   </div>
                   <div className="p-6 text-center">
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
