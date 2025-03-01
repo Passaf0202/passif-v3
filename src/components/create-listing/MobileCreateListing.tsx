@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ListingForm } from "./ListingForm";
 import DiamondViewer from "@/components/home/DiamondViewer";
 import { Progress } from "@/components/ui/progress";
+import { Link } from "react-router-dom";
+import { NavbarLogo } from "@/components/navbar/NavbarLogo";
 
 interface MobileCreateListingProps {
   onClose: () => void;
@@ -22,14 +24,9 @@ export function MobileCreateListing({
     <div className="min-h-screen bg-background">
       <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b flex items-center px-4">
         <div className="absolute left-0 right-0 flex justify-center">
-          <div style={{ width: '140px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img 
-              src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png"
-              alt="Tradecoiner" 
-              className="h-8 w-auto"
-              style={{ maxHeight: '100%', width: 'auto', minWidth: '120px' }}
-            />
-          </div>
+          <Link to="/">
+            <NavbarLogo />
+          </Link>
         </div>
         <Button
           variant="ghost"

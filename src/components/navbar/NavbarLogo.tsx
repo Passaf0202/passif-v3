@@ -54,7 +54,7 @@ export const NavbarLogo = () => {
 
   return (
     <Link to="/" className="flex items-center flex-shrink-0">
-      <div style={{ width: '140px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: '160px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <img
           src={logoUrl}
           alt="TRADECOINER"
@@ -62,7 +62,7 @@ export const NavbarLogo = () => {
             console.error('Logo loading error, falling back to placeholder');
             e.currentTarget.src = FALLBACK_LOGO;
           }}
-          style={{ maxHeight: '100%', width: 'auto', minWidth: '120px' }}
+          style={{ maxHeight: '100%', width: 'auto', minWidth: '150px' }}
           className="object-contain"
         />
       </div>
