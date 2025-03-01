@@ -1,14 +1,19 @@
+
 import { Link } from "react-router-dom";
 import { CurrencySelector } from "./navbar/CurrencySelector";
 import DiamondViewer from "./home/DiamondViewer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, HelpCircle } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const isMobile = useIsMobile();
   const [diamondState] = useState<'initial'>('initial');
+  const [cryptoHelpOpen, setCryptoHelpOpen] = useState(false);
 
   // Sections organization
   const footerSections = [
@@ -34,7 +39,14 @@ export function Footer() {
       title: "Aide",
       links: [
         { label: "Centre d'aide", href: "/help" },
-        { label: "Je ne connais rien aux cryptomonnaies", href: "/crypto-basics" },
+        { 
+          label: "Je ne connais rien aux cryptomonnaies", 
+          href: "#",
+          onClick: (e: React.MouseEvent) => {
+            e.preventDefault();
+            setCryptoHelpOpen(true);
+          }
+        },
         { label: "Support", href: "/support" },
         { label: "Contact", href: "/contact" },
       ],
@@ -88,12 +100,21 @@ export function Footer() {
                 <ul className="space-y-3">
                   {section.links.map((link) => (
                     <li key={link.label}>
-                      <Link
-                        to={link.href}
-                        className="hover:text-white transition-colors text-gray-400"
-                      >
-                        {link.label}
-                      </Link>
+                      {link.onClick ? (
+                        <button
+                          onClick={link.onClick}
+                          className="hover:text-white transition-colors text-gray-400 text-left w-full"
+                        >
+                          {link.label}
+                        </button>
+                      ) : (
+                        <Link
+                          to={link.href}
+                          className="hover:text-white transition-colors text-gray-400"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -123,12 +144,21 @@ export function Footer() {
                     <ul className="space-y-3 py-2">
                       {section.links.map((link, linkIndex) => (
                         <li key={linkIndex}>
-                          <Link
-                            to={link.href}
-                            className="text-gray-400 hover:text-white transition-colors"
-                          >
-                            {link.label}
-                          </Link>
+                          {link.onClick ? (
+                            <button
+                              onClick={link.onClick}
+                              className="text-gray-400 hover:text-white transition-colors text-left w-full"
+                            >
+                              {link.label}
+                            </button>
+                          ) : (
+                            <Link
+                              to={link.href}
+                              className="text-gray-400 hover:text-white transition-colors"
+                            >
+                              {link.label}
+                            </Link>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -181,6 +211,60 @@ export function Footer() {
           </div>
         </div>
       </div>
+
+      {/* Dialog d'aide crypto */}
+      <Dialog open={cryptoHelpOpen} onOpenChange={setCryptoHelpOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Nouveau dans le monde des cryptomonnaies ?</DialogTitle>
+            <DialogDescription>
+              Pas de souci, nous sommes là pour vous aider à comprendre et utiliser Tradecoiner facilement.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 my-4">
+            <div className="border rounded-lg p-4">
+              <h3 className="font-medium text-lg mb-2">Qu'est-ce qu'un wallet crypto ?</h3>
+              <p className="text-gray-700">
+                Un wallet (portefeuille) est comme votre compte bancaire personnel pour vos cryptomonnaies. 
+                Il vous permet de stocker, envoyer et recevoir des cryptos de façon sécurisée.
+              </p>
+            </div>
+
+            <div className="border rounded-lg p-4">
+              <h3 className="font-medium text-lg mb-2">Comment acheter sur Tradecoiner ?</h3>
+              <p className="text-gray-700">
+                Connectez votre wallet, choisissez un produit, et payez en quelques clics. 
+                Vos fonds sont sécurisés par notre système d'escrow jusqu'à la réception de votre achat.
+              </p>
+            </div>
+
+            <div className="border rounded-lg p-4">
+              <h3 className="font-medium text-lg mb-2">Comment vendre sur Tradecoiner ?</h3>
+              <p className="text-gray-700">
+                Créez une annonce, ajoutez votre adresse de wallet pour recevoir les paiements.
+                Dès qu'un acheteur paie, vous en êtes notifié et pouvez expédier le produit.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setCryptoHelpOpen(false)}
+              className="sm:w-auto w-full"
+            >
+              J'ai compris
+            </Button>
+            <Button 
+              className="sm:w-auto w-full"
+              onClick={() => window.open('/guide', '_blank')}
+            >
+              Guide complet <ExternalLink className="ml-1 h-4 w-4" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </footer>
   );
 }

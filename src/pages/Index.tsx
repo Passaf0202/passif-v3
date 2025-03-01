@@ -10,7 +10,6 @@ import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { GlobalPresenceSection } from "@/components/home/GlobalPresenceSection";
 import { Separator } from "@/components/ui/separator";
-import { CryptoHelperButton } from "@/components/home/CryptoHelperButton";
 
 const Index = () => {
   return (
@@ -38,7 +37,6 @@ const Index = () => {
         </div>
       </main>
 
-      <CryptoHelperButton />
       <Footer />
     </div>
   );

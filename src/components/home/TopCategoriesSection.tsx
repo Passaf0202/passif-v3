@@ -8,8 +8,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { ChevronRight } from "lucide-react";
+import { Circle, CircleDot } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
 
 const TOP_CATEGORIES = [
   "Mode",
@@ -27,12 +28,13 @@ const TOP_CATEGORIES = [
 export function TopCategoriesSection() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [activeIndex, setActiveIndex] = useState(0);
 
   return (
     <section className="py-12 bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-8">
-          Top catégories
+        <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
+          <span className="highlight-stabilo">Top catégories</span>
         </h2>
         
         <Carousel
@@ -41,6 +43,7 @@ export function TopCategoriesSection() {
             loop: true,
           }}
           className="w-full"
+          onSelect={(index) => setActiveIndex(index)}
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {TOP_CATEGORIES.map((category) => {
@@ -71,21 +74,30 @@ export function TopCategoriesSection() {
           <CarouselNext className="hidden md:flex" />
         </Carousel>
         
-        {/* Indicateur de défilement */}
+        {/* Indicateurs de défilement */}
         <div className="flex justify-center mt-6">
-          <div className="flex items-center text-gray-500 text-sm">
-            {isMobile ? (
-              <>
-                <span>Glissez pour voir plus</span>
-                <ChevronRight className="w-4 h-4 ml-1 animate-pulse" />
-              </>
-            ) : (
-              <>
-                <span>Utilisez les flèches pour naviguer</span>
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </>
-            )}
-          </div>
+          {isMobile ? (
+            <div className="flex gap-2 items-center">
+              {Array.from({ length: Math.min(TOP_CATEGORIES.length, 10) }).map((_, index) => (
+                <button 
+                  key={index}
+                  onClick={() => setActiveIndex(index)}
+                  className="focus:outline-none"
+                  aria-label={`Aller à la catégorie ${index + 1}`}
+                >
+                  {index === activeIndex % TOP_CATEGORIES.length ? (
+                    <CircleDot className="w-4 h-4 text-primary" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-gray-300" />
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center text-gray-500 text-sm">
+              <span>Utilisez les flèches pour naviguer</span>
+            </div>
+          )}
         </div>
       </div>
     </section>

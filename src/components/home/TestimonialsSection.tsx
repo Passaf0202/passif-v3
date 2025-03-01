@@ -2,7 +2,8 @@
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, Circle, CircleDot } from "lucide-react";
+import { useState } from "react";
 
 const testimonials = [
   {
@@ -24,6 +25,7 @@ const testimonials = [
 
 export function TestimonialsSection() {
   const isMobile = useIsMobile();
+  const [activeIndex, setActiveIndex] = useState(0);
   
   return (
     <section className="py-12 bg-white">
@@ -41,17 +43,33 @@ export function TestimonialsSection() {
           <>
             <div className="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory no-scrollbar">
               {testimonials.map((testimonial, index) => (
-                <div key={index} className="snap-center min-w-[280px] w-[85%] shrink-0">
+                <div 
+                  key={index} 
+                  className="snap-center min-w-[280px] w-[85%] shrink-0"
+                  onClick={() => setActiveIndex(index)}
+                >
                   <TestimonialCard testimonial={testimonial} />
                 </div>
               ))}
             </div>
             
-            {/* Indicateur de défilement pour mobile */}
+            {/* Indicateurs de défilement pour mobile */}
             <div className="flex justify-center mt-4">
-              <div className="flex items-center text-gray-500 text-sm">
-                <span>Glissez pour voir plus d'avis</span>
-                <ChevronRight className="w-4 h-4 ml-1 animate-pulse" />
+              <div className="flex gap-2 items-center">
+                {testimonials.map((_, index) => (
+                  <button 
+                    key={index}
+                    onClick={() => setActiveIndex(index)}
+                    className="focus:outline-none"
+                    aria-label={`Voir l'avis ${index + 1}`}
+                  >
+                    {index === activeIndex ? (
+                      <CircleDot className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-gray-300" />
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
           </>

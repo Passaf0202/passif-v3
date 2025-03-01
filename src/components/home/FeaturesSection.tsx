@@ -2,7 +2,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Zap, Bitcoin, Lock } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Separator } from "@/components/ui/separator";
 
 export function FeaturesSection() {
   const isMobile = useIsMobile();
