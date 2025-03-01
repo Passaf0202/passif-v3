@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -5,6 +6,14 @@ import { ethers } from "ethers";
 import { useNetwork, useSwitchNetwork } from "wagmi";
 import { amoy } from "@/config/chains";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const ESCROW_ABI = [
   "function createTransaction(address seller) payable returns (uint256)",
@@ -13,11 +22,16 @@ const ESCROW_ABI = [
 ];
 
 export interface EscrowConfirmButtonProps {
-  transactionId: string;
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
-  getStoredTxnId: () => Promise<string | null>;
-  onConfirmation: () => void;
+  transactionId?: string;
+  isLoading?: boolean;
+  setIsLoading?: (loading: boolean) => void;
+  getStoredTxnId?: () => Promise<string | null>;
+  onConfirmation?: () => void;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onConfirm?: () => void;
+  title?: string;
+  description?: string;
 }
 
 export function EscrowConfirmButton({
@@ -25,13 +39,54 @@ export function EscrowConfirmButton({
   isLoading,
   setIsLoading,
   getStoredTxnId,
-  onConfirmation
+  onConfirmation,
+  isOpen,
+  onOpenChange,
+  onConfirm,
+  title,
+  description
 }: EscrowConfirmButtonProps) {
   const { toast } = useToast();
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
 
+  // For Dialog confirmation usage
+  if (isOpen !== undefined && onOpenChange && onConfirm) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{title || "Confirmation"}</DialogTitle>
+            <DialogDescription>
+              {description || "Êtes-vous sûr de vouloir effectuer cette action ?"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => onOpenChange(false)}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={onConfirm}
+              disabled={isLoading}
+            >
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Original blockchain confirmation usage
   const handleConfirm = async () => {
+    if (!transactionId || !setIsLoading || !getStoredTxnId || !onConfirmation) {
+      console.error("Missing required props for blockchain confirmation");
+      return;
+    }
+    
     try {
       setIsLoading(true);
 
@@ -95,6 +150,7 @@ export function EscrowConfirmButton({
     }
   };
 
+  // If we're using the button version (not dialog)
   return (
     <Button
       onClick={handleConfirm}

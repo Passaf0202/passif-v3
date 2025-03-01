@@ -1,6 +1,8 @@
 
 import { ethers } from "ethers";
-import { ESCROW_ABI } from "../types/escrow";
+import { ESCROW_ABI, ESCROW_CONTRACT_ADDRESS } from "../types/escrow";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useBlockchainTransaction = () => {
   const getBlockchainTransaction = async (transactionId: string) => {
@@ -10,7 +12,7 @@ export const useBlockchainTransaction = () => {
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const contract = new ethers.Contract(
-      "0xe35a0cebf608bff98bcf99093b02469eea2cb38c",
+      ESCROW_CONTRACT_ADDRESS,
       ESCROW_ABI,
       provider
     );
@@ -47,5 +49,71 @@ export const useBlockchainTransaction = () => {
 
   return {
     getBlockchainTransaction
+  };
+};
+
+interface UseReleaseFundsOptions {
+  transactionId: string;
+  onSuccess?: () => void;
+  onError?: () => void;
+}
+
+export const useReleaseFunds = ({ transactionId, onSuccess, onError }: UseReleaseFundsOptions) => {
+  const [isReleasing, setIsReleasing] = useState(false);
+  const { toast } = useToast();
+
+  const releaseFunds = async () => {
+    try {
+      setIsReleasing(true);
+      
+      if (!window.ethereum) {
+        throw new Error("MetaMask n'est pas installé");
+      }
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      
+      const contract = new ethers.Contract(
+        ESCROW_CONTRACT_ADDRESS,
+        ESCROW_ABI,
+        signer
+      );
+
+      console.log("Releasing funds for transaction:", transactionId);
+      const txnIdBN = ethers.BigNumber.from(transactionId);
+      const tx = await contract.releaseFunds(txnIdBN);
+      
+      console.log("Release funds transaction sent:", tx.hash);
+      const receipt = await tx.wait();
+      console.log("Release funds transaction receipt:", receipt);
+
+      toast({
+        title: "Fonds libérés avec succès",
+        description: "La transaction a été validée sur la blockchain"
+      });
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error: any) {
+      console.error("Error releasing funds:", error);
+      toast({
+        title: "Erreur lors de la libération des fonds",
+        description: error.message || "Une erreur est survenue",
+        variant: "destructive"
+      });
+      
+      if (onError) {
+        onError();
+      }
+    } finally {
+      setIsReleasing(false);
+    }
+  };
+
+  return {
+    releaseFunds,
+    isReleasing
   };
 };
