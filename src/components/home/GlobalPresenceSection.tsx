@@ -1,8 +1,10 @@
 
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Globe, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Globe, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 type Region = {
   name: string;
@@ -135,6 +137,7 @@ const CountryFlag = ({ code }: { code: string }) => {
 export function GlobalPresenceSection() {
   const isMobile = useIsMobile();
   const [expandedRegions, setExpandedRegions] = useState<{ [key: string]: boolean }>({});
+  const [scrollPosition, setScrollPosition] = useState(0);
   
   const toggleRegion = (regionName: string) => {
     setExpandedRegions(prev => ({
@@ -146,17 +149,27 @@ export function GlobalPresenceSection() {
   // Number of countries to show initially
   const initialCountriesToShow = 5;
   
+  // Number of regions to display per view in desktop
+  const regionsPerView = 3;
+  
+  // For desktop horizontal scrolling
+  const handleScrollLeft = () => {
+    setScrollPosition(Math.max(0, scrollPosition - 1));
+  };
+  
+  const handleScrollRight = () => {
+    setScrollPosition(Math.min(Math.ceil(regions.length / regionsPerView) - 1, scrollPosition + 1));
+  };
+  
+  // Get visible regions based on scroll position
+  const getVisibleRegions = () => {
+    const start = scrollPosition * regionsPerView;
+    const end = Math.min(start + regionsPerView, regions.length);
+    return regions.slice(start, end);
+  };
+  
   return (
     <section className="py-16 relative overflow-hidden">
-      {/* World Map Background */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none">
-        <img 
-          src="https://flagcdn.com/w2560/xx.png" 
-          alt="World Map" 
-          className="w-full h-full object-cover"
-        />
-      </div>
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between">
           <div className="md:w-1/3 mb-8 md:mb-0 pr-0 md:pr-12">
@@ -225,49 +238,75 @@ export function GlobalPresenceSection() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-8">
-                {regions.map((region) => (
-                  <div key={region.name} className="bg-gray-50 p-6 rounded-lg shadow-sm">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-semibold text-gray-900">{region.name}</h3>
-                      <div className="flex items-center">
-                        <div className="mr-2 flex items-center">
-                          <Checkbox 
-                            id={`expand-${region.name}`} 
-                            checked={expandedRegions[region.name]} 
-                            onCheckedChange={() => toggleRegion(region.name)}
-                          />
-                          <label htmlFor={`expand-${region.name}`} className="ml-2 text-sm text-gray-500">
-                            Afficher tous les pays
-                          </label>
+              <div className="relative">
+                {scrollPosition > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="absolute -left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white shadow-md"
+                    onClick={handleScrollLeft}
+                  >
+                    <ChevronLeft size={20} />
+                  </Button>
+                )}
+                
+                {scrollPosition < Math.ceil(regions.length / regionsPerView) - 1 && (
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="absolute -right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white shadow-md"
+                    onClick={handleScrollRight}
+                  >
+                    <ChevronRight size={20} />
+                  </Button>
+                )}
+                
+                <ScrollArea className="w-full">
+                  <div className="flex flex-nowrap overflow-hidden gap-4">
+                    {getVisibleRegions().map((region) => (
+                      <div key={region.name} className="flex-shrink-0 w-full md:w-1/3 bg-gray-50 p-6 rounded-lg shadow-sm">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-xl font-semibold text-gray-900">{region.name}</h3>
+                          <div className="flex items-center">
+                            <div className="mr-2 flex items-center">
+                              <Checkbox 
+                                id={`expand-${region.name}`} 
+                                checked={expandedRegions[region.name]} 
+                                onCheckedChange={() => toggleRegion(region.name)}
+                              />
+                              <label htmlFor={`expand-${region.name}`} className="ml-2 text-sm text-gray-500">
+                                Afficher tous les pays
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-3">
+                          {region.countries
+                            .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow, region.countries.length))
+                            .map((country) => (
+                              <div 
+                                key={country.code}
+                                className="flex items-center bg-white rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
+                              >
+                                <CountryFlag code={country.code} />
+                                {country.name}
+                              </div>
+                            ))}
+                          
+                          {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow && (
+                            <button 
+                              onClick={() => toggleRegion(region.name)}
+                              className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
+                            >
+                              +{region.countries.length - initialCountriesToShow} pays
+                            </button>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-3">
-                      {region.countries
-                        .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow, region.countries.length))
-                        .map((country) => (
-                          <div 
-                            key={country.code}
-                            className="flex items-center bg-white rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
-                          >
-                            <CountryFlag code={country.code} />
-                            {country.name}
-                          </div>
-                        ))}
-                      
-                      {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow && (
-                        <button 
-                          onClick={() => toggleRegion(region.name)}
-                          className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
-                        >
-                          +{region.countries.length - initialCountriesToShow} pays
-                        </button>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </ScrollArea>
               </div>
             )}
           </div>
