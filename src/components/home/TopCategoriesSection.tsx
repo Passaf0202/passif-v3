@@ -69,13 +69,23 @@ export function TopCategoriesSection() {
         </Carousel>
         
         <div className="flex justify-center mt-6">
-          {isMobile ? <div className="flex gap-2 items-center">
-              {TOP_CATEGORIES.map((_, index) => <button key={index} onClick={() => scrollToIndex(index)} className="focus:outline-none" aria-label={`Aller à la catégorie ${index + 1}`}>
-                  {index === activeIndex ? <CircleDot className="w-4 h-4 text-primary" /> : <Circle className="w-4 h-4 text-gray-300" />}
-                </button>)}
-            </div> : <div className="flex items-center text-gray-500 text-sm">
-              <span>Utilisez les flèches pour naviguer</span>
-            </div>}
+          {isMobile && 
+            <div className="flex gap-2 items-center">
+              {TOP_CATEGORIES.map((_, index) => (
+                <button 
+                  key={index} 
+                  onClick={() => scrollToIndex(index)} 
+                  className="focus:outline-none" 
+                  aria-label={`Aller à la catégorie ${index + 1}`}
+                >
+                  {index === activeIndex ? 
+                    <CircleDot className="w-4 h-4 text-primary" /> : 
+                    <Circle className="w-4 h-4 text-gray-300" />
+                  }
+                </button>
+              ))}
+            </div>
+          }
         </div>
       </div>
     </section>;

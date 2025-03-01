@@ -4,9 +4,8 @@ import { ProfileHeader } from "./profile/ProfileHeader";
 import { ProfileForm } from "./profile/ProfileForm";
 import { useProfile } from "./profile/useProfile";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "./common/PageHeader";
-import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 export function UserProfile() {
   const {
@@ -17,18 +16,20 @@ export function UserProfile() {
     setFormData,
     setEditing,
     updateProfile,
-    handleAvatarUpdate
+    handleAvatarUpdate,
+    avatarLoading
   } = useProfile();
 
-  // État pour gérer l'URL de l'avatar avec timestamp
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-
   if (loading) {
-    return <div>Chargement...</div>;
+    return <div className="flex items-center justify-center min-h-screen">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>;
   }
 
   if (!profile) {
-    return <div>Profil non trouvé</div>;
+    return <div className="flex items-center justify-center min-h-screen">
+      <p className="text-lg text-gray-600">Profil non trouvé</p>
+    </div>;
   }
 
   // Ajouter un timestamp à l'URL pour éviter la mise en cache
@@ -54,12 +55,21 @@ export function UserProfile() {
               <div className="flex flex-col items-center mb-8">
                 <div className="relative group">
                   <Avatar className="h-32 w-32 cursor-pointer">
-                    <AvatarImage 
-                      src={getAvatarUrl(avatarUrl || profile.avatar_url)}
-                    />
-                    <AvatarFallback className="text-2xl">
-                      {profile.first_name?.[0]}{profile.last_name?.[0]}
-                    </AvatarFallback>
+                    {avatarLoading ? (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin text-white" />
+                      </div>
+                    ) : (
+                      <>
+                        <AvatarImage 
+                          src={getAvatarUrl(profile.avatar_url)}
+                          alt={`${profile.first_name || ''} ${profile.last_name || ''}`}
+                        />
+                        <AvatarFallback className="text-2xl">
+                          {profile.first_name?.[0]}{profile.last_name?.[0]}
+                        </AvatarFallback>
+                      </>
+                    )}
                     <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <label htmlFor="avatar-upload" className="text-white text-sm cursor-pointer">
                         Changer la photo
@@ -72,43 +82,7 @@ export function UserProfile() {
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            // Créer un nom de fichier unique avec timestamp
-                            const timestamp = Date.now();
-                            const fileExt = file.name.split('.').pop();
-                            const fileName = `${profile.id}/${timestamp}.${fileExt}`;
-
-                            // Supprimer l'ancien avatar s'il existe
-                            if (profile.avatar_url) {
-                              const oldPath = profile.avatar_url.split('/').pop();
-                              if (oldPath) {
-                                await supabase.storage
-                                  .from('avatars')
-                                  .remove([`${profile.id}/${oldPath}`]);
-                              }
-                            }
-
-                            // Upload du nouveau fichier
-                            const { data, error } = await supabase.storage
-                              .from('avatars')
-                              .upload(fileName, file, {
-                                upsert: true,
-                                cacheControl: 'no-cache'
-                              });
-                              
-                            if (error) {
-                              console.error('Error uploading avatar:', error);
-                              return;
-                            }
-
-                            // Récupération de l'URL publique
-                            const { data: { publicUrl } } = supabase.storage
-                              .from('avatars')
-                              .getPublicUrl(fileName);
-
-                            // Mise à jour du profil avec la nouvelle URL
-                            await handleAvatarUpdate(publicUrl);
-                            // Mise à jour de l'URL locale avec timestamp
-                            setAvatarUrl(publicUrl);
+                            await handleAvatarUpdate(file);
                           }
                         }}
                       />
@@ -116,7 +90,10 @@ export function UserProfile() {
                   </Avatar>
                 </div>
                 <div className="mt-4 text-center">
-                  <p className="text-lg font-semibold">{profile.username}</p>
+                  <p className="text-lg font-semibold">{profile.username || 'Utilisateur'}</p>
+                  {profile.first_name && profile.last_name && (
+                    <p className="text-sm text-gray-500">{profile.first_name} {profile.last_name}</p>
+                  )}
                 </div>
               </div>
 
