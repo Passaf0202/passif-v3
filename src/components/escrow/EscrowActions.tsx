@@ -55,16 +55,16 @@ export function EscrowActions({
           onClick={() => setConfirmOpen(true)}
         >
           {isLoading || isReleasing ? (
-            <>
+            <div className="flex items-center justify-center w-full">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Traitement en cours...
-            </>
+              <span className="loading-button-text">Traitement en cours...</span>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center justify-center w-full">
               <span className="product-received-icon text-green-500 mr-1">✓</span>
-              Produit reçu
+              <span>Produit reçu</span>
               <ArrowRight className="ml-1 h-4 w-4" />
-            </>
+            </div>
           )}
         </Button>
       </div>

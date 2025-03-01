@@ -1,6 +1,5 @@
 
 import { useRef, useEffect } from "react";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,10 +58,10 @@ export function MobileCategoryBar() {
   if (!categories?.length) return null;
 
   return (
-    <div className="md:hidden border-t border-b border-gray-200/80 bg-white">
+    <div className="md:hidden border-t border-b border-gray-200/80 bg-white relative">
       <div 
         ref={containerRef} 
-        className="categories-container flex overflow-x-auto no-scrollbar"
+        className="categories-container flex overflow-x-auto no-scrollbar relative"
       >
         {categories.map((category) => {
           const CategoryIcon = getCategoryIcon(category.name);

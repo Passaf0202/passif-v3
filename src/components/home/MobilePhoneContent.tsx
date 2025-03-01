@@ -168,9 +168,9 @@ export function MobilePhoneContent({
                         className="w-full h-8 rounded-full px-4 text-xs transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white pointer-events-auto shadow-[inset_0_2px_10px_-3px_rgba(0,0,0,0.3)] active:shadow-[inset_0_2px_5px_-3px_rgba(0,0,0,0.3)]"
                       >
                         {isConfirming ? (
-                          <div className="flex items-center justify-center">
+                          <div className="flex items-center justify-center w-full">
                             <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-                            <span>Confirmation en cours...</span>
+                            <span className="loading-button-text">Confirmation en cours...</span>
                           </div>
                         ) : (
                           "Confirmer la réception"
@@ -234,14 +234,14 @@ export function MobilePhoneContent({
                 <div className="w-full h-[2px] bg-gray-200/80" />
                 <div className="w-full h-[2px] bg-gray-200/80" />
                 {transactionState === 'confirmed' && (
-                  <div className="flex items-center justify-between">
+                  <div className="confirmation-action-container">
                     <motion.div
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center bg-green-100 px-2 py-0.5 rounded-full h-4 w-fit mt-2"
+                      className="flex items-center bg-green-100 px-2 py-0.5 rounded-full h-5 w-fit"
                     >
-                      <Check className="h-2.5 w-2.5 text-green-600 mr-1" />
-                      <span className="text-[9px] font-medium text-green-600">Produit reçu</span>
+                      <Check className="h-3 w-3 text-green-600 mr-1" />
+                      <span className="text-[11px] font-medium text-green-600">Produit reçu</span>
                     </motion.div>
                     <Button
                       variant="ghost"
