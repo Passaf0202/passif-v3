@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { CurrencySelector } from "./navbar/CurrencySelector";
 import DiamondViewer from "./home/DiamondViewer";
@@ -9,13 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const isMobile = useIsMobile();
-  const [diamondState, setDiamondState] = useState<'initial' | 'confirmed'>('initial');
-
-  // Trigger diamond animation only on click
-  const handleDiamondInteraction = () => {
-    setDiamondState('confirmed');
-    setTimeout(() => setDiamondState('initial'), 2000);
-  };
+  const [diamondState] = useState<'initial'>('initial');
 
   // Sections organization
   const footerSections = [
@@ -83,10 +76,7 @@ export function Footer() {
           <div className="grid grid-cols-4 gap-8">
             {/* 3D Diamond Logo */}
             <div className="flex flex-col items-center justify-center">
-              <div 
-                className="h-40 w-40 cursor-pointer" 
-                onClick={handleDiamondInteraction}
-              >
+              <div className="h-40 w-40">
                 <DiamondViewer state={diamondState} scale={3.0} />
               </div>
             </div>
@@ -117,10 +107,7 @@ export function Footer() {
           <div className="space-y-6">
             {/* 3D Diamond Logo */}
             <div className="flex flex-col items-center justify-center mb-6">
-              <div 
-                className="h-32 w-32 cursor-pointer"
-                onClick={handleDiamondInteraction}
-              >
+              <div className="h-32 w-32">
                 <DiamondViewer state={diamondState} scale={2.5} />
               </div>
             </div>
