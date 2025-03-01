@@ -6,7 +6,7 @@ import { RecentSearchesSection } from "@/components/home/RecentSearchesSection";
 import { FavoritesSection } from "@/components/home/FavoritesSection";
 import { TopCategoriesSection } from "@/components/home/TopCategoriesSection";
 import { RecommendedListingsSection } from "@/components/home/RecommendedListingsSection";
-import { FAQSection } from "@/components/home/FAQSection";
+import { FeaturesSection } from "@/components/home/FeaturesSection";
 
 const Index = () => {
   return (
@@ -18,7 +18,7 @@ const Index = () => {
         <RecentSearchesSection />
         <FavoritesSection />
         <TopCategoriesSection />
-        <FAQSection />
+        <FeaturesSection />
         <RecommendedListingsSection />
       </main>
 
