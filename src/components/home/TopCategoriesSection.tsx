@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import {
@@ -43,7 +42,9 @@ export function TopCategoriesSection() {
             loop: true,
           }}
           className="w-full"
-          onSelect={(index) => setActiveIndex(index)}
+          onSelect={(index) => {
+            setActiveIndex(typeof index === 'number' ? index : 0);
+          }}
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {TOP_CATEGORIES.map((category) => {
@@ -74,7 +75,6 @@ export function TopCategoriesSection() {
           <CarouselNext className="hidden md:flex" />
         </Carousel>
         
-        {/* Indicateurs de défilement */}
         <div className="flex justify-center mt-6">
           {isMobile ? (
             <div className="flex gap-2 items-center">
