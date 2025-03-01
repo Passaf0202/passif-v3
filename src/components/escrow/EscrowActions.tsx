@@ -70,7 +70,7 @@ export function EscrowActions({
       </div>
 
       <EscrowConfirmButton
-        open={confirmOpen}
+        isOpen={confirmOpen}
         onOpenChange={setConfirmOpen}
         onConfirm={handleReleaseFunds}
         title="Confirmer la réception"
