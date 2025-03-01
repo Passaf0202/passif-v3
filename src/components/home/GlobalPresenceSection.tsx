@@ -146,6 +146,7 @@ export function GlobalPresenceSection() {
   const [expandedRegions, setExpandedRegions] = useState<{ [key: string]: boolean }>({});
   const carouselRef = useRef<HTMLDivElement>(null);
   const autoScrollTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
   
   // Toggle region expansion
   const toggleRegion = (regionName: string) => {
@@ -189,6 +190,9 @@ export function GlobalPresenceSection() {
     return region.countries.length > initialCountriesToShow * 2; // For grid layout
   };
   
+  // Get the map image URL from the Supabase bucket
+  const mapImageUrl = "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos/MapChart_Map.png";
+  
   return (
     <section className="py-16 relative overflow-hidden bg-gradient-to-b from-white to-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -198,12 +202,12 @@ export function GlobalPresenceSection() {
               Leader mondial des transactions crypto
             </h2>
             
-            <p className="text-md text-gray-600 mb-4">
-              Présents dans plus de 80 pays, les régions indiquées montrent où vous pouvez utiliser Tradecoiner en toute sécurité.
+            <p className="text-md text-gray-600 mb-3">
+              Présents dans plus de 80 pays pour des transactions sécurisées.
             </p>
             
-            <p className="text-md text-gray-600 mb-4">
-              Notre plateforme utilise des technologies blockchain sécurisées et des systèmes KYC avancés avec un réseau mondial d'utilisateurs vérifiés.
+            <p className="text-md text-gray-600 mb-3">
+              Technologies blockchain et KYC avancés avec réseau d'utilisateurs vérifiés.
             </p>
             
             <div className="flex items-center mt-4">
@@ -212,14 +216,39 @@ export function GlobalPresenceSection() {
               </div>
               <p className="font-medium text-lg">80+ pays</p>
             </div>
+            
+            {/* World Map for Desktop */}
+            {!isMobile && (
+              <div className="mt-8 relative">
+                <img 
+                  src={mapImageUrl} 
+                  alt="Carte du monde Tradecoiner" 
+                  className="w-full h-auto rounded-lg shadow-md"
+                />
+              </div>
+            )}
           </div>
           
           <div className="md:w-2/3">
+            {/* World Map for Mobile */}
+            {isMobile && (
+              <div className="mb-8 relative">
+                <img 
+                  src={mapImageUrl} 
+                  alt="Carte du monde Tradecoiner" 
+                  className="w-full h-auto rounded-lg shadow-md"
+                />
+              </div>
+            )}
+            
             {isMobile ? (
               <div className="flex overflow-x-auto pb-4 gap-4 no-scrollbar">
                 {regions.map((region) => (
-                  <div key={region.name} className="flex-shrink-0 w-80 bg-gray-50 p-6 rounded-lg shadow-sm">
-                    <div className="flex justify-between items-center mb-4">
+                  <div 
+                    key={region.name} 
+                    className="flex-shrink-0 w-80 bg-white p-5 rounded-lg shadow-sm border border-gray-100"
+                  >
+                    <div className="flex justify-between items-center mb-3">
                       <h3 className="text-xl font-semibold text-gray-900">{region.name}</h3>
                       {shouldShowExpandToggle(region) && (
                         <button 
@@ -235,7 +264,7 @@ export function GlobalPresenceSection() {
                       )}
                     </div>
                     
-                    <div className="flex flex-col gap-y-3">
+                    <div className="flex flex-col gap-y-2.5">
                       {region.countries
                         .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow, region.countries.length))
                         .map((country) => (
@@ -265,9 +294,14 @@ export function GlobalPresenceSection() {
                 <Carousel className="w-full">
                   <CarouselContent className="pb-12">
                     {regions.map((region) => (
-                      <CarouselItem key={region.name} className="md:basis-1/2 lg:basis-1/2">
-                        <Card className="h-full border-gray-200 shadow-md hover:shadow-lg transition-shadow">
-                          <CardHeader className="pb-2">
+                      <CarouselItem 
+                        key={region.name} 
+                        className="md:basis-1/2 lg:basis-1/2"
+                        onMouseEnter={() => setHoveredRegion(region.name)}
+                        onMouseLeave={() => setHoveredRegion(null)}
+                      >
+                        <Card className={`h-full border-gray-100 shadow-sm hover:shadow-md transition-shadow ${hoveredRegion === region.name ? 'ring-1 ring-gray-300' : ''}`}>
+                          <CardHeader className="pb-1.5">
                             <div className="flex justify-between items-center">
                               <CardTitle className="text-lg flex items-center">
                                 {region.name}
@@ -287,7 +321,7 @@ export function GlobalPresenceSection() {
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <ScrollArea className="h-44 pr-4">
+                            <ScrollArea className="h-40 pr-4">
                               <div className="grid grid-cols-2 gap-2">
                                 {region.countries
                                   .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow * 2, region.countries.length))
