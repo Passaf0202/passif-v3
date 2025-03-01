@@ -71,7 +71,7 @@ export function ConversationsList({
                       <div className="font-semibold truncate">
                         {otherUser.full_name}
                       </div>
-                      <div className="text-xs text-muted-foreground flex-shrink-0">
+                      <div className="text-xs text-muted-foreground whitespace-nowrap ml-1 flex-shrink-0">
                         {formatDistanceToNow(new Date(lastMessage.created_at), {
                           addSuffix: true,
                           locale: fr,
@@ -80,7 +80,11 @@ export function ConversationsList({
                     </div>
 
                     <div className="text-sm text-muted-foreground mb-1 truncate">
-                      {lastMessage.content || "Fichier partagé"}
+                      {lastMessage.content 
+                        ? (lastMessage.content.length > 50 
+                            ? `${lastMessage.content.substring(0, 47)}...` 
+                            : lastMessage.content)
+                        : "Fichier partagé"}
                     </div>
 
                     <div className="flex items-center justify-between">
