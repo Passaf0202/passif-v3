@@ -36,26 +36,6 @@ export function useModelViewer(state: DiamondViewerState) {
     }
   };
 
-  // Only allow manual rotation through click/touch, not on hover
-  useEffect(() => {
-    if (modelRef.current && isModelViewerReady) {
-      // Disable auto-rotation until clicked
-      const viewer = modelRef.current;
-      
-      // Add click handler to manage interactions
-      const handleClick = () => {
-        // This is intentionally left empty to allow default model-viewer camera controls
-        // while preventing other unwanted behaviors
-      };
-
-      viewer.addEventListener('click', handleClick);
-      
-      return () => {
-        viewer.removeEventListener('click', handleClick);
-      };
-    }
-  }, [isModelViewerReady]);
-
   // Handle animation state changes
   useEffect(() => {
     if (state === 'confirmed' && previousStateRef.current !== 'confirmed') {
