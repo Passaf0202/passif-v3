@@ -1,8 +1,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Globe, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Globe, Bitcoin, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -194,7 +193,17 @@ export function GlobalPresenceSection() {
   const mapImageUrl = "https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos/MapChart_Map.png";
   
   return (
-    <section className="py-16 relative overflow-hidden bg-gradient-to-b from-white to-gray-50">
+    <section className="py-16 relative overflow-hidden">
+      {/* Background Map with Overlay */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src={mapImageUrl} 
+          alt="Carte du monde" 
+          className="w-full h-full object-cover opacity-15"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-white/70 to-gray-50/90"></div>
+      </div>
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between">
           <div className="md:w-1/3 mb-8 md:mb-0 pr-0 md:pr-12">
@@ -202,12 +211,8 @@ export function GlobalPresenceSection() {
               Leader mondial des transactions crypto
             </h2>
             
-            <p className="text-md text-gray-600 mb-3">
-              Présents dans plus de 80 pays pour des transactions sécurisées.
-            </p>
-            
-            <p className="text-md text-gray-600 mb-3">
-              Technologies blockchain et KYC avancés avec réseau d'utilisateurs vérifiés.
+            <p className="text-md text-gray-700 mb-3">
+              Présents dans plus de 80 pays pour des transactions sécurisées avec technologies blockchain avancées.
             </p>
             
             <div className="flex items-center mt-4">
@@ -217,39 +222,24 @@ export function GlobalPresenceSection() {
               <p className="font-medium text-lg">80+ pays</p>
             </div>
             
-            {/* World Map for Desktop */}
-            {!isMobile && (
-              <div className="mt-8 relative">
-                <img 
-                  src={mapImageUrl} 
-                  alt="Carte du monde Tradecoiner" 
-                  className="w-full h-auto rounded-lg shadow-md"
-                />
+            <div className="flex items-center mt-4">
+              <div className="bg-black rounded-full p-2 mr-3">
+                <Bitcoin size={20} className="text-white" />
               </div>
-            )}
+              <p className="font-medium text-lg">Transactions sécurisées</p>
+            </div>
           </div>
           
           <div className="md:w-2/3">
-            {/* World Map for Mobile */}
-            {isMobile && (
-              <div className="mb-8 relative">
-                <img 
-                  src={mapImageUrl} 
-                  alt="Carte du monde Tradecoiner" 
-                  className="w-full h-auto rounded-lg shadow-md"
-                />
-              </div>
-            )}
-            
             {isMobile ? (
               <div className="flex overflow-x-auto pb-4 gap-4 no-scrollbar">
                 {regions.map((region) => (
                   <div 
                     key={region.name} 
-                    className="flex-shrink-0 w-80 bg-white p-5 rounded-lg shadow-sm border border-gray-100"
+                    className="flex-shrink-0 w-80 bg-white/80 backdrop-blur-sm p-5 rounded-lg shadow-sm border border-gray-100"
                   >
                     <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-xl font-semibold text-gray-900">{region.name}</h3>
+                      <h3 className="text-xl font-semibold text-sky-800">{region.name}</h3>
                       {shouldShowExpandToggle(region) && (
                         <button 
                           onClick={() => toggleRegion(region.name)}
@@ -300,10 +290,10 @@ export function GlobalPresenceSection() {
                         onMouseEnter={() => setHoveredRegion(region.name)}
                         onMouseLeave={() => setHoveredRegion(null)}
                       >
-                        <Card className={`h-full border-gray-100 shadow-sm hover:shadow-md transition-shadow ${hoveredRegion === region.name ? 'ring-1 ring-gray-300' : ''}`}>
+                        <Card className={`h-full bg-white/80 backdrop-blur-sm border-gray-100 shadow-sm hover:shadow-md transition-shadow ${hoveredRegion === region.name ? 'ring-1 ring-sky-300' : ''}`}>
                           <CardHeader className="pb-1.5">
                             <div className="flex justify-between items-center">
-                              <CardTitle className="text-lg flex items-center">
+                              <CardTitle className="text-lg text-sky-800">
                                 {region.name}
                               </CardTitle>
                               {shouldShowExpandToggle(region) && (
@@ -321,14 +311,14 @@ export function GlobalPresenceSection() {
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <ScrollArea className="h-40 pr-4">
+                            <ScrollArea className="h-36 pr-4">
                               <div className="grid grid-cols-2 gap-2">
                                 {region.countries
                                   .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow * 2, region.countries.length))
                                   .map((country) => (
                                     <div 
                                       key={country.code}
-                                      className="flex items-center bg-white rounded-full py-1 px-2 text-xs font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                                      className="flex items-center bg-white/90 rounded-full py-1 px-2 text-xs font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
                                     >
                                       <CountryFlag code={country.code} />
                                       {country.name}
@@ -351,8 +341,8 @@ export function GlobalPresenceSection() {
                     ))}
                   </CarouselContent>
                   <div className="flex justify-center gap-2 mt-4">
-                    <CarouselPrevious data-carousel-prev className="static translate-y-0 bg-white/90 hover:bg-white" />
-                    <CarouselNext data-carousel-next className="static translate-y-0 bg-white/90 hover:bg-white" />
+                    <CarouselPrevious data-carousel-prev className="static translate-y-0 bg-white/80 hover:bg-white" />
+                    <CarouselNext data-carousel-next className="static translate-y-0 bg-white/80 hover:bg-white" />
                   </div>
                 </Carousel>
               </div>
