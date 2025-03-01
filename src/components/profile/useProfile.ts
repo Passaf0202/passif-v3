@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { imageUploadService } from "@/services/imageUploadService";
 
 export interface ProfileData {
   id: string;
@@ -129,61 +129,22 @@ export function useProfile() {
         return;
       }
 
-      // Créer un nom de fichier unique avec timestamp
-      const timestamp = Date.now();
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/${timestamp}.${fileExt}`;
-
-      // Vérifier si le bucket existe, sinon le créer
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const avatarBucket = buckets?.find(bucket => bucket.name === 'avatars');
+      const uploadResult = await imageUploadService.uploadImage(file);
       
-      if (!avatarBucket) {
-        // Si le bucket n'existe pas, on le crée
-        console.info("Avatar bucket does not exist, creating it...");
-        // Note: La création d'un bucket nécessite des droits administrateur
-        // Nous utilisons ce qui existe déjà
+      if (!uploadResult.success || !uploadResult.url) {
+        throw new Error(uploadResult.error || "Échec du téléchargement de l'image");
       }
-
-      // Supprimer l'ancien avatar s'il existe
-      if (profile?.avatar_url) {
-        const oldPathMatch = profile.avatar_url.match(/\/([^/]+)\/([^/]+)$/);
-        if (oldPathMatch && oldPathMatch[2]) {
-          await supabase.storage
-            .from('avatars')
-            .remove([`${user.id}/${oldPathMatch[2]}`]);
-        }
-      }
-
-      // Upload du nouveau fichier
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          upsert: true,
-          cacheControl: 'no-cache'
-        });
-          
-      if (error) {
-        throw error;
-      }
-
-      // Récupération de l'URL publique
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      // Mise à jour du profil avec la nouvelle URL
+      
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: uploadResult.url })
         .eq("id", user.id);
 
       if (updateError) throw updateError;
 
-      // Mise à jour de l'état local
       setProfile(prev => prev ? {
         ...prev,
-        avatar_url: publicUrl,
+        avatar_url: uploadResult.url,
       } : null);
 
       toast({
