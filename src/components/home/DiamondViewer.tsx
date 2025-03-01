@@ -49,10 +49,7 @@ export function DiamondViewer({ state, scale = 3.5 }: DiamondViewerProps) {
           height: '100%',
           backgroundColor: 'transparent',
           transition: 'opacity 0.5s ease-in-out',
-          '--model-color': state === 'confirmed' ? '#22c55e' : 
-                          state === 'processing' ? '#3b82f6' :
-                          state === 'awaiting-confirmation' ? '#eab308' :
-                          '#000000',
+          '--model-color': state === 'confirmed' ? '#22c55e' : '#ffffff',
           padding: 0,
           margin: 0
         } as any}

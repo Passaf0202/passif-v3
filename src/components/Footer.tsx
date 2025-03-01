@@ -1,10 +1,10 @@
 
 import { Link } from "react-router-dom";
 import { CurrencySelector } from "./navbar/CurrencySelector";
-import { Instagram, Linkedin, MessageCircle } from "lucide-react";
+import { Instagram } from "lucide-react";
 import DiamondViewer from "./home/DiamondViewer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function Footer() {
@@ -66,18 +66,18 @@ export function Footer() {
     },
     { 
       name: "LinkedIn", 
-      icon: <Linkedin className="h-5 w-5" />, 
+      icon: <img src="/lovable-uploads/40a51903-bcf6-471a-939b-176b3f82fc69.png" alt="LinkedIn" className="h-5 w-5" />, 
       href: "https://linkedin.com" 
     },
     { 
       name: "Discord", 
-      icon: <MessageCircle className="h-5 w-5" />, 
+      icon: <img src="/lovable-uploads/88790474-4911-48d4-919c-f54dad46c6d4.png" alt="Discord" className="h-5 w-5" />, 
       href: "https://discord.com" 
     },
   ];
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
+    <footer className="bg-black text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Desktop Layout */}
         {!isMobile && (
@@ -91,7 +91,11 @@ export function Footer() {
               <div className="h-40 w-40 cursor-pointer">
                 <DiamondViewer state={diamondState} scale={3.0} />
               </div>
-              <h2 className="text-white text-xl font-bold mt-4">Tradecoiner</h2>
+              <img 
+                src="/lovable-uploads/999d07e0-e58f-425b-973b-2b8d11da58f5.png" 
+                alt="Tradecoiner" 
+                className="mt-4 h-8"
+              />
             </div>
 
             {/* Footer Sections */}
@@ -126,7 +130,11 @@ export function Footer() {
               <div className="h-32 w-32 cursor-pointer">
                 <DiamondViewer state={diamondState} scale={2.5} />
               </div>
-              <h2 className="text-white text-xl font-bold mt-2">Tradecoiner</h2>
+              <img 
+                src="/lovable-uploads/999d07e0-e58f-425b-973b-2b8d11da58f5.png" 
+                alt="Tradecoiner" 
+                className="mt-2 h-7"
+              />
             </div>
 
             {/* Accordion Menu */}
