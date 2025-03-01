@@ -151,6 +151,27 @@ export function MobilePhoneContent({
                 <div className="w-full h-[2px] bg-gray-200/80" />
               </div>
 
+              {transactionState === 'confirmed' && (
+                <div className="confirmation-action-container">
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center bg-green-100 px-2 py-0.5 rounded-full h-5 w-fit"
+                  >
+                    <Check className="h-3 w-3 text-green-600 mr-1" />
+                    <span className="text-[11px] font-medium text-green-600">Produit reçu</span>
+                  </motion.div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRetry}
+                    className="h-6 w-6 p-0"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 text-gray-500" />
+                  </Button>
+                </div>
+              )}
+
               {transactionState === 'awaiting-confirmation' ? (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -233,26 +254,6 @@ export function MobilePhoneContent({
                 <div className="w-full h-[2px] bg-gray-200/80" />
                 <div className="w-full h-[2px] bg-gray-200/80" />
                 <div className="w-full h-[2px] bg-gray-200/80" />
-                {transactionState === 'confirmed' && (
-                  <div className="confirmation-action-container">
-                    <motion.div
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center bg-green-100 px-2 py-0.5 rounded-full h-5 w-fit"
-                    >
-                      <Check className="h-3 w-3 text-green-600 mr-1" />
-                      <span className="text-[11px] font-medium text-green-600">Produit reçu</span>
-                    </motion.div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRetry}
-                      className="h-6 w-6 p-0"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5 text-gray-500" />
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
