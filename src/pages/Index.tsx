@@ -8,6 +8,7 @@ import { TopCategoriesSection } from "@/components/home/TopCategoriesSection";
 import { RecommendedListingsSection } from "@/components/home/RecommendedListingsSection";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
+import { GlobalPresenceSection } from "@/components/home/GlobalPresenceSection";
 import { Separator } from "@/components/ui/separator";
 
 const Index = () => {
@@ -32,7 +33,11 @@ const Index = () => {
         <TestimonialsSection />
         <Separator className="max-w-7xl mx-auto opacity-30" />
         
-        <RecommendedListingsSection />
+        <GlobalPresenceSection />
+        <div className="bg-gray-50">
+          <Separator className="max-w-7xl mx-auto opacity-30" />
+          <RecommendedListingsSection />
+        </div>
       </main>
 
       <Footer />
