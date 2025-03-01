@@ -36,7 +36,7 @@ export function TopCategoriesSection() {
   return <section className="py-12 bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
-          <span className="highlight-stabilo text-4xl font-bold">Top catégories</span>
+          <span className="highlight-stabilo font-bold text-3xl">Top catégories</span>
         </h2>
         
         <Carousel opts={{
