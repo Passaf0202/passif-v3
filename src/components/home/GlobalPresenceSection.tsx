@@ -5,6 +5,7 @@ import { Globe, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 type Region = {
   name: string;
@@ -169,9 +170,9 @@ export function GlobalPresenceSection() {
   };
   
   return (
-    <section className="py-16 relative overflow-hidden">
+    <section className="py-16 relative overflow-hidden bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
           <div className="md:w-1/3 mb-8 md:mb-0 pr-0 md:pr-12">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">
               Leader mondial des transactions crypto P2P
@@ -261,52 +262,54 @@ export function GlobalPresenceSection() {
                   </Button>
                 )}
                 
-                <ScrollArea className="w-full">
-                  <div className="flex flex-nowrap overflow-hidden gap-4">
-                    {getVisibleRegions().map((region) => (
-                      <div key={region.name} className="flex-shrink-0 w-full md:w-1/3 bg-gray-50 p-6 rounded-lg shadow-sm">
-                        <div className="flex justify-between items-center mb-4">
+                <div className="grid grid-cols-3 gap-6 pb-4">
+                  {getVisibleRegions().map((region) => (
+                    <Card key={region.name} className="shadow-sm">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-center">
                           <h3 className="text-xl font-semibold text-gray-900">{region.name}</h3>
-                          <div className="flex items-center">
-                            <div className="mr-2 flex items-center">
-                              <Checkbox 
-                                id={`expand-${region.name}`} 
-                                checked={expandedRegions[region.name]} 
-                                onCheckedChange={() => toggleRegion(region.name)}
-                              />
-                              <label htmlFor={`expand-${region.name}`} className="ml-2 text-sm text-gray-500">
-                                Afficher tous les pays
-                              </label>
-                            </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">
+                              Afficher tous les pays
+                            </span>
+                            <Checkbox 
+                              id={`expand-${region.name}`} 
+                              checked={expandedRegions[region.name]} 
+                              onCheckedChange={() => toggleRegion(region.name)}
+                            />
                           </div>
                         </div>
-                        
-                        <div className="flex flex-wrap gap-3">
-                          {region.countries
-                            .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow, region.countries.length))
-                            .map((country) => (
-                              <div 
-                                key={country.code}
-                                className="flex items-center bg-white rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
+                      </CardHeader>
+                      
+                      <CardContent className="pt-4">
+                        <ScrollArea className="max-h-72">
+                          <div className="flex flex-wrap gap-3">
+                            {region.countries
+                              .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow, region.countries.length))
+                              .map((country) => (
+                                <div 
+                                  key={country.code}
+                                  className="flex items-center bg-white rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
+                                >
+                                  <CountryFlag code={country.code} />
+                                  {country.name}
+                                </div>
+                              ))}
+                            
+                            {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow && (
+                              <button 
+                                onClick={() => toggleRegion(region.name)}
+                                className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
                               >
-                                <CountryFlag code={country.code} />
-                                {country.name}
-                              </div>
-                            ))}
-                          
-                          {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow && (
-                            <button 
-                              onClick={() => toggleRegion(region.name)}
-                              className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
-                            >
-                              +{region.countries.length - initialCountriesToShow} pays
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                                +{region.countries.length - initialCountriesToShow} pays
+                              </button>
+                            )}
+                          </div>
+                        </ScrollArea>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
           </div>
