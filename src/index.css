@@ -48,6 +48,17 @@
     --input: 0 0% 20%;
     --ring: 0 0% 83.9%;
   }
+  
+  /* Ajout du style de sélection personnalisé */
+  ::selection {
+    background-color: #000000;
+    color: #ffffff;
+  }
+  
+  ::-moz-selection {
+    background-color: #000000;
+    color: #ffffff;
+  }
 }
 
 /* Base Styles */
