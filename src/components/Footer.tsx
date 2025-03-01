@@ -61,17 +61,17 @@ export function Footer() {
   const socialLinks = [
     { 
       name: "Instagram", 
-      icon: <Instagram className="h-5 w-5" />, 
+      icon: <img src="/lovable-uploads/a4da8ef6-8728-4c2e-a63e-f31c7529261a.png" alt="Instagram" className="h-5 w-5" />, 
       href: "https://instagram.com" 
     },
     { 
       name: "LinkedIn", 
-      icon: <img src="/lovable-uploads/40a51903-bcf6-471a-939b-176b3f82fc69.png" alt="LinkedIn" className="h-5 w-5" />, 
+      icon: <img src="/lovable-uploads/5410f36b-c833-4f95-b530-5b5b5bdabee4.png" alt="LinkedIn" className="h-5 w-5" />, 
       href: "https://linkedin.com" 
     },
     { 
       name: "Discord", 
-      icon: <img src="/lovable-uploads/88790474-4911-48d4-919c-f54dad46c6d4.png" alt="Discord" className="h-5 w-5" />, 
+      icon: <img src="/lovable-uploads/a634bb1f-9fe2-42aa-b464-485f584f4891.png" alt="Discord" className="h-5 w-5" />, 
       href: "https://discord.com" 
     },
   ];
@@ -92,7 +92,7 @@ export function Footer() {
                 <DiamondViewer state={diamondState} scale={3.0} />
               </div>
               <img 
-                src="/lovable-uploads/999d07e0-e58f-425b-973b-2b8d11da58f5.png" 
+                src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png" 
                 alt="Tradecoiner" 
                 className="mt-4 h-8"
               />
@@ -131,7 +131,7 @@ export function Footer() {
                 <DiamondViewer state={diamondState} scale={2.5} />
               </div>
               <img 
-                src="/lovable-uploads/999d07e0-e58f-425b-973b-2b8d11da58f5.png" 
+                src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png" 
                 alt="Tradecoiner" 
                 className="mt-2 h-7"
               />
