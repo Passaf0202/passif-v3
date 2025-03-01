@@ -183,9 +183,14 @@ export function GlobalPresenceSection() {
       }
     };
   }, [isMobile]);
+
+  // Helper function to check if all countries for a region are shown initially
+  const shouldShowExpandToggle = (region: Region) => {
+    return region.countries.length > initialCountriesToShow * 2; // For grid layout
+  };
   
   return (
-    <section className="py-16 relative overflow-hidden">
+    <section className="py-16 relative overflow-hidden bg-gradient-to-b from-white to-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between">
           <div className="md:w-1/3 mb-8 md:mb-0 pr-0 md:pr-12">
@@ -216,16 +221,18 @@ export function GlobalPresenceSection() {
                   <div key={region.name} className="flex-shrink-0 w-80 bg-gray-50 p-6 rounded-lg shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-xl font-semibold text-gray-900">{region.name}</h3>
-                      <button 
-                        onClick={() => toggleRegion(region.name)}
-                        className="p-1 rounded-full hover:bg-gray-200"
-                      >
-                        {expandedRegions[region.name] ? (
-                          <ChevronUp size={20} className="text-gray-700" />
-                        ) : (
-                          <ChevronDown size={20} className="text-gray-700" />
-                        )}
-                      </button>
+                      {shouldShowExpandToggle(region) && (
+                        <button 
+                          onClick={() => toggleRegion(region.name)}
+                          className="p-1 rounded-full hover:bg-gray-200"
+                        >
+                          {expandedRegions[region.name] ? (
+                            <ChevronUp size={20} className="text-gray-700" />
+                          ) : (
+                            <ChevronDown size={20} className="text-gray-700" />
+                          )}
+                        </button>
+                      )}
                     </div>
                     
                     <div className="flex flex-col gap-y-3">
@@ -238,7 +245,7 @@ export function GlobalPresenceSection() {
                           </div>
                         ))}
                       
-                      {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow && (
+                      {!expandedRegions[region.name] && shouldShowExpandToggle(region) && (
                         <div className="flex items-center justify-center mt-2">
                           <button 
                             onClick={() => toggleRegion(region.name)}
@@ -259,43 +266,43 @@ export function GlobalPresenceSection() {
                   <CarouselContent className="pb-6">
                     {regions.map((region) => (
                       <CarouselItem key={region.name} className="md:basis-1/2 lg:basis-1/2">
-                        <Card className="h-full">
+                        <Card className="h-full border-gray-200 shadow-md hover:shadow-lg transition-shadow">
                           <CardHeader className="pb-2">
                             <div className="flex justify-between items-center">
                               <CardTitle className="text-xl">{region.name}</CardTitle>
-                              <div className="flex items-center">
-                                <div className="mr-2 flex items-center">
-                                  <Checkbox 
-                                    id={`expand-${region.name}`} 
-                                    checked={expandedRegions[region.name]} 
-                                    onCheckedChange={() => toggleRegion(region.name)}
-                                  />
-                                  <label htmlFor={`expand-${region.name}`} className="ml-2 text-sm text-gray-500">
-                                    Tous
-                                  </label>
-                                </div>
-                              </div>
+                              {shouldShowExpandToggle(region) && (
+                                <button
+                                  onClick={() => toggleRegion(region.name)} 
+                                  className="text-sm text-gray-500 flex items-center gap-1 hover:text-gray-700" 
+                                >
+                                  {expandedRegions[region.name] ? "Réduire" : "Voir tous"}
+                                  {expandedRegions[region.name] ? 
+                                    <ChevronUp size={16} className="ml-1" /> : 
+                                    <ChevronDown size={16} className="ml-1" />
+                                  }
+                                </button>
+                              )}
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <ScrollArea className="h-56 pr-4">
+                            <ScrollArea className="h-64 pr-4">
                               <div className="grid grid-cols-2 gap-2">
                                 {region.countries
                                   .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow * 2, region.countries.length))
                                   .map((country) => (
                                     <div 
                                       key={country.code}
-                                      className="flex items-center bg-white rounded-full py-2 px-3 text-sm font-medium text-gray-700 border border-gray-200"
+                                      className="flex items-center bg-white rounded-full py-2 px-3 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
                                     >
                                       <CountryFlag code={country.code} />
                                       {country.name}
                                     </div>
                                   ))}
                                 
-                                {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow * 2 && (
+                                {!expandedRegions[region.name] && shouldShowExpandToggle(region) && (
                                   <button 
                                     onClick={() => toggleRegion(region.name)}
-                                    className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200 w-full justify-center col-span-2"
+                                    className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200 w-full justify-center col-span-2 hover:bg-gray-200 transition-colors"
                                   >
                                     +{region.countries.length - initialCountriesToShow * 2} pays
                                   </button>
@@ -307,8 +314,8 @@ export function GlobalPresenceSection() {
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious data-carousel-prev className="left-2" />
-                  <CarouselNext data-carousel-next className="right-2" />
+                  <CarouselPrevious data-carousel-prev className="left-2 bg-white/90 hover:bg-white" />
+                  <CarouselNext data-carousel-next className="right-2 bg-white/90 hover:bg-white" />
                 </Carousel>
               </div>
             )}
