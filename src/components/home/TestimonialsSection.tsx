@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -6,17 +5,17 @@ import { Check } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "Plateforme très sécurisante pour acheter et vendre des cryptos. Le système de vérification KYC est simple et efficace. Je l'utilise maintenant pour toutes mes transactions.",
+    quote: "J'avais peur d'acheter en crypto comme beaucoup de gens dans mon entourage qui en ont, mais Tradecoiner fait tout pour que les transactions se passent bien ce qui m'a rassuré. J'ai fait quelques achats jusqu'à maintenant et tout s'est passé à merveille. Rien à dire, c'est rapide, sécurisé, et on paie on prix juste. Que demander de plus ? J'ai reçu mes produits sans souci comme ailleurs. Une super expérience !",
     author: "Thomas L.",
     verified: true
   },
   {
-    quote: "J'hésitais à utiliser une plateforme P2P pour mes transactions crypto. Tradecoiner m'a rassuré avec son système d'escrow. Transactions rapides et sécurisées.",
+    quote: "J'ai vendu plusieurs produits sur Tradecoiner et ce que j'apprécie le plus, c'est la rapidité de transaction et de réception des fonds. En quelques clics, l'acheteur paie son produit et le vendeur reçoit l'argent instantanément l'argent de manière sécurisé sans transmettre ses données bancaires à personne. C'est vraiment révolutionnaire.",
     author: "Sophie M.",
     verified: true
   },
   {
-    quote: "Les frais minimes ont fait toute la différence. J'ai économisé beaucoup par rapport aux plateformes traditionnelles. Le support client est également très réactif.",
+    quote: "J'ai trouvé un super deal et payé en quelques secondes sur mon téléphone avec mon wallet Metamask. N'étant pas adepte de ce monde des cryptomonnaies, j'ai quand même réussi à effectuer des transactions facilement grâce à TC. Le vendeur a été payé instantanément et tout était clair du début à la fin. Une plateforme au top. Je continuerai à utiliser",
     author: "Alexandre D.",
     verified: true
   }
