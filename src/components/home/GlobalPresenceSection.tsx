@@ -1,9 +1,8 @@
 
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Globe, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { Globe, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Region = {
   name: string;
@@ -150,7 +149,7 @@ export function GlobalPresenceSection() {
   return (
     <section className="py-16 relative overflow-hidden">
       {/* World Map Background */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
         <img 
           src="https://flagcdn.com/w2560/xx.png" 
           alt="World Map" 
@@ -227,101 +226,48 @@ export function GlobalPresenceSection() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-8">
-                {regions.map((region) => {
-                  const shouldScroll = !expandedRegions[region.name] && region.countries.length > 15; // 3 rows of 5 items
-                  
-                  return (
-                    <div key={region.name} className="bg-gray-50 p-6 rounded-lg shadow-sm">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-semibold text-gray-900">{region.name}</h3>
-                        <div className="flex items-center">
-                          <div className="mr-2 flex items-center">
-                            <Checkbox 
-                              id={`expand-${region.name}`} 
-                              checked={expandedRegions[region.name]} 
-                              onCheckedChange={() => toggleRegion(region.name)}
-                            />
-                            <label htmlFor={`expand-${region.name}`} className="ml-2 text-sm text-gray-500">
-                              Afficher tous les pays
-                            </label>
-                          </div>
+                {regions.map((region) => (
+                  <div key={region.name} className="bg-gray-50 p-6 rounded-lg shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-semibold text-gray-900">{region.name}</h3>
+                      <div className="flex items-center">
+                        <div className="mr-2 flex items-center">
+                          <Checkbox 
+                            id={`expand-${region.name}`} 
+                            checked={expandedRegions[region.name]} 
+                            onCheckedChange={() => toggleRegion(region.name)}
+                          />
+                          <label htmlFor={`expand-${region.name}`} className="ml-2 text-sm text-gray-500">
+                            Afficher tous les pays
+                          </label>
                         </div>
                       </div>
-                      
-                      {shouldScroll ? (
-                        <div className="relative">
-                          <ScrollArea className="h-[180px] w-full pr-4">
-                            <div className="flex flex-wrap gap-3">
-                              {region.countries
-                                .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow * 3, region.countries.length))
-                                .map((country) => (
-                                  <div 
-                                    key={country.code}
-                                    className="flex items-center bg-white rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
-                                  >
-                                    <CountryFlag code={country.code} />
-                                    {country.name}
-                                  </div>
-                                ))}
-                              
-                              {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow * 3 && (
-                                <button 
-                                  onClick={() => toggleRegion(region.name)}
-                                  className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
-                                >
-                                  +{region.countries.length - initialCountriesToShow * 3} pays
-                                </button>
-                              )}
-                            </div>
-                          </ScrollArea>
-                          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-1">
-                            <button 
-                              className="p-1 rounded-full bg-white shadow-sm border border-gray-200 hover:bg-gray-100"
-                              onClick={() => {
-                                const scrollArea = document.querySelector(`#region-${region.name} .scrollbar-thumb`);
-                                if (scrollArea) scrollArea.scrollBy({ left: -200, behavior: 'smooth' });
-                              }}
-                            >
-                              <ChevronLeft size={14} className="text-gray-700" />
-                            </button>
-                            <button 
-                              className="p-1 rounded-full bg-white shadow-sm border border-gray-200 hover:bg-gray-100"
-                              onClick={() => {
-                                const scrollArea = document.querySelector(`#region-${region.name} .scrollbar-thumb`);
-                                if (scrollArea) scrollArea.scrollBy({ left: 200, behavior: 'smooth' });
-                              }}
-                            >
-                              <ChevronRight size={14} className="text-gray-700" />
-                            </button>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      {region.countries
+                        .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow, region.countries.length))
+                        .map((country) => (
+                          <div 
+                            key={country.code}
+                            className="flex items-center bg-white rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
+                          >
+                            <CountryFlag code={country.code} />
+                            {country.name}
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap gap-3">
-                          {region.countries
-                            .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow, region.countries.length))
-                            .map((country) => (
-                              <div 
-                                key={country.code}
-                                className="flex items-center bg-white rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
-                              >
-                                <CountryFlag code={country.code} />
-                                {country.name}
-                              </div>
-                            ))}
-                          
-                          {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow && (
-                            <button 
-                              onClick={() => toggleRegion(region.name)}
-                              className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
-                            >
-                              +{region.countries.length - initialCountriesToShow} pays
-                            </button>
-                          )}
-                        </div>
+                        ))}
+                      
+                      {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow && (
+                        <button 
+                          onClick={() => toggleRegion(region.name)}
+                          className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
+                        >
+                          +{region.countries.length - initialCountriesToShow} pays
+                        </button>
                       )}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
