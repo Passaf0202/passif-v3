@@ -258,7 +258,7 @@ export function GlobalPresenceSection() {
                 <Carousel className="w-full">
                   <CarouselContent className="pb-6">
                     {regions.map((region) => (
-                      <CarouselItem key={region.name} className="md:basis-1/3 lg:basis-1/3">
+                      <CarouselItem key={region.name} className="md:basis-1/2 lg:basis-1/2">
                         <Card className="h-full">
                           <CardHeader className="pb-2">
                             <div className="flex justify-between items-center">
@@ -278,26 +278,26 @@ export function GlobalPresenceSection() {
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <ScrollArea className="h-64 pr-4">
-                              <div className="space-y-2">
+                            <ScrollArea className="h-56 pr-4">
+                              <div className="grid grid-cols-2 gap-2">
                                 {region.countries
-                                  .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow, region.countries.length))
+                                  .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow * 2, region.countries.length))
                                   .map((country) => (
                                     <div 
                                       key={country.code}
-                                      className="flex items-center bg-white rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
+                                      className="flex items-center bg-white rounded-full py-2 px-3 text-sm font-medium text-gray-700 border border-gray-200"
                                     >
                                       <CountryFlag code={country.code} />
                                       {country.name}
                                     </div>
                                   ))}
                                 
-                                {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow && (
+                                {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow * 2 && (
                                   <button 
                                     onClick={() => toggleRegion(region.name)}
-                                    className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200 w-full justify-center"
+                                    className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200 w-full justify-center col-span-2"
                                   >
-                                    +{region.countries.length - initialCountriesToShow} pays
+                                    +{region.countries.length - initialCountriesToShow * 2} pays
                                   </button>
                                 )}
                               </div>
