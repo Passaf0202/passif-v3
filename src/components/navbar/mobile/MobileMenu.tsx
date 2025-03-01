@@ -186,7 +186,7 @@ export function MobileMenu() {
               <Button
                 variant="ghost"
                 onClick={() => navigate("/messages")}
-                className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+                className="w-full justify-start h-12 px-4 hover:bg-gray-100 text-gray-900 text-base font-normal"
               >
                 <MessageCircle className="h-5 w-5 mr-3" />
                 Messages
@@ -195,7 +195,7 @@ export function MobileMenu() {
               <Button
                 variant="ghost"
                 onClick={() => navigate("/favorites")}
-                className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+                className="w-full justify-start h-12 px-4 hover:bg-gray-100 text-gray-900 text-base font-normal"
               >
                 <Heart className="h-5 w-5 mr-3" />
                 Favoris
@@ -204,7 +204,7 @@ export function MobileMenu() {
               <Button
                 variant="ghost"
                 onClick={handleSavedSearches}
-                className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+                className="w-full justify-start h-12 px-4 hover:bg-gray-100 text-gray-900 text-base font-normal"
               >
                 <Save className="h-5 w-5 mr-3" />
                 Recherches sauvegardées
@@ -215,7 +215,7 @@ export function MobileMenu() {
                   <Button
                     variant="ghost"
                     onClick={() => navigate("/my-listings")}
-                    className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+                    className="w-full justify-start h-12 px-4 hover:bg-gray-100 text-gray-900 text-base font-normal"
                   >
                     <List className="h-5 w-5 mr-3" />
                     Mes annonces
@@ -224,7 +224,7 @@ export function MobileMenu() {
                   <Button
                     variant="ghost"
                     onClick={() => navigate("/transactions")}
-                    className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+                    className="w-full justify-start h-12 px-4 hover:bg-gray-100 text-gray-900 text-base font-normal"
                   >
                     <FileText className="h-5 w-5 mr-3" />
                     Mes transactions
@@ -233,7 +233,7 @@ export function MobileMenu() {
                   <Button
                     variant="ghost"
                     onClick={handleLogout}
-                    className="w-full justify-start h-12 px-4 hover:bg-white text-base font-normal"
+                    className="w-full justify-start h-12 px-4 hover:bg-gray-100 text-gray-900 text-base font-normal"
                   >
                     <LogOut className="h-5 w-5 mr-3" />
                     Déconnexion
@@ -250,7 +250,7 @@ export function MobileMenu() {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category)}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 text-left"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-100 text-left"
               >
                 <span className="text-base">{capitalizeFirstLetter(category.name)}</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -263,7 +263,7 @@ export function MobileMenu() {
             {!user && (
               <Link
                 to="/auth"
-                className="flex items-center justify-between px-4 py-3 font-medium text-primary hover:bg-gray-50"
+                className="flex items-center justify-between px-4 py-3 font-medium text-primary hover:bg-gray-100"
               >
                 Se connecter
                 <ChevronRight className="h-5 w-5" />
@@ -274,14 +274,14 @@ export function MobileMenu() {
               <h3 className="px-4 text-sm font-semibold text-gray-500 mb-2">Informations pratiques</h3>
               <Link
                 to="/help"
-                className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                className="flex items-center justify-between px-4 py-3 hover:bg-gray-100"
               >
                 <span className="text-base">Centre d'aide</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />
               </Link>
               <Link
                 to="/about"
-                className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                className="flex items-center justify-between px-4 py-3 hover:bg-gray-100"
               >
                 <span className="text-base">À propos</span>
                 <ChevronRight className="h-5 w-5 text-gray-400" />

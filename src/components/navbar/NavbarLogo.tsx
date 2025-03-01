@@ -54,16 +54,18 @@ export const NavbarLogo = () => {
 
   return (
     <Link to="/" className="flex items-center flex-shrink-0">
-      <img
-        src={logoUrl}
-        alt="TRADECOINER"
-        onError={(e) => {
-          console.error('Logo loading error, falling back to placeholder');
-          e.currentTarget.src = FALLBACK_LOGO;
-        }}
-        style={{ height: '32px', width: 'auto', minWidth: '120px' }}
-        className="object-contain"
-      />
+      <div style={{ width: '140px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img
+          src={logoUrl}
+          alt="TRADECOINER"
+          onError={(e) => {
+            console.error('Logo loading error, falling back to placeholder');
+            e.currentTarget.src = FALLBACK_LOGO;
+          }}
+          style={{ maxHeight: '100%', width: 'auto', minWidth: '120px' }}
+          className="object-contain"
+        />
+      </div>
     </Link>
   );
 };
