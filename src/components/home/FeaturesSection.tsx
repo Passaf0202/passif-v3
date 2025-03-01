@@ -41,19 +41,19 @@ export function FeaturesSection() {
             {features.map((feature, index) => (
               <div key={index} className="snap-center min-w-[280px] w-[80%] shrink-0">
                 <Card className="border-0 shadow-sm overflow-hidden h-full">
-                  <CardContent className="p-0">
+                  <CardContent className="p-6">
                     <div className="flex flex-col items-center">
-                      <div className="w-full h-48 bg-gray-100 flex items-center justify-center p-4">
-                        <feature.icon size={80} className="text-gray-700" />
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="bg-black rounded-full p-3">
+                          <feature.icon size={24} className="text-white" />
+                        </div>
                       </div>
-                      <div className="p-6 text-center">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                          {feature.title}
-                        </h3>
-                        <p className="text-gray-600">
-                          {feature.description}
-                        </p>
-                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 text-center">
+                        {feature.description}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -64,19 +64,19 @@ export function FeaturesSection() {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {features.map((feature, index) => (
               <Card key={index} className="border-0 shadow-sm overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="flex flex-col items-center">
-                    <div className="w-full h-48 bg-gray-100 flex items-center justify-center p-4">
-                      <feature.icon size={80} className="text-gray-700" />
-                    </div>
-                    <div className="p-6 text-center">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <CardContent className="p-6">
+                  <div className="flex flex-col">
+                    <div className="flex items-center mb-4">
+                      <div className="bg-black rounded-full p-2 mr-3">
+                        <feature.icon size={16} className="text-white" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900">
                         {feature.title}
                       </h3>
-                      <p className="text-gray-600">
-                        {feature.description}
-                      </p>
                     </div>
+                    <p className="text-gray-600">
+                      {feature.description}
+                    </p>
                   </div>
                 </CardContent>
               </Card>

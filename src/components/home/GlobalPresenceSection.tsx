@@ -131,7 +131,7 @@ const regions: Region[] = [
 
 const CountryFlag = ({ code }: { code: string }) => {
   return (
-    <span className="inline-block w-6 h-4 mr-2 align-middle overflow-hidden rounded-sm border border-gray-200 shadow-sm">
+    <span className="inline-block w-5 h-3 mr-1 align-middle overflow-hidden rounded-sm border border-gray-200 shadow-sm">
       <img 
         src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`} 
         alt={`Drapeau ${code}`}
@@ -207,8 +207,8 @@ export function GlobalPresenceSection() {
             </p>
             
             <div className="flex items-center mt-8">
-              <div className="bg-gray-100 rounded-full p-3 mr-4">
-                <Globe size={24} className="text-gray-700" />
+              <div className="bg-black rounded-full p-2 mr-3">
+                <Globe size={20} className="text-white" />
               </div>
               <p className="font-medium text-lg">80+ pays</p>
             </div>
@@ -263,36 +263,38 @@ export function GlobalPresenceSection() {
             ) : (
               <div ref={carouselRef} className="w-full relative">
                 <Carousel className="w-full">
-                  <CarouselContent className="pb-6">
+                  <CarouselContent className="pb-12">
                     {regions.map((region) => (
                       <CarouselItem key={region.name} className="md:basis-1/2 lg:basis-1/2">
                         <Card className="h-full border-gray-200 shadow-md hover:shadow-lg transition-shadow">
                           <CardHeader className="pb-2">
                             <div className="flex justify-between items-center">
-                              <CardTitle className="text-xl">{region.name}</CardTitle>
+                              <CardTitle className="text-lg flex items-center">
+                                {region.name}
+                              </CardTitle>
                               {shouldShowExpandToggle(region) && (
                                 <button
                                   onClick={() => toggleRegion(region.name)} 
-                                  className="text-sm text-gray-500 flex items-center gap-1 hover:text-gray-700" 
+                                  className="text-xs text-gray-500 flex items-center gap-1 hover:text-gray-700" 
                                 >
-                                  {expandedRegions[region.name] ? "Réduire" : "Voir tous"}
-                                  {expandedRegions[region.name] ? 
-                                    <ChevronUp size={16} className="ml-1" /> : 
-                                    <ChevronDown size={16} className="ml-1" />
+                                  {expandedRegions[region.name] && region.countries.length > initialCountriesToShow * 2 ? "Réduire" : ""}
+                                  {expandedRegions[region.name] && region.countries.length > initialCountriesToShow * 2 ? 
+                                    <ChevronUp size={14} className="ml-1" /> : 
+                                    ""
                                   }
                                 </button>
                               )}
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <ScrollArea className="h-64 pr-4">
+                            <ScrollArea className="h-48 pr-4">
                               <div className="grid grid-cols-2 gap-2">
                                 {region.countries
                                   .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow * 2, region.countries.length))
                                   .map((country) => (
                                     <div 
                                       key={country.code}
-                                      className="flex items-center bg-white rounded-full py-2 px-3 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                                      className="flex items-center bg-white rounded-full py-1 px-2 text-xs font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
                                     >
                                       <CountryFlag code={country.code} />
                                       {country.name}
@@ -302,7 +304,7 @@ export function GlobalPresenceSection() {
                                 {!expandedRegions[region.name] && shouldShowExpandToggle(region) && (
                                   <button 
                                     onClick={() => toggleRegion(region.name)}
-                                    className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200 w-full justify-center col-span-2 hover:bg-gray-200 transition-colors"
+                                    className="flex items-center bg-gray-100 rounded-full py-1 px-3 text-xs font-medium text-gray-700 border border-gray-200 w-full justify-center col-span-2 hover:bg-gray-200 transition-colors"
                                   >
                                     +{region.countries.length - initialCountriesToShow * 2} pays
                                   </button>
@@ -314,8 +316,10 @@ export function GlobalPresenceSection() {
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious data-carousel-prev className="left-2 bg-white/90 hover:bg-white" />
-                  <CarouselNext data-carousel-next className="right-2 bg-white/90 hover:bg-white" />
+                  <div className="flex justify-center gap-2 mt-4">
+                    <CarouselPrevious data-carousel-prev className="static translate-y-0 bg-white/90 hover:bg-white" />
+                    <CarouselNext data-carousel-next className="static translate-y-0 bg-white/90 hover:bg-white" />
+                  </div>
                 </Carousel>
               </div>
             )}
