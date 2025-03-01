@@ -297,7 +297,7 @@ export function GlobalPresenceSection() {
               <span className="highlight-stabilo">Leader mondial</span> des transactions crypto
             </h2>
             
-            <p className="text-md text-gray-800 mb-3 font-normal">Notre smart contrat déployé sur la blockchain Polygon garantit des transactions instantanées et infalsifiables.</p>
+            <p className="text-md text-gray-800 mb-3 font-normal">Notre smart contrat déployé sur la blockchain Polygon garantit des transactions instantanées et infalsifiables dans le monde entier.</p>
             
             <div className="flex items-center mt-4 justify-center md:justify-start">
               <div className="bg-black rounded-full p-2 mr-3">
