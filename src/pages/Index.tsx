@@ -23,16 +23,20 @@ const Index = () => {
         <Separator className="max-w-7xl mx-auto opacity-30" />
         
         <FavoritesSection />
+        <Separator className="max-w-7xl mx-auto opacity-30" />
+        
         <div className="bg-gray-100">
           <TopCategoriesSection />
         </div>
         
         <FeaturesSection />
+        <Separator className="max-w-7xl mx-auto opacity-30" />
         
         <TestimonialsSection />
+        <Separator className="max-w-7xl mx-auto opacity-30" />
         
         <GlobalPresenceSection />
-        <div className="bg-gray-50">
+        <div className="bg-gray-100">
           <RecommendedListingsSection />
         </div>
       </main>

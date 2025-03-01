@@ -76,7 +76,7 @@ export function RecommendedListingsSection() {
   if (listings.length === 0) return null;
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-12 bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 mb-6">
           <Sparkles className="h-5 w-5 text-primary" />

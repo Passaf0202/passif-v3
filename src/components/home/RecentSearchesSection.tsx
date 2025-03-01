@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,8 @@ export function RecentSearchesSection() {
 
   useEffect(() => {
     const searches = JSON.parse(localStorage.getItem("recentSearches") || "[]");
-    setRecentSearches(searches);
+    // Limiter à seulement les 2 dernières recherches
+    setRecentSearches(searches.slice(0, 2));
   }, []);
 
   if (recentSearches.length === 0) return null;
@@ -23,7 +25,7 @@ export function RecentSearchesSection() {
           <h2 className="text-2xl font-semibold text-gray-900">Recherches récentes</h2>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
           {recentSearches.map((search, index) => (
             <Card key={index} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
