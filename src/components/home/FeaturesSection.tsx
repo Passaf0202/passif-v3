@@ -38,7 +38,7 @@ export function FeaturesSection() {
                   <div className="w-full h-48 bg-blue-50 flex items-center justify-center p-4">
                     <div className="w-full h-full relative">
                       <DiamondViewer 
-                        state={index === 0 ? "pending" : index === 1 ? "active" : "confirmed"} 
+                        state={index === 0 ? "awaiting-confirmation" : index === 1 ? "wallet-connect" : "confirmed"} 
                         scale={2.8}
                       />
                     </div>
