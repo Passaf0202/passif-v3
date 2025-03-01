@@ -1,10 +1,13 @@
+
 import { useNavigate } from "react-router-dom";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Circle, CircleDot } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect } from "react";
+
 const TOP_CATEGORIES = ["Mode", "Électronique", "Maison & Jardin", "Véhicules", "Sport & Loisirs"];
+
 export function TopCategoriesSection() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -33,9 +36,10 @@ export function TopCategoriesSection() {
     }
     return undefined;
   }, [emblaApi]);
+
   return <section className="py-12 bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
+        <h2 className="text-center mb-8">
           <span className="highlight-stabilo font-bold text-3xl">Top catégories</span>
         </h2>
         

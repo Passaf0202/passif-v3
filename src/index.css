@@ -87,11 +87,12 @@
   background: #B7B7B7;
   z-index: -1;
   transform: skew(-12deg);
+  width: auto;
 }
 
-.highlight-stabilo > * {
-  transform: skew(12deg);
-  display: inline-block;
+.highlight-stabilo span {
+  position: relative;
+  z-index: 2;
 }
 
 .highlight-stabilo:hover {
