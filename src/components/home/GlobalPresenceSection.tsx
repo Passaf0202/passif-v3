@@ -206,27 +206,27 @@ export function GlobalPresenceSection() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-          <div className="md:w-1/3 mb-8 md:mb-0 pr-0 md:pr-12">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">
-              Leader mondial des transactions crypto
+          <div className="md:w-1/3 mb-8 md:mb-0 pr-0 md:pr-12 text-center md:text-left">
+            <h2 className="text-3xl font-bold tracking-tight text-black sm:text-4xl mb-6">
+              <span className="highlight-stabilo">Leader mondial</span> des transactions crypto
             </h2>
             
-            <p className="text-md text-gray-700 mb-3">
+            <p className="text-md text-gray-800 mb-3">
               Présents dans plus de 80 pays pour des transactions sécurisées avec technologies blockchain avancées.
             </p>
             
-            <div className="flex items-center mt-4">
+            <div className="flex items-center mt-4 justify-center md:justify-start">
               <div className="bg-black rounded-full p-2 mr-3">
                 <Globe size={20} className="text-white" />
               </div>
-              <p className="font-medium text-lg">80+ pays</p>
+              <p className="font-medium text-lg text-black">80+ pays</p>
             </div>
             
-            <div className="flex items-center mt-4">
+            <div className="flex items-center mt-4 justify-center md:justify-start">
               <div className="bg-black rounded-full p-2 mr-3">
                 <Bitcoin size={20} className="text-white" />
               </div>
-              <p className="font-medium text-lg">Transactions sécurisées</p>
+              <p className="font-medium text-lg text-black">Transactions sécurisées</p>
             </div>
           </div>
           
@@ -239,16 +239,16 @@ export function GlobalPresenceSection() {
                     className="flex-shrink-0 w-80 bg-white/80 backdrop-blur-sm p-5 rounded-lg shadow-sm border border-gray-100"
                   >
                     <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-xl font-semibold text-sky-800">{region.name}</h3>
+                      <h3 className="text-xl font-semibold text-black">{region.name}</h3>
                       {shouldShowExpandToggle(region) && (
                         <button 
                           onClick={() => toggleRegion(region.name)}
                           className="p-1 rounded-full hover:bg-gray-200"
                         >
                           {expandedRegions[region.name] ? (
-                            <ChevronUp size={20} className="text-gray-700" />
+                            <ChevronUp size={20} className="text-black" />
                           ) : (
-                            <ChevronDown size={20} className="text-gray-700" />
+                            <ChevronDown size={20} className="text-black" />
                           )}
                         </button>
                       )}
@@ -260,7 +260,7 @@ export function GlobalPresenceSection() {
                         .map((country) => (
                           <div key={country.code} className="flex items-center">
                             <CountryFlag code={country.code} />
-                            <span className="text-sm">{country.name}</span>
+                            <span className="text-sm text-gray-800">{country.name}</span>
                           </div>
                         ))}
                       
@@ -268,7 +268,7 @@ export function GlobalPresenceSection() {
                         <div className="flex items-center justify-center mt-2">
                           <button 
                             onClick={() => toggleRegion(region.name)}
-                            className="text-sm text-gray-500 flex items-center gap-1 hover:text-gray-700"
+                            className="text-sm text-gray-800 flex items-center gap-1 hover:text-black"
                           >
                             Voir plus ({region.countries.length - initialCountriesToShow})
                             <ChevronDown size={16} />
@@ -290,16 +290,16 @@ export function GlobalPresenceSection() {
                         onMouseEnter={() => setHoveredRegion(region.name)}
                         onMouseLeave={() => setHoveredRegion(null)}
                       >
-                        <Card className={`h-full bg-white/80 backdrop-blur-sm border-gray-100 shadow-sm hover:shadow-md transition-shadow ${hoveredRegion === region.name ? 'ring-1 ring-sky-300' : ''}`}>
+                        <Card className={`h-full bg-white/80 backdrop-blur-sm border-gray-100 shadow-sm hover:shadow-md transition-shadow ${hoveredRegion === region.name ? 'ring-1 ring-black' : ''}`}>
                           <CardHeader className="pb-1.5">
                             <div className="flex justify-between items-center">
-                              <CardTitle className="text-lg text-sky-800">
+                              <CardTitle className="text-lg text-black">
                                 {region.name}
                               </CardTitle>
                               {shouldShowExpandToggle(region) && (
                                 <button
                                   onClick={() => toggleRegion(region.name)} 
-                                  className="text-xs text-gray-500 flex items-center gap-1 hover:text-gray-700" 
+                                  className="text-xs text-gray-600 flex items-center gap-1 hover:text-black" 
                                 >
                                   {expandedRegions[region.name] && region.countries.length > initialCountriesToShow * 2 ? "Réduire" : ""}
                                   {expandedRegions[region.name] && region.countries.length > initialCountriesToShow * 2 ? 
@@ -318,7 +318,7 @@ export function GlobalPresenceSection() {
                                   .map((country) => (
                                     <div 
                                       key={country.code}
-                                      className="flex items-center bg-white/90 rounded-full py-1 px-2 text-xs font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                                      className="flex items-center bg-white/90 rounded-full py-1 px-2 text-xs font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 transition-colors"
                                     >
                                       <CountryFlag code={country.code} />
                                       {country.name}
@@ -328,7 +328,7 @@ export function GlobalPresenceSection() {
                                 {!expandedRegions[region.name] && shouldShowExpandToggle(region) && (
                                   <button 
                                     onClick={() => toggleRegion(region.name)}
-                                    className="flex items-center bg-gray-100 rounded-full py-1 px-3 text-xs font-medium text-gray-700 border border-gray-200 w-full justify-center col-span-2 hover:bg-gray-200 transition-colors"
+                                    className="flex items-center bg-gray-100 rounded-full py-1 px-3 text-xs font-medium text-gray-800 border border-gray-200 w-full justify-center col-span-2 hover:bg-gray-200 transition-colors"
                                   >
                                     +{region.countries.length - initialCountriesToShow * 2} pays
                                   </button>
