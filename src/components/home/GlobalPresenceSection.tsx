@@ -262,7 +262,7 @@ export function GlobalPresenceSection() {
                   </Button>
                 )}
                 
-                <div className="grid grid-cols-3 gap-6 pb-4">
+                <div className="grid grid-cols-3 gap-6">
                   {getVisibleRegions().map((region) => (
                     <Card key={region.name} className="shadow-sm">
                       <CardHeader className="pb-2">
@@ -270,7 +270,7 @@ export function GlobalPresenceSection() {
                           <h3 className="text-xl font-semibold text-gray-900">{region.name}</h3>
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-500">
-                              Afficher tous les pays
+                              Afficher tous
                             </span>
                             <Checkbox 
                               id={`expand-${region.name}`} 
@@ -281,15 +281,15 @@ export function GlobalPresenceSection() {
                         </div>
                       </CardHeader>
                       
-                      <CardContent className="pt-4">
-                        <ScrollArea className="max-h-72">
-                          <div className="flex flex-wrap gap-3">
+                      <CardContent className="pt-2">
+                        <ScrollArea className="h-48 pr-2">
+                          <div className="space-y-2">
                             {region.countries
                               .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow, region.countries.length))
                               .map((country) => (
                                 <div 
                                   key={country.code}
-                                  className="flex items-center bg-white rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
+                                  className="flex items-center bg-white rounded-md py-1.5 px-3 text-sm font-medium text-gray-700 border border-gray-200"
                                 >
                                   <CountryFlag code={country.code} />
                                   {country.name}
@@ -299,7 +299,7 @@ export function GlobalPresenceSection() {
                             {!expandedRegions[region.name] && region.countries.length > initialCountriesToShow && (
                               <button 
                                 onClick={() => toggleRegion(region.name)}
-                                className="flex items-center bg-gray-100 rounded-full py-2 px-4 text-sm font-medium text-gray-700 border border-gray-200"
+                                className="flex items-center justify-center w-full bg-gray-100 rounded-md py-1.5 px-3 text-sm font-medium text-gray-700 border border-gray-200"
                               >
                                 +{region.countries.length - initialCountriesToShow} pays
                               </button>
