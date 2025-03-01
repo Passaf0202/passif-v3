@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Zap, DollarSign } from "lucide-react";
+import { Shield, Zap, Bitcoin } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function FeaturesSection() {
@@ -20,7 +20,7 @@ export function FeaturesSection() {
     {
       title: "Économisez sur les frais",
       description: "Transactions à faible coût pour l'acheteur, gratuites pour le vendeur.",
-      icon: DollarSign
+      icon: Bitcoin
     }
   ];
 

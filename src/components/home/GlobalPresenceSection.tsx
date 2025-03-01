@@ -195,18 +195,18 @@ export function GlobalPresenceSection() {
         <div className="flex flex-col md:flex-row md:items-start md:justify-between">
           <div className="md:w-1/3 mb-8 md:mb-0 pr-0 md:pr-12">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">
-              Leader mondial des transactions crypto P2P
+              Leader mondial des transactions crypto
             </h2>
             
-            <p className="text-lg text-gray-600 mb-6">
-              Depuis notre création, nous nous sommes développés dans plus de 80 pays et continuons notre expansion. Les pays listés indiquent où vous pouvez utiliser Tradecoiner.
+            <p className="text-md text-gray-600 mb-4">
+              Présents dans plus de 80 pays, les régions indiquées montrent où vous pouvez utiliser Tradecoiner en toute sécurité.
             </p>
             
-            <p className="text-lg text-gray-600 mb-6">
-              Notre plateforme s'appuie sur des technologies blockchain sécurisées, des systèmes KYC avancés et notre réseau mondial d'utilisateurs vérifiés.
+            <p className="text-md text-gray-600 mb-4">
+              Notre plateforme utilise des technologies blockchain sécurisées et des systèmes KYC avancés avec un réseau mondial d'utilisateurs vérifiés.
             </p>
             
-            <div className="flex items-center mt-8">
+            <div className="flex items-center mt-4">
               <div className="bg-black rounded-full p-2 mr-3">
                 <Globe size={20} className="text-white" />
               </div>
@@ -287,7 +287,7 @@ export function GlobalPresenceSection() {
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <ScrollArea className="h-48 pr-4">
+                            <ScrollArea className="h-44 pr-4">
                               <div className="grid grid-cols-2 gap-2">
                                 {region.countries
                                   .slice(0, expandedRegions[region.name] ? undefined : Math.min(initialCountriesToShow * 2, region.countries.length))
