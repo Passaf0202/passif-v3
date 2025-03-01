@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import {
   Carousel,
@@ -9,8 +8,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { ChevronRight } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const TOP_CATEGORIES = [
   "Mode",
@@ -27,9 +26,10 @@ const TOP_CATEGORIES = [
 
 export function TopCategoriesSection() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12 bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold text-gray-900 mb-8">
           Top catégories
@@ -70,6 +70,23 @@ export function TopCategoriesSection() {
           <CarouselPrevious className="hidden md:flex" />
           <CarouselNext className="hidden md:flex" />
         </Carousel>
+        
+        {/* Indicateur de défilement */}
+        <div className="flex justify-center mt-6">
+          <div className="flex items-center text-gray-500 text-sm">
+            {isMobile ? (
+              <>
+                <span>Glissez pour voir plus</span>
+                <ChevronRight className="w-4 h-4 ml-1 animate-pulse" />
+              </>
+            ) : (
+              <>
+                <span>Utilisez les flèches pour naviguer</span>
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );

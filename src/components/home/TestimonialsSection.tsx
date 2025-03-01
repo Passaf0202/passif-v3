@@ -2,7 +2,7 @@
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Check } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 
 const testimonials = [
   {
@@ -26,7 +26,7 @@ export function TestimonialsSection() {
   const isMobile = useIsMobile();
   
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -38,13 +38,23 @@ export function TestimonialsSection() {
         </div>
 
         {isMobile ? (
-          <div className="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory no-scrollbar">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="snap-center min-w-[280px] w-[85%] shrink-0">
-                <TestimonialCard testimonial={testimonial} />
+          <>
+            <div className="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory no-scrollbar">
+              {testimonials.map((testimonial, index) => (
+                <div key={index} className="snap-center min-w-[280px] w-[85%] shrink-0">
+                  <TestimonialCard testimonial={testimonial} />
+                </div>
+              ))}
+            </div>
+            
+            {/* Indicateur de défilement pour mobile */}
+            <div className="flex justify-center mt-4">
+              <div className="flex items-center text-gray-500 text-sm">
+                <span>Glissez pour voir plus d'avis</span>
+                <ChevronRight className="w-4 h-4 ml-1 animate-pulse" />
               </div>
-            ))}
-          </div>
+            </div>
+          </>
         ) : (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {testimonials.map((testimonial, index) => (

@@ -24,13 +24,12 @@ export function FeaturesSection() {
     icon: Bitcoin
   }];
 
-  return <section className="py-16 bg-gray-50">
+  return <section className="py-12 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <Separator className="opacity-30 mb-16" />
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              <span className="highlight-stabilo">Utilisez enfin</span> vos cryptos sans pendre de risque
+              Utilisez enfin vos cryptos <span className="highlight-stabilo">sans pendre de risque</span>
             </h2>
             <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">L'endroit idéal pour faire vos achats en cryptomonnaies</p>
           </div>
@@ -75,7 +74,6 @@ export function FeaturesSection() {
                 </Card>)}
             </div>}
         </div>
-        <Separator className="opacity-30 mt-16" />
       </div>
     </section>;
 }
