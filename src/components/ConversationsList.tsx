@@ -5,6 +5,7 @@ import { fr } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Search } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ConversationsListProps {
   conversations: any[];
@@ -19,6 +20,8 @@ export function ConversationsList({
   currentUserId,
   onThreadSelect,
 }: ConversationsListProps) {
+  const isMobile = useIsMobile();
+
   return (
     <div className="md:col-span-1 bg-white rounded-lg shadow-sm overflow-hidden h-full flex flex-col">
       <div className="p-4 border-b">
@@ -47,6 +50,9 @@ export function ConversationsList({
               lastMessage.sender_id === currentUserId
                 ? lastMessage.receiver
                 : lastMessage.sender;
+            
+            // Use username instead of email
+            const displayName = otherUser.username || otherUser.full_name;
 
             return (
               <div
@@ -60,16 +66,16 @@ export function ConversationsList({
               >
                 <div className="flex items-start gap-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={otherUser.avatar_url || undefined} alt={otherUser.full_name} />
+                    <AvatarImage src={otherUser.avatar_url || undefined} alt={displayName} />
                     <AvatarFallback>
-                      {otherUser.full_name.split(" ").map((n: string) => n[0]).join("")}
+                      {displayName.split(" ").map((n: string) => n[0]).join("")}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
                       <div className="font-semibold truncate">
-                        {otherUser.full_name}
+                        {displayName}
                       </div>
                       <div className="text-xs text-muted-foreground whitespace-nowrap ml-1 flex-shrink-0">
                         {formatDistanceToNow(new Date(lastMessage.created_at), {
@@ -81,15 +87,19 @@ export function ConversationsList({
 
                     <div className="text-sm text-muted-foreground mb-1 truncate">
                       {lastMessage.content 
-                        ? (lastMessage.content.length > 50 
-                            ? `${lastMessage.content.substring(0, 47)}...` 
+                        ? (lastMessage.content.length > (isMobile ? 30 : 50) 
+                            ? `${lastMessage.content.substring(0, isMobile ? 27 : 47)}...` 
                             : lastMessage.content)
                         : "Fichier partagé"}
                     </div>
 
                     <div className="flex items-center justify-between">
                       <div className="text-xs text-primary truncate max-w-[180px]">
-                        {lastMessage.listing.title}
+                        {thread.listing && thread.listing.title 
+                          ? thread.listing.title.length > (isMobile ? 20 : 30)
+                            ? `${thread.listing.title.substring(0, isMobile ? 17 : 27)}...`
+                            : thread.listing.title
+                          : ""}
                       </div>
                       {hasUnread && (
                         <Badge className="bg-primary text-white text-xs">
