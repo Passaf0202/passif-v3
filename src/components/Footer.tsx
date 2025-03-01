@@ -1,7 +1,5 @@
-
 import { Link } from "react-router-dom";
 import { CurrencySelector } from "./navbar/CurrencySelector";
-import { Instagram } from "lucide-react";
 import DiamondViewer from "./home/DiamondViewer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { useState } from "react";
@@ -61,12 +59,12 @@ export function Footer() {
   const socialLinks = [
     { 
       name: "Instagram", 
-      icon: <img src="/lovable-uploads/a4da8ef6-8728-4c2e-a63e-f31c7529261a.png" alt="Instagram" className="h-5 w-5" />, 
+      icon: <img src="/lovable-uploads/ebfb68e9-33b5-4fab-8a61-24862ea14382.png" alt="Instagram" className="h-5 w-5" />, 
       href: "https://instagram.com" 
     },
     { 
       name: "LinkedIn", 
-      icon: <img src="/lovable-uploads/5410f36b-c833-4f95-b530-5b5b5bdabee4.png" alt="LinkedIn" className="h-5 w-5" />, 
+      icon: <img src="/lovable-uploads/57cae586-02c1-4462-8fb1-b22ebfe2b90f.png" alt="LinkedIn" className="h-5 w-5" />, 
       href: "https://linkedin.com" 
     },
     { 
@@ -91,11 +89,6 @@ export function Footer() {
               <div className="h-40 w-40 cursor-pointer">
                 <DiamondViewer state={diamondState} scale={3.0} />
               </div>
-              <img 
-                src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png" 
-                alt="Tradecoiner" 
-                className="mt-4 h-8"
-              />
             </div>
 
             {/* Footer Sections */}
@@ -130,11 +123,6 @@ export function Footer() {
               <div className="h-32 w-32 cursor-pointer">
                 <DiamondViewer state={diamondState} scale={2.5} />
               </div>
-              <img 
-                src="https://khqmoyqakgwdqixnsxzl.supabase.co/storage/v1/object/public/logos//tradecoiner-logo.svg.png" 
-                alt="Tradecoiner" 
-                className="mt-2 h-7"
-              />
             </div>
 
             {/* Accordion Menu */}
