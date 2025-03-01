@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useReleaseFunds } from "./hooks/useBlockchainTransaction";
 import { EscrowConfirmButton } from "./EscrowConfirmButton";
 import { Transaction } from "./types/escrow";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EscrowActionsProps {
   transaction: Transaction;
@@ -24,6 +25,7 @@ export function EscrowActions({
   onActionStart
 }: EscrowActionsProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const isMobile = useIsMobile();
   
   const { releaseFunds, isReleasing } = useReleaseFunds({
     transactionId,
@@ -50,14 +52,14 @@ export function EscrowActions({
     <>
       <div className="product-received-button">
         <Button
-          className="w-full relative"
+          className={`w-full relative ${isMobile ? 'mobile-confirmation-button' : ''}`}
           disabled={isLoading || isReleasing}
           onClick={() => setConfirmOpen(true)}
         >
           {isLoading || isReleasing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Traitement en cours...
+              {isMobile ? "Traitement..." : "Traitement en cours..."}
             </>
           ) : (
             <>
