@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 import {
@@ -9,7 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import { Circle, CircleDot } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const TOP_CATEGORIES = [
   "Mode",
@@ -17,17 +18,38 @@ const TOP_CATEGORIES = [
   "Maison & Jardin",
   "Véhicules",
   "Sport & Loisirs",
-  "Immobilier",
-  "Animaux",
-  "Services",
-  "Emploi",
-  "Famille"
 ];
 
 export function TopCategoriesSection() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [emblaApi, setEmblaApi] = useState<any>(null);
+
+  // Fonction pour naviguer vers un slide spécifique quand on clique sur un indicateur
+  const scrollToIndex = (index: number) => {
+    if (emblaApi) {
+      emblaApi.scrollTo(index);
+    }
+  };
+
+  // Synchroniser l'index actif avec l'API Embla
+  useEffect(() => {
+    if (emblaApi) {
+      const onSelect = () => {
+        setActiveIndex(emblaApi.selectedScrollSnap());
+      };
+      
+      emblaApi.on('select', onSelect);
+      // Initialiser l'index actif
+      setActiveIndex(emblaApi.selectedScrollSnap());
+      
+      return () => {
+        emblaApi.off('select', onSelect);
+      };
+    }
+    return undefined;
+  }, [emblaApi]);
 
   return (
     <section className="py-12 bg-gray-100">
@@ -42,9 +64,7 @@ export function TopCategoriesSection() {
             loop: true,
           }}
           className="w-full"
-          onSelect={(index) => {
-            setActiveIndex(typeof index === 'number' ? index : 0);
-          }}
+          setApi={setEmblaApi}
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {TOP_CATEGORIES.map((category) => {
@@ -78,14 +98,14 @@ export function TopCategoriesSection() {
         <div className="flex justify-center mt-6">
           {isMobile ? (
             <div className="flex gap-2 items-center">
-              {Array.from({ length: Math.min(TOP_CATEGORIES.length, 10) }).map((_, index) => (
+              {TOP_CATEGORIES.map((_, index) => (
                 <button 
                   key={index}
-                  onClick={() => setActiveIndex(index)}
+                  onClick={() => scrollToIndex(index)}
                   className="focus:outline-none"
                   aria-label={`Aller à la catégorie ${index + 1}`}
                 >
-                  {index === activeIndex % TOP_CATEGORIES.length ? (
+                  {index === activeIndex ? (
                     <CircleDot className="w-4 h-4 text-primary" />
                   ) : (
                     <Circle className="w-4 h-4 text-gray-300" />

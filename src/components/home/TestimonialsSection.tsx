@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Check, Circle, CircleDot } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const testimonials = [
   {
@@ -26,7 +26,53 @@ const testimonials = [
 export function TestimonialsSection() {
   const isMobile = useIsMobile();
   const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   
+  const scrollToTestimonial = (index: number) => {
+    if (containerRef.current) {
+      const container = containerRef.current;
+      const items = container.querySelectorAll('.snap-center');
+      if (items[index]) {
+        const scrollLeft = items[index].getBoundingClientRect().left + container.scrollLeft - container.getBoundingClientRect().left;
+        container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+        setActiveIndex(index);
+      }
+    }
+  };
+
+  // Détection du défilement pour mettre à jour l'indicateur actif
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !isMobile) return;
+
+    const handleScroll = () => {
+      const items = container.querySelectorAll('.snap-center');
+      const containerLeft = container.getBoundingClientRect().left;
+      const containerCenter = containerLeft + container.offsetWidth / 2;
+      
+      let closestIndex = 0;
+      let minDistance = Infinity;
+      
+      items.forEach((item, index) => {
+        const itemRect = item.getBoundingClientRect();
+        const itemCenter = itemRect.left + itemRect.width / 2;
+        const distance = Math.abs(containerCenter - itemCenter);
+        
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIndex = index;
+        }
+      });
+      
+      setActiveIndex(closestIndex);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [isMobile]);
+
   return (
     <section className="py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,25 +87,26 @@ export function TestimonialsSection() {
 
         {isMobile ? (
           <>
-            <div className="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory no-scrollbar">
+            <div 
+              ref={containerRef}
+              className="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory no-scrollbar"
+            >
               {testimonials.map((testimonial, index) => (
                 <div 
                   key={index} 
                   className="snap-center min-w-[280px] w-[85%] shrink-0"
-                  onClick={() => setActiveIndex(index)}
                 >
                   <TestimonialCard testimonial={testimonial} />
                 </div>
               ))}
             </div>
             
-            {/* Indicateurs de défilement pour mobile */}
             <div className="flex justify-center mt-4">
               <div className="flex gap-2 items-center">
                 {testimonials.map((_, index) => (
                   <button 
                     key={index}
-                    onClick={() => setActiveIndex(index)}
+                    onClick={() => scrollToTestimonial(index)}
                     className="focus:outline-none"
                     aria-label={`Voir l'avis ${index + 1}`}
                   >
