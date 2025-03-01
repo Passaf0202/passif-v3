@@ -325,7 +325,7 @@ export function EscrowDetails({ transactionId }: EscrowDetailsProps) {
             </div>
             
             {isUserBuyer && transaction.funds_secured && !transaction.buyer_confirmation && (
-              <div className="mt-6">
+              <div className="mt-6 product-received-confirmation">
                 <EscrowActions 
                   transaction={transaction}
                   isLoading={isLoading}
